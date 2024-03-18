@@ -1,0 +1,35 @@
+import { newExpanseDiscreteWeighted } from "../ExpanseDiscreteWeighted";
+import { newDataframe } from "../dataframe/Dataframe";
+import { POSITIONS } from "../symbols";
+import { Discrete, newDiscrete } from "../variables/Discrete";
+import { newReference } from "../variables/Reference";
+import { Factor } from "./Factor";
+import { newFactorComputed } from "./FactorComputed";
+
+export function factorFrom(
+  variable: Discrete,
+  labels?: string[]
+): Factor<{ label: Discrete }> {
+  const array = variable.values();
+  labels = labels ?? variable.domain.values;
+
+  const levels = [] as number[];
+  const positions = {} as Record<number, Set<number>>;
+
+  for (let i = 0; i < array.length; i++) {
+    const level = labels.indexOf(array[i].toString());
+    if (!positions[level]) positions[level] = new Set();
+    positions[level].add(i);
+    levels.push(level);
+  }
+
+  const domain = newExpanseDiscreteWeighted(labels);
+  const columns = { label: newDiscrete(labels, domain) };
+  // @ts-ignore
+  columns[POSITIONS] = newReference(Object.values(positions));
+
+  columns.label.setName(variable.name());
+  const data = newDataframe(columns);
+
+  return newFactorComputed(labels!.length, levels, data);
+}

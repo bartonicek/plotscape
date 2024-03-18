@@ -1,0 +1,16 @@
+{
+  "name": "utils",
+  "module": "dist/main.js",
+  "types": "dist/main.d.ts",
+  "type": "module",
+  "devDependencies": {
+    "bun-types": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && bun build ./lib/main.ts --outdir ./dist",
+    "dev": "bun run --watch src/main.ts"
+  }
+}
