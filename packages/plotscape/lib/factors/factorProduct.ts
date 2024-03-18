@@ -14,7 +14,12 @@ export function factorProduct<T extends Variables, U extends Variables>(
 
   const update = () => {
     const newFactor = product(factor1, factor2);
-    copyProperties(newFactor, factor, [`cardinality`, `levels`, `data`]);
+    copyProperties(newFactor, factor, [
+      `cardinality`,
+      `levels`,
+      `data`,
+      `parent`,
+    ]);
     factor.emit(`changed`);
   };
 

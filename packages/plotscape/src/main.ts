@@ -4,6 +4,7 @@ import { col } from "../lib/dataframe/ColumnParser.ts";
 import { parseColumns } from "../lib/dataframe/Dataframe.ts";
 import { factorBin } from "../lib/factors/factorBin.ts";
 import { factorFrom } from "../lib/factors/factorFrom.ts";
+import { factorProduct } from "../lib/factors/factorProduct.ts";
 import { newReducedDataframe } from "../lib/reducers/ReducedDataframe.ts";
 import { sumReducer } from "../lib/reducers/Reducer.ts";
 import { newReducerHandler } from "../lib/reducers/ReducerHandler.ts";
@@ -25,6 +26,12 @@ const width = newValueEmitter(5);
 
 const f1 = factorFrom(mpgData.col(`manufacturer`));
 const f2 = factorBin(mpgData.col(`hwy`), width);
+
+const f3 = factorProduct(f1, f2);
+
+f3.listen(`changed`, () => {
+  console.log(f3.parent!.levels);
+});
 
 const reducers = {
   stat1: newReducerHandler(mpgData.col(`displ`), sumReducer),
