@@ -53,3 +53,24 @@ export enum Group {
   Group3 = 5,
   Group4 = 4,
 }
+
+export enum Type {
+  Absolute,
+  Proportion,
+}
+export enum Order {
+  ByName,
+  ByCount,
+}
+
+export enum VerticalAnchor {
+  Middle = 1 / 2,
+  Top = 1,
+  Bottom = 0,
+}
+
+export enum HorizontalAnchor {
+  Center = 1 / 2,
+  Left = 1,
+  Right = 0,
+}

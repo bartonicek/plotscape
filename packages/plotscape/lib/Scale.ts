@@ -4,14 +4,20 @@ import { Named, named } from "./mixins/Named";
 
 type Scaleable = number | string;
 
+/* -------------------------------- Interface ------------------------------- */
+
 export interface Scale<T extends Scaleable = Scaleable> extends Named {
+  other?: Scale;
   domain: Expanse<T>;
   norm: ExpanseContinuous;
   codomain: ExpanseContinuous;
+  setOther(other: Scale): this;
   pushforward(value: T): number;
   pullback(value: number): T;
   setDomain<V extends Scaleable>(domain: Expanse<V>): Scale<V>;
 }
+
+/* ------------------------------- Constructor ------------------------------ */
 
 export function newScale<T extends Scaleable = number>(
   domain?: Expanse<T>,
@@ -22,16 +28,16 @@ export function newScale<T extends Scaleable = number>(
   norm = norm ?? newExpanseContinuous();
   codomain = codomain ?? newExpanseContinuous();
 
-  return {
-    ...named({
-      domain: domain!,
-      norm,
-      codomain: codomain!,
-    }),
-    setDomain,
-    pushforward,
-    pullback,
-  };
+  const props = { domain, norm, codomain };
+
+  return { ...named(props), setOther, setDomain, pushforward, pullback };
+}
+
+/* --------------------------------- Methods -------------------------------- */
+
+function setOther<T extends Scaleable>(this: Scale<T>, other: Scale) {
+  this.other = other;
+  return this;
 }
 
 function pushforward<T extends Scaleable>(this: Scale<T>, value: T) {
@@ -48,11 +54,3 @@ function setDomain<T extends Scaleable>(this: Scale<T>, domain: Expanse<T>) {
   this.domain = domain;
   return this as Scale<T>;
 }
-
-// function setCodomain<T extends Scaleable, U extends Scaleable>(
-//   this: Scale<T>,
-//   codomain: Expanse<U>
-// ) {
-//   this.codomain = codomain;
-//   return this as Scale<T, U>;
-// }

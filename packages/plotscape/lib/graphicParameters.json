@@ -2,6 +2,7 @@
   "defaultWidth": 0.8,
   "defaultNormX": 0.05,
   "defaultNormY": 0.05,
+  "defaultRadius": 5,
   "axisTitleFontsize": 18,
   "axisLabelFontsize": 14,
   "marginLines": [4, 4, 1, 1],

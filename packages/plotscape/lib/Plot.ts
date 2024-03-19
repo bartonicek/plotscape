@@ -1,6 +1,7 @@
 import { TODO, element } from "utils";
 import { Context, newContext } from "./Context";
 import { Scale, newScale } from "./Scale";
+import { Scene } from "./Scene";
 import { Dataframe } from "./dataframe/Dataframe";
 import { getMargins } from "./funs";
 import graphicParameters from "./graphicParameters.json";
@@ -10,7 +11,8 @@ export const layers = [0, 1, 2, 3, 4, 5, 6, 7] as const;
 export const baseLayers = [4, 5, 6, 7] as const;
 
 type OtherContexts = `base` | `user` | `under` | `over` | "xAxis" | "yAxis";
-export type ContextName = (typeof layers)[number] | OtherContexts;
+export type ContextId = (typeof layers)[number];
+export type ContextName = ContextId | OtherContexts;
 export type Contexts = Record<ContextName, Context>;
 
 enum MouseButton {
@@ -24,8 +26,10 @@ enum Mode {
   Query,
 }
 
+/* -------------------------------- Interface ------------------------------- */
+
 export interface Plot {
-  scene: TODO;
+  scene: Scene;
   container: HTMLDivElement;
   contexts: Contexts;
 
@@ -48,10 +52,21 @@ export interface Plot {
   //   localKeyActions: KeyActions;
   //   globalKeyActions: KeyActions;
 
-  resize(): this;
   deactivate(): this;
   activate(): this;
+
+  trainScales(data: () => Dataframe): this;
+
+  resize(): this;
+  render(): this;
+  addGraphicObject(object: GraphicObject): this;
+
+  onMousemoveSelect(event: MouseEvent): this;
+  onMousemovePan(event: MouseEvent): this;
+  onMousemoveQuery(event: MouseEvent): this;
 }
+
+/* ------------------------------- Constructor ------------------------------ */
 
 export function newPlot(scene: TODO) {
   const container = element(`div`).addClass(`ps-plot-container`).get();
@@ -70,7 +85,11 @@ export function newPlot(scene: TODO) {
       .setAttribute(`id`, `data-layer${id}`)
       .addClass(`ps-plot-context`)
       .setStyles({ zIndex: `${7 - id + 1}` })
-      .setProps({ fillStyle: colors[id], strokeStyle: colors[id] });
+      .setProps({
+        fillStyle: colors[id],
+        strokeStyle: colors[id],
+        font: `${axisLabelFontsize}px sans`,
+      });
   }
 
   contexts.base = newContext(container)
@@ -83,8 +102,6 @@ export function newPlot(scene: TODO) {
       font: `${axisTitleFontsize}px sans`,
     });
 
-  // contexts.under = newContext(container).addClass(`inner`);
-  // contexts.over = newContext(container).setStyles({ zIndex: `10` });
   contexts.user = newContext(container)
     .addClass(`ps-plot-context`)
     .addClass(`user`)
@@ -129,24 +146,42 @@ export function newPlot(scene: TODO) {
 
   const graphicObjects = [] as GraphicObject[];
 
-  const pars = {
-    active: false,
-    mousedown: false,
-    mousebutton: MouseButton.Left,
-    mode: Mode.Select,
-    lastX: 0,
-    lastY: 0,
-    lastKey: ``,
+  const active = false;
+  const mousedown = false;
+  const mousebutton = MouseButton.Left;
+  const mode = Mode.Select;
+  const lastX = 0;
+  const lastY = 0;
+  const lastKey = ``;
+
+  const pars = { active, mousedown, mousebutton, mode, lastX, lastY, lastKey };
+  const props = { scene, container, contexts, scales, graphicObjects };
+
+  const methods = {
+    activate,
+    deactivate,
+    render,
+    resize,
+    trainScales,
+    addGraphicObject,
+    onMousemoveSelect,
+    onMousemovePan,
+    onMousemoveQuery,
   };
 
-  const props = { scene, container, contexts, scales, graphicObjects };
-  const methods = { resize, activate, deactivate };
-
   const self: Plot = { ...pars, ...props, ...methods };
+
+  window.addEventListener("resize", resize.bind(self));
+  container.addEventListener("mousedown", onMousedown.bind(self));
+  container.addEventListener("dblclick", onDoubleclick.bind(self));
+  container.addEventListener("contextmenu", onContextmenu.bind(self));
+
   scene.addPlot(self);
 
   return self;
 }
+
+/* --------------------------------- Methods -------------------------------- */
 
 function resize(this: Plot) {
   const { contexts, scales, container } = this;
@@ -163,16 +198,19 @@ function resize(this: Plot) {
   scales.width.codomain.setMin(0).setMax(innerWidth);
   scales.area.codomain.setMax(Math.min(innerWidth, innerHeight));
 
+  this.render();
   return this;
 }
 
 function activate(this: Plot) {
   this.active = true;
+  this.container.classList.add(`active`);
   return this;
 }
 
 function deactivate(this: Plot) {
   this.active = false;
+  this.container.classList.remove(`active`);
   return this;
 }
 
@@ -194,9 +232,127 @@ function trainScales(this: Plot, data: () => Dataframe) {
   }
 
   this.render();
+  return this;
 }
 
 function render(this: Plot) {
   for (const c of Object.values(this.contexts)) c.clear();
   for (const o of this.graphicObjects) o.render(this.contexts);
+  return this;
+}
+
+function addGraphicObject(this: Plot, object: GraphicObject) {
+  this.graphicObjects.push(object);
+  this.render();
+  return this;
+}
+
+/* ----------------------------- Event Handlers ----------------------------- */
+
+function onMousedown(this: Plot, event: MouseEvent) {
+  const { scene, container } = this;
+
+  scene.deactivateAllExcept(this);
+
+  this.activate();
+  this.mousedown = true;
+  this.mousebutton = event.button;
+
+  if (event.button === MouseButton.Left) this.mode = Mode.Select;
+  if (event.button === MouseButton.Right) this.mode = Mode.Pan;
+
+  if (this.mode === Mode.Select) {
+    const { clientHeight } = container;
+    const x = event.offsetX;
+    const y = clientHeight - event.offsetY;
+
+    // selectionRect.setCoords([x, y, x, y]);
+  }
+}
+
+function onMouseup(this: Plot) {
+  this.mousedown = false;
+}
+
+function onMousemove(this: Plot, event: MouseEvent) {
+  // switch (this.mode) {
+  //   case Mode.Select:
+  //     this.onMousemoveSelect(event);
+  //   case Mode.Pan:
+  //     this.onMousemovePan(event);
+  //   case Mode.Query:
+  //     this.onMousemoveQuery(event);
+  // }
+}
+
+function onMousemoveSelect(this: Plot, event: MouseEvent) {
+  if (!this.active || !this.mousedown) return this;
+
+  // const { container, selectionRect } = this;
+  // const { clientHeight } = container;
+
+  // const x = event.offsetX;
+  // const y = clientHeight - event.offsetY;
+
+  // selectionRect.setCoords((c) => [c[0], c[1], x, y]);
+
+  this.render();
+  return this;
+}
+
+function onMousemovePan(this: Plot, event: MouseEvent) {
+  if (!this.active || !this.mousedown) return this;
+
+  const { scales, lastX, lastY } = this;
+  const { clientWidth, clientHeight } = this.container;
+
+  const x = event.offsetX;
+  const y = clientHeight - event.offsetY;
+  const xMove = (x - lastX) / clientWidth;
+  const yMove = (y - lastY) / clientHeight;
+
+  const { min: xNormMin, max: xNormMax } = scales.x.norm;
+  const { min: yNormMin, max: yNormMax } = scales.y.norm;
+
+  scales.x.norm.setMin(xNormMin + xMove).setMax(xNormMax + xMove);
+  scales.y.norm.setMin(yNormMin + yMove).setMax(yNormMax + yMove);
+
+  this.lastX = x;
+  this.lastY = y;
+
+  this.render();
+  return this;
+}
+
+function onMousemoveQuery(this: Plot, event: MouseEvent) {
+  const { offsetX, offsetY } = event;
+  const { clientHeight } = this.container;
+
+  const x = offsetX;
+  const y = clientHeight - offsetY;
+
+  let result;
+
+  // for (const q of this.queryables) {
+  //   result = q.query(x, y);
+  //   if (result) break;
+  // }
+
+  // if (!result) this.queryRenderer.clear();
+  // else this.queryRenderer.renderQuery(x, y, result);
+
+  return this;
+}
+
+function onContextmenu(this: Plot, event: MouseEvent) {
+  event.preventDefault();
+  // this.selectionRect.clear$();
+  this.mousebutton = MouseButton.Right;
+  this.lastX = event.offsetX;
+  this.lastY = this.container.clientHeight - event.offsetY;
+}
+
+function onDoubleclick(this: Plot) {
+  this.deactivate();
+  // this.scene.marker.clearAll();
 }

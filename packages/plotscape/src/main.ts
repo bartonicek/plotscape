@@ -1,5 +1,5 @@
 import { fetchJSON } from "utils";
-import { newPlot } from "../lib/Plot.ts";
+import { Contexts, newPlot } from "../lib/Plot.ts";
 import { newScene } from "../lib/Scene.ts";
 import { newValueEmitter } from "../lib/ValueEmitter.ts";
 import { col } from "../lib/dataframe/ColumnParser.ts";
@@ -21,7 +21,17 @@ const width = newValueEmitter(5);
 
 const scene = newScene(app, mpgData);
 const plot1 = newPlot(scene);
-// const plot2 = newPlot(scene);
+
+plot1.addGraphicObject({
+  render(contexts: Contexts) {
+    for (let i = 0; i < 20; i++) {
+      contexts[0].point(i * 10, i * 10, { radius: 10 });
+    }
+    contexts[0].text(200, 100, "Hello World");
+  },
+});
+
+const plot2 = newPlot(scene);
 // const plot3 = newPlot(scene);
 
 // const f1 = factorFrom(mpgData.col(`manufacturer`));
