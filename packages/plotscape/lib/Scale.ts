@@ -1,48 +1,58 @@
 import { Expanse } from "./Expanse";
-import { ExpanseContinuous } from "./ExpanseContinuous";
+import { ExpanseContinuous, newExpanseContinuous } from "./ExpanseContinuous";
+import { Named, named } from "./mixins/Named";
 
-export interface Scale<T, U> {
+type Scaleable = number | string;
+
+export interface Scale<T extends Scaleable = Scaleable> extends Named {
   domain: Expanse<T>;
   norm: ExpanseContinuous;
-  codomain: Expanse<U>;
-  pushforward(value: T): U;
-  pullback(value: U): T;
-  setDomain<V>(domain: Expanse<V>): Scale<V, U>;
-  setCodomain<V>(codomain: Expanse<V>): Scale<T, V>;
+  codomain: ExpanseContinuous;
+  pushforward(value: T): number;
+  pullback(value: number): T;
+  setDomain<V extends Scaleable>(domain: Expanse<V>): Scale<V>;
 }
 
-export function newScale<T, U>(
-  domain: Expanse<T>,
-  norm: ExpanseContinuous,
-  codomain: Expanse<U>
-): Scale<T, U> {
+export function newScale<T extends Scaleable = number>(
+  domain?: Expanse<T>,
+  norm?: ExpanseContinuous,
+  codomain?: ExpanseContinuous
+): Scale<T> {
+  domain = domain ?? (newExpanseContinuous() as unknown as Expanse<T>);
+  norm = norm ?? newExpanseContinuous();
+  codomain = codomain ?? newExpanseContinuous();
+
   return {
-    domain,
-    norm,
-    codomain,
+    ...named({
+      domain: domain!,
+      norm,
+      codomain: codomain!,
+    }),
     setDomain,
-    setCodomain,
     pushforward,
     pullback,
   };
 }
 
-function pushforward<T, U>(this: Scale<T, U>, value: T) {
+function pushforward<T extends Scaleable>(this: Scale<T>, value: T) {
   const { domain, norm, codomain } = this;
   return codomain.unnormalize(norm.unnormalize(domain.normalize(value)));
 }
 
-function pullback<T, U>(this: Scale<T, U>, value: U) {
+function pullback<T extends Scaleable>(this: Scale<T>, value: number) {
   const { domain, norm, codomain } = this;
   return domain.unnormalize(norm.normalize(codomain.normalize(value)));
 }
 
-function setDomain<T, U>(this: Scale<any, U>, domain: Expanse<T>) {
+function setDomain<T extends Scaleable>(this: Scale<T>, domain: Expanse<T>) {
   this.domain = domain;
-  return this as Scale<T, U>;
+  return this as Scale<T>;
 }
 
-function setCodomain<T, U>(this: Scale<T, any>, codomain: Expanse<U>) {
-  this.codomain = codomain;
-  return this as Scale<T, U>;
-}
+// function setCodomain<T extends Scaleable, U extends Scaleable>(
+//   this: Scale<T>,
+//   codomain: Expanse<U>
+// ) {
+//   this.codomain = codomain;
+//   return this as Scale<T, U>;
+// }

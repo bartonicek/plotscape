@@ -1,13 +1,9 @@
 import { fetchJSON } from "utils";
+import { newPlot } from "../lib/Plot.ts";
+import { newScene } from "../lib/Scene.ts";
 import { newValueEmitter } from "../lib/ValueEmitter.ts";
 import { col } from "../lib/dataframe/ColumnParser.ts";
 import { parseColumns } from "../lib/dataframe/Dataframe.ts";
-import { factorBin } from "../lib/factors/factorBin.ts";
-import { factorFrom } from "../lib/factors/factorFrom.ts";
-import { factorProduct } from "../lib/factors/factorProduct.ts";
-import { newReducedDataframe } from "../lib/reducers/ReducedDataframe.ts";
-import { sumReducer } from "../lib/reducers/Reducer.ts";
-import { newReducerHandler } from "../lib/reducers/ReducerHandler.ts";
 import "./style.css";
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
@@ -21,42 +17,46 @@ const spec = {
 };
 
 const mpgData = parseColumns(mpgJSON, spec);
-
 const width = newValueEmitter(5);
 
-const f1 = factorFrom(mpgData.col(`manufacturer`));
-const f2 = factorBin(mpgData.col(`hwy`), width);
+const scene = newScene(app, mpgData);
+const plot1 = newPlot(scene);
+// const plot2 = newPlot(scene);
+// const plot3 = newPlot(scene);
 
-const f3 = factorProduct(f1, f2);
+// const f1 = factorFrom(mpgData.col(`manufacturer`));
+// const f2 = factorBin(mpgData.col(`hwy`), width);
 
-f3.listen(`changed`, () => {
-  console.log(f3.parent!.levels);
-});
+// const f3 = factorProduct(f1, f2);
 
-const reducers = {
-  stat1: newReducerHandler(mpgData.col(`displ`), sumReducer),
-};
+// const reducers = {
+//   stat1: newReducerHandler(mpgData.col(`displ`), sumReducer),
+// };
 
-const rd = newReducedDataframe(f1, reducers);
-const rd2 = rd.refine(f2);
+// const rd = newReducedDataframe(f1, reducers);
+// const rd2 = rd.refine(f2);
 
-rd2.listen(`changed`, () => {
-  console.log(
-    rd2
-      .select((d) => ({
-        var0: d.label,
-        var1: d.stat1.stack().normalizeByParent(),
-      }))
-      .rows()
-  );
-});
+// rd2.listen(`changed`, () => {
+//   console.log(
+//     rd2
+//       .select((d) => ({
+//         var0: d.label,
+//         var1: d.stat1.stack().normalizeByParent(),
+//       }))
+//       .rows()
+//   );
+// });
 
-rd2.emit(`changed`);
-width.setValue(2);
+// rd2.emit(`changed`);
+// width.setValue(2);
 
-// rd2.reducers.stat1 = rd2.reducers.stat1.stack().normalizeByParent();
-// rd2.columns.stat1 = rd2.reducers.stat1.result;
+// // rd2.reducers.stat1 = rd2.reducers.stat1.stack().normalizeByParent();
+// // rd2.columns.stat1 = rd2.reducers.stat1.result;
 
-// console.log(rd2.rows());
+// // console.log(rd2.rows());
 
-// const x = mpgData.select((d) => ({ var1: d.displ }));
+// // const x = mpgData.select((d) => ({ var1: d.displ }));
+
+// const ctx = newContext(app);
+// ctx.setBackgroundColor(`antiquewhite`);
+// ctx.drawPoint(150, 150, 20);

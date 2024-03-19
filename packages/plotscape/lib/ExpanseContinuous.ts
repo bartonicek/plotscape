@@ -7,12 +7,17 @@ export interface ExpanseContinuous
     Emitter<"limitschanged"> {
   min: number;
   max: number;
+  defaultMin: number;
+  defaultMax: number;
   source?: number[];
   range(): number;
   normalize(value: number): number;
   unnormalize(value: number): number;
   setMin(value: number): this;
   setMax(value: number): this;
+  setDefaultMin(value: number): this;
+  setDefaultMax(value: number): this;
+  defaultize(): this;
   registerSource(values: number[]): this;
   retrain(): this;
 }
@@ -21,11 +26,16 @@ export function newExpanseContinuous(min = 0, max = 1): ExpanseContinuous {
   const self = {
     min,
     max,
+    defaultMin: min,
+    defaultMax: max,
     range,
     normalize,
     unnormalize,
     setMin,
     setMax,
+    setDefaultMin,
+    setDefaultMax,
+    defaultize,
     registerSource,
     retrain,
   };
@@ -54,6 +64,25 @@ function setMin(this: ExpanseContinuous, value: number) {
 function setMax(this: ExpanseContinuous, value: number) {
   this.max = value;
   this.emit("limitschanged");
+  return this;
+}
+
+function setDefaultMin(this: ExpanseContinuous, value: number) {
+  this.defaultMin = value;
+  this.emit("limitschanged");
+  return this;
+}
+
+function setDefaultMax(this: ExpanseContinuous, value: number) {
+  this.defaultMax = value;
+  this.emit("limitschanged");
+  return this;
+}
+
+function defaultize(this: ExpanseContinuous) {
+  this.min = this.defaultMin;
+  this.max = this.defaultMax;
+  this.emit(`limitschanged`);
   return this;
 }
 

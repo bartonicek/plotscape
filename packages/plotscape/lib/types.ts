@@ -1,3 +1,5 @@
+import { Letter } from "utils";
+import { Contexts } from "./Plot";
 import { Continuous } from "./variables/Continuous";
 import { Discrete } from "./variables/Discrete";
 import { Reference } from "./variables/Reference";
@@ -19,3 +21,35 @@ export type RowOf<T extends Variables> = {
 };
 
 export type Primitive = string | number | symbol | object;
+
+export type Rect = [x0: number, y0: number, x1: number, y1: number];
+export type Margins = [
+  bottom: number,
+  left: number,
+  top: number,
+  right: number
+];
+export type ActionKey =
+  | `Equal`
+  | `Minus`
+  | `BracketLeft`
+  | `BracketRight`
+  | `Semicolon`
+  | `Quote`
+  | `Key${Uppercase<Letter>}`;
+
+export type KeyActions = Partial<Record<ActionKey, (event: Event) => void>>;
+
+export interface GraphicObject {
+  render(contexts: Contexts): void;
+  check?(coords: Rect): void;
+  query?(x: number, y: number): Record<string, any> | undefined;
+}
+
+export enum Group {
+  Transient = 255,
+  Group1 = 7,
+  Group2 = 6,
+  Group3 = 5,
+  Group4 = 4,
+}

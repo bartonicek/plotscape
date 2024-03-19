@@ -8,5 +8,8 @@
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "csstype": "^3.1.3"
   }
 }
