@@ -1,20 +1,21 @@
 import { minMax } from "utils";
 import { ExpanseContinuous, newExpanseContinuous } from "../ExpanseContinuous";
-import { indexable } from "../mixins/Indexable";
-import { named } from "../mixins/Named";
-import { proxyable } from "../mixins/Proxyable";
+import { Indexable, indexable } from "../mixins/Indexable";
+import { Named, named } from "../mixins/Named";
+import { Proxyable, proxyable } from "../mixins/Proxyable";
 import { Variable } from "./Variable";
 
-export interface Continuous extends Variable<number> {
-  domain: ExpanseContinuous;
+export interface Continuous
+  extends Named,
+    Variable<number>,
+    Indexable<number>,
+    Proxyable<number> {
+  stack?(): this;
+  normalizeByParent?(): this;
 }
 
-export function newContinuous(
-  values: number[],
-  domain?: ExpanseContinuous
-): Continuous {
-  const [min, max] = minMax(values);
+export function newContinuous(array: number[], domain?: ExpanseContinuous) {
+  const [min, max] = minMax(array);
   domain = domain ?? newExpanseContinuous(min, max);
-
-  return proxyable(indexable(named({ array: values, domain })));
+  return proxyable(indexable(named({ array, domain }))) as Continuous;
 }

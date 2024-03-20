@@ -19,13 +19,19 @@ export type ReadonlyKeys<T> = keyof {
 };
 
 export type DisjointUnion<
-  T extends Record<string, any>,
-  U extends Record<string, any>
-> = Normalize<
-  { [key in keyof T & string]: T[key] } & {
-    [key in keyof U as key extends keyof T & string ? `${key}$` : key]: U[key];
-  }
->;
+  T extends Record<string, any> | undefined,
+  U extends Record<string, any> | undefined
+> = T extends undefined
+  ? U
+  : U extends undefined
+  ? T
+  : Normalize<
+      { [key in keyof T & string]: T[key] } & {
+        [key in keyof U as key extends keyof T & string
+          ? `${key}$`
+          : key]: U[key];
+      }
+    >;
 
 export type SplitString<T extends string> =
   T extends `${infer First}${infer Rest}` ? First | SplitString<Rest> : never;

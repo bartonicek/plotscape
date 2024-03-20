@@ -1,9 +1,18 @@
 import * as utils from "utils";
-import { allValues, error, subsetOnIndices, uniqueIntegers } from "utils";
+import {
+  Normalize,
+  allEntries,
+  error,
+  subsetOnIndices,
+  uniqueIntegers,
+  values,
+} from "utils";
+import { Emitter, subscribable } from "../mixins/Emitter";
 import { RowOf, VariableValue, Variables } from "../types";
 import { ColumnParser, ParsedColumns } from "./ColumnParser";
 
-export interface Dataframe<T extends Variables = Variables> {
+export interface Dataframe<T extends Variables = Variables>
+  extends Emitter<`changed`> {
   columns: T;
   n(): number;
   keys(): (keyof T)[];
@@ -13,10 +22,26 @@ export interface Dataframe<T extends Variables = Variables> {
   rows(): RowOf<T>[];
   select<U extends Variables>(selectfn: (cols: T) => U): Dataframe<U>;
   cachedN?(): number;
+  join<U extends Variables>(other: Dataframe<U>): Dataframe<Normalize<T & U>>;
+  proxy(indices: number[]): Dataframe<T>;
 }
 
 export function newDataframe<T extends Variables>(columns: T): Dataframe<T> {
-  return { columns, n, keys, col, cols, row, rows, select };
+  const props = { columns };
+  const methods = {
+    n,
+    keys,
+    col,
+    cols,
+    row,
+    rows,
+    select,
+    join,
+    proxy,
+  };
+  const self = { ...props, ...methods };
+
+  return subscribable(self);
 }
 
 export function parseColumns<T extends Record<string, ColumnParser>>(
@@ -56,7 +81,7 @@ export function parseColumns<T extends Record<string, ColumnParser>>(
 
 function n(this: Dataframe): number {
   if (this.cachedN) return this.cachedN();
-  for (const col of allValues(this.columns)) {
+  for (const col of values(this.columns)) {
     if (col.n) {
       this.cachedN = col.n.bind(col);
       return this.cachedN!();
@@ -86,7 +111,7 @@ function row<T extends Variables>(
   row?: RowOf<T>
 ) {
   row = row ?? ({} as RowOf<T>);
-  for (const [k, v] of utils.allEntries(this.columns)) {
+  for (const [k, v] of allEntries(this.columns)) {
     row[k] = v.valueAt(index) as VariableValue<typeof v>;
   }
   return row;
@@ -103,6 +128,35 @@ function rows<T extends Variables>(this: Dataframe<T>) {
 function select<T extends Variables, U extends Variables>(
   this: Dataframe<T>,
   selectfn: (cols: T) => U
+): Dataframe<U> {
+  const columns = { ...this.columns, ...selectfn(this.columns) } as any;
+  const result = newDataframe(columns);
+  for (const [k, v] of allEntries(this.columns)) {
+    if (typeof k === "symbol") columns[k] = v;
+  }
+  this.listen(`changed`, () => result.emit(`changed`));
+  return result;
+}
+
+function join<T extends Variables, U extends Variables>(
+  this: Dataframe<T>,
+  other: Dataframe<U>
 ) {
-  return newDataframe(selectfn(this.columns));
+  const columns = { ...this.columns, ...other.columns };
+  const result = newDataframe(columns) as Dataframe<Normalize<T & U>>;
+  this.listen(`changed`, () => result.emit(`changed`));
+  other.listen(`changed`, () => result.emit(`changed`));
+
+  return result;
+}
+
+function proxy<T extends Variables>(this: Dataframe<T>, indices: number[]) {
+  const columns = { ...this.columns };
+  const copy = newDataframe(columns);
+  copy.cachedN = () => indices.length;
+  for (const [k, v] of allEntries(copy.columns)) {
+    copy.columns[k] = v.proxy(indices);
+  }
+
+  return copy;
 }

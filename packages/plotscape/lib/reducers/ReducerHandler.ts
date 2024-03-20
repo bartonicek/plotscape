@@ -1,4 +1,5 @@
 import { Factor } from "../factors/Factor";
+import { Emitter, subscribable } from "../mixins/Emitter";
 import { InferVariable } from "../types";
 import { newContinuous } from "../variables/Continuous";
 import { newDiscrete } from "../variables/Discrete";
@@ -6,10 +7,11 @@ import { newReference } from "../variables/Reference";
 import { Reduced, reduced } from "./Reduced";
 import { Reducer } from "./Reducer";
 
-export interface ReducerHandler<T = any, U = any> {
+export interface ReducerHandler<T = any, U = any> extends Emitter<`changed`> {
   factor?: Factor;
   parent?: ReducerHandler<T, U>;
   reducer: Reducer<T, U>;
+
   source: InferVariable<T>;
   result: InferVariable<U> & Reduced;
 
@@ -32,22 +34,19 @@ export function newReducerHandler<T, U>(
   const result = reduced(constructor([])) as unknown as InferVariable<U> &
     Reduced;
 
-  const reducerHandler = {
-    reducer,
-    source,
-    result,
+  const props = { reducer, source, result, stacked: false, normalized: false };
+  const methods = {
     clone,
     setParent,
     setFactor,
-    stacked: false,
-    normalized: false,
     recompute,
     stack,
     normalizeByParent,
   };
 
-  reducerHandler.result.setReducer(reducerHandler);
-  return reducerHandler;
+  const self = subscribable({ ...props, ...methods });
+  self.result.setReducer(self);
+  return self;
 }
 
 function setFactor<T, U>(this: ReducerHandler<T, U>, factor: Factor) {
@@ -68,15 +67,18 @@ function clone<T, U>(this: ReducerHandler<T, U>): ReducerHandler<T, U> {
 
   const copy = newReducerHandler(source, reducer);
   copy.result.array = [...this.result.array];
+  copy.stacked = this.stacked;
+  copy.normalized = this.normalized;
 
-  if (factor) copy.setFactor(factor);
   if (parent) copy.setParent(parent);
+  if (factor) copy.setFactor(factor);
 
+  this.listen(`changed`, () => copy.recompute());
   return copy;
 }
 
 function recompute<T, U>(this: ReducerHandler<T, U>) {
-  const { factor, source, result, reducer, parent } = this;
+  const { factor, source, result, reducer, stacked, normalized } = this;
   if (factor === undefined) throw new Error(`Factor has not been registered`);
 
   const { cardinality } = factor;
@@ -84,57 +86,60 @@ function recompute<T, U>(this: ReducerHandler<T, U>) {
   array.length = cardinality;
 
   for (let i = 0; i < cardinality; i++) array[i] = reducer.initialfn();
-
-  const n = source.n();
-
-  for (let i = 0; i < n; i++) {
+  for (let i = 0; i < factor.levels.length; i++) {
     const level = factor.levelAt(i);
-    array[level] = reducer.reducefn(
-      array[level] as any,
-      source.valueAt(i) as any
-    );
+    array[level] = reducer.reducefn(array[level], source.valueAt(i) as any);
   }
 
+  if (stacked) stackInternal(this);
+  if (normalized) normalizeInternal(this);
+
+  this.emit(`changed`);
   return this;
 }
 
 function stack<T, U>(this: ReducerHandler<T, U>) {
-  const { parent, factor, reducer } = this;
-  if (!parent || !factor) return this;
-
+  const { factor } = this;
+  if (!factor || !factor.parent) return this;
   const copy = this.clone();
-  const parentFactor = factor.parent;
-
-  if (!parentFactor) return this;
-
-  const stacked = Array(parentFactor.cardinality) as U[];
-  for (let i = 0; i < parentFactor.cardinality; i++) {
-    stacked[i] = reducer.initialfn();
-  }
-
-  const array = copy.result.array;
-
-  for (let i = 0; i < array.length; i++) {
-    const level = parentFactor.levelAt(i);
-    // @ts-ignore
-    stacked[level] = reducer.reducefn(stacked[level], array[i]);
-    array[i] = stacked[level];
-  }
-
+  copy.stacked = true;
   return copy;
 }
 
 function normalizeByParent<T, U>(this: ReducerHandler<T, U>) {
   const { parent, factor } = this;
-
   if (!parent || !factor) return this;
-
   const copy = this.clone();
+  copy.normalized = true;
+  return copy;
+}
+
+function stackInternal<T, U>(self: ReducerHandler<T, U>) {
+  const { factor, reducer } = self;
+  if (!factor || !factor.parent) return self;
 
   const parentFactor = factor.parent;
-  if (!parentFactor || !parent) return this;
+  const stacked = Array(parentFactor.cardinality) as U[];
+  for (let i = 0; i < parentFactor.cardinality; i++) {
+    stacked[i] = reducer.initialfn();
+  }
 
-  const array = copy.result.array;
+  const array = self.result.array as any[];
+
+  for (let i = 0; i < array.length; i++) {
+    const level = parentFactor.levelAt(i);
+    stacked[level] = reducer.reducefn(stacked[level], array[i]);
+    array[i] = stacked[level];
+  }
+}
+
+function normalizeInternal<T, U>(self: ReducerHandler<T, U>) {
+  const { parent, factor } = self;
+
+  if (!parent || !factor || !factor.parent) return self;
+
+  const parentFactor = factor.parent;
+  const array = self.result.array;
   const parentArray = parent.result.array;
 
   for (let i = 0; i < parentFactor.levels.length; i++) {
@@ -142,8 +147,6 @@ function normalizeByParent<T, U>(this: ReducerHandler<T, U>) {
     const parentValue = parentArray[parentFactor.levelAt(i)] as number;
     array[i] = (value / parentValue) as U;
   }
-
-  return copy;
 }
 
 function parseVariable(value: unknown) {

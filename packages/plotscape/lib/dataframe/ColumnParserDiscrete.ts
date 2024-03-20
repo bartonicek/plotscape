@@ -35,7 +35,7 @@ function parse(this: ColumnParserDiscrete, array: unknown[]): Discrete {
   const { case: wordCase, capitalize, stripWS } = this.options;
 
   if (wordCase === Case.None && !(capitalize || stripWS)) {
-    return newDiscrete(array as string[]);
+    return newDiscrete(array.map(String));
   }
 
   const result = Array(array.length) as string[];
@@ -47,7 +47,7 @@ function parse(this: ColumnParserDiscrete, array: unknown[]): Discrete {
   if (capitalize) mapfn = compose(mapfn, utils.capitalize);
 
   for (let i = 0; i < array.length; i++) {
-    result[i] = mapfn(array[i] as string);
+    result[i] = mapfn(String(array[i]));
   }
 
   return newDiscrete(result);

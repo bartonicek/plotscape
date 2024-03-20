@@ -1,11 +1,11 @@
 import { Letter } from "utils";
-import { Contexts } from "./Plot";
+import { Contexts } from "./plot/Plot";
 import { Continuous } from "./variables/Continuous";
 import { Discrete } from "./variables/Discrete";
 import { Reference } from "./variables/Reference";
 import { Variable } from "./variables/Variable";
 
-export type Variables = Record<PropertyKey, Variable>;
+export type Variables = Record<PropertyKey, Variable<unknown>>;
 export type VariableValue<T extends Variable> = T extends Variable<infer V>
   ? V
   : never;
@@ -42,7 +42,7 @@ export type KeyActions = Partial<Record<ActionKey, (event: Event) => void>>;
 
 export interface GraphicObject {
   render(contexts: Contexts): void;
-  check?(coords: Rect): void;
+  check?(coords: Rect): Set<number>;
   query?(x: number, y: number): Record<string, any> | undefined;
 }
 

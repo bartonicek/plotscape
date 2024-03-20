@@ -1,4 +1,4 @@
-import { compareAlphaNumeric, cumsum, error, last, rep, seq } from "utils";
+import { compareAlphaNumeric, cumsum, error, last, rep } from "utils";
 import { Expanse } from "./Expanse";
 import { Emitter, subscribable } from "./mixins/Emitter";
 
@@ -12,8 +12,8 @@ export interface ExpanseDiscreteWeighted
   width(value: string): number;
   setValues(values: string[]): this;
   setWeights(weights: number[]): this;
-  registerSource(source: string[]): this;
-  retrain(): this;
+  retrain(array: string[]): this;
+  clone(): ExpanseDiscreteWeighted;
 }
 
 export function newExpanseDiscreteWeighted(
@@ -30,8 +30,8 @@ export function newExpanseDiscreteWeighted(
     width,
     setValues,
     setWeights,
-    registerSource,
     retrain,
+    clone,
   };
 
   return subscribable(self);
@@ -73,17 +73,9 @@ function setWeights(this: ExpanseDiscreteWeighted, weights: number[]) {
   return this;
 }
 
-function registerSource(this: ExpanseDiscreteWeighted, source: string[]) {
-  this.source = source;
-  this.retrain();
-  return this;
-}
-
-function retrain(this: ExpanseDiscreteWeighted) {
-  if (!this.source) return this;
-
-  const values = Array.from(new Set(this.source)).sort(compareAlphaNumeric);
-  const weights = seq(1, values.length);
+function retrain(this: ExpanseDiscreteWeighted, array: string[]) {
+  const values = Array.from(new Set(array)).sort(compareAlphaNumeric);
+  const weights = rep(1, values.length);
   const cumWeights = cumsum(weights);
 
   this.values = values;
@@ -92,4 +84,8 @@ function retrain(this: ExpanseDiscreteWeighted) {
   this.emit(`changed`);
 
   return this;
+}
+
+function clone(this: ExpanseDiscreteWeighted) {
+  return newExpanseDiscreteWeighted(this.values);
 }

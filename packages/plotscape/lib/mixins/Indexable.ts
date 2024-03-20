@@ -1,22 +1,25 @@
+import { Expanse } from "../Expanse";
+import { Scale } from "../Scale";
+
 export interface Indexable<T> {
+  domain: Expanse<T>;
   array: T[];
   n(): number;
-  valueAt(index: number, secondaryIndex?: number): T;
   values(): T[];
+  valueAt(index: number): T;
+  scaledAt(index: number, scale: Scale<T>): number;
+  retrain(array: T[]): void;
 }
 
-export function indexable<T extends { array: unknown[] }>(
-  object: T
-): T & Indexable<T["array"][number]> {
-  return { ...object, n, valueAt, values };
+type Base = { array: unknown[]; domain: Expanse };
+
+export function indexable<T extends Base>(object: T) {
+  return { ...object, n, values, valueAt, scaledAt, retrain } as T &
+    Indexable<T["array"][number]>;
 }
 
-function n(this: Indexable<any>) {
+function n<T>(this: Indexable<T>) {
   return this.array.length;
-}
-
-function valueAt<T>(this: Indexable<T>, index: number) {
-  return this.array[index];
 }
 
 function values<T>(this: Indexable<T>) {
@@ -24,4 +27,16 @@ function values<T>(this: Indexable<T>) {
   const result = [] as T[];
   for (let i = 0; i < n; i++) result.push(this.valueAt(i));
   return result;
+}
+
+function valueAt<T>(this: Indexable<T>, index: number) {
+  return this.array[index];
+}
+
+function scaledAt<T>(this: Indexable<T>, index: number, scale: Scale<T>) {
+  return scale.pushforward(this.valueAt(index));
+}
+
+function retrain<T>(this: Indexable<T>, array: T[]) {
+  this.domain.retrain(array);
 }

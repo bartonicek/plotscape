@@ -1,24 +1,29 @@
-import { TODO, element } from "utils";
-import { Plot } from "./Plot";
+import { element } from "utils";
+import { Marker, newMarker } from "./Marker";
 import { Dataframe } from "./dataframe/Dataframe";
 import { getMargins } from "./funs";
+import { Plot } from "./plot/Plot";
 import { Group, KeyActions, Variables } from "./types";
+
+/* -------------------------------- Interface ------------------------------- */
 
 export interface Scene<T extends Variables = any> {
   data: Dataframe<T>;
   container: HTMLDivElement;
 
-  marker: TODO;
+  marker: Marker;
   plots: Plot[];
 
   keyActions: KeyActions;
 
   addPlot(plot: Plot): this;
-  setGridDimensions(rows: number, cols: number): this;
+  setDimensions(rows: number, cols: number): this;
   deactivateAll(): this;
   deactivateAllExcept(keepActive: Plot): this;
   setGroup(group: Group): this;
 }
+
+/* ------------------------------- Constructor ------------------------------ */
 
 export function newScene<T extends Variables>(
   app: HTMLDivElement,
@@ -39,23 +44,29 @@ export function newScene<T extends Variables>(
   documentElement.style.setProperty("--tmargin", `${margins[2]}px`);
   documentElement.style.setProperty("--rmargin", `${margins[3]}px`);
 
-  const marker = {};
+  const marker = newMarker(data.n());
 
-  return {
-    container,
-    data,
-    marker,
-    plots,
-    keyActions,
+  const props = { container, data, marker, plots, keyActions };
+  const methods = {
     addPlot,
-    setGridDimensions,
+    setDimensions,
     deactivateAll,
     deactivateAllExcept,
     setGroup,
   };
+
+  const self = { ...props, ...methods };
+
+  container.addEventListener("mousedown", onMousedown.bind(self));
+  window.addEventListener("keydown", onKeydown.bind(self));
+  window.addEventListener("keydup", onKeyup.bind(self));
+
+  return self;
 }
 
-function setGridDimensions(this: Scene, rows: number, cols: number) {
+/* --------------------------------- Methods -------------------------------- */
+
+function setDimensions(this: Scene, rows: number, cols: number) {
   document.documentElement.style.setProperty("--ncols", cols.toString());
   document.documentElement.style.setProperty("--nrows", rows.toString());
   for (const plot of this.plots) plot.resize();
@@ -66,11 +77,9 @@ function addPlot(this: Scene, plot: Plot) {
   this.container.append(plot.container);
   this.plots.push(plot);
 
-  console.log(this.plots);
-
   const nCols = Math.ceil(Math.sqrt(this.plots.length));
   const nRows = Math.ceil(this.plots.length / nCols);
-  this.setGridDimensions(nRows, nCols);
+  this.setDimensions(nRows, nCols);
   return this;
 }
 

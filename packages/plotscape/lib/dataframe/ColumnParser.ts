@@ -1,6 +1,6 @@
 import { Normalize } from "utils";
-import { Continuous } from "../Continuous";
-import { Discrete } from "../Discrete";
+import { Continuous } from "../variables/Continuous";
+import { Discrete } from "../variables/Discrete";
 import {
   ColumnParserContinuous,
   newColumnParserContinuous,

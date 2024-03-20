@@ -1,11 +1,15 @@
 import { Expanse } from "../Expanse";
 import { newExpanseContinuous } from "../ExpanseContinuous";
-import { indexable } from "../mixins/Indexable";
-import { named } from "../mixins/Named";
-import { proxyable } from "../mixins/Proxyable";
+import { Indexable, indexable } from "../mixins/Indexable";
+import { Named, named } from "../mixins/Named";
+import { Proxyable, proxyable } from "../mixins/Proxyable";
 import { Variable } from "./Variable";
 
-export interface Reference<T = unknown> extends Variable<T> {}
+export interface Reference<T = unknown>
+  extends Named,
+    Variable<T>,
+    Indexable<T>,
+    Proxyable<T> {}
 
 export function newReference<T>(values: T[]): Reference<T> {
   const domain = newExpanseContinuous() as unknown as Expanse<T>;

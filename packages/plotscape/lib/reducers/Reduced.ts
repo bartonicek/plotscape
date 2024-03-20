@@ -17,20 +17,18 @@ function setReducer(this: Reduced, reducer: ReducerHandler) {
   return this;
 }
 
-function stack(this: Reduced) {
+function stack<T extends Variable>(this: T & Reduced) {
   if (this.reducer) {
-    this.reducer = this.reducer.stack();
-    // @ts-ignore
-    this.array = this.reducer.result.array;
+    const reducer = this.reducer.stack();
+    return reducer.result;
   }
   return this;
 }
 
 function normalizeByParent(this: Reduced) {
   if (this.reducer) {
-    this.reducer = this.reducer.normalizeByParent();
-    // @ts-ignore
-    this.array = this.reducer.result.array;
+    const reducer = this.reducer.normalizeByParent();
+    return reducer.result;
   }
   return this;
 }

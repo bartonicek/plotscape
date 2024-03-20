@@ -18,8 +18,8 @@ export interface ExpanseContinuous
   setDefaultMin(value: number): this;
   setDefaultMax(value: number): this;
   defaultize(): this;
-  registerSource(values: number[]): this;
-  retrain(): this;
+  retrain(array: number[]): this;
+  clone(): ExpanseContinuous;
 }
 
 export function newExpanseContinuous(min = 0, max = 1): ExpanseContinuous {
@@ -36,8 +36,8 @@ export function newExpanseContinuous(min = 0, max = 1): ExpanseContinuous {
     setDefaultMin,
     setDefaultMax,
     defaultize,
-    registerSource,
     retrain,
+    clone,
   };
 
   return subscribable(self);
@@ -86,17 +86,12 @@ function defaultize(this: ExpanseContinuous) {
   return this;
 }
 
-function registerSource(this: ExpanseContinuous, values: number[]) {
-  this.source = values;
-  this.retrain();
+function retrain(this: ExpanseContinuous, array: number[]) {
+  const [min, max] = minMax(array);
+  this.setMin(min).setMax(max);
   return this;
 }
 
-function retrain(this: ExpanseContinuous) {
-  if (!this.source) return this;
-
-  const [min, max] = minMax(this.source);
-  this.setMin(min).setMax(max);
-
-  return this;
+function clone(this: ExpanseContinuous) {
+  return newExpanseContinuous(this.min, this.max);
 }

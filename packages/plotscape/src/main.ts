@@ -1,9 +1,10 @@
 import { fetchJSON } from "utils";
-import { Contexts, newPlot } from "../lib/Plot.ts";
 import { newScene } from "../lib/Scene.ts";
 import { newValueEmitter } from "../lib/ValueEmitter.ts";
 import { col } from "../lib/dataframe/ColumnParser.ts";
 import { parseColumns } from "../lib/dataframe/Dataframe.ts";
+import { newBarplot } from "../lib/plots/Barplot.ts";
+import { newScatter } from "../lib/plots/Scatterplot.ts";
 import "./style.css";
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
@@ -11,6 +12,7 @@ const app = document.querySelector<HTMLDivElement>("#app")!;
 const mpgJSON = await fetchJSON("../datasets/mpg.json");
 
 const spec = {
+  year: col(`discrete`),
   manufacturer: col(`discrete`),
   displ: col(`continuous`),
   hwy: col(`continuous`),
@@ -20,19 +22,10 @@ const mpgData = parseColumns(mpgJSON, spec);
 const width = newValueEmitter(5);
 
 const scene = newScene(app, mpgData);
-const plot1 = newPlot(scene);
 
-plot1.addGraphicObject({
-  render(contexts: Contexts) {
-    for (let i = 0; i < 20; i++) {
-      contexts[0].point(i * 10, i * 10, { radius: 10 });
-    }
-    contexts[0].text(200, 100, "Hello World");
-  },
-});
-
-const plot2 = newPlot(scene);
-// const plot3 = newPlot(scene);
+const plot2 = newScatter(scene, (d) => ({ v1: d.displ, v2: d.hwy }));
+const plot3 = newScatter(scene, (d) => ({ v1: d.manufacturer, v2: d.displ }));
+const plot4 = newBarplot(scene, (d) => ({ v1: d.manufacturer }));
 
 // const f1 = factorFrom(mpgData.col(`manufacturer`));
 // const f2 = factorBin(mpgData.col(`hwy`), width);

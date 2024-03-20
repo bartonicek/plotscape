@@ -1,11 +1,11 @@
-import { TODO, element } from "utils";
-import { Context, newContext } from "./Context";
-import { Scale, newScale } from "./Scale";
-import { Scene } from "./Scene";
-import { Dataframe } from "./dataframe/Dataframe";
-import { getMargins } from "./funs";
-import graphicParameters from "./graphicParameters.json";
-import { GraphicObject } from "./types";
+import { TODO, element, mergeSetIntoAnother } from "utils";
+import { Context, newContext } from "../Context";
+import { Scale, newScale } from "../Scale";
+import { Scene } from "../Scene";
+import { getMargins } from "../funs";
+import graphicParameters from "../graphicParameters.json";
+import { GraphicObject, Variables } from "../types";
+import { SelectionRect, newSelectionRect } from "./SelectionRect";
 
 export const layers = [0, 1, 2, 3, 4, 5, 6, 7] as const;
 export const baseLayers = [4, 5, 6, 7] as const;
@@ -26,6 +26,14 @@ enum Mode {
   Query,
 }
 
+export type Scales = {
+  x: Scale;
+  y: Scale;
+  size: Scale;
+  width: Scale;
+  area: Scale;
+};
+
 /* -------------------------------- Interface ------------------------------- */
 
 export interface Plot {
@@ -33,10 +41,10 @@ export interface Plot {
   container: HTMLDivElement;
   contexts: Contexts;
 
-  scales: Record<string, Scale>;
+  scales: Scales;
   graphicObjects: GraphicObject[];
 
-  //   selectionRect: TODO;
+  selectionRect: SelectionRect;
   //   zoomStack: TODO;
   //   queryRenderer: TODO;
 
@@ -55,11 +63,11 @@ export interface Plot {
   deactivate(): this;
   activate(): this;
 
-  trainScales(data: () => Dataframe): this;
+  trainScales(data: TODO): this;
 
   resize(): this;
   render(): this;
-  addGraphicObject(object: GraphicObject): this;
+  pushGraphicObject(object: GraphicObject): this;
 
   onMousemoveSelect(event: MouseEvent): this;
   onMousemovePan(event: MouseEvent): this;
@@ -68,7 +76,7 @@ export interface Plot {
 
 /* ------------------------------- Constructor ------------------------------ */
 
-export function newPlot(scene: TODO) {
+export function newPlot(scene: Scene) {
   const container = element(`div`).addClass(`ps-plot-container`).get();
   const contexts = {} as Contexts;
 
@@ -89,7 +97,8 @@ export function newPlot(scene: TODO) {
         fillStyle: colors[id],
         strokeStyle: colors[id],
         font: `${axisLabelFontsize}px sans`,
-      });
+      })
+      .setMargins(margins);
   }
 
   contexts.base = newContext(container)
@@ -109,19 +118,23 @@ export function newPlot(scene: TODO) {
     .setProps({ fillStyle: `#99999933`, strokeStyle: `#00000000` })
     .setMargins(margins);
 
-  contexts.xAxis = newContext(container).setProps({
-    textBaseline: "top",
-    textAlign: "center",
-    font: `${axisLabelFontsize}px serif`,
-    fillStyle: "#3B4854",
-  });
+  contexts.xAxis = newContext(container)
+    .addClass(`ps-plot-context`)
+    .setProps({
+      textBaseline: "top",
+      textAlign: "center",
+      font: `${axisLabelFontsize}px serif`,
+      fillStyle: "#3B4854",
+    });
 
-  contexts.yAxis = newContext(container).setProps({
-    textBaseline: "middle",
-    textAlign: "right",
-    font: `${axisLabelFontsize}px serif`,
-    fillStyle: "#3B4854",
-  });
+  contexts.yAxis = newContext(container)
+    .addClass(`ps-plot-context`)
+    .setProps({
+      textBaseline: "middle",
+      textAlign: "right",
+      font: `${axisLabelFontsize}px serif`,
+      fillStyle: "#3B4854",
+    });
 
   const scales = {
     x: newScale(),
@@ -154,8 +167,17 @@ export function newPlot(scene: TODO) {
   const lastY = 0;
   const lastKey = ``;
 
+  const selectionRect = newSelectionRect();
+
   const pars = { active, mousedown, mousebutton, mode, lastX, lastY, lastKey };
-  const props = { scene, container, contexts, scales, graphicObjects };
+  const props = {
+    scene,
+    container,
+    contexts,
+    scales,
+    graphicObjects,
+    selectionRect,
+  };
 
   const methods = {
     activate,
@@ -163,7 +185,7 @@ export function newPlot(scene: TODO) {
     render,
     resize,
     trainScales,
-    addGraphicObject,
+    pushGraphicObject,
     onMousemoveSelect,
     onMousemovePan,
     onMousemoveQuery,
@@ -173,9 +195,21 @@ export function newPlot(scene: TODO) {
 
   window.addEventListener("resize", resize.bind(self));
   container.addEventListener("mousedown", onMousedown.bind(self));
+  container.addEventListener("mousemove", onMousemove.bind(self));
+  container.addEventListener("mouseup", onMouseup.bind(self));
   container.addEventListener("dblclick", onDoubleclick.bind(self));
   container.addEventListener("contextmenu", onContextmenu.bind(self));
 
+  selectionRect.listen(`changed`, () => {
+    const { coords } = selectionRect;
+    const selected = new Set<number>();
+    for (const s of self.graphicObjects) {
+      if (s.check) mergeSetIntoAnother(selected, s.check(coords));
+    }
+    scene.marker.update(selected);
+  });
+
+  self.pushGraphicObject(selectionRect);
   scene.addPlot(self);
 
   return self;
@@ -193,8 +227,8 @@ function resize(this: Plot) {
   const innerWidth = width - left - right;
   const innerHeight = height - top - bottom;
 
-  scales.x.codomain.setMin(left).setMax(width - right);
-  scales.y.codomain.setMin(bottom).setMax(height - top);
+  scales.x.codomain.setMin(left).setMax(Math.max(left, width - right));
+  scales.y.codomain.setMin(bottom).setMax(Math.max(bottom, height - top));
   scales.width.codomain.setMin(0).setMax(innerWidth);
   scales.area.codomain.setMax(Math.min(innerWidth, innerHeight));
 
@@ -214,21 +248,22 @@ function deactivate(this: Plot) {
   return this;
 }
 
-function trainScales(this: Plot, data: () => Dataframe) {
-  const { columns } = data();
+function trainScales(this: Plot, data: TODO) {
+  const { columns } = data as Variables;
   const { scales } = this;
 
   for (const [k, v] of Object.entries(columns)) {
-    // if (v) v.retrain();
-
     let scale: Scale | undefined = undefined;
     if (k.startsWith(`x`)) scale = scales.x;
     if (k.startsWith(`y`)) scale = scales.y;
-    else if ([`area`, `size`, `width`].includes(k)) scale = scales[k];
+    else if ([`area`, `size`, `width`].includes(k)) {
+      scale = scales[k as keyof Scales];
+    }
 
     if (!scale) continue;
 
-    scale.setDomain(v.domain as any);
+    if (v.retrain) v.retrain(v.values());
+    scale.setDomain(v.domain);
   }
 
   this.render();
@@ -241,7 +276,7 @@ function render(this: Plot) {
   return this;
 }
 
-function addGraphicObject(this: Plot, object: GraphicObject) {
+function pushGraphicObject(this: Plot, object: GraphicObject) {
   this.graphicObjects.push(object);
   this.render();
   return this;
@@ -250,7 +285,7 @@ function addGraphicObject(this: Plot, object: GraphicObject) {
 /* ----------------------------- Event Handlers ----------------------------- */
 
 function onMousedown(this: Plot, event: MouseEvent) {
-  const { scene, container } = this;
+  const { scene, container, selectionRect } = this;
 
   scene.deactivateAllExcept(this);
 
@@ -266,7 +301,7 @@ function onMousedown(this: Plot, event: MouseEvent) {
     const x = event.offsetX;
     const y = clientHeight - event.offsetY;
 
-    // selectionRect.setCoords([x, y, x, y]);
+    selectionRect.setCoords([x, y, x, y]);
   }
 }
 
@@ -275,26 +310,29 @@ function onMouseup(this: Plot) {
 }
 
 function onMousemove(this: Plot, event: MouseEvent) {
-  // switch (this.mode) {
-  //   case Mode.Select:
-  //     this.onMousemoveSelect(event);
-  //   case Mode.Pan:
-  //     this.onMousemovePan(event);
-  //   case Mode.Query:
-  //     this.onMousemoveQuery(event);
-  // }
+  switch (this.mode) {
+    case Mode.Select:
+      this.onMousemoveSelect(event);
+      break;
+    case Mode.Pan:
+      this.onMousemovePan(event);
+      break;
+    case Mode.Query:
+      this.onMousemoveQuery(event);
+  }
 }
 
 function onMousemoveSelect(this: Plot, event: MouseEvent) {
   if (!this.active || !this.mousedown) return this;
 
-  // const { container, selectionRect } = this;
-  // const { clientHeight } = container;
+  const { container, selectionRect } = this;
+  const { clientHeight } = container;
 
-  // const x = event.offsetX;
-  // const y = clientHeight - event.offsetY;
+  const x = event.offsetX;
+  const y = clientHeight - event.offsetY;
 
-  // selectionRect.setCoords((c) => [c[0], c[1], x, y]);
+  const { coords } = selectionRect;
+  selectionRect.setCoords([coords[0], coords[1], x, y]);
 
   this.render();
   return this;
@@ -346,7 +384,7 @@ function onMousemoveQuery(this: Plot, event: MouseEvent) {
 
 function onContextmenu(this: Plot, event: MouseEvent) {
   event.preventDefault();
-  // this.selectionRect.clear$();
+  this.selectionRect.clear();
   this.mousebutton = MouseButton.Right;
   this.lastX = event.offsetX;
   this.lastY = this.container.clientHeight - event.offsetY;
@@ -354,5 +392,8 @@ function onContextmenu(this: Plot, event: MouseEvent) {
 
 function onDoubleclick(this: Plot) {
   this.deactivate();
-  // this.scene.marker.clearAll();
+  this.scene.marker.clearAll();
+}
+function mergeIntoSet(selected: Set<number>, arg1: void) {
+  throw new Error("Function not implemented.");
 }

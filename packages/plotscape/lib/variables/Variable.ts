@@ -1,11 +1,9 @@
-import { Expanse } from "../Expanse";
-import { Indexable } from "../mixins/Indexable";
+import { Scale } from "../Scale";
 import { Named } from "../mixins/Named";
-import { Proxyable } from "../mixins/Proxyable";
 
-export interface Variable<T extends string | number | unknown = unknown>
-  extends Named,
-    Indexable<T>,
-    Proxyable<T> {
-  domain: Expanse<T>;
+export interface Variable<T = unknown> extends Named {
+  n?(): number;
+  valueAt(index: number): T;
+  scaledAt(index: number, scale: Scale<T>): number;
+  proxy(indices: number[]): this;
 }

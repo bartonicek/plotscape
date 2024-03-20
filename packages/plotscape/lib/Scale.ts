@@ -2,11 +2,9 @@ import { Expanse } from "./Expanse";
 import { ExpanseContinuous, newExpanseContinuous } from "./ExpanseContinuous";
 import { Named, named } from "./mixins/Named";
 
-type Scaleable = number | string;
-
 /* -------------------------------- Interface ------------------------------- */
 
-export interface Scale<T extends Scaleable = Scaleable> extends Named {
+export interface Scale<T = unknown> extends Named {
   other?: Scale;
   domain: Expanse<T>;
   norm: ExpanseContinuous;
@@ -14,12 +12,13 @@ export interface Scale<T extends Scaleable = Scaleable> extends Named {
   setOther(other: Scale): this;
   pushforward(value: T): number;
   pullback(value: number): T;
-  setDomain<V extends Scaleable>(domain: Expanse<V>): Scale<V>;
+  setDomain<V extends string | number>(domain: Expanse<V>): Scale<V>;
+  clone(): Scale<T>;
 }
 
 /* ------------------------------- Constructor ------------------------------ */
 
-export function newScale<T extends Scaleable = number>(
+export function newScale<T = number>(
   domain?: Expanse<T>,
   norm?: ExpanseContinuous,
   codomain?: ExpanseContinuous
@@ -29,28 +28,35 @@ export function newScale<T extends Scaleable = number>(
   codomain = codomain ?? newExpanseContinuous();
 
   const props = { domain, norm, codomain };
-
-  return { ...named(props), setOther, setDomain, pushforward, pullback };
+  return { ...named(props), setOther, setDomain, pushforward, pullback, clone };
 }
 
 /* --------------------------------- Methods -------------------------------- */
 
-function setOther<T extends Scaleable>(this: Scale<T>, other: Scale) {
+function clone<T>(this: Scale<T>) {
+  return newScale(
+    this.domain.clone(),
+    this.norm.clone(),
+    this.codomain.clone()
+  );
+}
+
+function setOther<T>(this: Scale<T>, other: Scale) {
   this.other = other;
   return this;
 }
 
-function pushforward<T extends Scaleable>(this: Scale<T>, value: T) {
+function pushforward<T>(this: Scale<T>, value: T) {
   const { domain, norm, codomain } = this;
   return codomain.unnormalize(norm.unnormalize(domain.normalize(value)));
 }
 
-function pullback<T extends Scaleable>(this: Scale<T>, value: number) {
+function pullback<T>(this: Scale<T>, value: number) {
   const { domain, norm, codomain } = this;
   return domain.unnormalize(norm.normalize(codomain.normalize(value)));
 }
 
-function setDomain<T extends Scaleable>(this: Scale<T>, domain: Expanse<T>) {
+function setDomain<T>(this: Scale<T>, domain: Expanse<T>) {
   this.domain = domain;
   return this as Scale<T>;
 }

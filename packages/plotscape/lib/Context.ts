@@ -87,7 +87,7 @@ export function newContext(container: HTMLDivElement): Context {
     margins: [0, 0, 0, 0] as Margins,
     width: 0,
     height: 0,
-    scalingFactor: 3,
+    scalingFactor: 2,
   };
 
   const methods = {
@@ -119,13 +119,14 @@ export function newContext(container: HTMLDivElement): Context {
 
 function resize(this: Context) {
   const { context, canvas, contextProps, scalingFactor, clipped } = this;
-  const { clientWidth, clientHeight, clientLeft, clientTop } = this.canvas;
+  const { clientWidth, clientHeight, clientLeft, clientTop } = canvas;
 
   const width = clientWidth - clientLeft;
   const height = clientHeight - clientTop;
 
   this.width = width;
   this.height = height;
+
   this.canvas.width = width * scalingFactor;
   this.canvas.height = height * scalingFactor;
 
@@ -247,9 +248,9 @@ function rectangleWH(
   const vAnchor = options?.vAnchor ?? VerticalAnchor.Middle;
 
   x = x - hAnchor * w;
-  y = h - y + vAnchor * height;
+  y = height - y + vAnchor * h;
 
-  this.context.fillRect(x, y, w, h);
+  this.context.fillRect(x, y, w, -h);
 
   return this;
 }

@@ -1,4 +1,4 @@
-import { DisjointUnion, allEntries, copyProperties, diff } from "utils";
+import { DisjointUnion, allEntries, diff } from "utils";
 import { newDataframe } from "../dataframe/Dataframe";
 import { PARENT, POSITIONS } from "../symbols";
 import { Variables } from "../types";
@@ -14,12 +14,16 @@ export function factorProduct<T extends Variables, U extends Variables>(
 
   const update = () => {
     const newFactor = product(factor1, factor2);
-    copyProperties(newFactor, factor, [
-      `cardinality`,
-      `levels`,
-      `data`,
-      `parent`,
-    ]);
+
+    factor.parent = newFactor.parent;
+    factor.cardinality = newFactor.cardinality;
+    factor.levels = newFactor.levels;
+
+    for (const [k, v] of allEntries(newFactor.data.columns)) {
+      factor.data.columns[k].array = v.array;
+      factor.data.columns[k].proxyIndices = v.proxyIndices;
+    }
+
     factor.emit(`changed`);
   };
 
