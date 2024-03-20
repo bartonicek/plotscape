@@ -2,6 +2,7 @@ import { TODO, element, mergeSetIntoAnother } from "utils";
 import { Context, newContext } from "../Context";
 import { Scale, newScale } from "../Scale";
 import { Scene } from "../Scene";
+import { newAxisLabels } from "../decorations/AxisLabels";
 import { getMargins } from "../funs";
 import graphicParameters from "../graphicParameters.json";
 import { GraphicObject, Variables } from "../types";
@@ -111,6 +112,10 @@ export function newPlot(scene: Scene) {
       font: `${axisTitleFontsize}px sans`,
     });
 
+  contexts.under = newContext(container)
+    .addClass(`ps-plot-context`)
+    .addClass(`inner`);
+
   contexts.user = newContext(container)
     .addClass(`ps-plot-context`)
     .addClass(`user`)
@@ -147,9 +152,11 @@ export function newPlot(scene: Scene) {
   const { defaultNormX: dnx, defaultNormY: dny } = graphicParameters;
 
   scales.x.norm.setDefaultMin(dnx).setDefaultMax(1 - dnx);
+  scales.x.setOther(scales.y).setAes(`x`);
   scales.x.norm.defaultize();
 
   scales.y.norm.setDefaultMin(dny).setDefaultMax(1 - dny);
+  scales.y.setOther(scales.x).setAes(`y`);
   scales.y.norm.defaultize();
 
   // @ts-ignore
@@ -209,6 +216,8 @@ export function newPlot(scene: Scene) {
     scene.marker.update(selected);
   });
 
+  self.pushGraphicObject(newAxisLabels(scales.x));
+  self.pushGraphicObject(newAxisLabels(scales.y));
   self.pushGraphicObject(selectionRect);
   scene.addPlot(self);
 
@@ -245,6 +254,7 @@ function activate(this: Plot) {
 function deactivate(this: Plot) {
   this.active = false;
   this.container.classList.remove(`active`);
+  this.selectionRect.clear();
   return this;
 }
 

@@ -1,3 +1,4 @@
+import { noopThis } from "utils";
 import { Scene } from "../Scene";
 import { factorFrom } from "../factors/factorFrom";
 import { Plot, newPlot } from "../plot/Plot";
@@ -43,6 +44,7 @@ export function newBarplot<T extends Variables>(
 
   plot.trainScales(boundaryData);
   plot.scales.y.domain.setMin!(0);
+  plot.scales.y.norm.setMin = noopThis;
   plot.pushGraphicObject(bars);
 
   boundaryData.listen(`changed`, plot.render.bind(plot));

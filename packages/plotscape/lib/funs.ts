@@ -1,4 +1,4 @@
-import { diff, times } from "utils";
+import { diff, exponentialToSuperscript, minMax, times } from "utils";
 import graphicParameters from "./graphicParameters.json";
 import { Margins, Rect } from "./types";
 
@@ -57,4 +57,38 @@ export function rectSegmentIntersect(rect: Rect, segment: Segment) {
     segmentsIntersect([x1, y0, x1, y1], segment) ||
     segmentsIntersect([x0, y1, x1, y1], segment)
   );
+}
+
+export function isNumberArray(array: unknown[]): array is number[] {
+  return typeof array[0] === "number";
+}
+
+export function isStringableArray(array: unknown[]): array is string[] {
+  return !!(array[0] as any).toString;
+}
+
+export function formatLabels(
+  labels: number[] | string[],
+  options?: { decimalPlaces?: number }
+): string[] {
+  if (!isNumberArray(labels)) return labels;
+
+  const dec = options?.decimalPlaces ?? 4;
+  const shouldFormat = (x: number) => x != 0 && Math.abs(Math.log10(x)) > dec;
+  // Use superscript if any number is sufficiently small or sufficiently big
+  const useSuperscript = minMax(labels).some(shouldFormat);
+
+  const formatFn = useSuperscript ? superscriptFn : noSuperscriptFn;
+  return labels.map(formatFn);
+}
+
+function superscriptFn(x: number) {
+  if (x === 0) return `0`;
+  return exponentialToSuperscript(x.toExponential());
+}
+
+function noSuperscriptFn(x: number) {
+  // Parsing to avoid floating-point precision formatting errors
+  if (x === 0) return `0`;
+  return parseFloat(x.toPrecision(12)).toString();
 }

@@ -1,27 +1,22 @@
 import { mergeSetIntoAnother } from "utils";
 import { Context } from "../Context";
-import { MarkerCols } from "../Marker";
 import { Dataframe } from "../dataframe/Dataframe";
-import { Contexts, layers } from "../plot/Plot";
+import { ContextId, Contexts, layers } from "../plot/Plot";
 import { LAYER, POSITIONS } from "../symbols";
-import { Rect, Variables } from "../types";
+import { Rect } from "../types";
 
-export interface Representation<T extends Variables = Variables> {
-  renderData: Dataframe<T & MarkerCols>;
-  boundaryData: Dataframe<T & MarkerCols>;
+export interface Representation {
+  renderData: Dataframe<any>;
+  boundaryData: Dataframe<any>;
   render(contexts: Contexts): void;
   check(coords: Rect): Set<number>;
   query(x: number, y: number): Record<string, any> | undefined;
-  renderOne(
-    contexts: Context,
-    data: Dataframe<T & MarkerCols>,
-    i: number
-  ): void;
-  checkOne(coords: Rect, data: Dataframe<T & MarkerCols>, i: number): boolean;
+  renderOne(contexts: Context, data: Dataframe<any>, i: number): void;
+  checkOne(coords: Rect, data: Dataframe<any>, i: number): boolean;
   queryOne(
     x: number,
     y: number,
-    data: Dataframe<T & MarkerCols>,
+    data: Dataframe<any>,
     i: number
   ): Record<string, any> | undefined;
 }
@@ -32,7 +27,7 @@ export function render(this: Representation, contexts: Contexts) {
 
   for (const l of layers) contexts[l].clear();
   for (let i = 0; i < n; i++) {
-    const layer = renderData.col(LAYER).valueAt(i);
+    const layer = renderData.col(LAYER).valueAt(i) as ContextId;
     this.renderOne(contexts[layer], renderData, i);
   }
 }

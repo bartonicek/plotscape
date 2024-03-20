@@ -569,8 +569,6 @@ export function prettyBreaks(min: number, max: number, n = 4) {
     breaks.push(value);
   }
 
-  breaks.push(maxNeat);
-
   return breaks;
 }
 

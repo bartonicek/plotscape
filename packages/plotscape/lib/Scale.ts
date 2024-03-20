@@ -2,18 +2,23 @@ import { Expanse } from "./Expanse";
 import { ExpanseContinuous, newExpanseContinuous } from "./ExpanseContinuous";
 import { Named, named } from "./mixins/Named";
 
+type Aesthetic = `x` | `y`;
+
 /* -------------------------------- Interface ------------------------------- */
 
 export interface Scale<T = unknown> extends Named {
   other?: Scale;
+  aes?: Aesthetic;
   domain: Expanse<T>;
   norm: ExpanseContinuous;
   codomain: ExpanseContinuous;
+  clone(): Scale<T>;
+  setAes(aesthetic: Aesthetic): this;
   setOther(other: Scale): this;
   pushforward(value: T): number;
   pullback(value: number): T;
   setDomain<V extends string | number>(domain: Expanse<V>): Scale<V>;
-  clone(): Scale<T>;
+  breaks(): T[];
 }
 
 /* ------------------------------- Constructor ------------------------------ */
@@ -28,7 +33,16 @@ export function newScale<T = number>(
   codomain = codomain ?? newExpanseContinuous();
 
   const props = { domain, norm, codomain };
-  return { ...named(props), setOther, setDomain, pushforward, pullback, clone };
+  const methods = {
+    setOther,
+    setAes,
+    setDomain,
+    pushforward,
+    pullback,
+    clone,
+    breaks,
+  };
+  return named({ ...props, ...methods });
 }
 
 /* --------------------------------- Methods -------------------------------- */
@@ -39,6 +53,11 @@ function clone<T>(this: Scale<T>) {
     this.norm.clone(),
     this.codomain.clone()
   );
+}
+
+function setAes<T>(this: Scale<T>, aes: Aesthetic) {
+  this.aes = aes;
+  return this;
 }
 
 function setOther<T>(this: Scale<T>, other: Scale) {
@@ -59,4 +78,8 @@ function pullback<T>(this: Scale<T>, value: number) {
 function setDomain<T>(this: Scale<T>, domain: Expanse<T>) {
   this.domain = domain;
   return this as Scale<T>;
+}
+
+function breaks<T>(this: Scale<T>) {
+  return this.domain.breaks(this.norm);
 }

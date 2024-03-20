@@ -15,43 +15,33 @@ type Scales = {
   y: any;
 };
 
-export interface Bars extends Representation<Encodings> {
+export interface Bars extends Representation {
   scales: Scales;
 }
 
 export function newBars(
-  boundaryData: Dataframe<Encodings>,
-  renderData: Dataframe<Encodings>,
+  boundaryData: Dataframe,
+  renderData: Dataframe,
   scales: Scales
 ): Bars {
   const props = { boundaryData, renderData, scales };
   const methods = { render, check, query, renderOne, checkOne, queryOne };
   const self = { ...props, ...methods };
 
-  return self as unknown as Bars;
+  return self;
 }
 
-function renderOne(
-  this: Bars,
-  context: Context,
-  data: Dataframe<Encodings>,
-  i: number
-) {
+function renderOne(this: Bars, context: Context, data: Dataframe, i: number) {
   const { scales } = this;
   const x = data.col(`x`).scaledAt(i, scales.x);
-  const y0 = scales.y.pushforward(data.col(`y0`).valueAt(i));
-  const y1 = scales.y.pushforward(data.col(`y1`).valueAt(i));
-  const w = 10;
+  const y0 = data.col(`y0`).scaledAt(i, scales.y);
+  const y1 = data.col(`y1`).scaledAt(i, scales.y);
+  const w = 15;
 
   context.rectangleWH(x, y0, w, y1 - y0, { vAnchor: VerticalAnchor.Bottom });
 }
 
-function checkOne(
-  this: Bars,
-  coords: Rect,
-  data: Dataframe<Encodings>,
-  i: number
-) {
+function checkOne(this: Bars, coords: Rect, data: Dataframe, i: number) {
   const { scales } = this;
   const x = scales.x.pushforward(data.col(`x`).valueAt(i));
   const y0 = scales.y.pushforward(data.col(`y0`).valueAt(i));
@@ -65,7 +55,7 @@ function queryOne(
   this: Bars,
   x: number,
   y: number,
-  data: Dataframe<Encodings>,
+  data: Dataframe,
   i: number
 ) {
   // const _x = data.col("x").scaledAt!(i);
@@ -79,4 +69,5 @@ function queryOne(
   //   // for (const q of data.queryables) result[q.name()] = q.valueAt(i);
   //   return result as Record<string, any>;
   // }
+  return {};
 }

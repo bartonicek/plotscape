@@ -19,6 +19,7 @@ export interface Context extends Emitter<"resized"> {
   width: number;
   height: number;
   scalingFactor: number;
+  fontsize: number;
   clipped: boolean;
   margins: Margins;
   contextProps: Record<string, any>;
@@ -37,6 +38,9 @@ export interface Context extends Emitter<"resized"> {
     [key in K]: CanvasRenderingContext2D[K];
   }): this;
   setBackgroundColor(color: string): this;
+
+  textWidth(string: string): number;
+  textHeight(string: string): number;
 
   clear(): this;
 
@@ -85,6 +89,7 @@ export function newContext(container: HTMLDivElement): Context {
   const pars = {
     clipped: false,
     margins: [0, 0, 0, 0] as Margins,
+    fontsize: graphicParameters.axisLabelFontsize,
     width: 0,
     height: 0,
     scalingFactor: 2,
@@ -99,6 +104,8 @@ export function newContext(container: HTMLDivElement): Context {
     setStyles,
     setProps,
     setBackgroundColor,
+    textWidth,
+    textHeight,
     clear,
     point,
     rectangleXY,
@@ -283,4 +290,13 @@ function text(
   context.restore();
 
   return this;
+}
+
+function textWidth(this: Context, string: string) {
+  return this.context.measureText(string).width;
+}
+
+function textHeight(this: Context, string: string) {
+  const measures = this.context.measureText(string);
+  return measures.actualBoundingBoxAscent + measures.actualBoundingBoxDescent;
 }

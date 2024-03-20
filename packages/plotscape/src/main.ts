@@ -23,9 +23,9 @@ const width = newValueEmitter(5);
 
 const scene = newScene(app, mpgData);
 
-const plot4 = newBarplot(scene, (d) => ({ v1: d.manufacturer }));
-const plot2 = newScatter(scene, (d) => ({ v1: d.displ, v2: d.hwy }));
-const plot3 = newScatter(scene, (d) => ({ v1: d.manufacturer, v2: d.displ }));
+const plot1 = newScatter(scene, (d) => ({ v1: d.displ, v2: d.hwy }));
+const plot2 = newScatter(scene, (d) => ({ v1: d.manufacturer, v2: d.displ }));
+const plot3 = newBarplot(scene, (d) => ({ v1: d.manufacturer }));
 
 // const f1 = factorFrom(mpgData.col(`manufacturer`));
 // const f2 = factorBin(mpgData.col(`hwy`), width);

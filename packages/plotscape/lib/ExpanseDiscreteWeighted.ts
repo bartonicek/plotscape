@@ -5,7 +5,6 @@ import { Emitter, subscribable } from "./mixins/Emitter";
 export interface ExpanseDiscreteWeighted
   extends Expanse<string>,
     Emitter<"changed"> {
-  source?: string[];
   values: string[];
   weights: number[];
   cumWeights: number[];
@@ -17,22 +16,24 @@ export interface ExpanseDiscreteWeighted
 }
 
 export function newExpanseDiscreteWeighted(
-  values: string[] = []
+  values: string[]
 ): ExpanseDiscreteWeighted {
   const weights = rep(1, values.length);
   const cumWeights = cumsum(weights);
-  const self = {
-    values,
-    weights,
-    cumWeights,
+
+  const props = { values, weights, cumWeights };
+  const methods = {
+    clone,
     normalize,
     unnormalize,
     width,
     setValues,
     setWeights,
     retrain,
-    clone,
+    breaks,
   };
+
+  const self = { ...props, ...methods };
 
   return subscribable(self);
 }
@@ -46,22 +47,17 @@ function normalize(this: ExpanseDiscreteWeighted, value: string) {
 }
 
 function unnormalize(this: ExpanseDiscreteWeighted, value: number) {
-  error(`Not implemented yet`);
+  error(`TODO`);
   return this.values[0];
 }
 
 function width(this: ExpanseDiscreteWeighted, value: string) {
-  return this.weights[this.values.indexOf(value)];
-}
-
-function values(this: ExpanseDiscreteWeighted) {
-  return this.values;
+  return this.weights[this.values.indexOf(value)] / last(this.cumWeights);
 }
 
 function setValues(this: ExpanseDiscreteWeighted, values: string[]) {
   this.values = values;
   this.emit(`changed`);
-
   return this;
 }
 
@@ -88,4 +84,8 @@ function retrain(this: ExpanseDiscreteWeighted, array: string[]) {
 
 function clone(this: ExpanseDiscreteWeighted) {
   return newExpanseDiscreteWeighted(this.values);
+}
+
+function breaks(this: ExpanseDiscreteWeighted) {
+  return this.values;
 }

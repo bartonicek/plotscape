@@ -1,4 +1,4 @@
-import { minMax } from "utils";
+import { minMax, prettyBreaks } from "utils";
 import { Expanse } from "./Expanse";
 import { Emitter, subscribable } from "./mixins/Emitter";
 
@@ -9,7 +9,7 @@ export interface ExpanseContinuous
   max: number;
   defaultMin: number;
   defaultMax: number;
-  source?: number[];
+  clone(): ExpanseContinuous;
   range(): number;
   normalize(value: number): number;
   unnormalize(value: number): number;
@@ -19,15 +19,12 @@ export interface ExpanseContinuous
   setDefaultMax(value: number): this;
   defaultize(): this;
   retrain(array: number[]): this;
-  clone(): ExpanseContinuous;
 }
 
 export function newExpanseContinuous(min = 0, max = 1): ExpanseContinuous {
-  const self = {
-    min,
-    max,
-    defaultMin: min,
-    defaultMax: max,
+  const props = { min, max, defaultMin: min, defaultMax: max };
+  const methods = {
+    clone,
     range,
     normalize,
     unnormalize,
@@ -37,8 +34,9 @@ export function newExpanseContinuous(min = 0, max = 1): ExpanseContinuous {
     setDefaultMax,
     defaultize,
     retrain,
-    clone,
+    breaks,
   };
+  const self = { ...props, ...methods };
 
   return subscribable(self);
 }
@@ -94,4 +92,11 @@ function retrain(this: ExpanseContinuous, array: number[]) {
 
 function clone(this: ExpanseContinuous) {
   return newExpanseContinuous(this.min, this.max);
+}
+
+function breaks(this: ExpanseContinuous, norm: ExpanseContinuous) {
+  let [min, max] = [norm.normalize(0), norm.normalize(1)];
+  min = this.unnormalize(min);
+  max = this.unnormalize(max);
+  return prettyBreaks(min, max);
 }
