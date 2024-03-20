@@ -109,8 +109,6 @@ function clearAll(this: Marker) {
   indices.fill(Group.Group1);
 
   this.factor.emit(`changed`);
-  this.emit(`changed`);
-
   return this;
 }
 
@@ -126,8 +124,6 @@ function clearTransient(this: Marker) {
 
   transientPositions.clear();
   this.factor.emit(`changed`);
-  this.emit(`changed`);
-
   return this;
 }
 
@@ -136,7 +132,7 @@ function data(this: Marker) {
   const data = factor.data.proxy(indices);
   const positions = Array.from(Array(n), (_, i) => new Set([i]));
   data.columns[POSITIONS] = newReference(positions);
-  this.listen(`changed`, () => data.emit(`changed`));
+  this.factor.listen(`changed`, () => data.emit(`changed`));
 
   return data;
 }

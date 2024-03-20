@@ -103,14 +103,16 @@ function stack<T, U>(this: ReducerHandler<T, U>) {
   if (!factor || !factor.parent) return this;
   const copy = this.clone();
   copy.stacked = true;
+  copy.recompute();
   return copy;
 }
 
 function normalizeByParent<T, U>(this: ReducerHandler<T, U>) {
   const { parent, factor } = this;
-  if (!parent || !factor) return this;
+  if (!parent || !factor || !factor.parent) return this;
   const copy = this.clone();
   copy.normalized = true;
+  copy.recompute();
   return copy;
 }
 

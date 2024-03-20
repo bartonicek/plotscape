@@ -394,6 +394,3 @@ function onDoubleclick(this: Plot) {
   this.deactivate();
   this.scene.marker.clearAll();
 }
-function mergeIntoSet(selected: Set<number>, arg1: void) {
-  throw new Error("Function not implemented.");
-}
