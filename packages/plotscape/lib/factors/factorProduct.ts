@@ -20,7 +20,11 @@ export function factorProduct<T extends Variables, U extends Variables>(
     factor.levels = newFactor.levels;
 
     for (const [k, v] of allEntries(newFactor.data.columns)) {
+      // @ts-ignore
       factor.data.columns[k].array = v.array;
+      // @ts-ignore
+      factor.data.columns[k].source = v.source;
+      // @ts-ignore
       factor.data.columns[k].proxyIndices = v.proxyIndices;
     }
 
@@ -74,12 +78,14 @@ export function product<T extends Variables, U extends Variables>(
   const columns = {} as Variables;
 
   for (const [k, v] of allEntries(factor1.data.cols())) {
+    // @ts-ignore
     columns[k] = v.proxy(factor1ParentLevels);
     columns[k].setName(v.name());
   }
 
   for (let [k, v] of allEntries(factor2.data.cols())) {
     if (typeof k === `string`) while (k in columns) k += `$`;
+    // @ts-ignore
     columns[k] = v.proxy(factor2ParentLevels);
     columns[k].setName(v.name());
   }

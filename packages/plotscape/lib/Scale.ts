@@ -1,3 +1,4 @@
+import { noopThis } from "utils";
 import { Expanse } from "./Expanse";
 import { ExpanseContinuous, newExpanseContinuous } from "./ExpanseContinuous";
 import { Named, named } from "./mixins/Named";
@@ -14,10 +15,16 @@ export interface Scale<T = unknown> extends Named {
   codomain: ExpanseContinuous;
   clone(): Scale<T>;
   setAes(aesthetic: Aesthetic): this;
+  setDomain<V extends string | number>(domain: Expanse<V>): Scale<V>;
   setOther(other: Scale): this;
+  setMin(value: number): this;
+  setMax(value: number): this;
   pushforward(value: T): number;
   pullback(value: number): T;
-  setDomain<V extends string | number>(domain: Expanse<V>): Scale<V>;
+  move(amount: number): this;
+  freezeMin(): this;
+  freezeMax(): this;
+  link(other: Scale<T>): this;
   breaks(): T[];
 }
 
@@ -34,12 +41,18 @@ export function newScale<T = number>(
 
   const props = { domain, norm, codomain };
   const methods = {
-    setOther,
+    clone,
     setAes,
     setDomain,
+    setOther,
+    setMin,
+    setMax,
     pushforward,
     pullback,
-    clone,
+    move,
+    freezeMin,
+    freezeMax,
+    link,
     breaks,
   };
   return named({ ...props, ...methods });
@@ -80,6 +93,43 @@ function setDomain<T>(this: Scale<T>, domain: Expanse<T>) {
   return this as Scale<T>;
 }
 
+function setMin<T>(this: Scale<T>, value: number) {
+  this.domain.setMin?.(value);
+  return this;
+}
+
+function setMax<T>(this: Scale<T>, value: number) {
+  this.domain.setMax?.(value);
+  return this;
+}
+
+function move<T>(this: Scale<T>, amount: number) {
+  const { min, max } = this.norm;
+  this.norm.setMin(min + amount).setMax(max + amount);
+  return this;
+}
+
+function link<T>(this: Scale<T>, other: Scale) {
+  const move = this.move.bind(this);
+
+  this.move = (amount: number) => {
+    move(amount);
+    other.move(amount);
+    return this;
+  };
+  return this;
+}
+
 function breaks<T>(this: Scale<T>) {
   return this.domain.breaks(this.norm);
+}
+
+function freezeMin<T>(this: Scale<T>) {
+  this.norm.setMin = noopThis;
+  return this;
+}
+
+function freezeMax<T>(this: Scale<T>) {
+  this.norm.setMax = noopThis;
+  return this;
 }

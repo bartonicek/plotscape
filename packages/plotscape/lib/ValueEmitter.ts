@@ -3,12 +3,18 @@ import { Primitive } from "./types";
 
 export interface ValueEmitter<T> extends Emitter<`changed`> {
   value: T;
+  defaultValue: T;
+  defaultize(): void;
   setValue(value: T): void;
   setValue(value: (prev: T) => T): void;
 }
 
 export function newValueEmitter<T>(value: T): ValueEmitter<T> {
-  return subscribable({ value, setValue });
+  const props = { value, defaultValue: value };
+  const methods = { defaultize, setValue };
+  const self = { ...props, ...methods };
+
+  return subscribable(self);
 }
 
 export function isEmitter<T>(
@@ -20,6 +26,11 @@ export function isEmitter<T>(
 export function getter<T>(source: T | ValueEmitter<T>) {
   if (isEmitter(source)) return () => source.value;
   return () => source;
+}
+
+export function defaultize<T>(this: ValueEmitter<T>) {
+  this.value = this.defaultValue;
+  this.emit(`changed`);
 }
 
 function setValue<T extends Primitive>(

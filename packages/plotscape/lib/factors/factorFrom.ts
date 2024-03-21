@@ -2,14 +2,14 @@ import { newExpanseDiscreteWeighted } from "../ExpanseDiscreteWeighted";
 import { newDataframe } from "../dataframe/Dataframe";
 import { POSITIONS } from "../symbols";
 import { Discrete, newDiscrete } from "../variables/Discrete";
-import { newReference } from "../variables/Reference";
+import { Reference, newReference } from "../variables/Reference";
 import { Factor } from "./Factor";
 import { newFactorComputed } from "./FactorComputed";
 
 export function factorFrom(
   variable: Discrete,
   labels?: string[]
-): Factor<{ label: Discrete }> {
+): Factor<{ label: Discrete; [POSITIONS]: Reference<Set<number>> }> {
   const array = variable.values();
   labels = labels ?? variable.domain.values;
 
@@ -24,9 +24,10 @@ export function factorFrom(
   }
 
   const domain = newExpanseDiscreteWeighted(labels);
-  const columns = { label: newDiscrete(labels, domain) };
-  // @ts-ignore
-  columns[POSITIONS] = newReference(Object.values(positions));
+  const columns = {
+    label: newDiscrete(labels, domain),
+    [POSITIONS]: newReference(Object.values(positions)),
+  };
 
   columns.label.setName(variable.name());
   const data = newDataframe(columns);

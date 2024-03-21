@@ -1,4 +1,3 @@
-import * as utils from "utils";
 import {
   Normalize,
   allEntries,
@@ -8,19 +7,21 @@ import {
   values,
 } from "utils";
 import { Emitter, subscribable } from "../mixins/Emitter";
-import { RowOf, VariableValue, Variables } from "../types";
+import { RowOf, SymbolProps, VariableValue, Variables } from "../types";
 import { ColumnParser, ParsedColumns } from "./ColumnParser";
 
 export interface Dataframe<T extends Variables = Variables>
   extends Emitter<`changed`> {
   columns: T;
   n(): number;
-  keys(): (keyof T)[];
+  keys(): string[];
   col<K extends keyof T>(key: K): T[K];
   cols(): T;
   row(index: number, row?: RowOf<T>): RowOf<T>;
   rows(): RowOf<T>[];
-  select<U extends Variables>(selectfn: (cols: T) => U): Dataframe<U>;
+  select<U extends Partial<Variables>>(
+    selectfn: (cols: T) => U
+  ): Dataframe<SymbolProps<T> & U>;
   cachedN?(): number;
   join<U extends Variables>(other: Dataframe<U>): Dataframe<Normalize<T & U>>;
   proxy(indices: number[]): Dataframe<T>;
@@ -73,6 +74,8 @@ export function parseColumns<T extends Record<string, ColumnParser>>(
     if (!v.hasName()) v.setName(k);
 
     const variable = v.parse(array);
+    variable.setName(v.name());
+
     columns[k] = variable;
   }
 
@@ -91,7 +94,7 @@ function n(this: Dataframe): number {
 }
 
 function keys<T extends Variables>(this: Dataframe<T>) {
-  return utils.keys(this.columns);
+  return Object.keys(this.columns);
 }
 
 function col<T extends Variables, K extends keyof T>(
@@ -125,10 +128,10 @@ function rows<T extends Variables>(this: Dataframe<T>) {
   return result;
 }
 
-function select<T extends Variables, U extends Variables>(
+function select<T extends Variables, U extends Partial<Variables>>(
   this: Dataframe<T>,
   selectfn: (cols: T) => U
-): Dataframe<U> {
+): Dataframe<SymbolProps<T> & U> {
   const columns = { ...this.columns, ...selectfn(this.columns) } as any;
   const result = newDataframe(columns);
   for (const [k, v] of allEntries(this.columns)) {

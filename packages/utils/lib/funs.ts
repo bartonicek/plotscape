@@ -84,10 +84,13 @@ export function compose<T, U, V>(fn1: MapFn<T, U>, fn2: MapFn<U, V>) {
  * @param fn2 Another function
  * @returns A new function.
  */
-export function inOrder(fn1: Function, fn2: Function) {
-  return function () {
-    fn1();
-    fn2();
+export function inOrder(
+  fn1: (...args: any) => any,
+  fn2: (...args: any) => any
+) {
+  return function (...args: any[]) {
+    fn1(args);
+    fn2(args);
   };
 }
 

@@ -4,6 +4,7 @@ import { InferVariable } from "../types";
 import { newContinuous } from "../variables/Continuous";
 import { newDiscrete } from "../variables/Discrete";
 import { newReference } from "../variables/Reference";
+import { Variable } from "../variables/Variable";
 import { Reduced, reduced } from "./Reduced";
 import { Reducer } from "./Reducer";
 
@@ -12,7 +13,7 @@ export interface ReducerHandler<T = any, U = any> extends Emitter<`changed`> {
   parent?: ReducerHandler<T, U>;
   reducer: Reducer<T, U>;
 
-  source: InferVariable<T>;
+  source: Variable<T>;
   result: InferVariable<U> & Reduced;
 
   clone(): ReducerHandler<T, U>;
@@ -27,12 +28,16 @@ export interface ReducerHandler<T = any, U = any> extends Emitter<`changed`> {
 }
 
 export function newReducerHandler<T, U>(
-  source: InferVariable<T>,
+  source: Variable<T>,
   reducer: Reducer<T, U>
 ): ReducerHandler<T, U> {
   const constructor = parseVariable(reducer.initialfn());
-  const result = reduced(constructor([])) as unknown as InferVariable<U> &
-    Reduced;
+
+  const name = source.hasName?.()
+    ? `${reducer.name} of ${source.name}`
+    : `count`;
+  const result = reduced(constructor([])) as InferVariable<U> & Reduced;
+  result.setName(name);
 
   const props = { reducer, source, result, stacked: false, normalized: false };
   const methods = {

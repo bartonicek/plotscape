@@ -1,17 +1,22 @@
-import { asInt, copyProperties, diff, inc, last } from "utils";
+import { allEntries, asInt, diff, inc, last } from "utils";
 import { newExpanseContinuous } from "../ExpanseContinuous";
 import { ValueEmitter, getter, isEmitter } from "../ValueEmitter";
 import { newDataframe } from "../dataframe/Dataframe";
 import { POSITIONS } from "../symbols";
 import { Continuous, newContinuous } from "../variables/Continuous";
-import { newReference } from "../variables/Reference";
+import { Reference, newReference } from "../variables/Reference";
+import { Factor } from "./Factor";
 import { newFactorComputed } from "./FactorComputed";
 
 export function factorBin(
   variable: Continuous,
   width?: number | ValueEmitter<number>,
   anchor?: number | ValueEmitter<number>
-) {
+): Factor<{
+  binStart: Continuous;
+  binEnd: Continuous;
+  [POSITIONS]: Reference<Set<number>>;
+}> {
   const _width = getter(width);
   const _anchor = getter(anchor);
 
@@ -19,7 +24,16 @@ export function factorBin(
 
   const update = () => {
     const newFactor = bin(variable, _width(), _anchor());
-    copyProperties(newFactor, factor, [`cardinality`, `levels`, `data`]);
+    factor.parent = newFactor.parent;
+    factor.cardinality = newFactor.cardinality;
+    factor.levels = newFactor.levels;
+
+    for (const [k, v] of allEntries(newFactor.data.columns)) {
+      factor.data.columns[k].array = v.array;
+      factor.data.columns[k].source = v.source;
+      factor.data.columns[k].proxyIndices = v.proxyIndices;
+    }
+
     factor.emit(`changed`);
   };
 
@@ -83,9 +97,12 @@ function bin(variable: Continuous, width?: number, anchor?: number) {
   const binStart = breaksVariable.proxy(sorted);
   const binEnd = breaksVariable.proxy(sorted.map(inc));
 
-  const columns = { binStart, binEnd };
-  // @ts-ignore
-  columns[POSITIONS] = newReference(Object.values(positions));
+  const columns = {
+    binStart,
+    binEnd,
+    [POSITIONS]: newReference(Object.values(positions)),
+  };
+
   const data = newDataframe(columns);
 
   return newFactorComputed(sorted.length, levels, data);

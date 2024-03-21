@@ -18,19 +18,19 @@ export function newScatter<T extends Variables>(
   selectfn: (cols: T) => DataBindings
 ): Scatterplot {
   const plot = newPlot(scene);
-
-  const encodefn = (d: DataBindings) => ({ x: d.v1, y: d.v2 });
-
   const data = scene.data.select(selectfn);
+
   const boundaryData = data.select(encodefn).join(scene.marker.data());
   const renderData = data.select(encodefn).join(scene.marker.data());
-  const points = newPoints(boundaryData, renderData, plot.scales);
+  const points = newPoints(plot, boundaryData, renderData);
 
-  plot.pushGraphicObject(points as any);
-  plot.trainScales(boundaryData);
+  plot.pushGraphicObject(points);
+  plot.trainScales(boundaryData, (d) => ({ x: d.x, y: d.y }));
 
   boundaryData.listen(`changed`, plot.render.bind(plot));
   renderData.listen(`changed`, plot.render.bind(plot));
 
   return { ...plot, ...{ data, points, renderData, boundaryData } };
 }
+
+const encodefn = (d: DataBindings) => ({ x: d.v1, y: d.v2, size: d.v3 });

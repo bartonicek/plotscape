@@ -1,11 +1,12 @@
-import { TODO, element, mergeSetIntoAnother } from "utils";
+import { element, entries, inOrder, mergeSetIntoAnother, values } from "utils";
 import { Context, newContext } from "../Context";
 import { Scale, newScale } from "../Scale";
 import { Scene } from "../Scene";
+import { Dataframe } from "../dataframe/Dataframe";
 import { newAxisLabels } from "../decorations/AxisLabels";
 import { getMargins } from "../funs";
 import graphicParameters from "../graphicParameters.json";
-import { GraphicObject, Variables } from "../types";
+import { ActionKey, GraphicObject, KeyActions, Variables } from "../types";
 import { SelectionRect, newSelectionRect } from "./SelectionRect";
 
 export const layers = [0, 1, 2, 3, 4, 5, 6, 7] as const;
@@ -32,6 +33,7 @@ export type Scales = {
   y: Scale;
   size: Scale;
   width: Scale;
+  height: Scale;
   area: Scale;
 };
 
@@ -58,21 +60,22 @@ export interface Plot {
   lastY: number;
   lastKey: string;
 
-  //   localKeyActions: KeyActions;
-  //   globalKeyActions: KeyActions;
+  localKeyActions: KeyActions;
+  globalKeyActions: KeyActions;
 
   deactivate(): this;
   activate(): this;
 
-  trainScales(data: TODO): this;
+  trainScales<T extends Variables>(
+    data: Dataframe<T>,
+    selectfn: (cols: T) => Variables
+  ): this;
 
   resize(): this;
   render(): this;
+  reset(): this;
   pushGraphicObject(object: GraphicObject): this;
-
-  onMousemoveSelect(event: MouseEvent): this;
-  onMousemovePan(event: MouseEvent): this;
-  onMousemoveQuery(event: MouseEvent): this;
+  addKeyAction(key: ActionKey, action: (event: Event) => void): void;
 }
 
 /* ------------------------------- Constructor ------------------------------ */
@@ -146,23 +149,26 @@ export function newPlot(scene: Scene) {
     y: newScale(),
     size: newScale(),
     width: newScale(),
+    height: newScale(),
     area: newScale(),
   };
 
   const { defaultNormX: dnx, defaultNormY: dny } = graphicParameters;
 
-  scales.x.norm.setDefaultMin(dnx).setDefaultMax(1 - dnx);
   scales.x.setOther(scales.y).setAes(`x`);
+  scales.x.norm.setDefaultMin(dnx).setDefaultMax(1 - dnx);
   scales.x.norm.defaultize();
 
-  scales.y.norm.setDefaultMin(dny).setDefaultMax(1 - dny);
   scales.y.setOther(scales.x).setAes(`y`);
+  scales.y.norm.setDefaultMin(dny).setDefaultMax(1 - dny);
   scales.y.norm.defaultize();
 
-  // @ts-ignore
   scales.size.codomain.setDefaultMin(1).setDefaultMax(10).defaultize();
-  scales.width.norm.setDefaultMin(0).setDefaultMax(1 - 2 * dnx);
-  scales.width.norm.defaultize();
+  scales.width.norm.setDefaultMax(1 - 2 * dnx).defaultize();
+  scales.height.norm.setDefaultMax(1 - 2 * dny).defaultize();
+
+  scales.width.freezeMin();
+  scales.height.freezeMin();
 
   const graphicObjects = [] as GraphicObject[];
 
@@ -176,6 +182,9 @@ export function newPlot(scene: Scene) {
 
   const selectionRect = newSelectionRect();
 
+  const localKeyActions = {} as KeyActions;
+  const globalKeyActions = {} as KeyActions;
+
   const pars = { active, mousedown, mousebutton, mode, lastX, lastY, lastKey };
   const props = {
     scene,
@@ -184,6 +193,8 @@ export function newPlot(scene: Scene) {
     scales,
     graphicObjects,
     selectionRect,
+    localKeyActions,
+    globalKeyActions,
   };
 
   const methods = {
@@ -191,21 +202,26 @@ export function newPlot(scene: Scene) {
     deactivate,
     render,
     resize,
+    reset,
     trainScales,
     pushGraphicObject,
-    onMousemoveSelect,
-    onMousemovePan,
-    onMousemoveQuery,
+    addKeyAction,
   };
 
   const self: Plot = { ...pars, ...props, ...methods };
 
   window.addEventListener("resize", resize.bind(self));
+  window.addEventListener("keydown", onKeydown.bind(self));
   container.addEventListener("mousedown", onMousedown.bind(self));
   container.addEventListener("mousemove", onMousemove.bind(self));
   container.addEventListener("mouseup", onMouseup.bind(self));
   container.addEventListener("dblclick", onDoubleclick.bind(self));
   container.addEventListener("contextmenu", onContextmenu.bind(self));
+
+  localKeyActions[`KeyR`] = () => {
+    self.reset();
+    self.render();
+  };
 
   selectionRect.listen(`changed`, () => {
     const { coords } = selectionRect;
@@ -238,7 +254,8 @@ function resize(this: Plot) {
 
   scales.x.codomain.setMin(left).setMax(Math.max(left, width - right));
   scales.y.codomain.setMin(bottom).setMax(Math.max(bottom, height - top));
-  scales.width.codomain.setMin(0).setMax(innerWidth);
+  scales.width.codomain.setMax(innerWidth);
+  scales.height.codomain.setMax(innerHeight);
   scales.area.codomain.setMax(Math.min(innerWidth, innerHeight));
 
   this.render();
@@ -258,22 +275,20 @@ function deactivate(this: Plot) {
   return this;
 }
 
-function trainScales(this: Plot, data: TODO) {
-  const { columns } = data as Variables;
+function trainScales<T extends Variables>(
+  this: Plot,
+  data: Dataframe<T>,
+  selectfn: (cols: T) => Variables
+) {
+  const trainers = selectfn(data.columns);
   const { scales } = this;
 
-  for (const [k, v] of Object.entries(columns)) {
-    let scale: Scale | undefined = undefined;
-    if (k.startsWith(`x`)) scale = scales.x;
-    if (k.startsWith(`y`)) scale = scales.y;
-    else if ([`area`, `size`, `width`].includes(k)) {
-      scale = scales[k as keyof Scales];
-    }
+  for (const [k, v] of entries(trainers) as [keyof Scales, any][]) {
+    const scale = scales[k];
 
     if (!scale) continue;
-
-    if (v.retrain) v.retrain(v.values());
-    scale.setDomain(v.domain);
+    if (v.retrain) v.retrain(v.array);
+    if (v.domain) scale.setDomain(v.domain);
   }
 
   this.render();
@@ -282,7 +297,29 @@ function trainScales(this: Plot, data: TODO) {
 
 function render(this: Plot) {
   for (const c of Object.values(this.contexts)) c.clear();
-  for (const o of this.graphicObjects) o.render(this.contexts);
+  for (const o of this.graphicObjects) if (o.render) o.render(this.contexts);
+  return this;
+}
+
+function reset(this: Plot) {
+  const { container, scales, contexts, selectionRect } = this;
+  const { clientWidth: width, clientHeight: height } = container;
+  const [bottom, left, top, right] = getMargins();
+
+  const innerWidth = width - left - right;
+  const innerHeight = height - top - bottom;
+
+  for (const v of values(scales)) v.norm.defaultize();
+  scales.size.codomain.defaultize();
+  scales.width.codomain.setMax(innerWidth);
+  scales.area.codomain.setMax(Math.min(innerWidth, innerHeight));
+  selectionRect.clear();
+
+  // zoomStack.clear();
+
+  for (const context of values(contexts)) context.setProps({ globalAlpha: 1 });
+  this.render();
+
   return this;
 }
 
@@ -290,6 +327,15 @@ function pushGraphicObject(this: Plot, object: GraphicObject) {
   this.graphicObjects.push(object);
   this.render();
   return this;
+}
+
+function addKeyAction(
+  this: Plot,
+  key: ActionKey,
+  action: (event: Event) => void
+) {
+  if (!this.localKeyActions[key]) this.localKeyActions[key] = action;
+  else this.localKeyActions[key] = inOrder(this.localKeyActions[key]!, action);
 }
 
 /* ----------------------------- Event Handlers ----------------------------- */
@@ -322,20 +368,20 @@ function onMouseup(this: Plot) {
 function onMousemove(this: Plot, event: MouseEvent) {
   switch (this.mode) {
     case Mode.Select:
-      this.onMousemoveSelect(event);
+      onMousemoveSelect(this, event);
       break;
     case Mode.Pan:
-      this.onMousemovePan(event);
+      onMousemovePan(this, event);
       break;
     case Mode.Query:
-      this.onMousemoveQuery(event);
+      onMousemoveQuery(this, event);
   }
 }
 
-function onMousemoveSelect(this: Plot, event: MouseEvent) {
-  if (!this.active || !this.mousedown) return this;
+function onMousemoveSelect(self: Plot, event: MouseEvent) {
+  if (!self.active || !self.mousedown) return self;
 
-  const { container, selectionRect } = this;
+  const { container, selectionRect } = self;
   const { clientHeight } = container;
 
   const x = event.offsetX;
@@ -344,37 +390,34 @@ function onMousemoveSelect(this: Plot, event: MouseEvent) {
   const { coords } = selectionRect;
   selectionRect.setCoords([coords[0], coords[1], x, y]);
 
-  this.render();
-  return this;
+  self.render();
+  return self;
 }
 
-function onMousemovePan(this: Plot, event: MouseEvent) {
-  if (!this.active || !this.mousedown) return this;
+function onMousemovePan(self: Plot, event: MouseEvent) {
+  if (!self.active || !self.mousedown) return self;
 
-  const { scales, lastX, lastY } = this;
-  const { clientWidth, clientHeight } = this.container;
+  const { scales, lastX, lastY } = self;
+  const { clientWidth, clientHeight } = self.container;
 
   const x = event.offsetX;
   const y = clientHeight - event.offsetY;
   const xMove = (x - lastX) / clientWidth;
   const yMove = (y - lastY) / clientHeight;
 
-  const { min: xNormMin, max: xNormMax } = scales.x.norm;
-  const { min: yNormMin, max: yNormMax } = scales.y.norm;
+  scales.x.move(xMove);
+  scales.y.move(yMove);
 
-  scales.x.norm.setMin(xNormMin + xMove).setMax(xNormMax + xMove);
-  scales.y.norm.setMin(yNormMin + yMove).setMax(yNormMax + yMove);
+  self.lastX = x;
+  self.lastY = y;
 
-  this.lastX = x;
-  this.lastY = y;
-
-  this.render();
-  return this;
+  self.render();
+  return self;
 }
 
-function onMousemoveQuery(this: Plot, event: MouseEvent) {
+function onMousemoveQuery(self: Plot, event: MouseEvent) {
   const { offsetX, offsetY } = event;
-  const { clientHeight } = this.container;
+  const { clientHeight } = self.container;
 
   const x = offsetX;
   const y = clientHeight - offsetY;
@@ -389,7 +432,7 @@ function onMousemoveQuery(this: Plot, event: MouseEvent) {
   // if (!result) this.queryRenderer.clear();
   // else this.queryRenderer.renderQuery(x, y, result);
 
-  return this;
+  return self;
 }
 
 function onContextmenu(this: Plot, event: MouseEvent) {
@@ -403,4 +446,13 @@ function onContextmenu(this: Plot, event: MouseEvent) {
 function onDoubleclick(this: Plot) {
   this.deactivate();
   this.scene.marker.clearAll();
+}
+
+function onKeydown(this: Plot, event: KeyboardEvent) {
+  if (event.code === "KeyQ" && event.code === this.lastKey) return;
+  // this.queryRenderer.clear();
+  this.globalKeyActions[event.code as ActionKey]?.(event);
+  if (this.active) this.localKeyActions[event.code as ActionKey]?.(event);
+
+  this.lastKey = event.code;
 }

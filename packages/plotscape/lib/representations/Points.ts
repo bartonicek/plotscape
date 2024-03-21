@@ -1,75 +1,94 @@
-import { Context } from "../Context";
+import { mergeSetIntoAnother } from "utils";
 import { Dataframe } from "../dataframe/Dataframe";
-import { rectsIntersect } from "../funs";
-import { Scales } from "../plot/Plot";
-import { Rect } from "../types";
-import { Continuous } from "../variables/Continuous";
-import { Discrete } from "../variables/Discrete";
-import { Representation, check, query, render } from "./Representation";
+import { pointInRect, rectsIntersect } from "../funs";
+import graphicParameters from "../graphicParameters.json";
+import { ContextId, Contexts, Plot, Scales } from "../plot/Plot";
+import { LAYER, POSITIONS } from "../symbols";
+import { Point, Rect } from "../types";
+import { Reference } from "../variables/Reference";
+import { Representation } from "./Representation";
 
 type Encodings = {
-  x: Continuous | Discrete;
-  y: Continuous | Discrete;
-  size?: Continuous;
+  x: any;
+  y: any;
+  size?: any;
 };
 
-export interface Points extends Representation<Encodings> {}
+export interface Points extends Representation {
+  boundaryData: Dataframe<Encodings & { [POSITIONS]: Reference<Set<number>> }>;
+  renderData: Dataframe<Encodings & { [LAYER]: Reference<ContextId> }>;
+  scales: Scales;
+}
 
-export function newPoints<T extends Encodings, U extends Encodings>(
-  boundaryData: Dataframe<T>,
-  renderData: Dataframe<U>,
-  scales: Scales
+export function newPoints(
+  plot: Plot,
+  boundaryData: Dataframe<Encodings & { [POSITIONS]: Reference<Set<number>> }>,
+  renderData: Dataframe<Encodings & { [LAYER]: Reference<ContextId> }>
 ): Points {
-  const props = { boundaryData, renderData, scales };
-  const methods = { render, check, query, renderOne, checkOne, queryOne };
+  const props = { boundaryData, renderData, scales: plot.scales };
+  const methods = { render, check, query };
   const self = { ...props, ...methods };
 
-  return self as unknown as Points;
+  return self;
 }
 
-function renderOne(
-  this: Points,
-  context: Context,
-  data: Dataframe<Encodings>,
-  i: number
-) {
-  const { scales } = this;
-  const x = scales.x.pushforward(data.col(`x`).valueAt(i));
-  const y = scales.y.pushforward(data.col(`y`).valueAt(i));
+function render(this: Points, contexts: Contexts) {
+  const { renderData: data, scales } = this;
+  const n = data.n();
 
-  context.point(x, y);
+  for (let i = 0; i < n; i++) {
+    const layer = data.col(LAYER).valueAt(i) as ContextId;
+
+    const x = data.col(`x`).scaledAt(i, scales.x);
+    const y = data.col(`y`).scaledAt(i, scales.y);
+    let radius = data.col(`size`)?.scaledAt(i, scales.size);
+    radius = radius ? Math.sqrt(radius) : graphicParameters.defaultRadius;
+
+    contexts[layer].point(x, y, { radius });
+  }
 }
 
-function checkOne(
-  this: Points,
-  coords: Rect,
-  data: Dataframe<Encodings>,
-  i: number
-) {
-  const { scales } = this;
-  const x = scales.x.pushforward(data.col(`x`).valueAt(i));
-  const y = scales.y.pushforward(data.col(`y`).valueAt(i));
+function check(this: Points, coords: Rect) {
+  const { boundaryData: data, scales } = this;
 
-  const c = 5 / Math.sqrt(2);
-  return rectsIntersect(coords, [x - c, y - c, x + c, y + c]);
+  const n = data.n();
+  const selected = new Set<number>();
+
+  for (let i = 0; i < n; i++) {
+    const x = data.col(`x`).scaledAt(i, scales.x);
+    const y = data.col(`y`).scaledAt(i, scales.y);
+    let radius = data.col(`size`)?.scaledAt(i, scales.size);
+    radius = radius ? Math.sqrt(radius) : graphicParameters.defaultRadius;
+    const c = radius / Math.sqrt(2);
+
+    if (rectsIntersect(coords, [x - c, y - c, x + c, y + c])) {
+      mergeSetIntoAnother(selected, data.col(POSITIONS).valueAt(i));
+    }
+  }
+
+  return selected;
 }
 
-function queryOne(
-  this: Points,
-  x: number,
-  y: number,
-  data: Dataframe<Encodings>,
-  i: number
-) {
-  // const _x = data.col("x").scaledAt!(i);
-  // const _y = data.col("y").scaledAt!(i);
-  // // const size = data.col("size").scaledAt(i) * this.sizeX();
-  // const c = 5 / Math.sqrt(2);
-  // if (rectsIntersect([x, y, x, y], [_x - c, _y - c, _x + c, _y + c])) {
-  //   const result = {} as Record<string | symbol, any>;
-  //   result[data.col("x").name()] = data.col("x").valueAt(i);
-  //   result[data.col("y").name()] = data.col("y").valueAt(i);
-  //   // for (const q of data.queryables) result[q.name()] = q.valueAt(i);
-  //   return result as Record<string, any>;
-  // }
+function query(this: Points, point: Point) {
+  const { boundaryData: data, scales } = this;
+
+  const n = data.n();
+
+  for (let i = 0; i < n; i++) {
+    const x = data.col(`x`).scaledAt(i, scales.x);
+    const y = data.col(`y`).scaledAt(i, scales.y);
+    let radius = data.col(`size`)?.scaledAt(i, scales.size);
+    radius = radius ? Math.sqrt(radius) : graphicParameters.defaultRadius;
+    const c = radius / Math.sqrt(2);
+
+    if (pointInRect(point, [x - c, y - c, x + c, y + c])) {
+      const result = {} as Record<string, any>;
+      result[data.col("x").name()] = data.col("x").valueAt(i);
+      result[data.col("y").name()] = data.col("y").valueAt(i);
+      //   // for (const q of data.queryables) result[q.name()] = q.valueAt(i);
+      return result;
+    }
+  }
+
+  return undefined;
 }

@@ -1,6 +1,6 @@
 import { diff, exponentialToSuperscript, minMax, times } from "utils";
 import graphicParameters from "./graphicParameters.json";
-import { Margins, Rect } from "./types";
+import { Margins, Point, Rect } from "./types";
 
 export function getMargins() {
   const { marginLines, axisTitleFontsize } = graphicParameters;
@@ -57,6 +57,13 @@ export function rectSegmentIntersect(rect: Rect, segment: Segment) {
     segmentsIntersect([x1, y0, x1, y1], segment) ||
     segmentsIntersect([x0, y1, x1, y1], segment)
   );
+}
+
+export function pointInRect(point: Point, rect: Rect) {
+  const [x, y] = point;
+  const [x0, y0, x1, y1] = rect;
+
+  return !(x < x0 || x > x1 || y < y0 || y > y1);
 }
 
 export function isNumberArray(array: unknown[]): array is number[] {

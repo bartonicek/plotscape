@@ -1,8 +1,8 @@
 import { Expanse } from "../Expanse";
 import { newExpanseContinuous } from "../ExpanseContinuous";
 import { Scale } from "../Scale";
-import { Named } from "../mixins/Named";
-import { Proxyable } from "../mixins/Proxyable";
+import { Named, named } from "../mixins/Named";
+import { Proxyable, proxyable } from "../mixins/Proxyable";
 import { Variable } from "./Variable";
 
 export interface Derived<T> extends Named, Variable<T>, Proxyable<T> {
@@ -16,11 +16,11 @@ export interface Derived<T> extends Named, Variable<T>, Proxyable<T> {
 export function newDerived<T, U>(
   derivefn: (index: number, variable?: Variable<U>) => T,
   variable?: Variable<U>
-) {
+): Derived<T> {
   const domain = newExpanseContinuous();
   const props = { variable, domain };
   const methods = { derivefn, valueAt, scaledAt };
-  return { ...props, ...methods } as unknown as Derived<T>;
+  return proxyable(named({ ...props, ...methods })) as unknown as Derived<T>;
 }
 
 function valueAt<T>(this: Derived<T>, index: number) {

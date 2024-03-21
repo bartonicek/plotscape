@@ -1,5 +1,5 @@
 import { Letter } from "utils";
-import { Contexts } from "./plot/Plot";
+import { Representation } from "./representations/Representation";
 import { Continuous } from "./variables/Continuous";
 import { Discrete } from "./variables/Discrete";
 import { Reference } from "./variables/Reference";
@@ -21,6 +21,7 @@ export type RowOf<T extends Variables> = {
 };
 
 export type Primitive = string | number | symbol | object;
+export type SymbolProps<T> = { [key in keyof T & symbol]: T[key] };
 
 export type Point = [x: number, y: number];
 export type Rect = [x0: number, y0: number, x1: number, y1: number];
@@ -40,12 +41,7 @@ export type ActionKey =
   | `Key${Uppercase<Letter>}`;
 
 export type KeyActions = Partial<Record<ActionKey, (event: Event) => void>>;
-
-export interface GraphicObject {
-  render(contexts: Contexts): void;
-  check?(coords: Rect): Set<number>;
-  query?(x: number, y: number): Record<string, any> | undefined;
-}
+export interface GraphicObject extends Partial<Representation> {}
 
 export enum Group {
   Transient = 255,

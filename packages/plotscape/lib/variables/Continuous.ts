@@ -10,12 +10,32 @@ export interface Continuous
     Variable<number>,
     Indexable<number>,
     Proxyable<number> {
+  domain: ExpanseContinuous;
   stack?(): this;
   normalizeByParent?(): this;
+  range(): number;
+  min(): number;
+  max(): number;
 }
 
 export function newContinuous(array: number[], domain?: ExpanseContinuous) {
-  const [min, max] = minMax(array);
-  domain = domain ?? newExpanseContinuous(min, max);
-  return proxyable(indexable(named({ array, domain }))) as Continuous;
+  domain = domain ?? newExpanseContinuous(...minMax(array));
+
+  const props = { array, domain };
+  const methods = { range, min, max };
+  const self = { ...props, ...methods };
+
+  return proxyable(indexable(named(self))) as Continuous;
+}
+
+function min(this: Continuous) {
+  return this.domain.min;
+}
+
+function max(this: Continuous) {
+  return this.domain.max;
+}
+
+function range(this: Continuous) {
+  return this.domain.range();
 }
