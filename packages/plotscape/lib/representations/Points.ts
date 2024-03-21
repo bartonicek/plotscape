@@ -6,7 +6,7 @@ import { ContextId, Contexts, Plot, Scales } from "../plot/Plot";
 import { LAYER, POSITIONS } from "../symbols";
 import { Point, Rect } from "../types";
 import { Reference } from "../variables/Reference";
-import { Representation } from "./Representation";
+import { Representation, mapEncodingToScale } from "./Representation";
 
 type Encodings = {
   x: any;
@@ -25,8 +25,9 @@ export function newPoints(
   boundaryData: Dataframe<Encodings & { [POSITIONS]: Reference<Set<number>> }>,
   renderData: Dataframe<Encodings & { [LAYER]: Reference<ContextId> }>
 ): Points {
-  const props = { boundaryData, renderData, scales: plot.scales };
-  const methods = { render, check, query };
+  const scales = { ...plot.scales };
+  const props = { boundaryData, renderData, scales };
+  const methods = { render, check, query, mapScale: mapEncodingToScale };
   const self = { ...props, ...methods };
 
   return self;

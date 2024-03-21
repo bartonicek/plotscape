@@ -2,6 +2,8 @@ import { compareAlphaNumeric, cumsum, error, last, rep } from "utils";
 import { Expanse } from "./Expanse";
 import { Emitter, subscribable } from "./mixins/Emitter";
 
+/* -------------------------------- Interface ------------------------------- */
+
 export interface ExpanseDiscreteWeighted
   extends Expanse<string>,
     Emitter<"changed"> {
@@ -14,6 +16,8 @@ export interface ExpanseDiscreteWeighted
   retrain(array: string[]): this;
   clone(): ExpanseDiscreteWeighted;
 }
+
+/* ------------------------------- Constructor ------------------------------ */
 
 export function newExpanseDiscreteWeighted(
   values: string[]
@@ -37,6 +41,8 @@ export function newExpanseDiscreteWeighted(
 
   return subscribable(self);
 }
+
+/* --------------------------------- Methods -------------------------------- */
 
 function normalize(this: ExpanseDiscreteWeighted, value: string) {
   const { values, cumWeights } = this;

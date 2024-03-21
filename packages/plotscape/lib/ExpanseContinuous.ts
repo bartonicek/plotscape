@@ -1,35 +1,52 @@
-import { minMax, prettyBreaks } from "utils";
+import { MapFn, identity, minMax, prettyBreaks } from "utils";
 import { Expanse } from "./Expanse";
 import { Emitter, subscribable } from "./mixins/Emitter";
+
+/* -------------------------------- Interface ------------------------------- */
 
 export interface ExpanseContinuous
   extends Expanse<number>,
     Emitter<"limitschanged"> {
   min: number;
   max: number;
+  scale: number;
   defaultMin: number;
   defaultMax: number;
-  limitMin: number;
-  limitMax: number;
+  trans: MapFn<number, number>;
+  inv: MapFn<number, number>;
+
   clone(): ExpanseContinuous;
   range(): number;
   normalize(value: number): number;
   unnormalize(value: number): number;
+
   setMin(value: number): this;
   setMax(value: number): this;
+  setScale(value: number): this;
   setDefaultMin(value: number): this;
   setDefaultMax(value: number): this;
-  setLimitMin(value: number): this;
-  setLimitMax(value: number): this;
+  setTransform(trans: MapFn<number, number>, inv: MapFn<number, number>): this;
+
   defaultize(): this;
   retrain(array: number[]): this;
 }
 
-export function newExpanseContinuous(min = 0, max = 1): ExpanseContinuous {
-  const [defaultMin, defaultMax] = [min, max];
-  const [limitMin, limitMax] = [-Infinity, Infinity];
+/* ------------------------------- Constructor ------------------------------ */
 
-  const props = { min, max, defaultMin, defaultMax, limitMin, limitMax };
+export function newExpanseContinuous(min = 0, max = 1): ExpanseContinuous {
+  const [defaultMin, defaultMax, scale] = [min, max, 1];
+  const [trans, inv] = [identity, identity];
+
+  const props = {
+    min,
+    max,
+    scale,
+    defaultMin,
+    defaultMax,
+    trans,
+    inv,
+  };
+
   const methods = {
     clone,
     range,
@@ -39,8 +56,8 @@ export function newExpanseContinuous(min = 0, max = 1): ExpanseContinuous {
     setMax,
     setDefaultMin,
     setDefaultMax,
-    setLimitMin,
-    setLimitMax,
+    setScale,
+    setTransform,
     defaultize,
     retrain,
     breaks,
@@ -50,47 +67,56 @@ export function newExpanseContinuous(min = 0, max = 1): ExpanseContinuous {
   return subscribable(self);
 }
 
+/* --------------------------------- Methods -------------------------------- */
+
 function range(this: ExpanseContinuous) {
-  return this.max - this.min;
+  return this.trans(this.max - this.min);
 }
 
 function normalize(this: ExpanseContinuous, value: number) {
-  return (value - this.min) / this.range();
+  return (this.trans(value) - this.trans(this.min)) / this.range() / this.scale;
 }
 
 function unnormalize(this: ExpanseContinuous, value: number) {
-  return this.min + value * this.range();
+  return this.inv(this.min) + this.inv(value * this.range()) * this.scale;
 }
 
 function setMin(this: ExpanseContinuous, value: number) {
-  this.min = Math.max(this.limitMin, value);
+  this.min = value;
   this.emit("limitschanged");
   return this;
 }
 
 function setMax(this: ExpanseContinuous, value: number) {
-  this.max = Math.min(this.limitMax, value);
+  this.max = value;
   this.emit("limitschanged");
   return this;
 }
 
 function setDefaultMin(this: ExpanseContinuous, value: number) {
   this.defaultMin = value;
+  this.setMin(value);
   return this;
 }
 
 function setDefaultMax(this: ExpanseContinuous, value: number) {
   this.defaultMax = value;
+  this.setMax(value);
   return this;
 }
 
-function setLimitMin(this: ExpanseContinuous, value: number) {
-  this.limitMin = value;
+function setScale(this: ExpanseContinuous, value: number) {
+  this.scale = value;
   return this;
 }
 
-function setLimitMax(this: ExpanseContinuous, value: number) {
-  this.limitMax = value;
+function setTransform(
+  this: ExpanseContinuous,
+  trans: MapFn<number, number>,
+  inv: MapFn<number, number>
+) {
+  this.trans = trans;
+  this.inv = inv;
   return this;
 }
 

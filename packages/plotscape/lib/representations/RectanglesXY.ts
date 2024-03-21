@@ -5,7 +5,7 @@ import { ContextId, Contexts, Plot, Scales } from "../plot/Plot";
 import { LAYER, POSITIONS } from "../symbols";
 import { Point, Rect } from "../types";
 import { Reference } from "../variables/Reference";
-import { Representation } from "./Representation";
+import { Representation, mapEncodingToScale } from "./Representation";
 
 type Encodings = {
   x0: any;
@@ -25,9 +25,9 @@ export function newRectanglesXY(
   boundaryData: Dataframe<Encodings & { [POSITIONS]: Reference<Set<number>> }>,
   renderData: Dataframe<Encodings & { [LAYER]: Reference<ContextId> }>
 ): RectanglesWH {
-  const { scales } = plot;
+  const scales = { ...plot.scales };
   const props = { boundaryData, renderData, scales };
-  const methods = { render, check, query };
+  const methods = { render, check, query, mapScale: mapEncodingToScale };
   const self = { ...props, ...methods };
 
   return self;

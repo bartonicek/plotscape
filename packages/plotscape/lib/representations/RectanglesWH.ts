@@ -5,7 +5,7 @@ import { ContextId, Contexts, Plot, Scales } from "../plot/Plot";
 import { LAYER, POSITIONS } from "../symbols";
 import { HorizontalAnchor, Point, Rect, VerticalAnchor } from "../types";
 import { Reference } from "../variables/Reference";
-import { Representation } from "./Representation";
+import { Representation, mapEncodingToScale } from "./Representation";
 
 type Encodings = {
   x: any;
@@ -31,12 +31,19 @@ export function newRectanglesWH(
   boundaryData: Dataframe<Encodings & { [POSITIONS]: Reference<Set<number>> }>,
   renderData: Dataframe<Encodings & { [LAYER]: Reference<ContextId> }>
 ): RectanglesWH {
-  const { scales } = plot;
+  const scales = { ...plot.scales };
   const [hAnchor, vAnchor] = [HorizontalAnchor.Center, VerticalAnchor.Middle];
 
   const pars = { hAnchor, vAnchor };
   const props = { boundaryData, renderData, scales };
-  const methods = { render, check, query, setHAnchor, setVAnchor };
+  const methods = {
+    render,
+    check,
+    query,
+    setHAnchor,
+    setVAnchor,
+    mapEncodingToScale,
+  };
   const self = { ...pars, ...props, ...methods };
 
   return self;

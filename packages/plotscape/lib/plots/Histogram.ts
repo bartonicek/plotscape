@@ -60,7 +60,6 @@ export function newHistogram<T extends Variables>(
     plot.scales.y.setMin(0).freezeMin();
     plot.render();
   });
-
   renderData.listen(`changed`, plot.render.bind(plot));
   plot.render();
 }

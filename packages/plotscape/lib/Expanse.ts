@@ -1,3 +1,4 @@
+import { MapFn } from "utils";
 import { ExpanseContinuous } from "./ExpanseContinuous";
 
 export interface Expanse<T = unknown> {
@@ -8,4 +9,5 @@ export interface Expanse<T = unknown> {
   breaks(norm: ExpanseContinuous): T[];
   setMin?(value: number): this;
   setMax?(value: number): this;
+  setTransform?(trans: MapFn<number, number>, inv: MapFn<number, number>): this;
 }
