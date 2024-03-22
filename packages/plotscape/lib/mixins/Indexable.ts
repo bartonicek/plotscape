@@ -6,7 +6,7 @@ export interface Indexable<T> {
   array: T[];
   n(): number;
   values(): T[];
-  valueAt(index: number): T;
+  valueAt(index: number, offset?: number): T;
   scaledAt(index: number, scale: Scale<T>): number;
   retrain(array: T[]): void;
 }
@@ -31,6 +31,7 @@ function values<T>(this: Indexable<T>) {
 
 function valueAt<T>(this: Indexable<T>, index: number, offset = 0) {
   // Offset is necessary if we want to drill through a proxy
+  // i.e. proxied.valueAt(index - 1) doesn't work
   return this.array[index + offset];
 }
 

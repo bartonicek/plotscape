@@ -1,4 +1,4 @@
-import { compareAlphaNumeric, cumsum, error, last, rep } from "utils";
+import { compareAlphaNumeric, cumsum, last, rep } from "utils";
 import { Expanse } from "./Expanse";
 import { Emitter, subscribable } from "./mixins/Emitter";
 
@@ -45,20 +45,19 @@ export function newExpanseDiscreteWeighted(
 /* --------------------------------- Methods -------------------------------- */
 
 function normalize(this: ExpanseDiscreteWeighted, value: string) {
-  const { values, cumWeights } = this;
-  const index = values.indexOf(value);
-  const midpoint = ((cumWeights[index - 1] ?? 0) + cumWeights[index]) / 2;
-
-  return midpoint / last(cumWeights);
+  const [lower, upper, max] = getBoundsInternal(this, value);
+  const midpoint = lower + (upper - lower) / 2;
+  return midpoint / max;
 }
 
 function unnormalize(this: ExpanseDiscreteWeighted, value: number) {
-  error(`TODO`);
+  throw new Error(`Not implemented yet`);
   return this.values[0];
 }
 
 function width(this: ExpanseDiscreteWeighted, value: string) {
-  return this.weights[this.values.indexOf(value)] / last(this.cumWeights);
+  const [lower, upper, max] = getBoundsInternal(this, value);
+  return (upper - lower) / max;
 }
 
 function setValues(this: ExpanseDiscreteWeighted, values: string[]) {
@@ -94,4 +93,10 @@ function clone(this: ExpanseDiscreteWeighted) {
 
 function breaks(this: ExpanseDiscreteWeighted) {
   return this.values;
+}
+
+function getBoundsInternal(self: ExpanseDiscreteWeighted, value: string) {
+  const { values, cumWeights } = self;
+  const index = values.indexOf(value);
+  return [cumWeights[index - 1] ?? 0, cumWeights[index], last(cumWeights)];
 }

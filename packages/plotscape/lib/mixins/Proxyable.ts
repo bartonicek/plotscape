@@ -1,5 +1,4 @@
 type Base<T = unknown> = {
-  n?(): number;
   valueAt(index: number, offset?: number): T;
 };
 
@@ -19,6 +18,7 @@ function proxy<T>(this: Proxyable<T>, indexfn: () => number[]) {
   const source = this;
   const copy = { ...this, indexfn };
 
+  // @ts-ignore
   copy.n = function () {
     return this.indexfn().length;
   };

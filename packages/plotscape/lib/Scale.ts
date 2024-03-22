@@ -17,13 +17,19 @@ export interface Scale<T = unknown> extends Named {
   setAes(aesthetic: Aesthetic): this;
   setDomain<V extends string | number>(domain: Expanse<V>): Scale<V>;
   setOther(other: Scale): this;
+
   setMin(value: number): this;
   setMax(value: number): this;
+
+  setWeights(weights?: number[]): this;
+
   pushforward(value: T): number;
   pullback(value: number): T;
+
   move(amount: number): this;
   freezeMin(): this;
   freezeMax(): this;
+
   link(other: Scale<T>): this;
   breaks(): T[];
 }
@@ -51,6 +57,7 @@ export function newScale<T = number>(
     setOther,
     setMin,
     setMax,
+    setWeights,
     pushforward,
     pullback,
     move,
@@ -104,6 +111,11 @@ function setMin<T>(this: Scale<T>, value: number) {
 
 function setMax<T>(this: Scale<T>, value: number) {
   this.domain.setDefaultMax?.(value);
+  return this;
+}
+
+function setWeights<T>(this: Scale<T>, weights: number[]) {
+  this.domain.setWeights?.(weights);
   return this;
 }
 

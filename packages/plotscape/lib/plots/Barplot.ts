@@ -1,3 +1,4 @@
+import { rep, sum } from "utils";
 import { Scene } from "../Scene";
 import { Dataframe } from "../dataframe/Dataframe";
 import { factorFrom } from "../factors/factorFrom";
@@ -79,6 +80,7 @@ function encodeAbs(self: Barplot) {
 
   self.type = Type.Absolute;
   self.trainScales(boundaryData, (d) => ({ ...d, y: d.height }));
+  self.scales.x.setWeights(rep(1, boundaryData.n()));
   self.scales.y.setMin(0).freezeMin().link(self.scales.height);
   self.render();
 }
@@ -95,6 +97,11 @@ function encodePct(self: Barplot) {
   self.type = Type.Proportion;
   self.trainScales(boundaryData, (d) => ({ ...d, y: d.height }));
   self.scales.y.setMin(0).freezeMin().link(self.scales.height);
+
+  const values = partition1Data.col(`stat1`).values();
+  self.scales.x.setWeights(values);
+  self.scales.width.setMax(values.reduce(sum));
+
   self.render();
 }
 
@@ -112,7 +119,7 @@ const encodeRenderAbs = (d: ReducedBindings) => {
     x: d.label,
     y: zero,
     width: d.label.width(),
-    height: d.stat1.stack!(),
+    height: d.stat1.stack(),
   };
 };
 
@@ -120,7 +127,7 @@ const encodeBoundaryPct = (d: ReducedBindings) => {
   return {
     x: d.label,
     y: zero,
-    width: d.label.width(),
+    width: d.stat1,
     height: one,
   };
 };
@@ -129,7 +136,7 @@ const encodeRenderPct = (d: ReducedBindings) => {
   return {
     x: d.label,
     y: zero,
-    width: d.label.width(),
-    height: d.stat1.stack!().normalizeByParent!(),
+    width: d.stat1.parent(),
+    height: d.stat1.stack().normalizeByParent!(),
   };
 };
