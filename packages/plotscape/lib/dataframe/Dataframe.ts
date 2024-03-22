@@ -158,7 +158,7 @@ function proxy<T extends Variables>(this: Dataframe<T>, indices: number[]) {
   const copy = newDataframe(columns);
   copy.cachedN = () => indices.length;
   for (const [k, v] of allEntries(copy.columns)) {
-    copy.columns[k] = (v as any).proxy(indices);
+    copy.columns[k] = (v as any).proxy(() => indices);
   }
 
   return copy;

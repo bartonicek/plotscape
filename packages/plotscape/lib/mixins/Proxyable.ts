@@ -1,12 +1,12 @@
 type Base<T = unknown> = {
   n?(): number;
-  valueAt(index: number): T;
+  valueAt(index: number, offset?: number): T;
 };
 
-export interface Proxyable<T> extends Base<T> {
+export interface Proxyable<T = unknown> extends Base<T> {
   source?: Base<T>;
-  proxyIndices?: number[];
-  proxy(indices: number[]): this;
+  indexfn?: () => number[];
+  proxy(indexfn: () => number[]): this;
 }
 
 export function proxyable<T extends Base>(
@@ -15,16 +15,16 @@ export function proxyable<T extends Base>(
   return { ...base, proxy };
 }
 
-function proxy<T>(this: Proxyable<T>, indices: number[]) {
+function proxy<T>(this: Proxyable<T>, indexfn: () => number[]) {
   const source = this;
-  const copy = { ...this, proxyIndices: indices };
+  const copy = { ...this, indexfn };
 
   copy.n = function () {
-    return this.proxyIndices.length;
+    return this.indexfn().length;
   };
 
-  copy.valueAt = function (index: number) {
-    return this.source!.valueAt(this.proxyIndices[index]);
+  copy.valueAt = function (index: number, offset: number) {
+    return this.source!.valueAt(this.indexfn()[index], offset);
   };
 
   return { ...proxyable(copy), source };

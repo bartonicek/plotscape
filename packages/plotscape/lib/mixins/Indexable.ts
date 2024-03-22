@@ -29,8 +29,9 @@ function values<T>(this: Indexable<T>) {
   return result;
 }
 
-function valueAt<T>(this: Indexable<T>, index: number) {
-  return this.array[index];
+function valueAt<T>(this: Indexable<T>, index: number, offset = 0) {
+  // Offset is necessary if we want to drill through a proxy
+  return this.array[index + offset];
 }
 
 function scaledAt<T>(this: Indexable<T>, index: number, scale: Scale<T>) {

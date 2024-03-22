@@ -4,10 +4,14 @@ import { ReducerHandler } from "./ReducerHandler";
 export interface Reduced {
   reducer?: ReducerHandler;
   setReducer(reducer: ReducerHandler): this;
+
   stack(): this;
   normalizeByParent(): this;
-  shiftLeft(): this;
   parent(): this;
+  shiftLeft(): this;
+
+  source?: any;
+  indexfn?(): number[];
 }
 
 export function reduced<T extends Variable>(variable: T): T & Reduced {
@@ -28,14 +32,19 @@ function setReducer(this: Reduced, reducer: ReducerHandler) {
 
 function stack<T extends Variable>(this: T & Reduced) {
   if (!this.reducer) return this;
-
   const reducer = this.reducer.stack();
-  return reducer.result;
+  let result = reducer.result;
+  if (this.indexfn) result = result.proxy(this.indexfn);
+
+  return result;
 }
 
 function normalizeByParent(this: Reduced) {
   if (!this.reducer) return this;
   const reducer = this.reducer.normalizeByParent();
+  let result = reducer.result;
+  if (this.indexfn) result = result.proxy(this.indexfn);
+
   return reducer.result;
 }
 
@@ -46,7 +55,7 @@ function shiftLeft(this: Reduced) {
 
   copy.valueAt = function (index: number) {
     if (index === 0) return copy.reducer?.reducer.initialfn();
-    return original.valueAt(index - 1);
+    return original.valueAt(index, -1);
   };
 
   return copy;
@@ -60,14 +69,8 @@ function parent(this: Reduced) {
 
   if (!parent || !factor || !factor.parent) return this;
 
-  const levels = factor.parent.levels;
   const parentReducerCopy = parent.clone();
-  const copy = parentReducerCopy.result.proxy(levels);
-
-  // const foo = (index: number) => levels[index];
-  // reducer.listen(`changed`, () => {
-  //   console.log(factor.parent.levels, foo(10));
-  // });
+  const copy = parentReducerCopy.result.proxy(() => factor.parent!.levels);
 
   return reduced(copy);
 }

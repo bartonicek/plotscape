@@ -32,7 +32,7 @@ export function factorBin(
       self.data.columns[k].domain = v.domain;
       self.data.columns[k].array = v.array;
       self.data.columns[k].source = v.source;
-      self.data.columns[k].proxyIndices = v.proxyIndices;
+      self.data.columns[k].indexfn = v.indexfn;
     }
 
     self.emit(`changed`);
@@ -95,8 +95,8 @@ function bin(variable: Continuous, width?: number, anchor?: number) {
   const breaksVariable = newContinuous(breaks, domain);
   breaksVariable.setName(variable.name());
 
-  const binStart = breaksVariable.proxy(sorted);
-  const binEnd = breaksVariable.proxy(sorted.map(inc));
+  const binStart = breaksVariable.proxy(() => sorted);
+  const binEnd = breaksVariable.proxy(() => sorted.map(inc));
 
   const columns = {
     binStart,
