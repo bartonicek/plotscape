@@ -40,7 +40,8 @@ export function newReducerHandler<T, U>(
     Reduced;
   result.setName(name);
 
-  const props = { reducer, source, result, stacked: false, normalized: false };
+  const [stacked, normalized] = [false, false];
+  const props = { reducer, source, result, stacked, normalized };
   const methods = {
     clone,
     setParent,

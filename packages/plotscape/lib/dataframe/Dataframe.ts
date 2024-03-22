@@ -132,7 +132,7 @@ function select<T extends Variables, U extends Partial<Variables>>(
   this: Dataframe<T>,
   selectfn: (cols: T) => U
 ): Dataframe<SymbolProps<T> & U> {
-  const columns = { ...this.columns, ...selectfn(this.columns) } as any;
+  const columns = selectfn(this.columns) as any;
   const result = newDataframe(columns);
   for (const [k, v] of allEntries(this.columns)) {
     if (typeof k === "symbol") columns[k] = v;
@@ -158,7 +158,7 @@ function proxy<T extends Variables>(this: Dataframe<T>, indices: number[]) {
   const copy = newDataframe(columns);
   copy.cachedN = () => indices.length;
   for (const [k, v] of allEntries(copy.columns)) {
-    copy.columns[k] = v.proxy(indices);
+    copy.columns[k] = (v as any).proxy(indices);
   }
 
   return copy;

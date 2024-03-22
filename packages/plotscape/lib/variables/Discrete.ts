@@ -23,10 +23,16 @@ export function newDiscrete(array: string[], domain?: ExpanseDiscreteWeighted) {
   domain = domain ?? newExpanseDiscreteWeighted(unique);
 
   const props = { array, domain };
-  const methods = { width };
+  const methods = { width, clone };
   const self = { ...props, ...methods };
 
   return proxyable(indexable(named(self))) as Discrete;
+}
+
+function clone(this: Discrete) {
+  const array = [...this.array];
+  const copy = newDiscrete(array) as Discrete;
+  return copy;
 }
 
 function width(this: Discrete) {

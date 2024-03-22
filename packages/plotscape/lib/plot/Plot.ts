@@ -354,12 +354,6 @@ function fixedAspectRatio(this: Plot) {
   smaller.domain.setDefaultMin(midpoint - newRange / 2);
   smaller.domain.setDefaultMax(midpoint + newRange / 2);
 
-  console.log(
-    x.domain.range() /
-      x.codomain.range() /
-      (y.domain.range() / y.codomain.range())
-  );
-
   this.render();
 }
 

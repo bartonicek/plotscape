@@ -2,6 +2,7 @@ import { Dataframe } from "../dataframe/Dataframe";
 import { subscribable } from "../mixins/Emitter";
 import { Variables } from "../types";
 import { Factor } from "./Factor";
+import { newFactorMono } from "./FactorMono";
 
 export function newFactorComputed<T extends Variables>(
   cardinality: number,
@@ -9,7 +10,9 @@ export function newFactorComputed<T extends Variables>(
   data: Dataframe<T>,
   parent?: Factor
 ): Factor<T> {
+  parent = parent ?? newFactorMono();
   const self = { parent, cardinality, levels, data, levelAt };
+
   return subscribable(self);
 }
 

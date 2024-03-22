@@ -1,6 +1,6 @@
-import { Dataframe } from "@abartonicek/plotscape5";
 import { Scene } from "../Scene";
 import { newValueEmitter } from "../ValueEmitter";
+import { Dataframe } from "../dataframe/Dataframe";
 import { factorBin } from "../factors/factorBin";
 import { Plot, newPlot } from "../plot/Plot";
 import { newPartition } from "../reducers/Partition";
@@ -56,6 +56,10 @@ export function newHistogram<T extends Variables>(
   self.pushGraphicObject(bars);
   self.scales.y.freezeMin();
 
+  self.addKeyAction(`KeyN`, () =>
+    self.type === Type.Absolute ? encodePct(self) : encodeAbs(self)
+  );
+
   self.addKeyAction(`Minus`, () => width.setValue(width.value * (10 / 11)));
   self.addKeyAction(`Equal`, () => width.setValue(width.value * (11 / 10)));
 
@@ -91,6 +95,23 @@ function encodeAbs(self: Histogram) {
   self.render();
 }
 
+function encodePct(self: Histogram) {
+  const { partition1Data, partition2Data, bars } = self;
+
+  const boundaryData = partition1Data.select(encodeBoundaryPct);
+  const renderData = partition2Data.select(encodeRenderPct);
+
+  console.log(renderData.rows());
+
+  bars.setBoundaryData(boundaryData);
+  bars.setRenderData(renderData);
+
+  self.type = Type.Proportion;
+  self.trainScales(boundaryData, (d) => ({ x: d.x0, y: d.y1 }));
+  self.scales.y.setMin(0);
+  self.render();
+}
+
 const encodeBoundaryAbs = (d: ReducedBindings) => {
   return { x0: d.binStart, y0: zero, x1: d.binEnd, y1: d.stat1 };
 };
@@ -101,18 +122,18 @@ const encodeRenderAbs = (d: ReducedBindings) => {
 
 const encodeBoundaryPct = (d: ReducedBindings) => {
   return {
-    x0: d.binStart,
+    x0: d.stat1.stack().shiftLeft(),
+    x1: d.stat1.stack(),
     y0: zero,
-    x1: d.binEnd,
     y1: one,
   };
 };
 
 const encodeRenderPct = (d: ReducedBindings) => {
   return {
-    x0: d.binStart,
+    x0: d.stat1.parent().stack().shiftLeft(),
+    x1: d.stat1.parent().stack(),
     y0: zero,
-    x1: d.binEnd,
-    y1: d.stat1.stack!().normalizeByParent!(),
+    y1: d.stat1.stack!().normalizeByParent(),
   };
 };

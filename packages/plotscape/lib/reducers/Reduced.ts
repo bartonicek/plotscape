@@ -6,10 +6,19 @@ export interface Reduced {
   setReducer(reducer: ReducerHandler): this;
   stack(): this;
   normalizeByParent(): this;
+  shiftLeft(): this;
+  parent(): this;
 }
 
 export function reduced<T extends Variable>(variable: T): T & Reduced {
-  return { ...variable, setReducer, stack, normalizeByParent };
+  return {
+    ...variable,
+    setReducer,
+    stack,
+    normalizeByParent,
+    shiftLeft,
+    parent,
+  };
 }
 
 function setReducer(this: Reduced, reducer: ReducerHandler) {
@@ -18,17 +27,42 @@ function setReducer(this: Reduced, reducer: ReducerHandler) {
 }
 
 function stack<T extends Variable>(this: T & Reduced) {
-  if (this.reducer) {
-    const reducer = this.reducer.stack();
-    return reducer.result;
-  }
-  return this;
+  if (!this.reducer) return this;
+
+  const reducer = this.reducer.stack();
+  return reducer.result;
 }
 
 function normalizeByParent(this: Reduced) {
-  if (this.reducer) {
-    const reducer = this.reducer.normalizeByParent();
-    return reducer.result;
-  }
-  return this;
+  if (!this.reducer) return this;
+  const reducer = this.reducer.normalizeByParent();
+  return reducer.result;
+}
+
+function shiftLeft(this: Reduced) {
+  if (!this.reducer) return this;
+  const original = this as any;
+  const copy = { ...this } as any;
+
+  copy.valueAt = function (index: number) {
+    if (index === 0) return copy.reducer?.reducer.initialfn();
+    return original.valueAt(index - 1);
+  };
+
+  return copy;
+}
+
+function parent(this: Reduced) {
+  const { reducer } = this;
+
+  if (!reducer) return this;
+  const { parent, factor } = reducer;
+
+  if (!parent || !factor || !factor.parent) return this;
+
+  const levels = factor.parent.levels;
+  const parentReducerCopy = parent.clone();
+  const copy = parentReducerCopy.result.proxy(levels);
+
+  return reduced(copy);
 }

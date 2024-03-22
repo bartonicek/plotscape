@@ -10,31 +10,27 @@ export function factorProduct<T extends Variables, U extends Variables>(
   factor1: Factor<T>,
   factor2: Factor<U>
 ): Factor<DisjointUnion<T, U>> {
-  const factor = product(factor1, factor2);
+  const self = product(factor1, factor2);
 
   const update = () => {
     const newFactor = product(factor1, factor2);
 
-    factor.parent = newFactor.parent;
-    factor.cardinality = newFactor.cardinality;
-    factor.levels = newFactor.levels;
+    self.parent = newFactor.parent;
+    self.cardinality = newFactor.cardinality;
+    self.levels = newFactor.levels;
 
     for (const [k, v] of allEntries(newFactor.data.columns)) {
       // @ts-ignore
-      factor.data.columns[k].array = v.array;
-      // @ts-ignore
-      factor.data.columns[k].source = v.source;
-      // @ts-ignore
-      factor.data.columns[k].proxyIndices = v.proxyIndices;
+      self.data.columns[k].proxyIndices = v.proxyIndices;
     }
 
-    factor.emit(`changed`);
+    self.emit(`changed`);
   };
 
   factor1.listen(`changed`, update);
   factor2.listen(`changed`, update);
 
-  return factor;
+  return self;
 }
 
 export function product<T extends Variables, U extends Variables>(
@@ -102,5 +98,6 @@ export function product<T extends Variables, U extends Variables>(
   const cardinality = dirtyUniqueLevels.size;
   const data = newDataframe(columns as DisjointUnion<T, U>);
 
-  return newFactorComputed(cardinality, levels, data, parentFactor);
+  const result = newFactorComputed(cardinality, levels, data, parentFactor);
+  return result;
 }

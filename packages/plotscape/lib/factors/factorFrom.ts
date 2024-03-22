@@ -32,5 +32,7 @@ export function factorFrom(
   columns.label.setName(variable.name());
   const data = newDataframe(columns);
 
-  return newFactorComputed(labels!.length, levels, data);
+  const factor = newFactorComputed(labels!.length, levels, data);
+
+  return factor;
 }
