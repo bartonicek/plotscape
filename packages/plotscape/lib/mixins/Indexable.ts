@@ -4,7 +4,7 @@ import { Scale } from "../Scale";
 export interface Indexable<T> {
   domain: Expanse<T>;
   array: T[];
-  n?(): number;
+  n(): number;
   values(): T[];
   valueAt(index: number): T;
   scaledAt(index: number, scale: Scale<T>): number;
@@ -23,7 +23,7 @@ function n<T>(this: Indexable<T>) {
 }
 
 function values<T>(this: Indexable<T>) {
-  const n = this.n!();
+  const n = this.n();
   const result = [] as T[];
   for (let i = 0; i < n; i++) result.push(this.valueAt(i));
   return result;

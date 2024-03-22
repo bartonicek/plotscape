@@ -20,28 +20,28 @@ export function factorBin(
   const _width = getter(width);
   const _anchor = getter(anchor);
 
-  const factor = bin(variable, _width(), _anchor());
+  const self = bin(variable, _width(), _anchor());
 
   const update = () => {
     const newFactor = bin(variable, _width(), _anchor());
-    factor.parent = newFactor.parent;
-    factor.cardinality = newFactor.cardinality;
-    factor.levels = newFactor.levels;
+    self.parent = newFactor.parent;
+    self.cardinality = newFactor.cardinality;
+    self.levels = newFactor.levels;
 
     for (const [k, v] of allEntries(newFactor.data.columns)) {
-      factor.data.columns[k].domain = v.domain;
-      factor.data.columns[k].array = v.array;
-      factor.data.columns[k].source = v.source;
-      factor.data.columns[k].proxyIndices = v.proxyIndices;
+      self.data.columns[k].domain = v.domain;
+      self.data.columns[k].array = v.array;
+      self.data.columns[k].source = v.source;
+      self.data.columns[k].proxyIndices = v.proxyIndices;
     }
 
-    factor.emit(`changed`);
+    self.emit(`changed`);
   };
 
   if (isEmitter(width)) width.listen(`changed`, update);
   if (isEmitter(anchor)) anchor.listen(`changed`, update);
 
-  return factor;
+  return self;
 }
 
 function bin(variable: Continuous, width?: number, anchor?: number) {

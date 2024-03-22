@@ -1,18 +1,22 @@
-import { Variable } from "../variables/Variable";
+type Base<T = unknown> = {
+  n?(): number;
+  valueAt(index: number): T;
+};
 
-export interface Proxyable<T> extends Variable<T> {
+export interface Proxyable<T> extends Base<T> {
+  source?: Base<T>;
   proxyIndices?: number[];
-
-  indicesPointer?: { proxyIndices: number[] };
   proxy(indices: number[]): this;
 }
 
-export function proxyable<T extends Variable>(variable: T) {
-  return { ...variable, proxy } as T & Proxyable<ReturnType<T["valueAt"]>>;
+export function proxyable<T extends Base>(
+  base: T
+): T & Proxyable<ReturnType<Base["valueAt"]>> {
+  return { ...base, proxy };
 }
 
 function proxy<T>(this: Proxyable<T>, indices: number[]) {
-  const original = this;
+  const source = this;
   const copy = { ...this, proxyIndices: indices };
 
   copy.n = function () {
@@ -20,8 +24,8 @@ function proxy<T>(this: Proxyable<T>, indices: number[]) {
   };
 
   copy.valueAt = function (index: number) {
-    return original.valueAt(this.proxyIndices[index]);
+    return this.source!.valueAt(this.proxyIndices[index]);
   };
 
-  return proxyable({ ...copy });
+  return { ...proxyable(copy), source };
 }

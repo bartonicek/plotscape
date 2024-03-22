@@ -19,8 +19,11 @@ export function factorProduct<T extends Variables, U extends Variables>(
     self.cardinality = newFactor.cardinality;
     self.levels = newFactor.levels;
 
-    for (const [k, v] of allEntries(newFactor.data.columns)) {
-      // @ts-ignore
+    const cols = newFactor.data.cols() as Variables;
+    for (const [k, v] of allEntries(cols)) {
+      self.data.columns[k].domain = v.domain;
+      self.data.columns[k].array = v.array;
+      self.data.columns[k].source = v.source;
       self.data.columns[k].proxyIndices = v.proxyIndices;
     }
 
