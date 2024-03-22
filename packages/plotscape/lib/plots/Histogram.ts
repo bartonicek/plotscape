@@ -101,10 +101,6 @@ function encodePct(self: Histogram) {
   const boundaryData = partition1Data.select(encodeBoundaryPct);
   const renderData = partition2Data.select(encodeRenderPct);
 
-  renderData.listen(`changed`, () => {
-    console.log(renderData.rows());
-  });
-
   bars.setBoundaryData(boundaryData);
   bars.setRenderData(renderData);
 
@@ -119,12 +115,12 @@ const encodeBoundaryAbs = (d: ReducedBindings) => {
 };
 
 const encodeRenderAbs = (d: ReducedBindings) => {
-  return { x0: d.binStart, y0: zero, x1: d.binEnd, y1: d.stat1.stack!() };
+  return { x0: d.binStart, y0: zero, x1: d.binEnd, y1: d.stat1.stack() };
 };
 
 const encodeBoundaryPct = (d: ReducedBindings) => {
   return {
-    x0: d.stat1.stack(),
+    x0: d.stat1.stack().shiftLeft(),
     x1: d.stat1.stack(),
     y0: zero,
     y1: one,

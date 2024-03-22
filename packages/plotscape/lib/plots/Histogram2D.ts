@@ -1,7 +1,8 @@
-import { Dataframe } from "@abartonicek/plotscape5";
-import { square, squareRoot } from "utils";
+import { identity, square, squareRoot } from "utils";
 import { Scene } from "../Scene";
-import { factorFrom } from "../factors/factorFrom";
+import { newValueEmitter } from "../ValueEmitter";
+import { Dataframe } from "../dataframe/Dataframe";
+import { factorBin } from "../factors/factorBin";
 import { factorProduct } from "../factors/factorProduct";
 import { Plot, newPlot } from "../plot/Plot";
 import { newPartition } from "../reducers/Partition";
@@ -10,39 +11,43 @@ import { newReducerHandler } from "../reducers/ReducerHandler";
 import { RectanglesWH, newRectanglesWH } from "../representations/RectanglesWH";
 import { BoundaryCols, RenderCols, Type, Variables } from "../types";
 import { Continuous } from "../variables/Continuous";
-import { Discrete } from "../variables/Discrete";
+import { Derived } from "../variables/Derived";
 import { one } from "../variables/constants";
 
 type DataBindings = {
-  v1: Discrete;
-  v2: Discrete;
-  v3?: Continuous;
+  v1: Continuous;
+  v2: Continuous;
 };
 
 type ReducedBindings = {
-  label: Discrete;
-  label$: Discrete;
+  binMid: Derived<number>;
+  binMid$: Derived<number>;
   stat1: Continuous;
 };
 
-export interface Fluctplot extends Plot {
+export interface Histogram2D extends Plot {
   type: Type;
   partition1Data: Dataframe<ReducedBindings & BoundaryCols>;
   partition2Data: Dataframe<ReducedBindings & RenderCols>;
   squares: RectanglesWH;
 }
 
-export function newFluctplot<T extends Variables>(
+export function newHistogram2D<T extends Variables>(
   scene: Scene<T>,
   selectfn: (cols: T) => DataBindings
 ) {
   const plot = newPlot(scene);
   const data = scene.data.select(selectfn);
 
+  const width1 = newValueEmitter(data.col(`v1`).range() / 15);
+  const width2 = newValueEmitter(data.col(`v2`).range() / 15);
+
   const reducers = { stat1: newReducerHandler(one, sumReducer) };
-  const factor1 = factorFrom(data.col(`v1`));
-  const factor2 = factorFrom(data.col(`v2`));
+  const factor1 = factorBin(data.col(`v1`), width1, data.col(`v1`).min());
+  const factor2 = factorBin(data.col(`v2`), width2, data.col(`v2`).min());
   const factor3 = factorProduct(factor1, factor2);
+
+  console.log(factor1.data.rows());
 
   const partition1 = newPartition(reducers).refine(factor3);
   const partition2 = partition1.refine(scene.marker.factor);
@@ -55,24 +60,52 @@ export function newFluctplot<T extends Variables>(
   squares.mapEncodingToScale(`width`, `area`);
   squares.mapEncodingToScale(`height`, `area`);
 
-  const self = { ...plot, squares, type, partition1Data, partition2Data };
+  const self = { ...plot, type, squares, partition1Data, partition2Data };
   encodeAbs(self);
 
-  plot.pushGraphicObject(squares);
-  const nMax = Math.max(factor1.cardinality, factor2.cardinality) + 2;
-  plot.scales.area.codomain.setScale(1 / nMax).setTransform(square, squareRoot);
+  self.pushGraphicObject(squares);
 
-  self.partition1Data.listen(`changed`, plot.render.bind(plot));
-  self.partition2Data.listen(`changed`, plot.render.bind(plot));
+  const nMax = Math.max(factor1.cardinality, factor2.cardinality) + 2;
+  self.trainScales(squares.boundaryData!, identity);
+  self.scales.area.codomain
+    .setScale(1 / nMax ** 2)
+    .setTransform(square, squareRoot);
 
   self.addKeyAction(`KeyN`, () =>
     self.type === Type.Absolute ? encodePct(self) : encodeAbs(self)
   );
 
+  self.addKeyAction(`Minus`, () => {
+    width1.setValue(width1.value * (10 / 11));
+    width2.setValue(width2.value * (10 / 11));
+  });
+
+  self.addKeyAction(`Equal`, () => {
+    width1.setValue(width1.value * (11 / 10));
+    width2.setValue(width2.value * (11 / 10));
+  });
+
+  self.addKeyAction(`KeyR`, () => {
+    width1.defaultize();
+    width2.defaultize();
+  });
+
+  partition1Data.listen(`changed`, () => {
+    self.trainScales(squares.boundaryData!, identity);
+    const nMax = Math.max(factor1.cardinality, factor2.cardinality) + 2;
+    self.trainScales(squares.boundaryData!, identity);
+    self.scales.area.codomain
+      .setScale(1 / nMax ** 2)
+      .setTransform(square, squareRoot);
+    self.render();
+  });
+
+  partition2Data.listen(`changed`, self.render.bind(self));
+
   self.render();
 }
 
-function encodeAbs(self: Fluctplot) {
+function encodeAbs(self: Histogram2D) {
   const { partition1Data, partition2Data, squares } = self;
 
   const boundaryData = partition1Data.select(encodeBoundaryAbs);
@@ -82,11 +115,11 @@ function encodeAbs(self: Fluctplot) {
   squares.setRenderData(renderData);
 
   self.type = Type.Absolute;
-  self.trainScales(boundaryData, (d) => ({ x: d.x, y: d.y, area: d.width }));
+  self.trainScales(boundaryData, identity);
   self.render();
 }
 
-function encodePct(self: Fluctplot) {
+function encodePct(self: Histogram2D) {
   const { partition1Data, partition2Data, squares } = self;
 
   const boundaryData = partition1Data.select(encodeBoundaryPct);
@@ -96,32 +129,37 @@ function encodePct(self: Fluctplot) {
   squares.setRenderData(renderData);
 
   self.type = Type.Proportion;
-  self.trainScales(boundaryData, (d) => ({ x: d.x, y: d.y, area: d.width }));
+  self.trainScales(boundaryData, identity);
   self.render();
 }
 
 const encodeBoundaryAbs = (d: ReducedBindings) => {
-  return { x: d.label, y: d.label$, width: d.stat1, height: d.stat1 };
+  return { x: d.binMid, y: d.binMid$, width: d.stat1, height: d.stat1 };
 };
 
 const encodeRenderAbs = (d: ReducedBindings) => {
   return {
-    x: d.label,
-    y: d.label$,
-    width: d.stat1.stack!(),
-    height: d.stat1.stack!(),
+    x: d.binMid,
+    y: d.binMid$,
+    width: d.stat1.stack(),
+    height: d.stat1.stack(),
   };
 };
 
 const encodeBoundaryPct = (d: ReducedBindings) => {
-  return { x: d.label, y: d.label$, width: one, height: one };
+  return {
+    x: d.binMid,
+    y: d.binMid$,
+    width: one,
+    height: one,
+  };
 };
 
 const encodeRenderPct = (d: ReducedBindings) => {
   return {
-    x: d.label,
-    y: d.label$,
-    width: d.stat1.stack!().normalizeByParent!(),
-    height: d.stat1.stack!().normalizeByParent!(),
+    x: d.binMid,
+    y: d.binMid$,
+    width: d.stat1.stack().normalizeByParent(),
+    height: d.stat1.stack().normalizeByParent(),
   };
 };

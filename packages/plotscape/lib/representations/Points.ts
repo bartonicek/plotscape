@@ -23,6 +23,8 @@ export interface Points extends Representation {
   boundaryData: Dataframe<Encodings & { [POSITIONS]: Reference<Set<number>> }>;
   renderData: Dataframe<Encodings & { [LAYER]: Reference<ContextId> }>;
   scales: Scales;
+
+  sizePct: number;
 }
 
 export function newPoints(
@@ -30,8 +32,9 @@ export function newPoints(
   boundaryData: Dataframe<Encodings & { [POSITIONS]: Reference<Set<number>> }>,
   renderData: Dataframe<Encodings & { [LAYER]: Reference<ContextId> }>
 ): Points {
-  const scales = { ...plot.scales };
-  const props = { boundaryData, renderData, scales };
+  const scales = plot.scales;
+  const sizePct = 1;
+  const props = { boundaryData, renderData, scales, sizePct };
   const methods = {
     setBoundaryData,
     setRenderData,

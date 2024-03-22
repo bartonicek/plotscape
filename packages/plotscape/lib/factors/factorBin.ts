@@ -4,6 +4,7 @@ import { ValueEmitter, getter, isEmitter } from "../ValueEmitter";
 import { newDataframe } from "../dataframe/Dataframe";
 import { POSITIONS } from "../symbols";
 import { Continuous, newContinuous } from "../variables/Continuous";
+import { Derived, newDerived } from "../variables/Derived";
 import { Reference, newReference } from "../variables/Reference";
 import { Factor } from "./Factor";
 import { newFactorComputed } from "./FactorComputed";
@@ -14,6 +15,7 @@ export function factorBin(
   anchor?: number | ValueEmitter<number>
 ): Factor<{
   binStart: Continuous;
+  binMid: Derived<number>;
   binEnd: Continuous;
   [POSITIONS]: Reference<Set<number>>;
 }> {
@@ -30,6 +32,7 @@ export function factorBin(
 
     for (const [k, v] of allEntries(newFactor.data.columns)) {
       self.data.columns[k].domain = v.domain;
+      // @ts-ignore
       self.data.columns[k].array = v.array;
       self.data.columns[k].source = v.source;
       self.data.columns[k].indexfn = v.indexfn;
@@ -97,9 +100,14 @@ function bin(variable: Continuous, width?: number, anchor?: number) {
 
   const binStart = breaksVariable.proxy(() => sorted);
   const binEnd = breaksVariable.proxy(() => sorted.map(inc));
+  const binMid = newDerived(
+    (i, v) => (v!.valueAt(i) + v!.valueAt(i + 1)) / 2,
+    breaksVariable
+  ).setDomain(domain);
 
   const columns = {
     binStart,
+    binMid,
     binEnd,
     [POSITIONS]: newReference(Object.values(positions)),
   };
