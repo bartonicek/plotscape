@@ -64,5 +64,10 @@ function parent(this: Reduced) {
   const parentReducerCopy = parent.clone();
   const copy = parentReducerCopy.result.proxy(levels);
 
+  // const foo = (index: number) => levels[index];
+  // reducer.listen(`changed`, () => {
+  //   console.log(factor.parent.levels, foo(10));
+  // });
+
   return reduced(copy);
 }

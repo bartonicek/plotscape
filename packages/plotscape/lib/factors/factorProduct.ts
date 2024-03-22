@@ -19,12 +19,14 @@ export function factorProduct<T extends Variables, U extends Variables>(
     self.cardinality = newFactor.cardinality;
     self.levels = newFactor.levels;
 
-    const cols = newFactor.data.cols() as Variables;
-    for (const [k, v] of allEntries(cols)) {
-      self.data.columns[k].domain = v.domain;
-      self.data.columns[k].array = v.array;
-      self.data.columns[k].source = v.source;
-      self.data.columns[k].proxyIndices = v.proxyIndices;
+    const cols = self.data.cols() as any;
+    const newCols = newFactor.data.cols() as any;
+
+    for (const [k, v] of allEntries(newCols)) {
+      cols[k].domain = v.domain;
+      cols[k].array = v.array;
+      cols[k].source = v.source;
+      cols[k].proxyIndices = v.proxyIndices;
     }
 
     self.emit(`changed`);
