@@ -29,6 +29,7 @@ export function factorBin(
     factor.levels = newFactor.levels;
 
     for (const [k, v] of allEntries(newFactor.data.columns)) {
+      factor.data.columns[k].domain = v.domain;
       factor.data.columns[k].array = v.array;
       factor.data.columns[k].source = v.source;
       factor.data.columns[k].proxyIndices = v.proxyIndices;

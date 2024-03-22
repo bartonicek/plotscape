@@ -1,5 +1,7 @@
 import { Letter } from "utils";
+import { ContextId } from "./plot/Plot";
 import { Representation } from "./representations/Representation";
+import { LAYER, POSITIONS } from "./symbols";
 import { Continuous } from "./variables/Continuous";
 import { Discrete } from "./variables/Discrete";
 import { Reference } from "./variables/Reference";
@@ -31,6 +33,8 @@ export type Margins = [
   top: number,
   right: number
 ];
+
+type Digit = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 export type ActionKey =
   | `Equal`
   | `Minus`
@@ -38,10 +42,14 @@ export type ActionKey =
   | `BracketRight`
   | `Semicolon`
   | `Quote`
-  | `Key${Uppercase<Letter>}`;
+  | `Key${Uppercase<Letter>}`
+  | `Digit${Digit}`;
 
 export type KeyActions = Partial<Record<ActionKey, (event: Event) => void>>;
 export interface GraphicObject extends Partial<Representation> {}
+
+export type BoundaryCols = { [POSITIONS]: Reference<Set<number>> };
+export type RenderCols = { [LAYER]: Reference<ContextId> };
 
 export enum Group {
   Transient = 255,

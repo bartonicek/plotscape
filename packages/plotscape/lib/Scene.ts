@@ -35,7 +35,6 @@ export function newScene<T extends Variables>(
     .get();
 
   const plots = [] as Plot[];
-  const keyActions = {} as KeyActions;
 
   const margins = getMargins();
   const documentElement = document.documentElement;
@@ -45,6 +44,7 @@ export function newScene<T extends Variables>(
   documentElement.style.setProperty("--rmargin", `${margins[3]}px`);
 
   const marker = newMarker(data.n());
+  const keyActions: KeyActions = {};
 
   const props = { container, data, marker, plots, keyActions };
   const methods = {
@@ -57,9 +57,13 @@ export function newScene<T extends Variables>(
 
   const self = { ...props, ...methods };
 
+  keyActions[`Digit1`] = () => self.setGroup(Group.Group2);
+  keyActions[`Digit2`] = () => self.setGroup(Group.Group3);
+  keyActions[`Digit3`] = () => self.setGroup(Group.Group4);
+
   container.addEventListener("mousedown", onMousedown.bind(self));
   window.addEventListener("keydown", onKeydown.bind(self));
-  window.addEventListener("keydup", onKeyup.bind(self));
+  window.addEventListener("keyup", onKeyup.bind(self));
 
   return self;
 }

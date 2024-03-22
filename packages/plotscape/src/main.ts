@@ -24,6 +24,8 @@ async function mpgScene() {
   const scene = newScene(app, mpgData);
 
   const plot1 = newScatter(scene, (d) => ({ v1: d.displ, v2: d.hwy }));
+  plot1.fixedAspectRatio();
+
   const plot2 = newBarplot(scene, (d) => ({ v1: d.manufacturer }));
   const plot3 = newHistogram(scene, (d) => ({ v1: d.displ }));
   const plot4 = newFluctplot(scene, (d) => ({
@@ -50,6 +52,8 @@ async function sacrametoScene() {
   const scene = newScene(app, sacramentoData);
 
   const plot1 = newScatter(scene, (d) => ({ v1: d.longitude, v2: d.latitude }));
+  plot1.fixedAspectRatio();
+
   const plot3 = newBarplot(scene, (d) => ({ v1: d.city }));
   const plot2 = newFluctplot(scene, (d) => ({ v1: d.beds, v2: d.baths }));
   const plot4 = newHistogram(scene, (d) => ({ v1: d.price }));

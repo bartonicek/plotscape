@@ -1,11 +1,14 @@
-import { mergeSetIntoAnother } from "utils";
-import { Dataframe } from "../dataframe/Dataframe";
+import { mergeInto } from "utils";
 import { pointInRect, rectsIntersect } from "../funs";
-import { ContextId, Contexts, Plot, Scales } from "../plot/Plot";
+import { ContextId, Contexts, Plot } from "../plot/Plot";
 import { LAYER, POSITIONS } from "../symbols";
 import { Point, Rect } from "../types";
-import { Reference } from "../variables/Reference";
-import { Representation, mapEncodingToScale } from "./Representation";
+import {
+  Representation,
+  mapEncodingToScale,
+  setBoundaryData,
+  setRenderData,
+} from "./Representation";
 
 type Encodings = {
   x0: any;
@@ -14,26 +17,27 @@ type Encodings = {
   y1: any;
 };
 
-export interface RectanglesWH extends Representation {
-  boundaryData: Dataframe<Encodings & { [POSITIONS]: Reference<Set<number>> }>;
-  renderData: Dataframe<Encodings & { [LAYER]: Reference<ContextId> }>;
-  scales: Scales;
-}
+export interface RectanglesXY extends Representation<Encodings> {}
 
-export function newRectanglesXY(
-  plot: Plot,
-  boundaryData: Dataframe<Encodings & { [POSITIONS]: Reference<Set<number>> }>,
-  renderData: Dataframe<Encodings & { [LAYER]: Reference<ContextId> }>
-): RectanglesWH {
+export function newRectanglesXY(plot: Plot): RectanglesXY {
   const scales = { ...plot.scales };
-  const props = { boundaryData, renderData, scales };
-  const methods = { render, check, query, mapScale: mapEncodingToScale };
+  const props = { scales };
+  const methods = {
+    setBoundaryData,
+    setRenderData,
+    render,
+    check,
+    query,
+    mapEncodingToScale,
+  };
   const self = { ...props, ...methods };
 
   return self;
 }
 
-function render(this: RectanglesWH, contexts: Contexts) {
+function render(this: RectanglesXY, contexts: Contexts) {
+  if (!this.renderData) return;
+
   const { renderData: data, scales } = this;
   const n = data.n();
 
@@ -49,7 +53,9 @@ function render(this: RectanglesWH, contexts: Contexts) {
   }
 }
 
-function check(this: RectanglesWH, coords: Rect) {
+function check(this: RectanglesXY, coords: Rect) {
+  if (!this.boundaryData) return new Set<number>();
+
   const { boundaryData: data, scales } = this;
   const n = data.n();
   const selected = new Set<number>();
@@ -63,17 +69,18 @@ function check(this: RectanglesWH, coords: Rect) {
     const selfCoords = [x0, y0, x1, y1] as Rect;
 
     if (rectsIntersect(coords, selfCoords)) {
-      mergeSetIntoAnother(selected, data.col(POSITIONS).valueAt(i));
+      mergeInto(selected, data.col(POSITIONS).valueAt(i));
     }
   }
 
   return selected;
 }
 
-function query(this: RectanglesWH, point: Point) {
+function query(this: RectanglesXY, point: Point) {
+  if (!this.boundaryData) return;
+
   const { boundaryData: data, scales } = this;
   const n = data.n();
-  const selected = new Set<number>();
 
   for (let i = 0; i < n; i++) {
     const x0 = data.col(`x0`).scaledAt(i, scales.x);

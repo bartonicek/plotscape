@@ -1,11 +1,18 @@
 import { Scene } from "../Scene";
+import { Dataframe } from "../dataframe/Dataframe";
 import { factorFrom } from "../factors/factorFrom";
 import { Plot, newPlot } from "../plot/Plot";
 import { newPartition } from "../reducers/Partition";
 import { sumReducer } from "../reducers/Reducer";
 import { newReducerHandler } from "../reducers/ReducerHandler";
-import { newRectanglesWH } from "../representations/RectanglesWH";
-import { Variables, VerticalAnchor } from "../types";
+import { RectanglesWH, newRectanglesWH } from "../representations/RectanglesWH";
+import {
+  BoundaryCols,
+  RenderCols,
+  Type,
+  Variables,
+  VerticalAnchor,
+} from "../types";
 import { Continuous } from "../variables/Continuous";
 import { Discrete } from "../variables/Discrete";
 import { one, zero } from "../variables/constants";
@@ -21,14 +28,16 @@ type ReducedBindings = {
 };
 
 export interface Barplot extends Plot {
-  boundaryData: ReducedBindings;
-  renderData: ReducedBindings;
+  type: Type;
+  partition1Data: Dataframe<ReducedBindings & BoundaryCols>;
+  partition2Data: Dataframe<ReducedBindings & RenderCols>;
+  bars: RectanglesWH;
 }
 
 export function newBarplot<T extends Variables>(
   scene: Scene<T>,
   selectfn: (cols: T) => DataBindings
-) {
+): Barplot {
   const plot = newPlot(scene);
   const data = scene.data.select(selectfn);
 
@@ -38,19 +47,55 @@ export function newBarplot<T extends Variables>(
   const partition1 = newPartition(reducers).refine(factor);
   const partition2 = partition1.refine(scene.marker.factor);
 
-  const boundaryData = partition1.data().select(encodeBoundaryAbs);
-  const renderData = partition2.data().select(encodeRenderAbs);
+  const partition1Data = partition1.data();
+  const partition2Data = partition2.data();
 
-  const bars = newRectanglesWH(plot, boundaryData, renderData);
+  const type = Type.Absolute;
+  const bars = newRectanglesWH(plot);
   bars.setVAnchor(VerticalAnchor.Bottom);
-  plot.pushGraphicObject(bars);
 
-  plot.trainScales(boundaryData, (d) => ({ ...d, y: d.height }));
-  plot.scales.y.setMin(0).freezeMin().link(plot.scales.height);
+  const self = { ...plot, bars, type, partition1Data, partition2Data };
+  encodeAbs(self);
 
-  boundaryData.listen(`changed`, plot.render.bind(plot));
-  renderData.listen(`changed`, plot.render.bind(plot));
-  plot.render();
+  self.pushGraphicObject(self.bars);
+  self.partition1Data.listen(`changed`, self.render.bind(self));
+  self.partition2Data.listen(`changed`, self.render.bind(self));
+
+  self.addKeyAction(`KeyN`, () =>
+    self.type === Type.Absolute ? encodePct(self) : encodeAbs(self)
+  );
+
+  return self;
+}
+
+function encodeAbs(self: Barplot) {
+  const { partition1Data, partition2Data, bars } = self;
+  const boundaryData = partition1Data.select(encodeBoundaryAbs);
+  const renderData = partition2Data.select(encodeRenderAbs);
+
+  bars.setBoundaryData(boundaryData);
+  bars.setRenderData(renderData);
+  bars.setWidthPct(0.8).setWidthGapPx(0);
+
+  self.type = Type.Absolute;
+  self.trainScales(boundaryData, (d) => ({ ...d, y: d.height }));
+  self.scales.y.setMin(0).freezeMin().link(self.scales.height);
+  self.render();
+}
+
+function encodePct(self: Barplot) {
+  const { partition1Data, partition2Data, bars } = self;
+  const boundaryData = partition1Data.select(encodeBoundaryPct);
+  const renderData = partition2Data.select(encodeRenderPct);
+
+  bars.setBoundaryData(boundaryData);
+  bars.setRenderData(renderData);
+  bars.setWidthPct(1).setWidthGapPx(1);
+
+  self.type = Type.Proportion;
+  self.trainScales(boundaryData, (d) => ({ ...d, y: d.height }));
+  self.scales.y.setMin(0).freezeMin().link(self.scales.height);
+  self.render();
 }
 
 const encodeBoundaryAbs = (d: ReducedBindings) => {
@@ -88,5 +133,3 @@ const encodeRenderPct = (d: ReducedBindings) => {
     height: d.stat1.stack!().normalizeByParent!(),
   };
 };
-
-function switchRepresentation(this: Barplot) {}

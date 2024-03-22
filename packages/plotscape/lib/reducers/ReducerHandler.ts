@@ -36,7 +36,8 @@ export function newReducerHandler<T, U>(
   const name = source.hasName?.()
     ? `${reducer.name} of ${source.name}`
     : `count`;
-  const result = reduced(constructor([])) as InferVariable<U> & Reduced;
+  const result = reduced(constructor([])) as unknown as InferVariable<U> &
+    Reduced;
   result.setName(name);
 
   const props = { reducer, source, result, stacked: false, normalized: false };
@@ -99,6 +100,7 @@ function recompute<T, U>(this: ReducerHandler<T, U>) {
   if (stacked) stackInternal(this);
   if (normalized) normalizeInternal(this);
 
+  result.domain.retrain(array as any);
   this.emit(`changed`);
   return this;
 }

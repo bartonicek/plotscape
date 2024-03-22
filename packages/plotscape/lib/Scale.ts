@@ -1,5 +1,5 @@
 import { noopThis } from "utils";
-import { Expanse } from "./Expanse";
+import { Expanse, isExpanseContinuous } from "./Expanse";
 import { ExpanseContinuous, newExpanseContinuous } from "./ExpanseContinuous";
 import { Named, named } from "./mixins/Named";
 
@@ -26,6 +26,10 @@ export interface Scale<T = unknown> extends Named {
   freezeMax(): this;
   link(other: Scale<T>): this;
   breaks(): T[];
+}
+
+export interface ScaleContinuous extends Scale<number> {
+  domain: ExpanseContinuous;
 }
 
 /* ------------------------------- Constructor ------------------------------ */
@@ -94,12 +98,12 @@ function setDomain<T>(this: Scale<T>, domain: Expanse<T>) {
 }
 
 function setMin<T>(this: Scale<T>, value: number) {
-  this.domain.setMin?.(value);
+  this.domain.setDefaultMin?.(value);
   return this;
 }
 
 function setMax<T>(this: Scale<T>, value: number) {
-  this.domain.setMax?.(value);
+  this.domain.setDefaultMax?.(value);
   return this;
 }
 
@@ -132,4 +136,10 @@ function freezeMin<T>(this: Scale<T>) {
 function freezeMax<T>(this: Scale<T>) {
   this.norm.setMax = noopThis;
   return this;
+}
+
+/* --------------------------------- Helpers -------------------------------- */
+
+export function isScaleContinuous(scale: Scale): scale is ScaleContinuous {
+  return isExpanseContinuous(scale.domain);
 }

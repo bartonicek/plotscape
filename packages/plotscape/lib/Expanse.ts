@@ -7,7 +7,16 @@ export interface Expanse<T = unknown> {
   unnormalize(value: number): T;
   retrain(array: T[]): void;
   breaks(norm: ExpanseContinuous): T[];
+  range?(): number;
   setMin?(value: number): this;
   setMax?(value: number): this;
+  setDefaultMin?(value: number): this;
+  setDefaultMax?(value: number): this;
   setTransform?(trans: MapFn<number, number>, inv: MapFn<number, number>): this;
+}
+
+export function isExpanseContinuous(
+  expanse: Expanse
+): expanse is ExpanseContinuous {
+  return expanse.setMin != undefined;
 }

@@ -1,4 +1,4 @@
-import { mergeSetIntoAnother } from "utils";
+import { mergeInto } from "utils";
 import { Dataframe } from "../dataframe/Dataframe";
 import { pointInRect, rectsIntersect } from "../funs";
 import graphicParameters from "../graphicParameters.json";
@@ -6,7 +6,12 @@ import { ContextId, Contexts, Plot, Scales } from "../plot/Plot";
 import { LAYER, POSITIONS } from "../symbols";
 import { Point, Rect } from "../types";
 import { Reference } from "../variables/Reference";
-import { Representation, mapEncodingToScale } from "./Representation";
+import {
+  Representation,
+  mapEncodingToScale,
+  setBoundaryData,
+  setRenderData,
+} from "./Representation";
 
 type Encodings = {
   x: any;
@@ -27,7 +32,14 @@ export function newPoints(
 ): Points {
   const scales = { ...plot.scales };
   const props = { boundaryData, renderData, scales };
-  const methods = { render, check, query, mapScale: mapEncodingToScale };
+  const methods = {
+    setBoundaryData,
+    setRenderData,
+    render,
+    check,
+    query,
+    mapEncodingToScale,
+  };
   const self = { ...props, ...methods };
 
   return self;
@@ -63,7 +75,7 @@ function check(this: Points, coords: Rect) {
     const c = radius / Math.sqrt(2);
 
     if (rectsIntersect(coords, [x - c, y - c, x + c, y + c])) {
-      mergeSetIntoAnother(selected, data.col(POSITIONS).valueAt(i));
+      mergeInto(selected, data.col(POSITIONS).valueAt(i));
     }
   }
 

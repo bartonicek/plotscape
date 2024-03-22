@@ -1,6 +1,6 @@
-import { element, entries, inOrder, mergeSetIntoAnother, values } from "utils";
+import { element, entries, inOrder, mergeInto, values } from "utils";
 import { Context, newContext } from "../Context";
-import { Scale, newScale } from "../Scale";
+import { Scale, isScaleContinuous, newScale } from "../Scale";
 import { Scene } from "../Scene";
 import { Dataframe } from "../dataframe/Dataframe";
 import { newAxisLabels } from "../decorations/AxisLabels";
@@ -63,18 +63,19 @@ export interface Plot {
   localKeyActions: KeyActions;
   globalKeyActions: KeyActions;
 
-  deactivate(): this;
-  activate(): this;
+  deactivate(): void;
+  activate(): void;
 
   trainScales<T extends Variables>(
     data: Dataframe<T>,
     selectfn: (cols: T) => Variables
-  ): this;
+  ): void;
 
-  resize(): this;
-  render(): this;
-  reset(): this;
-  pushGraphicObject(object: GraphicObject): this;
+  resize(): void;
+  render(): void;
+  reset(): void;
+  fixedAspectRatio(): void;
+  pushGraphicObject(object: GraphicObject): void;
   addKeyAction(key: ActionKey, action: (event: Event) => void): void;
 }
 
@@ -203,6 +204,7 @@ export function newPlot(scene: Scene) {
     render,
     resize,
     reset,
+    fixedAspectRatio,
     trainScales,
     pushGraphicObject,
     addKeyAction,
@@ -227,7 +229,7 @@ export function newPlot(scene: Scene) {
     const { coords } = selectionRect;
     const selected = new Set<number>();
     for (const s of self.graphicObjects) {
-      if (s.check) mergeSetIntoAnother(selected, s.check(coords));
+      if (s.check) mergeInto(selected, s.check(coords));
     }
     scene.marker.update(selected);
   });
@@ -259,20 +261,17 @@ function resize(this: Plot) {
   scales.area.codomain.setMax(Math.min(innerWidth, innerHeight));
 
   this.render();
-  return this;
 }
 
 function activate(this: Plot) {
   this.active = true;
   this.container.classList.add(`active`);
-  return this;
 }
 
 function deactivate(this: Plot) {
   this.active = false;
   this.container.classList.remove(`active`);
   this.selectionRect.clear();
-  return this;
 }
 
 function trainScales<T extends Variables>(
@@ -287,12 +286,14 @@ function trainScales<T extends Variables>(
     const scale = scales[k];
 
     if (!scale) continue;
-    if (v.retrain) v.retrain(v.array);
-    if (v.domain) scale.setDomain(v.domain);
+    if (v.domain) scale.setDomain(v.domain.clone());
+  }
+
+  for (const v of [`height`, `width`, `area`] as (keyof Scales)[]) {
+    scales[v].setMin(0);
   }
 
   this.render();
-  return this;
 }
 
 function render(this: Plot) {
@@ -319,14 +320,11 @@ function reset(this: Plot) {
 
   for (const context of values(contexts)) context.setProps({ globalAlpha: 1 });
   this.render();
-
-  return this;
 }
 
 function pushGraphicObject(this: Plot, object: GraphicObject) {
   this.graphicObjects.push(object);
   this.render();
-  return this;
 }
 
 function addKeyAction(
@@ -336,6 +334,33 @@ function addKeyAction(
 ) {
   if (!this.localKeyActions[key]) this.localKeyActions[key] = action;
   else this.localKeyActions[key] = inOrder(this.localKeyActions[key]!, action);
+}
+
+function fixedAspectRatio(this: Plot) {
+  const { x, y } = this.scales;
+
+  if (!isScaleContinuous(x) || !isScaleContinuous(y)) return this;
+
+  // 1 pixel represents this many units of domain
+  const xRatio = x.domain.range() / x.codomain.range();
+  const yRatio = y.domain.range() / y.codomain.range();
+
+  const smaller = xRatio < yRatio ? x : y;
+  const otherRange = xRatio < yRatio ? yRatio : xRatio;
+
+  const newRange = otherRange * smaller.codomain.range();
+  const midpoint = smaller.domain.min + smaller.domain.range() / 2;
+
+  smaller.domain.setDefaultMin(midpoint - newRange / 2);
+  smaller.domain.setDefaultMax(midpoint + newRange / 2);
+
+  console.log(
+    x.domain.range() /
+      x.codomain.range() /
+      (y.domain.range() / y.codomain.range())
+  );
+
+  this.render();
 }
 
 /* ----------------------------- Event Handlers ----------------------------- */

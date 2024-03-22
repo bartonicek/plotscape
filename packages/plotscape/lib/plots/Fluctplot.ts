@@ -1,13 +1,14 @@
+import { Dataframe } from "@abartonicek/plotscape5";
 import { square, squareRoot } from "utils";
 import { Scene } from "../Scene";
 import { factorFrom } from "../factors/factorFrom";
 import { factorProduct } from "../factors/factorProduct";
-import { newPlot } from "../plot/Plot";
+import { Plot, newPlot } from "../plot/Plot";
 import { newPartition } from "../reducers/Partition";
 import { sumReducer } from "../reducers/Reducer";
 import { newReducerHandler } from "../reducers/ReducerHandler";
-import { newRectanglesWH } from "../representations/RectanglesWH";
-import { Variables } from "../types";
+import { RectanglesWH, newRectanglesWH } from "../representations/RectanglesWH";
+import { BoundaryCols, RenderCols, Type, Variables } from "../types";
 import { Continuous } from "../variables/Continuous";
 import { Discrete } from "../variables/Discrete";
 import { one } from "../variables/constants";
@@ -24,6 +25,13 @@ type ReducedBindings = {
   stat1: Continuous;
 };
 
+export interface Fluctplot extends Plot {
+  type: Type;
+  partition1Data: Dataframe<ReducedBindings & BoundaryCols>;
+  partition2Data: Dataframe<ReducedBindings & RenderCols>;
+  squares: RectanglesWH;
+}
+
 export function newFluctplot<T extends Variables>(
   scene: Scene<T>,
   selectfn: (cols: T) => DataBindings
@@ -39,22 +47,57 @@ export function newFluctplot<T extends Variables>(
   const partition1 = newPartition(reducers).refine(factor);
   const partition2 = partition1.refine(scene.marker.factor);
 
-  const boundaryData = partition1.data().select(encodeBoundaryAbs);
-  const renderData = partition2.data().select(encodeRenderAbs);
+  const partition1Data = partition1.data();
+  const partition2Data = partition2.data();
 
-  const squares = newRectanglesWH(plot, boundaryData, renderData);
+  const type = Type.Absolute;
+  const squares = newRectanglesWH(plot);
   squares.mapEncodingToScale(`width`, `area`);
   squares.mapEncodingToScale(`height`, `area`);
+
+  const self = { ...plot, squares, type, partition1Data, partition2Data };
+  encodeAbs(self);
+
   plot.pushGraphicObject(squares);
-
-  const nMax = Math.max(f1.cardinality, f2.cardinality);
-
-  plot.trainScales(boundaryData, (d) => ({ x: d.x, y: d.y, area: d.width }));
+  const nMax = Math.max(f1.cardinality, f2.cardinality) + 2;
   plot.scales.area.codomain.setScale(1 / nMax).setTransform(square, squareRoot);
 
-  boundaryData.listen(`changed`, plot.render.bind(plot));
-  renderData.listen(`changed`, plot.render.bind(plot));
-  plot.render();
+  self.partition1Data.listen(`changed`, plot.render.bind(plot));
+  self.partition2Data.listen(`changed`, plot.render.bind(plot));
+
+  self.addKeyAction(`KeyN`, () =>
+    self.type === Type.Absolute ? encodePct(self) : encodeAbs(self)
+  );
+
+  self.render();
+}
+
+function encodeAbs(self: Fluctplot) {
+  const { partition1Data, partition2Data, squares } = self;
+
+  const boundaryData = partition1Data.select(encodeBoundaryAbs);
+  const renderData = partition2Data.select(encodeRenderAbs);
+
+  squares.setBoundaryData(boundaryData);
+  squares.setRenderData(renderData);
+
+  self.type = Type.Absolute;
+  self.trainScales(boundaryData, (d) => ({ x: d.x, y: d.y, area: d.width }));
+  self.render();
+}
+
+function encodePct(self: Fluctplot) {
+  const { partition1Data, partition2Data, squares } = self;
+
+  const boundaryData = partition1Data.select(encodeBoundaryPct);
+  const renderData = partition2Data.select(encodeRenderPct);
+
+  squares.setBoundaryData(boundaryData);
+  squares.setRenderData(renderData);
+
+  self.type = Type.Proportion;
+  self.trainScales(boundaryData, (d) => ({ x: d.x, y: d.y, area: d.width }));
+  self.render();
 }
 
 const encodeBoundaryAbs = (d: ReducedBindings) => {
@@ -67,5 +110,18 @@ const encodeRenderAbs = (d: ReducedBindings) => {
     y: d.label$,
     width: d.stat1.stack!(),
     height: d.stat1.stack!(),
+  };
+};
+
+const encodeBoundaryPct = (d: ReducedBindings) => {
+  return { x: d.label, y: d.label$, width: one, height: one };
+};
+
+const encodeRenderPct = (d: ReducedBindings) => {
+  return {
+    x: d.label,
+    y: d.label$,
+    width: d.stat1.stack!().normalizeByParent!(),
+    height: d.stat1.stack!().normalizeByParent!(),
   };
 };

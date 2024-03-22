@@ -1,12 +1,13 @@
+import { Dataframe } from "@abartonicek/plotscape5";
 import { Scene } from "../Scene";
 import { newValueEmitter } from "../ValueEmitter";
 import { factorBin } from "../factors/factorBin";
-import { newPlot } from "../plot/Plot";
+import { Plot, newPlot } from "../plot/Plot";
 import { newPartition } from "../reducers/Partition";
 import { sumReducer } from "../reducers/Reducer";
 import { newReducerHandler } from "../reducers/ReducerHandler";
-import { newRectanglesXY } from "../representations/RectanglesXY";
-import { Variables } from "../types";
+import { RectanglesXY, newRectanglesXY } from "../representations/RectanglesXY";
+import { BoundaryCols, RenderCols, Type, Variables } from "../types";
 import { Continuous } from "../variables/Continuous";
 import { one, zero } from "../variables/constants";
 
@@ -20,6 +21,13 @@ type ReducedBindings = {
   binEnd: Continuous;
   stat1: Continuous;
 };
+
+export interface Histogram extends Plot {
+  type: Type;
+  partition1Data: Dataframe<ReducedBindings & BoundaryCols>;
+  partition2Data: Dataframe<ReducedBindings & RenderCols>;
+  bars: RectanglesXY;
+}
 
 export function newHistogram<T extends Variables>(
   scene: Scene<T>,
@@ -37,31 +45,50 @@ export function newHistogram<T extends Variables>(
   const partition1 = newPartition(reducers).refine(factor);
   const partition2 = partition1.refine(scene.marker.factor);
 
-  const boundaryData = partition1.data().select(encodeBoundaryAbs);
-  const renderData = partition2.data().select(encodeRenderAbs);
+  const partition1Data = partition1.data();
+  const partition2Data = partition2.data();
 
-  const bars = newRectanglesXY(plot, boundaryData, renderData);
-  plot.pushGraphicObject(bars);
+  const type = Type.Absolute;
+  const bars = newRectanglesXY(plot);
+  const self = { ...plot, type, bars, partition1Data, partition2Data };
+  encodeAbs(self);
 
-  plot.trainScales(boundaryData, (d) => ({ x: d.x0, y: d.y1 }));
-  plot.scales.y.setMin(0).freezeMin();
+  self.pushGraphicObject(bars);
+  self.scales.y.freezeMin();
 
-  plot.addKeyAction(`Minus`, () => width.setValue(width.value * (10 / 11)));
-  plot.addKeyAction(`Equal`, () => width.setValue(width.value * (11 / 10)));
-  plot.addKeyAction(`Quote`, () => anchor.setValue(anchor.value - 0.1));
-  plot.addKeyAction(`Semicolon`, () => anchor.setValue(anchor.value + 0.1));
-  plot.addKeyAction(`KeyR`, () => {
+  self.addKeyAction(`Minus`, () => width.setValue(width.value * (10 / 11)));
+  self.addKeyAction(`Equal`, () => width.setValue(width.value * (11 / 10)));
+
+  const inc = data.col(`v1`).range() / 20;
+  self.addKeyAction(`Quote`, () => anchor.setValue(anchor.value - inc));
+  self.addKeyAction(`Semicolon`, () => anchor.setValue(anchor.value + inc));
+
+  self.addKeyAction(`KeyR`, () => {
     width.defaultize();
     anchor.defaultize();
   });
 
-  boundaryData.listen(`changed`, () => {
-    plot.trainScales(boundaryData, (d) => ({ x: d.x0, y: d.y1 }));
-    plot.scales.y.setMin(0).freezeMin();
-    plot.render();
+  partition1Data.listen(`changed`, () => {
+    self.trainScales(bars.boundaryData!, (d) => ({ x: d.x0, y: d.y1 }));
+    self.scales.y.setMin(0);
   });
-  renderData.listen(`changed`, plot.render.bind(plot));
-  plot.render();
+
+  partition2Data.listen(`changed`, self.render.bind(self));
+}
+
+function encodeAbs(self: Histogram) {
+  const { partition1Data, partition2Data, bars } = self;
+
+  const boundaryData = partition1Data.select(encodeBoundaryAbs);
+  const renderData = partition2Data.select(encodeRenderAbs);
+
+  bars.setBoundaryData(boundaryData);
+  bars.setRenderData(renderData);
+
+  self.type = Type.Absolute;
+  self.trainScales(boundaryData, (d) => ({ x: d.x0, y: d.y1 }));
+  self.scales.y.setMin(0);
+  self.render();
 }
 
 const encodeBoundaryAbs = (d: ReducedBindings) => {

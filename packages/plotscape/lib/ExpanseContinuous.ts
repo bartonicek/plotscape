@@ -129,12 +129,15 @@ function defaultize(this: ExpanseContinuous) {
 
 function retrain(this: ExpanseContinuous, array: number[]) {
   const [min, max] = minMax(array);
-  this.setMin(min).setMax(max);
+  this.setDefaultMin(min).setDefaultMax(max);
   return this;
 }
 
 function clone(this: ExpanseContinuous) {
-  return newExpanseContinuous(this.min, this.max);
+  const result = newExpanseContinuous();
+  result.setDefaultMin(this.defaultMin).setDefaultMax(this.defaultMax);
+  result.setTransform(this.trans, this.inv);
+  return result;
 }
 
 function breaks(this: ExpanseContinuous, norm: ExpanseContinuous) {

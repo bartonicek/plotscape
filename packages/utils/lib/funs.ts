@@ -510,7 +510,7 @@ export function throttle(fn: Function, period: number) {
  * @param source Source set
  * @returns The target set with values merged
  */
-export function mergeSetIntoAnother<T>(target: Set<T>, source: Set<T>) {
+export function mergeInto<T>(target: Set<T>, source: Set<T>) {
   for (const v of source) target.add(v);
   return target;
 }

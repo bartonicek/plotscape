@@ -1,11 +1,14 @@
-import { mergeSetIntoAnother } from "utils";
-import { Dataframe } from "../dataframe/Dataframe";
+import { mergeInto, values } from "utils";
 import { pointInRect, rectsIntersect } from "../funs";
-import { ContextId, Contexts, Plot, Scales } from "../plot/Plot";
+import { ContextId, Contexts, Plot } from "../plot/Plot";
 import { LAYER, POSITIONS } from "../symbols";
 import { HorizontalAnchor, Point, Rect, VerticalAnchor } from "../types";
-import { Reference } from "../variables/Reference";
-import { Representation, mapEncodingToScale } from "./Representation";
+import {
+  Representation,
+  mapEncodingToScale,
+  setBoundaryData,
+  setRenderData,
+} from "./Representation";
 
 type Encodings = {
   x: any;
@@ -14,34 +17,51 @@ type Encodings = {
   height: any;
 };
 
-export interface RectanglesWH extends Representation {
-  boundaryData: Dataframe<Encodings & { [POSITIONS]: Reference<Set<number>> }>;
-  renderData: Dataframe<Encodings & { [LAYER]: Reference<ContextId> }>;
-  scales: Scales;
-
+export interface RectanglesWH extends Representation<Encodings> {
   hAnchor: HorizontalAnchor;
   vAnchor: VerticalAnchor;
 
+  widthPct: number;
+  heightPct: number;
+  widthGapPx: number;
+  heightGapPx: number;
+
   setHAnchor(anchor: HorizontalAnchor): this;
   setVAnchor(anchor: VerticalAnchor): this;
+  setWidthPct(value: number): this;
+  setHeightPct(value: number): this;
+  setWidthGapPx(value: number): this;
+  setHeightGapPx(value: number): this;
 }
 
-export function newRectanglesWH(
-  plot: Plot,
-  boundaryData: Dataframe<Encodings & { [POSITIONS]: Reference<Set<number>> }>,
-  renderData: Dataframe<Encodings & { [LAYER]: Reference<ContextId> }>
-): RectanglesWH {
+export function newRectanglesWH(plot: Plot): RectanglesWH {
   const scales = { ...plot.scales };
   const [hAnchor, vAnchor] = [HorizontalAnchor.Center, VerticalAnchor.Middle];
+  const [widthPct, heightPct] = [1, 1];
+  const [widthGapPx, heightGapPx] = [0, 0];
 
-  const pars = { hAnchor, vAnchor };
-  const props = { boundaryData, renderData, scales };
+  const pars = {
+    hAnchor,
+    vAnchor,
+    widthPct,
+    heightPct,
+    widthGapPx,
+    heightGapPx,
+  };
+
+  const props = { scales };
   const methods = {
+    setBoundaryData,
+    setRenderData,
     render,
     check,
     query,
     setHAnchor,
     setVAnchor,
+    setWidthPct,
+    setHeightPct,
+    setWidthGapPx,
+    setHeightGapPx,
     mapEncodingToScale,
   };
   const self = { ...pars, ...props, ...methods };
@@ -50,7 +70,10 @@ export function newRectanglesWH(
 }
 
 function render(this: RectanglesWH, contexts: Contexts) {
+  if (!this.renderData) return;
+
   const { renderData: data, scales, hAnchor, vAnchor } = this;
+  const { widthPct, heightPct, heightGapPx, widthGapPx } = this;
   const n = data.n();
 
   for (let i = 0; i < n; i++) {
@@ -58,23 +81,32 @@ function render(this: RectanglesWH, contexts: Contexts) {
 
     const x = data.col(`x`).scaledAt(i, scales.x);
     const y = data.col(`y`).scaledAt(i, scales.y);
-    const w = data.col(`width`).scaledAt(i, scales.width);
-    const h = data.col(`height`).scaledAt(i, scales.height);
+    let w = data.col(`width`).scaledAt(i, scales.width) * widthPct;
+    let h = data.col(`height`).scaledAt(i, scales.height) * heightPct;
+
+    w = w * widthPct - widthGapPx;
+    h = h * heightPct - heightGapPx;
 
     contexts[layer].rectangleWH(x, y, w, h, { vAnchor, hAnchor });
   }
 }
 
 function check(this: RectanglesWH, coords: Rect) {
+  if (!this.boundaryData) return new Set<number>();
+
   const { boundaryData: data, scales, vAnchor, hAnchor } = this;
+  const { widthPct, heightPct, heightGapPx, widthGapPx } = this;
   const n = data.n();
   const selected = new Set<number>();
 
   for (let i = 0; i < n; i++) {
     const x = data.col(`x`).scaledAt(i, scales.x);
     const y = data.col(`y`).scaledAt(i, scales.y);
-    const w = data.col(`width`).scaledAt(i, scales.width);
-    const h = data.col(`height`).scaledAt(i, scales.height);
+    let w = data.col(`width`).scaledAt(i, scales.width) * widthPct;
+    let h = data.col(`height`).scaledAt(i, scales.height) * heightPct;
+
+    w = w * widthPct - widthGapPx;
+    h = h * heightPct - heightGapPx;
 
     const selfCoords = [
       x - w * hAnchor,
@@ -84,7 +116,7 @@ function check(this: RectanglesWH, coords: Rect) {
     ] as Rect;
 
     if (rectsIntersect(coords, selfCoords)) {
-      mergeSetIntoAnother(selected, data.col(POSITIONS).valueAt(i));
+      mergeInto(selected, data.col(POSITIONS).valueAt(i));
     }
   }
 
@@ -92,15 +124,21 @@ function check(this: RectanglesWH, coords: Rect) {
 }
 
 function query(this: RectanglesWH, point: Point) {
+  if (!this.boundaryData) return;
+
   const { boundaryData: data, scales, vAnchor, hAnchor } = this;
+  const { widthPct, heightPct, heightGapPx, widthGapPx } = this;
   const n = data.n();
   const selected = new Set<number>();
 
   for (let i = 0; i < n; i++) {
     const x = data.col(`x`).scaledAt(i, scales.x);
     const y = data.col(`y`).scaledAt(i, scales.y);
-    const w = data.col(`width`).scaledAt(i, scales.width);
-    const h = data.col(`height`).scaledAt(i, scales.height);
+    let w = data.col(`width`).scaledAt(i, scales.width) * widthPct;
+    let h = data.col(`height`).scaledAt(i, scales.height) * heightPct;
+
+    w = w * widthPct - widthGapPx;
+    h = h * heightPct - heightGapPx;
 
     const selfCoords = [
       x - w * hAnchor,
@@ -111,11 +149,11 @@ function query(this: RectanglesWH, point: Point) {
 
     if (pointInRect(point, selfCoords)) {
       const result = {} as Record<string, any>;
-      if (data.col(`x`).name()) {
-        result[data.col("x").name()] = data.col("x").valueAt(i);
-      }
-      if (data.col(`y`).name()) {
-        result[data.col("y").name()] = data.col("y").valueAt(i);
+
+      for (const v of values(data.cols())) {
+        if (v.hasName() && !(v.name() in result)) {
+          result[v.name()] = v.valueAt(i);
+        }
       }
     }
   }
@@ -130,5 +168,25 @@ function setHAnchor(this: RectanglesWH, anchor: HorizontalAnchor) {
 
 function setVAnchor(this: RectanglesWH, anchor: VerticalAnchor) {
   this.vAnchor = anchor;
+  return this;
+}
+
+function setWidthPct(this: RectanglesWH, value: number) {
+  this.widthPct = value;
+  return this;
+}
+
+function setHeightPct(this: RectanglesWH, value: number) {
+  this.heightPct = value;
+  return this;
+}
+
+function setWidthGapPx(this: RectanglesWH, value: number) {
+  this.widthGapPx = value;
+  return this;
+}
+
+function setHeightGapPx(this: RectanglesWH, value: number) {
+  this.widthGapPx = value;
   return this;
 }
