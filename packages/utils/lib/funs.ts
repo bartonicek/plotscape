@@ -41,6 +41,19 @@ export function call<T extends () => any>(fn: T) {
 }
 
 /**
+ * Creates a function that calls a method by key when given an object with the method.
+ * The method should accept no parameters. Useful for e.g. `[{ foo: () => number }].map(callMethod('foo'))`
+ *
+ * @param key Key of the method
+ * @returns Returntype of the method
+ */
+export function callMethod<K extends string, U>(key: K) {
+  return function (object: { [key in K]: () => U }) {
+    return object[key]();
+  };
+}
+
+/**
  * Takes in any number of arguments and returns the first one.
  *
  * @param x The first argument

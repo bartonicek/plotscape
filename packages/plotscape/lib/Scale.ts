@@ -154,7 +154,8 @@ function freezeMax<T>(this: Scale<T>) {
 
 function ratio<T>(this: Scale<T>) {
   if (!isScaleContinuous(this)) return -1;
-  return this.domain.range() / this.codomain.range();
+  const { domain, norm, codomain } = this;
+  return domain.range() / norm.range() / codomain.range();
 }
 
 /* --------------------------------- Helpers -------------------------------- */

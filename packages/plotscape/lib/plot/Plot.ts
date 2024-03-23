@@ -1,4 +1,4 @@
-import { element, entries, inOrder, mergeInto, values } from "utils";
+import { element, entries, inOrder, mergeInto, throttle, values } from "utils";
 import { Scale, isScaleContinuous, newScale } from "../Scale";
 import { Dataframe } from "../dataframe/Dataframe";
 import { newAxisLabels } from "../decorations/AxisLabels";
@@ -227,7 +227,7 @@ export function newPlot(scene: Scene) {
 
   const self: Plot = { pars, ...props, ...methods };
 
-  window.addEventListener("resize", resize.bind(self));
+  window.addEventListener("resize", throttle(resize.bind(self), 10));
   window.addEventListener("keydown", onKeydown.bind(self));
   container.addEventListener("mousedown", onMousedown.bind(self));
   container.addEventListener("mousemove", onMousemove.bind(self));
@@ -277,16 +277,21 @@ function resize(this: Plot) {
   scales.height.codomain.setMax(innerHeight);
   scales.area.codomain.setMax(Math.min(innerWidth, innerHeight));
 
-  console.log(pars);
-
   if (pars.aspectRatio != undefined) {
-    console.log(`foo`);
-    // const xRatio = scales.x.ratio();
-    // const yRatio = scales.y.ratio();
-    // const currentRatio = xRatio / yRatio;
-    // const newRatio = aspectRatio / currentRatio;
-    // if (newRatio > 1) scales.x.domain.expand!(newRatio);
-    // else scales.y.domain.expand!(newRatio);
+    const { x, y } = scales;
+    const [xRatio, yRatio] = [x, y].map((x) => x.ratio());
+
+    const currentRatio = xRatio / yRatio;
+    if (currentRatio === 0 || isNaN(currentRatio) || !isFinite(currentRatio)) {
+      return;
+    }
+
+    const [width, height] = [x, y].map(
+      (x) => x.codomain.range() / x.norm.range()
+    );
+
+    if (width > height) scales.x.norm.expand!(currentRatio);
+    else scales.y.norm.expand!(1 / currentRatio);
   }
 
   this.render();
