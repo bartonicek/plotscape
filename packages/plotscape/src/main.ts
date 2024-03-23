@@ -4,6 +4,7 @@ import { parseColumns } from "../lib/dataframe/Dataframe.ts";
 import { newBarplot } from "../lib/plots/Barplot.ts";
 import { newFluctplot } from "../lib/plots/Fluctplot.ts";
 import { newHistogram } from "../lib/plots/Histogram.ts";
+import { newHistogram2D } from "../lib/plots/Histogram2D.ts";
 import { newScatter } from "../lib/plots/Scatterplot.ts";
 import { newScene } from "../lib/scene/Scene.ts";
 import "./style.css";
@@ -52,12 +53,12 @@ async function sacrametoScene() {
   const scene = newScene(app, sacramentoData);
 
   const plot1 = newScatter(scene, (d) => ({ v1: d.longitude, v2: d.latitude }));
-  plot1.scales.x.domain.setMin!(-130);
+  plot1.setAspectRatio(1);
 
-  // const plot3 = newBarplot(scene, (d) => ({ v1: d.city }));
-  // const plot2 = newFluctplot(scene, (d) => ({ v1: d.beds, v2: d.baths }));
-  // const plot4 = newHistogram(scene, (d) => ({ v1: d.price }));
-  // const plot = newHistogram2D(scene, (d) => ({ v1: d.sqft, v2: d.price }));
+  const plot3 = newBarplot(scene, (d) => ({ v1: d.city }));
+  const plot2 = newFluctplot(scene, (d) => ({ v1: d.beds, v2: d.baths }));
+  const plot4 = newHistogram(scene, (d) => ({ v1: d.price }));
+  const plot = newHistogram2D(scene, (d) => ({ v1: d.sqft, v2: d.price }));
 }
 
 sacrametoScene();

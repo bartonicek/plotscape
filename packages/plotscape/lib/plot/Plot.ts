@@ -52,15 +52,17 @@ export interface Plot {
   //   zoomStack: TODO;
   //   queryRenderer: TODO;
 
-  active: boolean;
-  mousedown: boolean;
-  mode: Mode;
-  mousebutton: MouseButton;
-  aspectRatio: number | undefined;
+  pars: {
+    active: boolean;
+    mousedown: boolean;
+    mode: Mode;
+    mousebutton: MouseButton;
+    aspectRatio: number | undefined;
 
-  lastX: number;
-  lastY: number;
-  lastKey: string;
+    lastX: number;
+    lastY: number;
+    lastKey: string;
+  };
 
   localKeyActions: KeyActions;
   globalKeyActions: KeyActions;
@@ -223,7 +225,7 @@ export function newPlot(scene: Scene) {
     addKeyAction,
   };
 
-  const self: Plot = { ...pars, ...props, ...methods };
+  const self: Plot = { pars, ...props, ...methods };
 
   window.addEventListener("resize", resize.bind(self));
   window.addEventListener("keydown", onKeydown.bind(self));
@@ -260,7 +262,7 @@ export function newPlot(scene: Scene) {
 /* --------------------------------- Methods -------------------------------- */
 
 function resize(this: Plot) {
-  const { contexts, scales, container, aspectRatio } = this;
+  const { contexts, scales, container, pars } = this;
 
   for (const context of Object.values(contexts)) context.resize();
   const { clientWidth: width, clientHeight: height } = container;
@@ -275,9 +277,10 @@ function resize(this: Plot) {
   scales.height.codomain.setMax(innerHeight);
   scales.area.codomain.setMax(Math.min(innerWidth, innerHeight));
 
-  console.log(this.scales.x.domain);
+  console.log(pars);
 
-  if (aspectRatio != undefined) {
+  if (pars.aspectRatio != undefined) {
+    console.log(`foo`);
     // const xRatio = scales.x.ratio();
     // const yRatio = scales.y.ratio();
     // const currentRatio = xRatio / yRatio;
@@ -290,12 +293,12 @@ function resize(this: Plot) {
 }
 
 function activate(this: Plot) {
-  this.active = true;
+  this.pars.active = true;
   this.container.classList.add(`active`);
 }
 
 function deactivate(this: Plot) {
-  this.active = false;
+  this.pars.active = false;
   this.container.classList.remove(`active`);
   this.selectionRect.clear();
 }
@@ -368,7 +371,7 @@ function setAspectRatio(this: Plot, value: number) {
 
   if (!isScaleContinuous(x) || !isScaleContinuous(y)) return this;
 
-  this.aspectRatio = value;
+  this.pars.aspectRatio = value;
   this.resize();
 
   return this;
@@ -382,13 +385,13 @@ function onMousedown(this: Plot, event: MouseEvent) {
   scene.deactivateAllExcept(this);
 
   this.activate();
-  this.mousedown = true;
-  this.mousebutton = event.button;
+  this.pars.mousedown = true;
+  this.pars.mousebutton = event.button;
 
-  if (event.button === MouseButton.Left) this.mode = Mode.Select;
-  if (event.button === MouseButton.Right) this.mode = Mode.Pan;
+  if (event.button === MouseButton.Left) this.pars.mode = Mode.Select;
+  if (event.button === MouseButton.Right) this.pars.mode = Mode.Pan;
 
-  if (this.mode === Mode.Select) {
+  if (this.pars.mode === Mode.Select) {
     const { clientHeight } = container;
     const x = event.offsetX;
     const y = clientHeight - event.offsetY;
@@ -398,11 +401,11 @@ function onMousedown(this: Plot, event: MouseEvent) {
 }
 
 function onMouseup(this: Plot) {
-  this.mousedown = false;
+  this.pars.mousedown = false;
 }
 
 function onMousemove(this: Plot, event: MouseEvent) {
-  switch (this.mode) {
+  switch (this.pars.mode) {
     case Mode.Select:
       onMousemoveSelect(this, event);
       break;
@@ -415,7 +418,7 @@ function onMousemove(this: Plot, event: MouseEvent) {
 }
 
 function onMousemoveSelect(self: Plot, event: MouseEvent) {
-  if (!self.active || !self.mousedown) return self;
+  if (!self.pars.active || !self.pars.mousedown) return self;
 
   const { container, selectionRect } = self;
   const { clientHeight } = container;
@@ -431,9 +434,10 @@ function onMousemoveSelect(self: Plot, event: MouseEvent) {
 }
 
 function onMousemovePan(self: Plot, event: MouseEvent) {
-  if (!self.active || !self.mousedown) return self;
+  if (!self.pars.active || !self.pars.mousedown) return self;
 
-  const { scales, lastX, lastY } = self;
+  const { scales } = self;
+  const { lastX, lastY } = self.pars;
   const { clientWidth, clientHeight } = self.container;
 
   const x = event.offsetX;
@@ -444,8 +448,8 @@ function onMousemovePan(self: Plot, event: MouseEvent) {
   scales.x.move(xMove);
   scales.y.move(yMove);
 
-  self.lastX = x;
-  self.lastY = y;
+  self.pars.lastX = x;
+  self.pars.lastY = y;
 
   self.render();
   return self;
@@ -474,9 +478,9 @@ function onMousemoveQuery(self: Plot, event: MouseEvent) {
 function onContextmenu(this: Plot, event: MouseEvent) {
   event.preventDefault();
   this.selectionRect.clear();
-  this.mousebutton = MouseButton.Right;
-  this.lastX = event.offsetX;
-  this.lastY = this.container.clientHeight - event.offsetY;
+  this.pars.mousebutton = MouseButton.Right;
+  this.pars.lastX = event.offsetX;
+  this.pars.lastY = this.container.clientHeight - event.offsetY;
 }
 
 function onDoubleclick(this: Plot) {
@@ -485,10 +489,10 @@ function onDoubleclick(this: Plot) {
 }
 
 function onKeydown(this: Plot, event: KeyboardEvent) {
-  if (event.code === "KeyQ" && event.code === this.lastKey) return;
+  if (event.code === "KeyQ" && event.code === this.pars.lastKey) return;
   // this.queryRenderer.clear();
   this.globalKeyActions[event.code as ActionKey]?.(event);
-  if (this.active) this.localKeyActions[event.code as ActionKey]?.(event);
+  if (this.pars.active) this.localKeyActions[event.code as ActionKey]?.(event);
 
-  this.lastKey = event.code;
+  this.pars.lastKey = event.code;
 }
