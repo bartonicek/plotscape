@@ -1,12 +1,12 @@
 import { seq } from "utils";
-import { Dataframe, newDataframe } from "./dataframe/Dataframe";
-import { Factor } from "./factors/Factor";
-import { newFactorComputed } from "./factors/FactorComputed";
-import { Emitter, subscribable } from "./mixins/Emitter";
-import { ContextId } from "./plot/Plot";
-import { LAYER, POSITIONS } from "./symbols";
-import { Group } from "./types";
-import { Reference, newReference } from "./variables/Reference";
+import { Dataframe, newDataframe } from "../dataframe/Dataframe";
+import { Factor } from "../factors/Factor";
+import { newFactorComputed } from "../factors/FactorComputed";
+import { Emitter, subscribable } from "../mixins/Emitter";
+import { ContextId } from "../plot/Plot";
+import { LAYER, POSITIONS } from "../symbols";
+import { Group } from "../types";
+import { Reference, newReference } from "../variables/Reference";
 
 export type MarkerCols = {
   [LAYER]: Reference<ContextId>;

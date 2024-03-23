@@ -1,5 +1,4 @@
 import { rep, sum } from "utils";
-import { Scene } from "../Scene";
 import { Dataframe } from "../dataframe/Dataframe";
 import { factorFrom } from "../factors/factorFrom";
 import { Plot, newPlot } from "../plot/Plot";
@@ -7,6 +6,7 @@ import { newPartition } from "../reducers/Partition";
 import { sumReducer } from "../reducers/Reducer";
 import { newReducerHandler } from "../reducers/ReducerHandler";
 import { RectanglesWH, newRectanglesWH } from "../representations/RectanglesWH";
+import { Scene } from "../scene/Scene";
 import {
   BoundaryCols,
   RenderCols,

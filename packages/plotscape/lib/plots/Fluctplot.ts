@@ -1,6 +1,5 @@
 import { Dataframe } from "@abartonicek/plotscape5";
 import { square, squareRoot } from "utils";
-import { Scene } from "../Scene";
 import { factorFrom } from "../factors/factorFrom";
 import { factorProduct } from "../factors/factorProduct";
 import { Plot, newPlot } from "../plot/Plot";
@@ -8,6 +7,7 @@ import { newPartition } from "../reducers/Partition";
 import { sumReducer } from "../reducers/Reducer";
 import { newReducerHandler } from "../reducers/ReducerHandler";
 import { RectanglesWH, newRectanglesWH } from "../representations/RectanglesWH";
+import { Scene } from "../scene/Scene";
 import { BoundaryCols, RenderCols, Type, Variables } from "../types";
 import { Continuous } from "../variables/Continuous";
 import { Discrete } from "../variables/Discrete";

@@ -1,9 +1,9 @@
 import { element } from "utils";
+import { Dataframe } from "../dataframe/Dataframe";
+import { getMargins } from "../funs";
+import { Plot } from "../plot/Plot";
+import { Group, KeyActions, Variables } from "../types";
 import { Marker, newMarker } from "./Marker";
-import { Dataframe } from "./dataframe/Dataframe";
-import { getMargins } from "./funs";
-import { Plot } from "./plot/Plot";
-import { Group, KeyActions, Variables } from "./types";
 
 /* -------------------------------- Interface ------------------------------- */
 

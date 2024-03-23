@@ -1,7 +1,7 @@
 import { ElementWrapper, StyleDict, element, entries } from "utils";
-import graphicParameters from "./graphicParameters.json";
-import { Emitter, subscribable } from "./mixins/Emitter";
-import { HorizontalAnchor, Margins, VerticalAnchor } from "./types";
+import graphicParameters from "../graphicParameters.json";
+import { Emitter, subscribable } from "../mixins/Emitter";
+import { HorizontalAnchor, Margins, VerticalAnchor } from "../types";
 
 type RenderOptions = {
   hAnchor?: HorizontalAnchor;

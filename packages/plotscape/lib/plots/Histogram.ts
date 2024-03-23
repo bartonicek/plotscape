@@ -1,4 +1,3 @@
-import { Scene } from "../Scene";
 import { newValueEmitter } from "../ValueEmitter";
 import { Dataframe } from "../dataframe/Dataframe";
 import { factorBin } from "../factors/factorBin";
@@ -7,6 +6,7 @@ import { newPartition } from "../reducers/Partition";
 import { sumReducer } from "../reducers/Reducer";
 import { newReducerHandler } from "../reducers/ReducerHandler";
 import { RectanglesXY, newRectanglesXY } from "../representations/RectanglesXY";
+import { Scene } from "../scene/Scene";
 import { BoundaryCols, RenderCols, Type, Variables } from "../types";
 import { Continuous } from "../variables/Continuous";
 import { one, zero } from "../variables/constants";

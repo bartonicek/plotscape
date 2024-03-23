@@ -1,12 +1,13 @@
 import { element, entries, inOrder, mergeInto, values } from "utils";
-import { Context, newContext } from "../Context";
 import { Scale, isScaleContinuous, newScale } from "../Scale";
-import { Scene } from "../Scene";
 import { Dataframe } from "../dataframe/Dataframe";
 import { newAxisLabels } from "../decorations/AxisLabels";
+import { newAxisTitle } from "../decorations/AxisTitle";
 import { getMargins } from "../funs";
 import graphicParameters from "../graphicParameters.json";
+import { Scene } from "../scene/Scene";
 import { ActionKey, GraphicObject, KeyActions, Variables } from "../types";
+import { Context, newContext } from "./Context";
 import { SelectionRect, newSelectionRect } from "./SelectionRect";
 
 export const layers = [0, 1, 2, 3, 4, 5, 6, 7] as const;
@@ -55,6 +56,7 @@ export interface Plot {
   mousedown: boolean;
   mode: Mode;
   mousebutton: MouseButton;
+  aspectRatio: number | undefined;
 
   lastX: number;
   lastY: number;
@@ -74,7 +76,7 @@ export interface Plot {
   resize(): void;
   render(): void;
   reset(): void;
-  fixedAspectRatio(): void;
+  setAspectRatio(value: number): void;
   pushGraphicObject(object: GraphicObject): void;
   addKeyAction(key: ActionKey, action: (event: Event) => void): void;
 }
@@ -180,13 +182,24 @@ export function newPlot(scene: Scene) {
   const lastX = 0;
   const lastY = 0;
   const lastKey = ``;
+  const aspectRatio = undefined;
 
   const selectionRect = newSelectionRect();
 
   const localKeyActions = {} as KeyActions;
   const globalKeyActions = {} as KeyActions;
 
-  const pars = { active, mousedown, mousebutton, mode, lastX, lastY, lastKey };
+  const pars = {
+    active,
+    mousedown,
+    mousebutton,
+    mode,
+    lastX,
+    lastY,
+    lastKey,
+    aspectRatio,
+  };
+
   const props = {
     scene,
     container,
@@ -204,7 +217,7 @@ export function newPlot(scene: Scene) {
     render,
     resize,
     reset,
-    fixedAspectRatio,
+    setAspectRatio,
     trainScales,
     pushGraphicObject,
     addKeyAction,
@@ -236,6 +249,8 @@ export function newPlot(scene: Scene) {
 
   self.pushGraphicObject(newAxisLabels(scales.x));
   self.pushGraphicObject(newAxisLabels(scales.y));
+  self.pushGraphicObject(newAxisTitle(scales.x));
+  self.pushGraphicObject(newAxisTitle(scales.y));
   self.pushGraphicObject(selectionRect);
   scene.addPlot(self);
 
@@ -245,7 +260,7 @@ export function newPlot(scene: Scene) {
 /* --------------------------------- Methods -------------------------------- */
 
 function resize(this: Plot) {
-  const { contexts, scales, container } = this;
+  const { contexts, scales, container, aspectRatio } = this;
 
   for (const context of Object.values(contexts)) context.resize();
   const { clientWidth: width, clientHeight: height } = container;
@@ -259,6 +274,17 @@ function resize(this: Plot) {
   scales.width.codomain.setMax(innerWidth);
   scales.height.codomain.setMax(innerHeight);
   scales.area.codomain.setMax(Math.min(innerWidth, innerHeight));
+
+  console.log(this.scales.x.domain);
+
+  if (aspectRatio != undefined) {
+    // const xRatio = scales.x.ratio();
+    // const yRatio = scales.y.ratio();
+    // const currentRatio = xRatio / yRatio;
+    // const newRatio = aspectRatio / currentRatio;
+    // if (newRatio > 1) scales.x.domain.expand!(newRatio);
+    // else scales.y.domain.expand!(newRatio);
+  }
 
   this.render();
 }
@@ -287,6 +313,7 @@ function trainScales<T extends Variables>(
 
     if (!scale) continue;
     if (v.domain) scale.setDomain(v.domain.clone());
+    if (v.hasName()) scale.setName(v.name());
   }
 
   for (const v of [`height`, `width`, `area`] as (keyof Scales)[]) {
@@ -336,25 +363,15 @@ function addKeyAction(
   else this.localKeyActions[key] = inOrder(this.localKeyActions[key]!, action);
 }
 
-function fixedAspectRatio(this: Plot) {
+function setAspectRatio(this: Plot, value: number) {
   const { x, y } = this.scales;
 
   if (!isScaleContinuous(x) || !isScaleContinuous(y)) return this;
 
-  // 1 pixel represents this many units of domain
-  const xRatio = x.domain.range() / x.codomain.range();
-  const yRatio = y.domain.range() / y.codomain.range();
+  this.aspectRatio = value;
+  this.resize();
 
-  const smaller = xRatio < yRatio ? x : y;
-  const otherRange = xRatio < yRatio ? yRatio : xRatio;
-
-  const newRange = otherRange * smaller.codomain.range();
-  const midpoint = smaller.domain.min + smaller.domain.range() / 2;
-
-  smaller.domain.setDefaultMin(midpoint - newRange / 2);
-  smaller.domain.setDefaultMax(midpoint + newRange / 2);
-
-  this.render();
+  return this;
 }
 
 /* ----------------------------- Event Handlers ----------------------------- */

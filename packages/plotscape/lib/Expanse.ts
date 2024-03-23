@@ -14,6 +14,7 @@ export interface Expanse<T = unknown> {
   setDefaultMin?(value: number): this;
   setDefaultMax?(value: number): this;
   setTransform?(trans: MapFn<number, number>, inv: MapFn<number, number>): this;
+  expand?(value: number): this;
 
   setWeights?(weights: number[]): this;
 }

@@ -1,6 +1,6 @@
-import { Scene } from "../Scene";
 import { Plot, newPlot } from "../plot/Plot";
 import { newPoints } from "../representations/Points";
+import { Scene } from "../scene/Scene";
 import { Variables } from "../types";
 import { Continuous } from "../variables/Continuous";
 import { Discrete } from "../variables/Discrete";

@@ -1,5 +1,4 @@
 import { identity, square, squareRoot } from "utils";
-import { Scene } from "../Scene";
 import { newValueEmitter } from "../ValueEmitter";
 import { Dataframe } from "../dataframe/Dataframe";
 import { factorBin } from "../factors/factorBin";
@@ -9,6 +8,7 @@ import { newPartition } from "../reducers/Partition";
 import { sumReducer } from "../reducers/Reducer";
 import { newReducerHandler } from "../reducers/ReducerHandler";
 import { RectanglesWH, newRectanglesWH } from "../representations/RectanglesWH";
+import { Scene } from "../scene/Scene";
 import { BoundaryCols, RenderCols, Type, Variables } from "../types";
 import { Continuous } from "../variables/Continuous";
 import { Derived } from "../variables/Derived";
@@ -46,8 +46,6 @@ export function newHistogram2D<T extends Variables>(
   const factor1 = factorBin(data.col(`v1`), width1, data.col(`v1`).min());
   const factor2 = factorBin(data.col(`v2`), width2, data.col(`v2`).min());
   const factor3 = factorProduct(factor1, factor2);
-
-  console.log(factor1.data.rows());
 
   const partition1 = newPartition(reducers).refine(factor3);
   const partition2 = partition1.refine(scene.marker.factor);

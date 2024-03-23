@@ -32,6 +32,7 @@ export interface Scale<T = unknown> extends Named {
 
   link(other: Scale<T>): this;
   breaks(): T[];
+  ratio(): number;
 }
 
 export interface ScaleContinuous extends Scale<number> {
@@ -65,6 +66,7 @@ export function newScale<T = number>(
     freezeMax,
     link,
     breaks,
+    ratio,
   };
   return named({ ...props, ...methods });
 }
@@ -148,6 +150,11 @@ function freezeMin<T>(this: Scale<T>) {
 function freezeMax<T>(this: Scale<T>) {
   this.norm.setMax = noopThis;
   return this;
+}
+
+function ratio<T>(this: Scale<T>) {
+  if (!isScaleContinuous(this)) return -1;
+  return this.domain.range() / this.codomain.range();
 }
 
 /* --------------------------------- Helpers -------------------------------- */

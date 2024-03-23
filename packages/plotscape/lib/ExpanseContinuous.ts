@@ -26,6 +26,7 @@ export interface ExpanseContinuous
   setDefaultMin(value: number): this;
   setDefaultMax(value: number): this;
   setTransform(trans: MapFn<number, number>, inv: MapFn<number, number>): this;
+  expand(value: number): this;
 
   defaultize(): this;
   retrain(array: number[]): this;
@@ -58,6 +59,7 @@ export function newExpanseContinuous(min = 0, max = 1): ExpanseContinuous {
     setDefaultMax,
     setScale,
     setTransform,
+    expand,
     defaultize,
     retrain,
     breaks,
@@ -117,6 +119,14 @@ function setTransform(
 ) {
   this.trans = trans;
   this.inv = inv;
+  return this;
+}
+
+function expand(this: ExpanseContinuous, value: number) {
+  const { min, max } = this;
+  const range = this.range();
+  const inc = ((value - 1) * range) / 2;
+  this.setDefaultMin(min - inc).setDefaultMax(max + inc);
   return this;
 }
 
