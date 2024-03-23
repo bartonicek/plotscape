@@ -1,6 +1,22 @@
-import { diff, exponentialToSuperscript, minMax, times } from "utils";
+import { diff, exponentialToSuperscript, minMax, round, times } from "utils";
 import graphicParameters from "./graphicParameters.json";
 import { Margins, Point, Rect } from "./types";
+
+export function bimap<T, U>(
+  array1: T[],
+  array2: T[],
+  mapfn: (x: T, y: T) => U
+) {
+  const result = Array<U>(array1.length);
+  for (let i = 0; i < array1.length; i++) {
+    result[i] = mapfn(array1[i], array2[i]);
+  }
+  return result;
+}
+
+export function midpoint(x: number, y: number) {
+  return (x + y) / 2;
+}
 
 export function getMargins() {
   const { marginLines, axisTitleFontsize } = graphicParameters;
@@ -74,6 +90,15 @@ export function isStringableArray(array: unknown[]): array is string[] {
   return !!(array[0] as any).toString;
 }
 
+export function formatQueryLabel(label: number | string) {
+  if (typeof label != "number") return label;
+
+  const base = Math.floor(Math.log10(Math.abs(label)));
+  if (base > 4) return round(label);
+  if (base <= 4 && base > 0) return round(label, 4 - base);
+  else return round(label, Math.abs(base) + 2);
+}
+
 export function formatLabels(
   labels: number[] | string[],
   options?: { decimalPlaces?: number }
@@ -82,9 +107,9 @@ export function formatLabels(
 
   const dec = options?.decimalPlaces ?? 4;
   const shouldFormat = (x: number) => x != 0 && Math.abs(Math.log10(x)) > dec;
+
   // Use superscript if any number is sufficiently small or sufficiently big
   const useSuperscript = minMax(labels).some(shouldFormat);
-
   const formatFn = useSuperscript ? superscriptFn : noSuperscriptFn;
   return labels.map(formatFn);
 }

@@ -1,4 +1,4 @@
-import { mergeInto } from "utils";
+import { mergeInto, values } from "utils";
 import { Dataframe } from "../dataframe/Dataframe";
 import { pointInRect, rectsIntersect } from "../funs";
 import graphicParameters from "../graphicParameters.json";
@@ -99,9 +99,13 @@ function query(this: Points, point: Point) {
 
     if (pointInRect(point, [x - c, y - c, x + c, y + c])) {
       const result = {} as Record<string, any>;
-      result[data.col("x").name()] = data.col("x").valueAt(i);
-      result[data.col("y").name()] = data.col("y").valueAt(i);
-      //   // for (const q of data.queryables) result[q.name()] = q.valueAt(i);
+
+      for (const v of values(data.cols())) {
+        if (v && v.hasName() && !(v.name() in result)) {
+          result[v.name()] = v.valueAt(i);
+        }
+      }
+
       return result;
     }
   }

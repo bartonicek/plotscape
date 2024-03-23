@@ -29,6 +29,9 @@ export interface Context extends Emitter<"resized"> {
 
   setMargins(margins: Margins): this;
   addClass(name: string): this;
+  getProp<K extends keyof CanvasRenderingContext2D>(
+    key: K
+  ): CanvasRenderingContext2D[K];
   setAttribute<K extends keyof HTMLCanvasElement>(
     key: K,
     value: HTMLCanvasElement[K]
@@ -100,6 +103,7 @@ export function newContext(container: HTMLDivElement): Context {
     clip,
     setMargins,
     addClass,
+    getProp,
     setAttribute,
     setStyles,
     setProps,
@@ -195,11 +199,21 @@ type ContextProps<K extends keyof CanvasRenderingContext2D> = {
   [key in K]: CanvasRenderingContext2D[key];
 };
 
+function getProp<K extends keyof CanvasRenderingContext2D>(
+  this: Context,
+  key: K
+) {
+  return this.context[key];
+}
+
 function setProps<K extends keyof CanvasRenderingContext2D>(
   this: Context,
   props: ContextProps<K>
 ) {
-  for (const [k, v] of entries(props)) this.contextProps[k] = v;
+  for (const [k, v] of entries(props)) {
+    this.contextProps[k] = v;
+    this.context[k] = v;
+  }
   return this;
 }
 

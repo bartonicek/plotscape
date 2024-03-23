@@ -1,10 +1,10 @@
-import { allEntries, asInt, diff, inc, last } from "utils";
+import { allEntries, asInt, diff, inc, last, subsetOnIndices } from "utils";
 import { newExpanseContinuous } from "../ExpanseContinuous";
 import { ValueEmitter, getter, isEmitter } from "../ValueEmitter";
 import { newDataframe } from "../dataframe/Dataframe";
+import { bimap, midpoint } from "../funs";
 import { POSITIONS } from "../symbols";
 import { Continuous, newContinuous } from "../variables/Continuous";
-import { Derived, newDerived } from "../variables/Derived";
 import { Reference, newReference } from "../variables/Reference";
 import { Factor } from "./Factor";
 import { newFactorComputed } from "./FactorComputed";
@@ -15,7 +15,7 @@ export function factorBin(
   anchor?: number | ValueEmitter<number>
 ): Factor<{
   binStart: Continuous;
-  binMid: Derived<number>;
+  binMid: Continuous;
   binEnd: Continuous;
   [POSITIONS]: Reference<Set<number>>;
 }> {
@@ -98,12 +98,19 @@ function bin(variable: Continuous, width?: number, anchor?: number) {
   const breaksVariable = newContinuous(breaks, domain);
   breaksVariable.setName(variable.name());
 
-  const binStart = breaksVariable.proxy(() => sorted);
-  const binEnd = breaksVariable.proxy(() => sorted.map(inc));
-  const binMid = newDerived(
-    (i, v) => (v!.valueAt(i) + v!.valueAt(i + 1)) / 2,
-    breaksVariable
-  ).setDomain(domain);
+  const starts = subsetOnIndices(breaks, sorted);
+  const ends = subsetOnIndices(breaks, sorted.map(inc));
+  const mids = bimap(starts, ends, midpoint);
+
+  const binStart = newContinuous(starts, domain);
+  const binEnd = newContinuous(ends, domain);
+  const binMid = newContinuous(mids, domain);
+
+  if (variable.hasName()) {
+    binStart.setName(`lower ${variable.name()}`);
+    binEnd.setName(`upper ${variable.name()}`);
+    binMid.setName(variable.name());
+  }
 
   const columns = {
     binStart,

@@ -151,14 +151,14 @@ function query(this: RectanglesWH, point: Point) {
       const result = {} as Record<string, any>;
 
       for (const v of values(data.cols())) {
-        if (v.hasName() && !(v.name() in result)) {
+        if (v && v.hasName() && !(v.name() in result)) {
           result[v.name()] = v.valueAt(i);
         }
       }
+
+      return result;
     }
   }
-
-  return selected;
 }
 
 function setHAnchor(this: RectanglesWH, anchor: HorizontalAnchor) {
@@ -187,6 +187,6 @@ function setWidthGapPx(this: RectanglesWH, value: number) {
 }
 
 function setHeightGapPx(this: RectanglesWH, value: number) {
-  this.widthGapPx = value;
+  this.heightGapPx = value;
   return this;
 }

@@ -18,6 +18,7 @@ type DataBindings = {
 
 type ReducedBindings = {
   binStart: Continuous;
+  binMid: Continuous;
   binEnd: Continuous;
   stat1: Continuous;
 };
@@ -60,8 +61,8 @@ export function newHistogram<T extends Variables>(
     self.type === Type.Absolute ? encodePct(self) : encodeAbs(self)
   );
 
-  self.addKeyAction(`Minus`, () => width.setValue(width.value * (10 / 11)));
-  self.addKeyAction(`Equal`, () => width.setValue(width.value * (11 / 10)));
+  self.addKeyAction(`Minus`, () => width.setValue(width.value * (9 / 10)));
+  self.addKeyAction(`Equal`, () => width.setValue(width.value * (10 / 9)));
 
   const inc = data.col(`v1`).range() / 20;
   self.addKeyAction(`Quote`, () => anchor.setValue(anchor.value - inc));
@@ -74,6 +75,7 @@ export function newHistogram<T extends Variables>(
 
   partition1Data.listen(`changed`, () => {
     self.trainScales(bars.boundaryData!, (d) => ({ x: d.x0, y: d.y1 }));
+    self.scales.x.setName(partition1Data.col(`binMid`).name());
     self.scales.y.setMin(0);
   });
 
@@ -91,6 +93,7 @@ function encodeAbs(self: Histogram) {
 
   self.type = Type.Absolute;
   self.trainScales(boundaryData, (d) => ({ x: d.x0, y: d.y1 }));
+  self.scales.x.setName(partition1Data.col(`binMid`).name());
   self.scales.y.setMin(0);
   self.render();
 }
@@ -106,6 +109,7 @@ function encodePct(self: Histogram) {
 
   self.type = Type.Proportion;
   self.trainScales(boundaryData, (d) => ({ x: d.x0, y: d.y1 }));
+  self.scales.x.setName(partition1Data.col(`binMid`).name());
   self.scales.y.setMin(0);
   self.render();
 }

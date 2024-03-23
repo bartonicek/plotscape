@@ -1,4 +1,12 @@
-import { element, entries, inOrder, mergeInto, throttle, values } from "utils";
+import {
+  element,
+  entries,
+  inOrder,
+  mergeInto,
+  throttle,
+  trunc0to1,
+  values,
+} from "utils";
 import { Scale, isScaleContinuous, newScale } from "../Scale";
 import { Dataframe } from "../dataframe/Dataframe";
 import { newAxisLabels } from "../decorations/AxisLabels";
@@ -8,6 +16,7 @@ import graphicParameters from "../graphicParameters.json";
 import { Scene } from "../scene/Scene";
 import { ActionKey, GraphicObject, KeyActions, Variables } from "../types";
 import { Context, newContext } from "./Context";
+import { QueryDisplay, newQueryDisplay } from "./QueryDisplay";
 import { SelectionRect, newSelectionRect } from "./SelectionRect";
 
 export const layers = [0, 1, 2, 3, 4, 5, 6, 7] as const;
@@ -50,7 +59,7 @@ export interface Plot {
 
   selectionRect: SelectionRect;
   //   zoomStack: TODO;
-  //   queryRenderer: TODO;
+  queryDisplay: QueryDisplay;
 
   pars: {
     active: boolean;
@@ -78,6 +87,8 @@ export interface Plot {
   resize(): void;
   render(): void;
   reset(): void;
+  setAlpha(value: number): void;
+  scaleAlpha(value: number): void;
   setAspectRatio(value: number): void;
   pushGraphicObject(object: GraphicObject): void;
   addKeyAction(key: ActionKey, action: (event: Event) => void): void;
@@ -187,6 +198,7 @@ export function newPlot(scene: Scene) {
   const aspectRatio = undefined;
 
   const selectionRect = newSelectionRect();
+  const queryDisplay = newQueryDisplay(container);
 
   const localKeyActions = {} as KeyActions;
   const globalKeyActions = {} as KeyActions;
@@ -209,6 +221,7 @@ export function newPlot(scene: Scene) {
     scales,
     graphicObjects,
     selectionRect,
+    queryDisplay,
     localKeyActions,
     globalKeyActions,
   };
@@ -219,6 +232,8 @@ export function newPlot(scene: Scene) {
     render,
     resize,
     reset,
+    setAlpha,
+    scaleAlpha,
     setAspectRatio,
     trainScales,
     pushGraphicObject,
@@ -227,14 +242,18 @@ export function newPlot(scene: Scene) {
 
   const self: Plot = { pars, ...props, ...methods };
 
-  window.addEventListener("resize", throttle(resize.bind(self), 10));
-  window.addEventListener("keydown", onKeydown.bind(self));
-  container.addEventListener("mousedown", onMousedown.bind(self));
-  container.addEventListener("mousemove", onMousemove.bind(self));
-  container.addEventListener("mouseup", onMouseup.bind(self));
-  container.addEventListener("dblclick", onDoubleclick.bind(self));
-  container.addEventListener("contextmenu", onContextmenu.bind(self));
+  window.addEventListener(`resize`, throttle(resize.bind(self), 10));
+  window.addEventListener(`keydown`, onKeydown.bind(self));
+  window.addEventListener(`keyup`, onKeyup.bind(self));
+  container.addEventListener(`mousedown`, onMousedown.bind(self));
+  container.addEventListener(`mousemove`, onMousemove.bind(self));
+  container.addEventListener(`mouseup`, onMouseup.bind(self));
+  container.addEventListener(`dblclick`, onDoubleclick.bind(self));
+  container.addEventListener(`contextmenu`, onContextmenu.bind(self));
 
+  globalKeyActions[`KeyQ`] = () => (self.pars.mode = Mode.Query);
+  localKeyActions[`BracketRight`] = () => self.scaleAlpha(10 / 9);
+  localKeyActions[`BracketLeft`] = () => self.scaleAlpha(9 / 10);
   localKeyActions[`KeyR`] = () => {
     self.reset();
     self.render();
@@ -371,6 +390,25 @@ function addKeyAction(
   else this.localKeyActions[key] = inOrder(this.localKeyActions[key]!, action);
 }
 
+function setAlpha(this: Plot, value: number) {
+  const { contexts } = this;
+  for (const layer of baseLayers) {
+    const context = contexts[layer];
+    context.setProps({ globalAlpha: value });
+  }
+  this.render();
+}
+
+function scaleAlpha(this: Plot, value: number) {
+  const { contexts } = this;
+  for (const layer of baseLayers) {
+    const context = contexts[layer];
+    const alpha = context.getProp(`globalAlpha`);
+    context.setProps({ globalAlpha: trunc0to1(alpha * value) });
+  }
+  this.render();
+}
+
 function setAspectRatio(this: Plot, value: number) {
   const { x, y } = this.scales;
 
@@ -469,13 +507,13 @@ function onMousemoveQuery(self: Plot, event: MouseEvent) {
 
   let result;
 
-  // for (const q of this.queryables) {
-  //   result = q.query(x, y);
-  //   if (result) break;
-  // }
+  for (const q of self.graphicObjects) {
+    result = q.query?.([x, y]);
+    if (result) break;
+  }
 
-  // if (!result) this.queryRenderer.clear();
-  // else this.queryRenderer.renderQuery(x, y, result);
+  if (!result) self.queryDisplay.clear();
+  else self.queryDisplay.renderQuery([x, y], result);
 
   return self;
 }
@@ -495,9 +533,16 @@ function onDoubleclick(this: Plot) {
 
 function onKeydown(this: Plot, event: KeyboardEvent) {
   if (event.code === "KeyQ" && event.code === this.pars.lastKey) return;
-  // this.queryRenderer.clear();
+  this.queryDisplay.clear();
+
   this.globalKeyActions[event.code as ActionKey]?.(event);
   if (this.pars.active) this.localKeyActions[event.code as ActionKey]?.(event);
 
   this.pars.lastKey = event.code;
+}
+
+function onKeyup(this: Plot) {
+  this.pars.mode = Mode.Select;
+  this.pars.lastKey = "";
+  this.queryDisplay.clear();
 }

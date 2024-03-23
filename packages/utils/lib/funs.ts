@@ -315,6 +315,17 @@ export function trunc0to1(value: number) {
 }
 
 /**
+ * Rounds a number to `n` decimal places.
+ *
+ * @param value Number to round
+ * @param places The number of decimal places
+ * @returns The number rounded to `n` decimal places
+ */
+export function round(value: number, places = 0) {
+  return Math.round(value * 10 ** places) / 10 ** places;
+}
+
+/**
  * Returns the last element of an array.
  * @param array An arbitrary array
  * @returns The last element
@@ -366,11 +377,26 @@ export function rep<T>(value: T, n: number) {
   return Array(n).fill(value);
 }
 
-export function subsetOnIndices<T>(array: T[], indices: number[]) {
-  const result = Array(indices.length) as T[];
+/**
+ * Subsets an array on an array of indices. Can specify start and
+ * end to subset on a shorter slice of the index array.
+ *
+ * @param array An array of type `T`
+ * @param indices An array of indices
+ * @param start The position of the start index (defaults to 0)
+ * @param end The position of th end index (defaults to `indices.length`)
+ * @returns A new array of type `T`, ordered based on the indices
+ */
+export function subsetOnIndices<T>(
+  array: T[],
+  indices: number[],
+  start = 0,
+  end = indices.length
+) {
+  const result = Array(end - start) as T[];
 
-  for (let i = 0; i < indices.length; i++) {
-    result[i] = array[indices[i]];
+  for (let i = 0; i < end - start; i++) {
+    result[i] = array[indices[start + i]];
   }
 
   return result;

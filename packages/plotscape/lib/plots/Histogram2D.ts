@@ -11,7 +11,6 @@ import { RectanglesWH, newRectanglesWH } from "../representations/RectanglesWH";
 import { Scene } from "../scene/Scene";
 import { BoundaryCols, RenderCols, Type, Variables } from "../types";
 import { Continuous } from "../variables/Continuous";
-import { Derived } from "../variables/Derived";
 import { one } from "../variables/constants";
 
 type DataBindings = {
@@ -20,8 +19,8 @@ type DataBindings = {
 };
 
 type ReducedBindings = {
-  binMid: Derived<number>;
-  binMid$: Derived<number>;
+  binMid: Continuous;
+  binMid$: Continuous;
   stat1: Continuous;
 };
 
@@ -57,30 +56,28 @@ export function newHistogram2D<T extends Variables>(
   const squares = newRectanglesWH(plot);
   squares.mapEncodingToScale(`width`, `area`);
   squares.mapEncodingToScale(`height`, `area`);
+  squares.setWidthGapPx(1).setHeightGapPx(1);
 
   const self = { ...plot, type, squares, partition1Data, partition2Data };
   encodeAbs(self);
 
   self.pushGraphicObject(squares);
 
-  const nMax = Math.max(factor1.cardinality, factor2.cardinality) + 2;
-  self.trainScales(squares.boundaryData!, identity);
-  self.scales.area.codomain
-    .setScale(1 / nMax ** 2)
-    .setTransform(square, squareRoot);
+  const nMax = Math.max(factor1.cardinality, factor2.cardinality);
+  self.scales.area.codomain.setScale(1 / nMax).setTransform(square, squareRoot);
 
   self.addKeyAction(`KeyN`, () =>
     self.type === Type.Absolute ? encodePct(self) : encodeAbs(self)
   );
 
   self.addKeyAction(`Minus`, () => {
-    width1.setValue(width1.value * (10 / 11));
-    width2.setValue(width2.value * (10 / 11));
+    width1.setValue(width1.value * (9 / 10));
+    width2.setValue(width2.value * (9 / 10));
   });
 
   self.addKeyAction(`Equal`, () => {
-    width1.setValue(width1.value * (11 / 10));
-    width2.setValue(width2.value * (11 / 10));
+    width1.setValue(width1.value * (10 / 9));
+    width2.setValue(width2.value * (10 / 9));
   });
 
   self.addKeyAction(`KeyR`, () => {
@@ -90,11 +87,9 @@ export function newHistogram2D<T extends Variables>(
 
   partition1Data.listen(`changed`, () => {
     self.trainScales(squares.boundaryData!, identity);
-    const nMax = Math.max(factor1.cardinality, factor2.cardinality) + 2;
+    const nMax = Math.max(factor1.cardinality, factor2.cardinality);
     self.trainScales(squares.boundaryData!, identity);
-    self.scales.area.codomain
-      .setScale(1 / nMax ** 2)
-      .setTransform(square, squareRoot);
+    self.scales.area.codomain.setScale(1 / nMax);
     self.render();
   });
 
@@ -114,6 +109,7 @@ function encodeAbs(self: Histogram2D) {
 
   self.type = Type.Absolute;
   self.trainScales(boundaryData, identity);
+
   self.render();
 }
 
@@ -132,7 +128,13 @@ function encodePct(self: Histogram2D) {
 }
 
 const encodeBoundaryAbs = (d: ReducedBindings) => {
-  return { x: d.binMid, y: d.binMid$, width: d.stat1, height: d.stat1 };
+  return {
+    x: d.binMid,
+    y: d.binMid$,
+    width: d.stat1,
+    height: d.stat1,
+    area: d.stat1,
+  };
 };
 
 const encodeRenderAbs = (d: ReducedBindings) => {
@@ -150,6 +152,7 @@ const encodeBoundaryPct = (d: ReducedBindings) => {
     y: d.binMid$,
     width: one,
     height: one,
+    area: one,
   };
 };
 

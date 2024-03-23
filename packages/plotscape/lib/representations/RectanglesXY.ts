@@ -1,4 +1,4 @@
-import { mergeInto } from "utils";
+import { mergeInto, values } from "utils";
 import { pointInRect, rectsIntersect } from "../funs";
 import { ContextId, Contexts, Plot } from "../plot/Plot";
 import { LAYER, POSITIONS } from "../symbols";
@@ -92,7 +92,14 @@ function query(this: RectanglesXY, point: Point) {
 
     if (pointInRect(point, selfCoords)) {
       const result = {} as Record<string, any>;
-      // TODO
+
+      for (const v of values(data.cols())) {
+        if (v && v.hasName() && !(v.name() in result)) {
+          result[v.name()] = v.valueAt(i);
+        }
+      }
+
+      return result;
     }
   }
   return undefined;
