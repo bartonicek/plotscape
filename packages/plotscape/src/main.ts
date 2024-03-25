@@ -14,28 +14,24 @@ const app = document.querySelector<HTMLDivElement>("#app")!;
 async function mpgScene() {
   const mpgJSON = await fetchJSON("../datasets/mpg.json");
 
+  console.log(mpgJSON);
+
   const spec = {
     year: col(`discrete`),
     manufacturer: col(`discrete`),
     displ: col(`continuous`),
     hwy: col(`continuous`),
     fl: col(`discrete`),
+    drv: col(`discrete`),
   };
 
   const mpgData = parseColumns(mpgJSON, spec);
   const scene = newScene(app, mpgData);
 
   const plot1 = newScatter(scene, (d) => ({ v1: d.displ, v2: d.hwy }));
-  const plot2 = newBarplot(scene, (d) => ({ v1: d.fl }));
-
-  // @ts-ignore
-  // plot2.scales.x.domain.orderByIndices([0, 1, 4, 2, 3]);
-
+  const plot2 = newBarplot(scene, (d) => ({ v1: d.manufacturer }));
   const plot3 = newHistogram(scene, (d) => ({ v1: d.displ }));
-  const plot4 = newFluctplot(scene, (d) => ({
-    v1: d.year,
-    v2: d.manufacturer,
-  }));
+  const plot4 = newFluctplot(scene, (d) => ({ v1: d.year, v2: d.drv }));
 }
 
 async function sacrametoScene() {

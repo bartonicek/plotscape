@@ -1,15 +1,28 @@
 import { element } from "utils";
-import { Emitter, subscribable } from "./mixins/Emitter";
+import { Emitter, subscribable } from "../mixins/Emitter";
+import { Widget } from "./Widget";
 
-interface DragList extends Emitter<`changed`> {
+export interface DragListWidget extends Widget, Emitter<`changed`> {
+  name: HTMLSpanElement;
   container: HTMLDivElement;
   values: string[];
+  render(): void;
+  setName(name: string): this;
 }
 
-export function newDragList(values: string[]): DragList {
-  const container = element(`div`).get();
-  const list = element(`ul`).addClass(`ps-draglist`).appendTo(container).get();
-  const self = subscribable({ container, values });
+export function newDragListWidget(values: string[]): DragListWidget {
+  const container = element(`div`)
+    .addClass(`ps-widget`)
+    .addClass(`ps-widget-draglist`)
+    .get();
+
+  const _name = element(`span`).appendTo(container).get();
+  const list = element(`ul`).appendTo(container).get();
+
+  const props = { name: _name, container, values };
+  const methods = { setName, render };
+
+  const self = subscribable({ ...props, ...methods });
 
   for (const v of values) {
     const li = element(`li`)
@@ -32,6 +45,13 @@ export function newDragList(values: string[]): DragList {
 
   return self;
 }
+
+function setName(this: DragListWidget, name: string) {
+  this.name.innerText = `Levels of ${name}`;
+  return this;
+}
+
+function render(this: DragListWidget) {}
 
 function swapAt(container: HTMLElement, y: number) {
   const children = Array.from(container.childNodes) as (Node & Element)[];

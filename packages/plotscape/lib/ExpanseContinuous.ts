@@ -1,6 +1,7 @@
 import { MapFn, identity, minMax, prettyBreaks } from "utils";
 import { Expanse } from "./Expanse";
 import { Emitter, subscribable } from "./mixins/Emitter";
+import { RangeWidget, newRangeWidget } from "./widgets/RangeWidget";
 
 /* -------------------------------- Interface ------------------------------- */
 
@@ -30,6 +31,8 @@ export interface ExpanseContinuous
 
   defaultize(): this;
   retrain(array: number[]): this;
+
+  widget(norm: ExpanseContinuous): RangeWidget;
 }
 
 /* ------------------------------- Constructor ------------------------------ */
@@ -63,6 +66,7 @@ export function newExpanseContinuous(min = 0, max = 1): ExpanseContinuous {
     defaultize,
     retrain,
     breaks,
+    widget,
   };
   const self = { ...props, ...methods };
 
@@ -155,4 +159,17 @@ function breaks(this: ExpanseContinuous, norm: ExpanseContinuous) {
   min = this.unnormalize(min);
   max = this.unnormalize(max);
   return prettyBreaks(min, max);
+}
+
+function widget(this: ExpanseContinuous, norm: ExpanseContinuous) {
+  let [min, max] = [norm.normalize(0), norm.normalize(1)];
+  min = this.unnormalize(min);
+  max = this.unnormalize(max);
+
+  const widget = newRangeWidget(this);
+  widget.listen(`changed`, () => {
+    // const { min, max } = widget;
+  });
+
+  return widget;
 }

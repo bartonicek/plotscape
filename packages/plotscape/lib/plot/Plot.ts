@@ -18,6 +18,7 @@ import { ActionKey, GraphicObject, KeyActions, Variables } from "../types";
 import { Context, newContext } from "./Context";
 import { QueryDisplay, newQueryDisplay } from "./QueryDisplay";
 import { SelectionRect, newSelectionRect } from "./SelectionRect";
+import { WidgetDisplay, newWidgetDisplay } from "./WidgetDisplay";
 
 export const layers = [0, 1, 2, 3, 4, 5, 6, 7] as const;
 export const baseLayers = [4, 5, 6, 7] as const;
@@ -60,6 +61,7 @@ export interface Plot {
   selectionRect: SelectionRect;
   //   zoomStack: TODO;
   queryDisplay: QueryDisplay;
+  widgetDisplay: WidgetDisplay;
 
   pars: {
     active: boolean;
@@ -199,6 +201,7 @@ export function newPlot(scene: Scene) {
 
   const selectionRect = newSelectionRect();
   const queryDisplay = newQueryDisplay(container);
+  const widgetDisplay = newWidgetDisplay(container);
 
   const localKeyActions = {} as KeyActions;
   const globalKeyActions = {} as KeyActions;
@@ -222,6 +225,7 @@ export function newPlot(scene: Scene) {
     graphicObjects,
     selectionRect,
     queryDisplay,
+    widgetDisplay,
     localKeyActions,
     globalKeyActions,
   };
@@ -251,13 +255,11 @@ export function newPlot(scene: Scene) {
   container.addEventListener(`dblclick`, onDoubleclick.bind(self));
   container.addEventListener(`contextmenu`, onContextmenu.bind(self));
 
-  globalKeyActions[`KeyQ`] = () => (self.pars.mode = Mode.Query);
-  localKeyActions[`BracketRight`] = () => self.scaleAlpha(10 / 9);
-  localKeyActions[`BracketLeft`] = () => self.scaleAlpha(9 / 10);
-  localKeyActions[`KeyR`] = () => {
-    self.reset();
-    self.render();
-  };
+  self.addKeyAction(`KeyQ`, () => (self.pars.mode = Mode.Query));
+  self.addKeyAction(`BracketRight`, () => self.scaleAlpha(10 / 9));
+  self.addKeyAction(`BracketLeft`, () => self.scaleAlpha(9 / 10));
+  self.addKeyAction(`KeyR`, () => (self.reset(), self.render()));
+  self.addKeyAction(`KeyP`, showWidgetDisplay.bind(self));
 
   selectionRect.listen(`changed`, () => {
     const { coords } = selectionRect;
@@ -418,6 +420,17 @@ function setAspectRatio(this: Plot, value: number) {
   this.resize();
 
   return this;
+}
+
+function showWidgetDisplay(this: Plot) {
+  if (this.widgetDisplay.initialized) this.widgetDisplay.show();
+  else {
+    for (const key of [`x`, `y`] as const) {
+      this.widgetDisplay.addWidget(this.scales[key].widget());
+    }
+    this.widgetDisplay.show();
+    this.widgetDisplay.initialized = true;
+  }
 }
 
 /* ----------------------------- Event Handlers ----------------------------- */

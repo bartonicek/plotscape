@@ -2,6 +2,7 @@ import { noopThis } from "utils";
 import { Expanse, isExpanseContinuous } from "./Expanse";
 import { ExpanseContinuous, newExpanseContinuous } from "./ExpanseContinuous";
 import { Named, named } from "./mixins/Named";
+import { Widget } from "./widgets/Widget";
 
 type Aesthetic = `x` | `y`;
 
@@ -37,6 +38,8 @@ export interface Scale<T = unknown> extends Named {
   link(other: Scale<T>): this;
   breaks(): T[];
   ratio(): number;
+
+  widget(): Widget;
 }
 
 export interface ScaleContinuous extends Scale<number> {
@@ -75,6 +78,7 @@ export function newScale<T = number>(
     link,
     breaks,
     ratio,
+    widget,
   };
   return named({ ...props, ...methods });
 }
@@ -183,6 +187,10 @@ function ratio<T>(this: Scale<T>) {
   if (!isScaleContinuous(this)) return -1;
   const { domain, norm, codomain } = this;
   return domain.range() / norm.range() / codomain.range();
+}
+
+function widget<T>(this: Scale<T>) {
+  return this.domain.widget(this.norm).setName(this.name());
 }
 
 /* --------------------------------- Helpers -------------------------------- */

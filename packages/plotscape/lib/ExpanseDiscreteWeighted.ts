@@ -7,10 +7,10 @@ import {
   seq,
   subsetOnIndices,
 } from "utils";
-import { newDragList } from "./DragList";
 import { Expanse } from "./Expanse";
 import { orderByIndices } from "./funs";
 import { Emitter, subscribable } from "./mixins/Emitter";
+import { DragListWidget, newDragListWidget } from "./widgets/DragListWidget";
 
 /* -------------------------------- Interface ------------------------------- */
 
@@ -30,6 +30,8 @@ export interface ExpanseDiscreteWeighted
   getWidthExpanse(): ExpanseDiscreteWeighted;
   retrain(array: string[]): this;
   clone(): ExpanseDiscreteWeighted;
+
+  widget(): DragListWidget;
 }
 
 /* ------------------------------- Constructor ------------------------------ */
@@ -55,6 +57,7 @@ export function newExpanseDiscreteWeighted(
     getWidthExpanse,
     retrain,
     breaks,
+    widget,
   };
 
   const self = { ...props, ...methods };
@@ -169,8 +172,6 @@ function getBoundsInternal(self: ExpanseDiscreteWeighted, value: string) {
 }
 
 function widget(this: ExpanseDiscreteWeighted) {
-  const widget = newDragList([...this.values]);
-  // widget.listen(`changed`, )
-
+  const widget = newDragListWidget([...this.values]);
   return widget;
 }

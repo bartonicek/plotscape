@@ -1,5 +1,7 @@
 import { MapFn } from "utils";
 import { ExpanseContinuous } from "./ExpanseContinuous";
+import { ExpanseDiscreteWeighted } from "./ExpanseDiscreteWeighted";
+import { Widget } from "./widgets/Widget";
 
 export interface Expanse<T = unknown> {
   order?: number[];
@@ -22,10 +24,18 @@ export interface Expanse<T = unknown> {
   setOrder?(indices: number[]): this;
   setDefaultWeights?(): this;
   setDefaultOrder?(): this;
+
+  widget(norm: ExpanseContinuous): Widget;
 }
 
 export function isExpanseContinuous(
   expanse: Expanse
 ): expanse is ExpanseContinuous {
   return expanse.setMin != undefined;
+}
+
+export function isExpanseDiscreteWeighted(
+  expanse: Expanse
+): expanse is ExpanseDiscreteWeighted {
+  return expanse.setWeights != undefined;
 }

@@ -64,43 +64,12 @@ html, body {
   font-size: medium;
 }
 
-.ps-help-modal {
+.ps-modal {
   font-size: min(2.5vmin, 14pt);
   color: #3d3d3d;
-  padding: 2.5%;
   background-color: #fefffe;
   border: 1px solid #3d3d3d;
-  overflow: hidden;
-}
-
-.ps-help-modal-heading {
-  font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-  line-height: 0.5;
-  margin: 0;
   padding: 0;
-  text-shadow:1px 1px 2px #deded9;
-}
-
-.ps-help-modal ul {
-  list-style-type:none;
-  line-height: 1.2;
-}
-
-.ps-widget-modal {
-  font-size: min(2.5vmin, 14pt);
-  color: #3d3d3d;
-  background-color: #fefffe;
-  border: 1px solid #3d3d3d;
-  padding: 2.5%;
-}
-
-.ps-widget-container {
-  display: block;
-}
-
-.ps-widget {
-  margin-left: 4px;
-  list-style: none;
 }
 
 .ps-widget button {
@@ -119,22 +88,50 @@ html, body {
   pointer-events: none;
 }
 
-.ps-draglist {
-  list-style: none;
+.ps-widget-display {
+  padding-top: 10%;
+  padding-bottom: 10%;
+}
+
+.ps-widget-display button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+.ps-widget {
   background-color: whitesmoke;
+  margin: 5px;
+  padding: 10px;
+}
+
+.ps-widget-draglist ul {
+  margin: 5px;
+  background-color: whitesmoke;
+  list-style: none;
   padding-left: 0;
 }
 
-.ps-draglist li {
+.ps-widget-draglist li {
+  background-color:#deded9;
   padding: 5px;
 }
 
-.ps-draglist li:nth-child(2n) {
+.ps-widget-draglist li:hover {
+  opacity: 0.75;
+}
+
+.ps-widget-draglist li:nth-child(2n + 1) {
   background-color:#7a7a7a;
   color: whitesmoke;
 }
 
-.ps-draglist li.dragged {
+.ps-widget-draglist li.dragged {
   opacity: 0.3;
   cursor: move;
+}
+
+.ps-widget-range input {
+  text-overflow: ellipsis;
+  margin-left: 10px;
 }
