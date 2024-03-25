@@ -17,6 +17,11 @@ type Encodings = {
   height: any;
 };
 
+enum GapType {
+  WidthPct,
+  AbsPx,
+}
+
 export interface RectanglesWH extends Representation<Encodings> {
   hAnchor: HorizontalAnchor;
   vAnchor: VerticalAnchor;
@@ -39,6 +44,7 @@ export function newRectanglesWH(plot: Plot): RectanglesWH {
   const [hAnchor, vAnchor] = [HorizontalAnchor.Center, VerticalAnchor.Middle];
   const [widthPct, heightPct] = [1, 1];
   const [widthGapPx, heightGapPx] = [0, 0];
+  const gapType = GapType.WidthPct;
 
   const pars = {
     hAnchor,
@@ -129,7 +135,6 @@ function query(this: RectanglesWH, point: Point) {
   const { boundaryData: data, scales, vAnchor, hAnchor } = this;
   const { widthPct, heightPct, heightGapPx, widthGapPx } = this;
   const n = data.n();
-  const selected = new Set<number>();
 
   for (let i = 0; i < n; i++) {
     const x = data.col(`x`).scaledAt(i, scales.x);
@@ -173,20 +178,24 @@ function setVAnchor(this: RectanglesWH, anchor: VerticalAnchor) {
 
 function setWidthPct(this: RectanglesWH, value: number) {
   this.widthPct = value;
+  this.widthGapPx = 0;
   return this;
 }
 
 function setHeightPct(this: RectanglesWH, value: number) {
   this.heightPct = value;
+  this.heightGapPx = 0;
   return this;
 }
 
 function setWidthGapPx(this: RectanglesWH, value: number) {
   this.widthGapPx = value;
+  this.widthPct = 1;
   return this;
 }
 
 function setHeightGapPx(this: RectanglesWH, value: number) {
   this.heightGapPx = value;
+  this.heightPct = 1;
   return this;
 }

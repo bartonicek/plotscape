@@ -54,8 +54,7 @@ export function newBarplot<T extends Variables>(
   const partition1Data = partition1.data();
   const partition2Data = partition2.data();
 
-  const type = Type.Absolute;
-  const order = Order.Alphanumeric;
+  const [type, order] = [Type.Absolute, Order.Alphanumeric];
   const bars = newRectanglesWH(plot);
   bars.setVAnchor(VerticalAnchor.Bottom);
 
@@ -65,30 +64,34 @@ export function newBarplot<T extends Variables>(
   self.pushGraphicObject(self.bars);
   self.scales.y.freezeMin().link(self.scales.height);
 
-  self.addKeyAction(`KeyR`, () => {
-    self.scales.x.setDefaultOrder();
-    self.order = Order.Alphanumeric;
-    encodeAbs(self);
-  });
-
-  self.addKeyAction(`KeyO`, () => {
-    if (self.order === Order.Alphanumeric) {
-      const indices = getOrderIndices(partition1Data.col(`stat1`).values());
-      self.scales.x.setOrder(indices);
-      self.order = Order.Custom;
-    } else {
-      self.scales.x.setDefaultOrder();
-      self.order = Order.Alphanumeric;
-    }
-    self.render();
-  });
-
-  self.addKeyAction(`KeyN`, () =>
-    self.type === Type.Absolute ? encodePct(self) : encodeAbs(self)
-  );
+  self.addKeyAction(`KeyR`, defaultize.bind(self));
+  self.addKeyAction(`KeyO`, switchOrder.bind(self));
+  self.addKeyAction(`KeyN`, switchEncoding.bind(self));
 
   partition2Data.listen(`changed`, self.render.bind(self));
   return self;
+}
+
+function defaultize(this: Barplot) {
+  this.scales.x.setDefaultOrder();
+  this.order = Order.Alphanumeric;
+  encodeAbs(this);
+}
+
+function switchEncoding(this: Barplot) {
+  this.type === Type.Absolute ? encodePct(this) : encodeAbs(this);
+}
+
+function switchOrder(this: Barplot) {
+  if (this.order === Order.Alphanumeric) {
+    const indices = getOrderIndices(this.partition1Data.col(`stat1`).values());
+    this.scales.x.setOrder(indices);
+    this.order = Order.Custom;
+  } else {
+    this.scales.x.setDefaultOrder();
+    this.order = Order.Alphanumeric;
+  }
+  this.render();
 }
 
 function encodeAbs(self: Barplot) {
@@ -98,10 +101,7 @@ function encodeAbs(self: Barplot) {
 
   bars.setBoundaryData(boundaryData);
   bars.setRenderData(renderData);
-  bars.setWidthPct(0.8).setWidthGapPx(0);
-
-  // @ts-ignore
-  const order = self.scales.x.domain.order;
+  bars.setWidthPct(0.8);
 
   self.type = Type.Absolute;
   self.trainScales(boundaryData, (d) => ({
@@ -109,6 +109,8 @@ function encodeAbs(self: Barplot) {
     y: d.height,
     width: d.x.width(),
   }));
+
+  const order = self.scales.x.getOrder();
 
   self.scales.x.setDefaultWeights();
   if (order) self.scales.x.setOrder(order);
@@ -123,7 +125,7 @@ function encodePct(self: Barplot) {
 
   bars.setBoundaryData(boundaryData);
   bars.setRenderData(renderData);
-  bars.setWidthPct(1).setWidthGapPx(1);
+  bars.setWidthGapPx(1);
 
   self.type = Type.Proportion;
   self.trainScales(boundaryData, (d) => ({
@@ -132,8 +134,7 @@ function encodePct(self: Barplot) {
     width: d.x.width(),
   }));
 
-  // @ts-ignore
-  const order = self.scales.x.domain.order;
+  const order = self.scales.x.getOrder();
   const weights = partition1Data.col(`stat1`).values();
 
   self.scales.x.setWeights(weights);

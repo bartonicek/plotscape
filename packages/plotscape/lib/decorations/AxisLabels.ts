@@ -47,8 +47,9 @@ function render(this: AxisLabels, contexts: Contexts) {
       const h = context.textHeight(label) + 5;
 
       if (y < bottom || y > context.height - top || y - h < lastY) continue;
-      context.text(base, y, label);
       lastY = y;
+
+      context.text(base, y, label);
     }
   }
 }

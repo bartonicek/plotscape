@@ -2,6 +2,8 @@ import { MapFn } from "utils";
 import { ExpanseContinuous } from "./ExpanseContinuous";
 
 export interface Expanse<T = unknown> {
+  order?: number[];
+
   clone(): Expanse<T>;
   normalize(value: T): number;
   unnormalize(value: number): T;
