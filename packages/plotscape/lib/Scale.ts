@@ -1,6 +1,7 @@
 import { noopThis } from "utils";
 import { Expanse, isExpanseContinuous } from "./Expanse";
 import { ExpanseContinuous, newExpanseContinuous } from "./ExpanseContinuous";
+import { Emitter, subscribable } from "./mixins/Emitter";
 import { Named, named } from "./mixins/Named";
 import { Widget } from "./widgets/Widget";
 
@@ -8,7 +9,7 @@ type Aesthetic = `x` | `y`;
 
 /* -------------------------------- Interface ------------------------------- */
 
-export interface Scale<T = unknown> extends Named {
+export interface Scale<T = unknown> extends Named, Emitter<`changed`> {
   other?: Scale;
   aes?: Aesthetic;
   domain: Expanse<T>;
@@ -80,7 +81,11 @@ export function newScale<T = number>(
     ratio,
     widget,
   };
-  return named({ ...props, ...methods });
+
+  const self = subscribable(named({ ...props, ...methods }));
+  self.norm.listen(`changed`, () => self.emit(`changed`));
+
+  return self;
 }
 
 /* --------------------------------- Methods -------------------------------- */
@@ -115,6 +120,7 @@ function pullback<T>(this: Scale<T>, value: number) {
 
 function setDomain<T>(this: Scale<T>, domain: Expanse<T>) {
   this.domain = domain;
+  domain.listen(`changed`, () => this.emit(`changed`));
   return this as Scale<T>;
 }
 
@@ -154,7 +160,7 @@ function setDefaultWeights<T>(this: Scale<T>) {
 
 function move<T>(this: Scale<T>, amount: number) {
   const { min, max } = this.norm;
-  this.norm.setMin(min + amount).setMax(max + amount);
+  this.norm.setMinMax(min + amount, max + amount);
   return this;
 }
 

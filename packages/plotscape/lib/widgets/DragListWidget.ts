@@ -47,7 +47,7 @@ export function newDragListWidget(values: string[]): DragListWidget {
 }
 
 function setName(this: DragListWidget, name: string) {
-  this.name.innerText = `Levels of ${name}`;
+  this.name.innerText = `Levels of ${name}: `;
   return this;
 }
 

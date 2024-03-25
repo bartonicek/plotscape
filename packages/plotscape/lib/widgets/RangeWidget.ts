@@ -1,22 +1,22 @@
 import { element } from "utils";
+import { formatLabel } from "../funs";
 import { Emitter, subscribable } from "../mixins/Emitter";
 import { Widget } from "./Widget";
+
+type Source = { min: number; max: number } & Emitter<`changed`>;
 
 export interface RangeWidget extends Widget, Emitter<`changed`> {
   name: HTMLSpanElement;
   container: HTMLDivElement;
-  min: number;
-  max: number;
-  source: { min: number; max: number };
+  source: { min: number; max: number } & Emitter<`changed`>;
   inputs: { min: HTMLInputElement; max: HTMLInputElement };
+  min(): number;
+  max(): number;
   render(): void;
   setName(name: string): this;
 }
 
-export function newRangeWidget(source: {
-  min: number;
-  max: number;
-}): RangeWidget {
+export function newRangeWidget(source: Source): RangeWidget {
   const container = element(`div`)
     .addClass(`ps-widget`)
     .addClass(`ps-widget-range`)
@@ -25,28 +25,25 @@ export function newRangeWidget(source: {
   const _name = element(`span`).appendTo(container).get();
   const inputMin = element(`input`).appendTo(container).get();
   const inputMax = element(`input`).appendTo(container).get();
-  const { min, max } = source;
   inputMin.size = 6;
   inputMax.size = 6;
 
   const inputs = { min: inputMin, max: inputMax };
 
-  const props = { container, name: _name, source, inputs, min, max };
-  const methods = { setName, render };
+  const props = { container, name: _name, source, inputs };
+  const methods = { setName, render, min, max };
   const self = subscribable({ ...props, ...methods });
 
   inputMin.addEventListener(`keydown`, (event) => {
     if (!(event.code === `Enter`)) return;
-    self.min = parseFloat(inputMin.value);
-    self.render();
     self.emit(`changed`);
+    self.render();
   });
 
   inputMax.addEventListener(`keydown`, (event) => {
     if (!(event.code === `Enter`)) return;
-    self.max = parseFloat(inputMax.value);
-    self.render();
     self.emit(`changed`);
+    self.render();
   });
 
   self.render();
@@ -59,6 +56,14 @@ function setName(this: RangeWidget, name: string) {
 }
 
 function render(this: RangeWidget) {
-  this.inputs.min.value = this.min.toString();
-  this.inputs.max.value = this.max.toString();
+  this.inputs.min.value = formatLabel(this.source.min);
+  this.inputs.max.value = formatLabel(this.source.max);
+}
+
+function min(this: RangeWidget) {
+  return parseFloat(this.inputs.min.value);
+}
+
+function max(this: RangeWidget) {
+  return parseFloat(this.inputs.max.value);
 }

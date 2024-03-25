@@ -1,13 +1,11 @@
-import { MapFn, identity, minMax, prettyBreaks } from "utils";
+import { MapFn, identity, invertRange, minMax, prettyBreaks } from "utils";
 import { Expanse } from "./Expanse";
 import { Emitter, subscribable } from "./mixins/Emitter";
 import { RangeWidget, newRangeWidget } from "./widgets/RangeWidget";
 
 /* -------------------------------- Interface ------------------------------- */
 
-export interface ExpanseContinuous
-  extends Expanse<number>,
-    Emitter<"limitschanged"> {
+export interface ExpanseContinuous extends Expanse<number>, Emitter<"changed"> {
   min: number;
   max: number;
   scale: number;
@@ -23,6 +21,7 @@ export interface ExpanseContinuous
 
   setMin(value: number): this;
   setMax(value: number): this;
+  setMinMax(min: number, max: number): this;
   setScale(value: number): this;
   setDefaultMin(value: number): this;
   setDefaultMax(value: number): this;
@@ -58,6 +57,7 @@ export function newExpanseContinuous(min = 0, max = 1): ExpanseContinuous {
     unnormalize,
     setMin,
     setMax,
+    setMinMax,
     setDefaultMin,
     setDefaultMax,
     setScale,
@@ -89,13 +89,20 @@ function unnormalize(this: ExpanseContinuous, value: number) {
 
 function setMin(this: ExpanseContinuous, value: number) {
   this.min = value;
-  this.emit("limitschanged");
+  this.emit("changed");
   return this;
 }
 
 function setMax(this: ExpanseContinuous, value: number) {
   this.max = value;
-  this.emit("limitschanged");
+  this.emit("changed");
+  return this;
+}
+
+function setMinMax(this: ExpanseContinuous, min: number, max: number) {
+  this.min = min;
+  this.max = max;
+  this.emit(`changed`);
   return this;
 }
 
@@ -137,7 +144,7 @@ function expand(this: ExpanseContinuous, value: number) {
 function defaultize(this: ExpanseContinuous) {
   this.min = this.defaultMin;
   this.max = this.defaultMax;
-  this.emit(`limitschanged`);
+  this.emit(`changed`);
   return this;
 }
 
@@ -166,9 +173,19 @@ function widget(this: ExpanseContinuous, norm: ExpanseContinuous) {
   min = this.unnormalize(min);
   max = this.unnormalize(max);
 
-  const widget = newRangeWidget(this);
+  const source = subscribable({ min, max });
+
+  const widget = newRangeWidget(source);
   widget.listen(`changed`, () => {
-    // const { min, max } = widget;
+    let [min, max] = [widget.min(), widget.max()];
+    source.min = min;
+    source.max = max;
+
+    min = this.normalize(min);
+    max = this.normalize(max);
+    [min, max] = invertRange(min, max);
+
+    norm.setMin(min).setMax(max);
   });
 
   return widget;

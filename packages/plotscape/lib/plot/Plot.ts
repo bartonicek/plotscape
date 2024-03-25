@@ -250,7 +250,7 @@ export function newPlot(scene: Scene) {
   window.addEventListener(`keydown`, onKeydown.bind(self));
   window.addEventListener(`keyup`, onKeyup.bind(self));
   container.addEventListener(`mousedown`, onMousedown.bind(self));
-  container.addEventListener(`mousemove`, onMousemove.bind(self));
+  container.addEventListener(`mousemove`, throttle(onMousemove.bind(self), 20));
   container.addEventListener(`mouseup`, onMouseup.bind(self));
   container.addEventListener(`dblclick`, onDoubleclick.bind(self));
   container.addEventListener(`contextmenu`, onContextmenu.bind(self));
@@ -261,14 +261,7 @@ export function newPlot(scene: Scene) {
   self.addKeyAction(`KeyR`, () => (self.reset(), self.render()));
   self.addKeyAction(`KeyP`, showWidgetDisplay.bind(self));
 
-  selectionRect.listen(`changed`, () => {
-    const { coords } = selectionRect;
-    const selected = new Set<number>();
-    for (const s of self.graphicObjects) {
-      if (s.check) mergeInto(selected, s.check(coords));
-    }
-    scene.marker.update(selected);
-  });
+  selectionRect.listen(`changed`, throttle(checkSelection.bind(self), 20));
 
   self.pushGraphicObject(newAxisLabels(scales.x));
   self.pushGraphicObject(newAxisLabels(scales.y));
@@ -277,6 +270,7 @@ export function newPlot(scene: Scene) {
   self.pushGraphicObject(selectionRect);
   scene.addPlot(self);
 
+  for (const s of values(self.scales)) s.listen(`changed`, () => self.render());
   return self;
 }
 
@@ -433,6 +427,23 @@ function showWidgetDisplay(this: Plot) {
   }
 }
 
+function checkSelection(this: Plot) {
+  const { scene, graphicObjects, selectionRect } = this;
+  const { coords } = selectionRect;
+  const selected = new Set<number>();
+
+  if (coords.every((x) => x === 0)) {
+    scene.marker.update(selected);
+    return;
+  }
+
+  for (const s of graphicObjects) {
+    if (s.check) mergeInto(selected, s.check(coords));
+  }
+
+  this.scene.marker.update(selected);
+}
+
 /* ----------------------------- Event Handlers ----------------------------- */
 
 function onMousedown(this: Plot, event: MouseEvent) {
@@ -485,7 +496,6 @@ function onMousemoveSelect(self: Plot, event: MouseEvent) {
   const { coords } = selectionRect;
   selectionRect.setCoords([coords[0], coords[1], x, y]);
 
-  self.render();
   return self;
 }
 
@@ -507,7 +517,6 @@ function onMousemovePan(self: Plot, event: MouseEvent) {
   self.pars.lastX = x;
   self.pars.lastY = y;
 
-  self.render();
   return self;
 }
 

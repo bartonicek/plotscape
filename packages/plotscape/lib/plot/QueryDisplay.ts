@@ -1,5 +1,5 @@
 import { Dict, element } from "utils";
-import { formatQueryLabel } from "../funs";
+import { formatLabel } from "../funs";
 import { Point } from "../types";
 
 export interface QueryDisplay {
@@ -27,7 +27,7 @@ function renderQuery(this: QueryDisplay, point: Point, info: Dict | undefined) {
 
   let htmlString = ``;
   for (const [k, v] of Object.entries(info)) {
-    htmlString += `${k}: ${formatQueryLabel(v)}<br>`;
+    htmlString += `${k}: ${formatLabel(v)}<br>`;
   }
 
   const { container, parentContainer } = this;

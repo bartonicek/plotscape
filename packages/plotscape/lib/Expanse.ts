@@ -1,9 +1,10 @@
 import { MapFn } from "utils";
 import { ExpanseContinuous } from "./ExpanseContinuous";
 import { ExpanseDiscreteWeighted } from "./ExpanseDiscreteWeighted";
+import { Emitter } from "./mixins/Emitter";
 import { Widget } from "./widgets/Widget";
 
-export interface Expanse<T = unknown> {
+export interface Expanse<T = unknown> extends Emitter<`changed`> {
   order?: number[];
 
   clone(): Expanse<T>;

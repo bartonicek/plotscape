@@ -90,13 +90,13 @@ export function isStringableArray(array: unknown[]): array is string[] {
   return !!(array[0] as any).toString;
 }
 
-export function formatQueryLabel(label: number | string) {
+export function formatLabel(label: number | string) {
   if (typeof label != "number") return label;
 
   const base = Math.floor(Math.log10(Math.abs(label)));
-  if (base > 4) return round(label);
-  if (base <= 4 && base > 0) return round(label, 4 - base);
-  else return round(label, Math.abs(base) + 2);
+  if (base > 4) return round(label).toString();
+  if (base <= 4 && base > 0) return round(label, 4 - base).toString();
+  else return round(label, Math.abs(base) + 2).toString();
 }
 
 export function formatLabels(
