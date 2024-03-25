@@ -19,15 +19,18 @@ async function mpgScene() {
     manufacturer: col(`discrete`),
     displ: col(`continuous`),
     hwy: col(`continuous`),
+    fl: col(`discrete`),
   };
 
   const mpgData = parseColumns(mpgJSON, spec);
   const scene = newScene(app, mpgData);
 
   const plot1 = newScatter(scene, (d) => ({ v1: d.displ, v2: d.hwy }));
-  plot1.setAspectRatio(1);
+  const plot2 = newBarplot(scene, (d) => ({ v1: d.fl }));
 
-  const plot2 = newBarplot(scene, (d) => ({ v1: d.manufacturer }));
+  // @ts-ignore
+  // plot2.scales.x.domain.orderByIndices([0, 1, 4, 2, 3]);
+
   const plot3 = newHistogram(scene, (d) => ({ v1: d.displ }));
   const plot4 = newFluctplot(scene, (d) => ({
     v1: d.year,
@@ -55,11 +58,16 @@ async function sacrametoScene() {
   const plot1 = newScatter(scene, (d) => ({ v1: d.longitude, v2: d.latitude }));
   // plot1.setAspectRatio(1);
 
-  const plot3 = newBarplot(scene, (d) => ({ v1: d.city }));
   const plot2 = newFluctplot(scene, (d) => ({ v1: d.beds, v2: d.baths }));
+  const plot3 = newBarplot(scene, (d) => ({ v1: d.city }));
   const plot4 = newHistogram(scene, (d) => ({ v1: d.price }));
   const plot = newHistogram2D(scene, (d) => ({ v1: d.sqft, v2: d.price }));
 }
 
 sacrametoScene();
 // mpgScene();
+
+// const foo = newDragList(["hello", "world", "bye"]);
+// foo.listen(`changed`, () => console.log(foo.values));
+
+// app.appendChild(foo.container);

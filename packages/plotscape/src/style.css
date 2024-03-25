@@ -118,3 +118,23 @@ html, body {
   padding: 2%;
   pointer-events: none;
 }
+
+.ps-draglist {
+  list-style: none;
+  background-color: whitesmoke;
+  padding-left: 0;
+}
+
+.ps-draglist li {
+  padding: 5px;
+}
+
+.ps-draglist li:nth-child(2n) {
+  background-color:#7a7a7a;
+  color: whitesmoke;
+}
+
+.ps-draglist li.dragged {
+  opacity: 0.3;
+  cursor: move;
+}

@@ -64,8 +64,8 @@ export enum Type {
   Proportion,
 }
 export enum Order {
-  ByName,
-  ByCount,
+  Alphanumeric,
+  Custom,
 }
 
 export enum VerticalAnchor {

@@ -30,14 +30,13 @@ function render(this: AxisLabels, contexts: Contexts) {
     for (let i = 0; i < labels.length; i++) {
       const label = labels[i];
       const x = scale.pushforward(breaks[i]);
-      const w = context.textWidth(label) + 5;
+      const w = context.textWidth(label) + 1;
 
       if (x < left || x > context.width - right) continue;
       if (checkOverlap(lastX, x, lastW, w)) continue;
+      [lastX, lastW] = [x, w];
 
       context.text(x, base, label);
-      lastX = x;
-      lastW = w;
     }
   } else if (along === "y") {
     let lastY = 0;

@@ -1,5 +1,15 @@
-import { compareAlphaNumeric, cumsum, last, rep } from "utils";
+import {
+  compareAlphaNumeric,
+  cumsum,
+  last,
+  noopThis,
+  rep,
+  seq,
+  subsetOnIndices,
+} from "utils";
+import { newDragList } from "./DragList";
 import { Expanse } from "./Expanse";
+import { orderByIndices } from "./funs";
 import { Emitter, subscribable } from "./mixins/Emitter";
 
 /* -------------------------------- Interface ------------------------------- */
@@ -7,12 +17,17 @@ import { Emitter, subscribable } from "./mixins/Emitter";
 export interface ExpanseDiscreteWeighted
   extends Expanse<string>,
     Emitter<"changed"> {
+  order: number[];
   values: string[];
   weights: number[];
   cumWeights: number[];
   width(value: string): number;
+  setOrder(indices: number[]): this;
   setValues(values: string[]): this;
   setWeights(weights: number[]): this;
+  setDefaultWeights(): this;
+  setDefaultOrder(): this;
+  getWidthExpanse(): ExpanseDiscreteWeighted;
   retrain(array: string[]): this;
   clone(): ExpanseDiscreteWeighted;
 }
@@ -22,10 +37,11 @@ export interface ExpanseDiscreteWeighted
 export function newExpanseDiscreteWeighted(
   values: string[]
 ): ExpanseDiscreteWeighted {
+  const order = seq(0, values.length - 1);
   const weights = rep(1, values.length);
   const cumWeights = cumsum(weights);
 
-  const props = { values, weights, cumWeights };
+  const props = { order, values, weights, cumWeights };
   const methods = {
     clone,
     normalize,
@@ -33,6 +49,10 @@ export function newExpanseDiscreteWeighted(
     width,
     setValues,
     setWeights,
+    setOrder,
+    setDefaultWeights,
+    setDefaultOrder,
+    getWidthExpanse,
     retrain,
     breaks,
   };
@@ -60,17 +80,59 @@ function width(this: ExpanseDiscreteWeighted, value: string) {
   return (upper - lower) / max;
 }
 
+function getWidthExpanse(this: ExpanseDiscreteWeighted) {
+  const copy = { ...this };
+  copy.normalize = this.width;
+  copy.clone = noopThis.bind(copy);
+  return copy;
+}
+
 function setValues(this: ExpanseDiscreteWeighted, values: string[]) {
-  this.values = values;
+  for (let i = 0; i < values.length; i++) this.values[i] = values[i];
   this.emit(`changed`);
   return this;
 }
 
 function setWeights(this: ExpanseDiscreteWeighted, weights: number[]) {
-  this.weights = weights;
-  this.cumWeights = cumsum(weights);
-  this.emit(`changed`);
+  const cumWeights = cumsum(subsetOnIndices(weights, this.order));
 
+  for (let i = 0; i < weights.length; i++) this.weights[i] = weights[i];
+  for (let i = 0; i < cumWeights.length; i++) {
+    this.cumWeights[i] = cumWeights[i];
+  }
+
+  this.emit(`changed`);
+  return this;
+}
+
+function setOrder(this: ExpanseDiscreteWeighted, indices: number[]) {
+  for (let i = 0; i < indices.length; i++) this.order[i] = indices[i];
+
+  const cumWeights = cumsum(orderByIndices(this.weights, this.order));
+  for (let i = 0; i < cumWeights.length; i++) {
+    this.cumWeights[i] = cumWeights[i];
+  }
+
+  this.emit(`changed`);
+  return this;
+}
+
+function setDefaultWeights(this: ExpanseDiscreteWeighted) {
+  this.weights.fill(1);
+  for (let i = 0; i < this.cumWeights.length; i++) this.cumWeights[i] = i + 1;
+  this.emit(`changed`);
+  return this;
+}
+
+function setDefaultOrder(this: ExpanseDiscreteWeighted) {
+  for (let i = 0; i < this.order.length; i++) this.order[i] = i;
+
+  const cumWeights = cumsum(orderByIndices(this.weights, this.order));
+  for (let i = 0; i < cumWeights.length; i++) {
+    this.cumWeights[i] = cumWeights[i];
+  }
+
+  this.emit(`changed`);
   return this;
 }
 
@@ -88,15 +150,27 @@ function retrain(this: ExpanseDiscreteWeighted, array: string[]) {
 }
 
 function clone(this: ExpanseDiscreteWeighted) {
-  return newExpanseDiscreteWeighted(this.values);
+  const copy = newExpanseDiscreteWeighted(this.values);
+  copy.order = this.order;
+  copy.weights = this.weights;
+  copy.cumWeights = this.cumWeights;
+  copy.normalize = this.normalize;
+  return copy;
 }
 
 function breaks(this: ExpanseDiscreteWeighted) {
-  return this.values;
+  return orderByIndices(this.values, this.order);
 }
 
 function getBoundsInternal(self: ExpanseDiscreteWeighted, value: string) {
-  const { values, cumWeights } = self;
-  const index = values.indexOf(value);
+  const { order, values, cumWeights } = self;
+  const index = order[values.indexOf(value)];
   return [cumWeights[index - 1] ?? 0, cumWeights[index], last(cumWeights)];
+}
+
+function widget(this: ExpanseDiscreteWeighted) {
+  const widget = newDragList([...this.values]);
+  // widget.listen(`changed`, )
+
+  return widget;
 }

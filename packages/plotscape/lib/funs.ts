@@ -124,3 +124,35 @@ function noSuperscriptFn(x: number) {
   if (x === 0) return `0`;
   return parseFloat(x.toPrecision(12)).toString();
 }
+
+export function getOrderIndices(array: number[]) {
+  const sorted = [...array].sort(diff);
+  const result = Array<number>(array.length);
+  const seen = {} as Record<number, number>;
+
+  for (let i = 0; i < array.length; i++) {
+    const value = array[i];
+
+    if (seen[value] === undefined) seen[value] = 0;
+    else seen[value]++;
+
+    result[i] = sorted.indexOf(value) + seen[value];
+  }
+
+  return result;
+}
+
+export function orderByIndices<T>(
+  array: T[],
+  indices: number[],
+  start = 0,
+  end = indices.length
+) {
+  const result = Array(end - start) as T[];
+
+  for (let i = 0; i < end - start; i++) {
+    result[indices[start + i]] = array[i];
+  }
+
+  return result;
+}

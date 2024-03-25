@@ -1,6 +1,7 @@
-import { rep, sum } from "utils";
+import { sum } from "utils";
 import { Dataframe } from "../dataframe/Dataframe";
 import { factorFrom } from "../factors/factorFrom";
+import { getOrderIndices } from "../funs";
 import { Plot, newPlot } from "../plot/Plot";
 import { newPartition } from "../reducers/Partition";
 import { sumReducer } from "../reducers/Reducer";
@@ -9,6 +10,7 @@ import { RectanglesWH, newRectanglesWH } from "../representations/RectanglesWH";
 import { Scene } from "../scene/Scene";
 import {
   BoundaryCols,
+  Order,
   RenderCols,
   Type,
   Variables,
@@ -30,6 +32,7 @@ type ReducedBindings = {
 
 export interface Barplot extends Plot {
   type: Type;
+  order: Order;
   partition1Data: Dataframe<ReducedBindings & BoundaryCols>;
   partition2Data: Dataframe<ReducedBindings & RenderCols>;
   bars: RectanglesWH;
@@ -52,20 +55,39 @@ export function newBarplot<T extends Variables>(
   const partition2Data = partition2.data();
 
   const type = Type.Absolute;
+  const order = Order.Alphanumeric;
   const bars = newRectanglesWH(plot);
   bars.setVAnchor(VerticalAnchor.Bottom);
 
-  const self = { ...plot, bars, type, partition1Data, partition2Data };
+  const self = { ...plot, bars, type, order, partition1Data, partition2Data };
   encodeAbs(self);
 
   self.pushGraphicObject(self.bars);
-  self.partition1Data.listen(`changed`, self.render.bind(self));
-  self.partition2Data.listen(`changed`, self.render.bind(self));
+  self.scales.y.freezeMin().link(self.scales.height);
+
+  self.addKeyAction(`KeyR`, () => {
+    self.scales.x.setDefaultOrder();
+    self.order = Order.Alphanumeric;
+    encodeAbs(self);
+  });
+
+  self.addKeyAction(`KeyO`, () => {
+    if (self.order === Order.Alphanumeric) {
+      const indices = getOrderIndices(partition1Data.col(`stat1`).values());
+      self.scales.x.setOrder(indices);
+      self.order = Order.Custom;
+    } else {
+      self.scales.x.setDefaultOrder();
+      self.order = Order.Alphanumeric;
+    }
+    self.render();
+  });
 
   self.addKeyAction(`KeyN`, () =>
     self.type === Type.Absolute ? encodePct(self) : encodeAbs(self)
   );
 
+  partition2Data.listen(`changed`, self.render.bind(self));
   return self;
 }
 
@@ -78,10 +100,19 @@ function encodeAbs(self: Barplot) {
   bars.setRenderData(renderData);
   bars.setWidthPct(0.8).setWidthGapPx(0);
 
+  // @ts-ignore
+  const order = self.scales.x.domain.order;
+
   self.type = Type.Absolute;
-  self.trainScales(boundaryData, (d) => ({ ...d, y: d.height }));
-  self.scales.x.setWeights(rep(1, boundaryData.n()));
-  self.scales.y.setMin(0).freezeMin().link(self.scales.height);
+  self.trainScales(boundaryData, (d) => ({
+    ...d,
+    y: d.height,
+    width: d.x.width(),
+  }));
+
+  self.scales.x.setDefaultWeights();
+  if (order) self.scales.x.setOrder(order);
+  self.scales.y.setMin(0);
   self.render();
 }
 
@@ -95,48 +126,40 @@ function encodePct(self: Barplot) {
   bars.setWidthPct(1).setWidthGapPx(1);
 
   self.type = Type.Proportion;
-  self.trainScales(boundaryData, (d) => ({ ...d, y: d.height }));
-  self.scales.y.setMin(0).freezeMin().link(self.scales.height);
+  self.trainScales(boundaryData, (d) => ({
+    ...d,
+    y: d.height,
+    width: d.x.width(),
+  }));
 
-  const values = partition1Data.col(`stat1`).values();
-  self.scales.x.setWeights(values);
-  self.scales.width.setMax(values.reduce(sum));
+  // @ts-ignore
+  const order = self.scales.x.domain.order;
+  const weights = partition1Data.col(`stat1`).values();
 
+  self.scales.x.setWeights(weights);
+  if (order) self.scales.x.setOrder(order);
+  self.scales.width.setMax(weights.reduce(sum));
+  self.scales.y.setMin(0);
   self.render();
 }
 
 const encodeBoundaryAbs = (d: ReducedBindings) => {
-  return {
-    x: d.label,
-    y: zero,
-    width: d.label.width(),
-    height: d.stat1,
-  };
+  return { x: d.label, y: zero, width: d.label, height: d.stat1 };
 };
 
 const encodeRenderAbs = (d: ReducedBindings) => {
-  return {
-    x: d.label,
-    y: zero,
-    width: d.label.width(),
-    height: d.stat1.stack(),
-  };
+  return { x: d.label, y: zero, width: d.label, height: d.stat1.stack() };
 };
 
 const encodeBoundaryPct = (d: ReducedBindings) => {
-  return {
-    x: d.label,
-    y: zero,
-    width: d.stat1,
-    height: one,
-  };
+  return { x: d.label, y: zero, width: d.label, height: one };
 };
 
 const encodeRenderPct = (d: ReducedBindings) => {
   return {
     x: d.label,
     y: zero,
-    width: d.stat1.parent(),
-    height: d.stat1.stack().normalizeByParent!(),
+    width: d.label,
+    height: d.stat1.stack().normalizeByParent(),
   };
 };

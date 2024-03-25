@@ -21,7 +21,10 @@ export interface Scale<T = unknown> extends Named {
   setMin(value: number): this;
   setMax(value: number): this;
 
-  setWeights(weights?: number[]): this;
+  setWeights(weights: number[]): this;
+  setOrder(indices: number[]): this;
+  setDefaultOrder(): this;
+  setDefaultWeights(): this;
 
   pushforward(value: T): number;
   pullback(value: number): T;
@@ -58,7 +61,10 @@ export function newScale<T = number>(
     setOther,
     setMin,
     setMax,
+    setOrder,
     setWeights,
+    setDefaultOrder,
+    setDefaultWeights,
     pushforward,
     pullback,
     move,
@@ -118,6 +124,21 @@ function setMax<T>(this: Scale<T>, value: number) {
 
 function setWeights<T>(this: Scale<T>, weights: number[]) {
   this.domain.setWeights?.(weights);
+  return this;
+}
+
+function setOrder<T>(this: Scale<T>, indices: number[]) {
+  this.domain.setOrder?.(indices);
+  return this;
+}
+
+function setDefaultOrder<T>(this: Scale<T>) {
+  this.domain.setDefaultOrder?.();
+  return this;
+}
+
+function setDefaultWeights<T>(this: Scale<T>) {
+  this.domain.setDefaultWeights?.();
   return this;
 }
 

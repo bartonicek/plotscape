@@ -17,6 +17,9 @@ export interface Expanse<T = unknown> {
   expand?(value: number): this;
 
   setWeights?(weights: number[]): this;
+  setOrder?(indices: number[]): this;
+  setDefaultWeights?(): this;
+  setDefaultOrder?(): this;
 }
 
 export function isExpanseContinuous(
