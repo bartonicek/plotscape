@@ -4,7 +4,7 @@ import { factorFrom } from "../factors/factorFrom";
 import { getOrderIndices } from "../funs";
 import { Plot, newPlot } from "../plot/Plot";
 import { newPartition } from "../reducers/Partition";
-import { sumReducer } from "../reducers/Reducer";
+import { Reducer, sumReducer } from "../reducers/Reducer";
 import { newReducerHandler } from "../reducers/ReducerHandler";
 import { RectanglesWH, newRectanglesWH } from "../representations/RectanglesWH";
 import { Scene } from "../scene/Scene";
@@ -40,12 +40,15 @@ export interface Barplot extends Plot {
 
 export function newBarplot<T extends Variables>(
   scene: Scene<T>,
-  selectfn: (cols: T) => DataBindings
+  selectfn: (cols: T) => DataBindings,
+  options?: { reducer?: Reducer<number, number> }
 ): Barplot {
   const plot = newPlot(scene);
   const data = scene.data.select(selectfn);
 
-  const reducers = { stat1: newReducerHandler(one, sumReducer) };
+  const toReduce = data.col(`v2`) ?? one;
+  const reducer = options?.reducer ?? sumReducer;
+  const reducers = { stat1: newReducerHandler(toReduce, reducer) };
   const factor = factorFrom(data.col(`v1`));
 
   const partition1 = newPartition(reducers).refine(factor);
@@ -153,7 +156,7 @@ const encodeRenderAbs = (d: ReducedBindings) => {
 };
 
 const encodeBoundaryPct = (d: ReducedBindings) => {
-  return { x: d.label, y: zero, width: d.label, height: one };
+  return { x: d.label, y: zero, width: d.label, height: one, aux1: d.stat1 };
 };
 
 const encodeRenderPct = (d: ReducedBindings) => {

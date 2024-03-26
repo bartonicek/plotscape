@@ -9,5 +9,5 @@ export function newNoteplot(scene: Scene) {
   for (const context of values(plot.contexts)) context.canvas.remove();
 
   const textarea = element(`textarea`).appendTo(plot.container).get();
-  textarea.value = `\n   Write notes here....`;
+  textarea.value = `\nWrite notes here....`;
 }

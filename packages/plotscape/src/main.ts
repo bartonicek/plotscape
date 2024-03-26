@@ -8,6 +8,7 @@ import { newHistogram2D } from "../lib/plots/Histogram2D.ts";
 import { newNoteplot } from "../lib/plots/Noteplot.ts";
 import { newPCoordsplot } from "../lib/plots/PCoordsplot.ts";
 import { newScatter } from "../lib/plots/Scatterplot.ts";
+import { sumReducer } from "../lib/reducers/Reducer.ts";
 import { newScene } from "../lib/scene/Scene.ts";
 import "./style.css";
 
@@ -54,11 +55,14 @@ async function sacrametoScene() {
   const scene = newScene(app, sacramentoData);
 
   const plot1 = newScatter(scene, (d) => ({ v1: d.longitude, v2: d.latitude }));
-  // plot1.setAspectRatio(1);
+  plot1.setAspectRatio(1);
 
   const plot2 = newFluctplot(scene, (d) => ({ v1: d.beds, v2: d.baths }));
-  const plot3 = newBarplot(scene, (d) => ({ v1: d.city }));
-  const plot4 = newHistogram(scene, (d) => ({ v1: d.price }));
+
+  const opts = { reducer: sumReducer };
+  const plot3 = newBarplot(scene, (d) => ({ v1: d.city, v2: d.price }));
+
+  const plot4 = newHistogram(scene, (d) => ({ v1: d.sqft }));
   const plot5 = newHistogram2D(scene, (d) => ({ v1: d.sqft, v2: d.price }));
   const plot6 = newNoteplot(scene);
 

@@ -9,6 +9,7 @@ import { Reduced, reduced } from "./Reduced";
 import { Reducer } from "./Reducer";
 
 export interface ReducerHandler<T = any, U = any> extends Emitter<`changed`> {
+  name: string;
   factor?: Factor;
   parent?: ReducerHandler<T, U>;
   reducer: Reducer<T, U>;
@@ -33,15 +34,16 @@ export function newReducerHandler<T, U>(
 ): ReducerHandler<T, U> {
   const constructor = parseVariable(reducer.initialfn());
 
-  const name = source.hasName?.()
-    ? `${reducer.name} of ${source.name}`
-    : `count`;
-  const result = reduced(constructor([])) as unknown as InferVariable<U> &
-    Reduced;
+  let name: string | undefined = undefined;
+  if (source.hasName?.()) name = `${reducer.name} of ${source.name()}`;
+  else name = `count`;
+
+  type Result = InferVariable<U> & Reduced;
+  const result = reduced(constructor([])) as unknown as Result;
   result.setName(name);
 
   const [stacked, normalized] = [false, false];
-  const props = { reducer, source, result, stacked, normalized };
+  const props = { name, reducer, source, result, stacked, normalized };
   const methods = {
     clone,
     setParent,
@@ -52,7 +54,7 @@ export function newReducerHandler<T, U>(
   };
 
   const self = subscribable({ ...props, ...methods });
-  self.result.setReducer(self);
+  self.result.setReducer(self as any);
   return self;
 }
 

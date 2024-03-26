@@ -3,7 +3,7 @@ import { Dataframe } from "../dataframe/Dataframe";
 import { factorBin } from "../factors/factorBin";
 import { Plot, newPlot } from "../plot/Plot";
 import { newPartition } from "../reducers/Partition";
-import { sumReducer } from "../reducers/Reducer";
+import { Reducer, sumReducer } from "../reducers/Reducer";
 import { newReducerHandler } from "../reducers/ReducerHandler";
 import { RectanglesXY, newRectanglesXY } from "../representations/RectanglesXY";
 import { Scene } from "../scene/Scene";
@@ -32,7 +32,8 @@ export interface Histogram extends Plot {
 
 export function newHistogram<T extends Variables>(
   scene: Scene<T>,
-  selectfn: (cols: T) => DataBindings
+  selectfn: (cols: T) => DataBindings,
+  options?: { reducer?: Reducer<number, number> }
 ) {
   const plot = newPlot(scene);
   const data = scene.data.select(selectfn);
@@ -40,7 +41,9 @@ export function newHistogram<T extends Variables>(
   const anchor = newValueEmitter(data.col(`v1`).min());
   const width = newValueEmitter(data.col(`v1`).range() / 15);
 
-  const reducers = { stat1: newReducerHandler(one, sumReducer) };
+  const toReduce = data.col(`v2`) ?? one;
+  const reducer = options?.reducer ?? sumReducer;
+  const reducers = { stat1: newReducerHandler(toReduce, reducer) };
   const factor = factorBin(data.col(`v1`), width, anchor);
 
   const partition1 = newPartition(reducers).refine(factor);
@@ -104,6 +107,9 @@ function encodePct(self: Histogram) {
   const boundaryData = partition1Data.select(encodeBoundaryPct);
   const renderData = partition2Data.select(encodeRenderPct);
 
+  boundaryData.col(`x0`).setName(undefined);
+  boundaryData.col(`x1`).setName(undefined);
+
   bars.setBoundaryData(boundaryData);
   bars.setRenderData(renderData);
 
@@ -124,6 +130,9 @@ const encodeRenderAbs = (d: ReducedBindings) => {
 
 const encodeBoundaryPct = (d: ReducedBindings) => {
   return {
+    aux1: d.binStart, // For query purposes only
+    aux2: d.binEnd, // Ditto
+    aux3: d.stat1, // Ditto
     x0: d.stat1.stack().shiftLeft(),
     x1: d.stat1.stack(),
     y0: zero,

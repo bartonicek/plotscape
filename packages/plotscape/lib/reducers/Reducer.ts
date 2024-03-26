@@ -12,6 +12,11 @@ export const sumReducer: Reducer<number, number> = {
   reducefn: sum,
 };
 
+export const countReducer: Reducer<number, number> = {
+  ...sumReducer,
+  name: `count`,
+};
+
 export const maxReducer: Reducer<number, number> = {
   name: `max`,
   initialfn: just(-Infinity),
