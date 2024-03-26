@@ -1,12 +1,20 @@
 import { Dict } from "utils";
 import { Dataframe } from "../dataframe/Dataframe";
 import { Contexts, Scales } from "../plot/Plot";
-import { BoundaryCols, Point, Rect, RenderCols, Variables } from "../types";
+import {
+  BoundaryCols,
+  KeyActions,
+  Point,
+  Rect,
+  RenderCols,
+  Variables,
+} from "../types";
 
 export interface Representation<T extends Variables = Variables> {
   scales: Scales;
   boundaryData?: Dataframe<T & BoundaryCols>;
   renderData?: Dataframe<T & RenderCols>;
+  keyActions?: KeyActions;
 
   setBoundaryData(data: Dataframe<T & BoundaryCols>): void;
   setRenderData(data: Dataframe<T & RenderCols>): void;

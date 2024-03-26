@@ -63,7 +63,7 @@ export function newHistogram2D<T extends Variables>(
 
   self.pushGraphicObject(squares);
 
-  const nMax = Math.max(factor1.cardinality, factor2.cardinality);
+  const nMax = Math.max(factor1.cardinality, factor2.cardinality) + 1;
   self.scales.area.codomain.setScale(1 / nMax).setTransform(square, squareRoot);
 
   self.addKeyAction(`KeyN`, () =>

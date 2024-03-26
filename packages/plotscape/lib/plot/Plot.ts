@@ -374,6 +374,12 @@ function reset(this: Plot) {
 
 function pushGraphicObject(this: Plot, object: GraphicObject) {
   this.graphicObjects.push(object);
+  if (object.keyActions) {
+    for (const [k, v] of entries(object.keyActions) as any[]) {
+      this.addKeyAction(k, v);
+    }
+  }
+
   this.render();
 }
 
@@ -559,7 +565,6 @@ function onKeydown(this: Plot, event: KeyboardEvent) {
 
   this.globalKeyActions[event.code as ActionKey]?.(event);
   if (this.pars.active) this.localKeyActions[event.code as ActionKey]?.(event);
-
   this.pars.lastKey = event.code;
 }
 

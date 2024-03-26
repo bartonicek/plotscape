@@ -2,7 +2,13 @@ import { mergeInto, values } from "utils";
 import { pointInRect, rectsIntersect } from "../funs";
 import { ContextId, Contexts, Plot } from "../plot/Plot";
 import { LAYER, POSITIONS } from "../symbols";
-import { HorizontalAnchor, Point, Rect, VerticalAnchor } from "../types";
+import {
+  HorizontalAnchor,
+  KeyActions,
+  Point,
+  Rect,
+  VerticalAnchor,
+} from "../types";
 import { Variable } from "../variables/Variable";
 import {
   Representation,
@@ -19,13 +25,14 @@ type Encodings = {
 };
 
 enum GapType {
-  WidthPct,
-  AbsPx,
+  Pct,
+  Px,
 }
 
 export interface RectanglesWH extends Representation<Encodings> {
   hAnchor: HorizontalAnchor;
   vAnchor: VerticalAnchor;
+  gapType: GapType;
 
   widthPct: number;
   heightPct: number;
@@ -41,22 +48,25 @@ export interface RectanglesWH extends Representation<Encodings> {
 }
 
 export function newRectanglesWH(plot: Plot): RectanglesWH {
-  const scales = { ...plot.scales };
   const [hAnchor, vAnchor] = [HorizontalAnchor.Center, VerticalAnchor.Middle];
   const [widthPct, heightPct] = [1, 1];
   const [widthGapPx, heightGapPx] = [0, 0];
-  const gapType = GapType.WidthPct;
+  const gapType = GapType.Pct;
 
   const pars = {
     hAnchor,
     vAnchor,
+    gapType,
     widthPct,
     heightPct,
     widthGapPx,
     heightGapPx,
   };
 
-  const props = { scales };
+  const { scales, contexts } = plot;
+
+  const keyActions = {} as KeyActions;
+  const props = { scales, contexts, keyActions };
   const methods = {
     setBoundaryData,
     setRenderData,
@@ -71,7 +81,30 @@ export function newRectanglesWH(plot: Plot): RectanglesWH {
     setHeightGapPx,
     mapEncodingToScale,
   };
+
   const self = { ...pars, ...props, ...methods };
+
+  // keyActions[`Equal`] = () => {
+  //   if (self.gapType === GapType.Pct) {
+  //     self.setWidthPct((self.widthPct * 10) / 9);
+  //     self.setHeightPct((self.heightPct * 10) / 9);
+  //   } else {
+  //     self.setWidthGapPx(self.widthGapPx + 1);
+  //     self.setHeightGapPx(self.heightGapPx + 1);
+  //   }
+  //   self.render(self.contexts);
+  // };
+
+  // keyActions[`Minus`] = () => {
+  //   if (self.gapType === GapType.Pct) {
+  //     self.setWidthPct((self.widthPct * 9) / 10);
+  //     self.setHeightPct((self.heightPct * 9) / 10);
+  //   } else {
+  //     self.setWidthGapPx(self.widthGapPx - 1);
+  //     self.setHeightGapPx(self.heightGapPx - 1);
+  //   }
+  //   self.render(self.contexts);
+  // };
 
   return self;
 }
@@ -180,23 +213,27 @@ function setVAnchor(this: RectanglesWH, anchor: VerticalAnchor) {
 function setWidthPct(this: RectanglesWH, value: number) {
   this.widthPct = value;
   this.widthGapPx = 0;
+  this.gapType = GapType.Pct;
   return this;
 }
 
 function setHeightPct(this: RectanglesWH, value: number) {
   this.heightPct = value;
   this.heightGapPx = 0;
+  this.gapType = GapType.Pct;
   return this;
 }
 
 function setWidthGapPx(this: RectanglesWH, value: number) {
   this.widthGapPx = value;
   this.widthPct = 1;
+  this.gapType = GapType.Px;
   return this;
 }
 
 function setHeightGapPx(this: RectanglesWH, value: number) {
   this.heightGapPx = value;
   this.heightPct = 1;
+  this.gapType = GapType.Px;
   return this;
 }

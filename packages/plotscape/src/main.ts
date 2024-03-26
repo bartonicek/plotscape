@@ -69,10 +69,5 @@ async function sacrametoScene() {
   }));
 }
 
-sacrametoScene();
-// mpgScene();
-
-// const foo = newDragList(["hello", "world", "bye"]);
-// foo.listen(`changed`, () => console.log(foo.values));
-
-// app.appendChild(foo.container);
+// sacrametoScene();
+mpgScene();
