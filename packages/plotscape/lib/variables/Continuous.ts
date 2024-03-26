@@ -1,17 +1,17 @@
 import { minMax } from "utils";
 import { ExpanseContinuous, newExpanseContinuous } from "../ExpanseContinuous";
 import { Indexable, indexable } from "../mixins/Indexable";
-import { named } from "../mixins/Named";
+import { Named, named } from "../mixins/Named";
 import { Proxyable, proxyable } from "../mixins/Proxyable";
 import { Reduced } from "../reducers/Reduced";
-import { Variable } from "./Variable";
 
 export interface Continuous
-  extends Variable<number>,
+  extends Named,
     Indexable<number>,
     Proxyable<number>,
     Reduced {
   domain: ExpanseContinuous;
+  clone(): Continuous;
   range(): number;
   min(): number;
   max(): number;
@@ -29,7 +29,7 @@ export function newContinuous(array: number[], domain?: ExpanseContinuous) {
 
 function clone(this: Continuous) {
   const array = [...this.array];
-  const copy = newContinuous(array) as Continuous;
+  const copy = newContinuous(array);
   return copy;
 }
 

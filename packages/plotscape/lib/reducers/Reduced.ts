@@ -10,7 +10,6 @@ export interface Reduced {
   parent(): this;
   shiftLeft(): this;
 
-  source?: any;
   indexfn?(): number[];
 }
 

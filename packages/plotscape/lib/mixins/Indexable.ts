@@ -11,9 +11,9 @@ export interface Indexable<T> {
   retrain(array: T[]): void;
 }
 
-type Base = { array: unknown[]; domain: Expanse };
-
-export function indexable<T extends Base>(object: T) {
+export function indexable<T extends { array: unknown[]; domain: Expanse }>(
+  object: T
+) {
   return { ...object, n, values, valueAt, scaledAt, retrain } as T &
     Indexable<T["array"][number]>;
 }

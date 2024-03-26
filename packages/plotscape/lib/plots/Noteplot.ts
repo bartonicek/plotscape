@@ -5,8 +5,9 @@ import { Scene } from "../scene/Scene";
 export function newNoteplot(scene: Scene) {
   const plot = newPlot(scene);
 
+  // Remove all contexts
   for (const context of values(plot.contexts)) context.canvas.remove();
 
   const textarea = element(`textarea`).appendTo(plot.container).get();
-  textarea.value = `Write notes here....`;
+  textarea.value = `\n   Write notes here....`;
 }

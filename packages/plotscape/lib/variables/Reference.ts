@@ -3,13 +3,13 @@ import { newExpanseContinuous } from "../ExpanseContinuous";
 import { Indexable, indexable } from "../mixins/Indexable";
 import { Named, named } from "../mixins/Named";
 import { Proxyable, proxyable } from "../mixins/Proxyable";
-import { Variable } from "./Variable";
 
 export interface Reference<T = unknown>
   extends Named,
-    Variable<T>,
     Indexable<T>,
-    Proxyable<T> {}
+    Proxyable<T> {
+  clone<T>(): Reference<T>;
+}
 
 export function newReference<T>(values: T[]): Reference<T> {
   const domain = newExpanseContinuous() as unknown as Expanse<T>;
@@ -21,8 +21,8 @@ export function newReference<T>(values: T[]): Reference<T> {
   return proxyable(indexable(named(self))) as Reference<T>;
 }
 
-function clone(this: Reference) {
+function clone<T>(this: Reference<T>) {
   const array = [...this.array];
-  const copy = newReference(array) as Reference;
+  const copy = newReference(array) as Reference<T>;
   return copy;
 }
