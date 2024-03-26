@@ -3,6 +3,7 @@ import { pointInRect, rectsIntersect } from "../funs";
 import { ContextId, Contexts, Plot } from "../plot/Plot";
 import { LAYER, POSITIONS } from "../symbols";
 import { Point, Rect } from "../types";
+import { Variable } from "../variables/Variable";
 import {
   Representation,
   mapEncodingToScale,
@@ -11,10 +12,10 @@ import {
 } from "./Representation";
 
 type Encodings = {
-  x0: any;
-  y0: any;
-  x1: any;
-  y1: any;
+  x0: Variable;
+  y0: Variable;
+  x1: Variable;
+  y1: Variable;
 };
 
 export interface RectanglesXY extends Representation<Encodings> {}

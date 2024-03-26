@@ -1,8 +1,8 @@
 import { allEntries, asInt, diff, inc, last, subsetOnIndices } from "utils";
-import { newExpanseContinuous } from "../ExpanseContinuous";
 import { ValueEmitter, getter, isEmitter } from "../ValueEmitter";
 import { newDataframe } from "../dataframe/Dataframe";
 import { bimap, midpoint } from "../funs";
+import { newExpanseContinuous } from "../scales/ExpanseContinuous";
 import { POSITIONS } from "../symbols";
 import { Continuous, newContinuous } from "../variables/Continuous";
 import { Reference, newReference } from "../variables/Reference";

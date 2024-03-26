@@ -1,6 +1,7 @@
 import {
   Normalize,
   allEntries,
+  cleanProps,
   error,
   subsetOnIndices,
   uniqueIntegers,
@@ -85,8 +86,8 @@ export function parseColumns<T extends Record<string, ColumnParser>>(
 function n(this: Dataframe): number {
   if (this.cachedN) return this.cachedN();
   for (const col of values(this.columns)) {
-    if (col.n) {
-      this.cachedN = col.n.bind(col);
+    if (col.n()) {
+      this.cachedN = col.n.bind(col) as () => number;
       return this.cachedN!();
     }
   }
@@ -132,11 +133,14 @@ function select<T extends Variables, U extends Partial<Variables>>(
   this: Dataframe<T>,
   selectfn: (cols: T) => U
 ): Dataframe<SymbolProps<T> & U> {
-  const columns = selectfn(this.columns) as any;
-  const result = newDataframe(columns);
-  for (const [k, v] of allEntries(this.columns)) {
-    if (typeof k === "symbol") columns[k] = v;
+  const { columns } = this;
+  const cols = cleanProps(selectfn(columns)) as any;
+
+  for (const [k, v] of allEntries(columns)) {
+    if (typeof k === "symbol") cols[k] = v;
   }
+
+  const result = newDataframe(cols);
   this.listen(`changed`, () => result.emit(`changed`));
   return result;
 }

@@ -1,8 +1,8 @@
-import { Expanse } from "../Expanse";
-import { newExpanseContinuous } from "../ExpanseContinuous";
-import { Scale } from "../Scale";
 import { Named, named } from "../mixins/Named";
 import { Proxyable, proxyable } from "../mixins/Proxyable";
+import { Expanse } from "../scales/Expanse";
+import { newExpanseContinuous } from "../scales/ExpanseContinuous";
+import { Scale } from "../scales/Scale";
 import { Variable } from "./Variable";
 
 export interface Derived<T> extends Named, Variable<T>, Proxyable<T> {

@@ -21,14 +21,13 @@ export function newScatter<T extends Variables>(
   const data = scene.data.select(selectfn);
 
   const boundaryData = data.select(encodefn).join(scene.marker.data());
-  const renderData = data.select(encodefn).join(scene.marker.data());
+  const renderData = boundaryData;
   const points = newPoints(plot, boundaryData, renderData);
 
   plot.pushGraphicObject(points);
   plot.trainScales(boundaryData, (d) => ({ x: d.x, y: d.y }));
 
   boundaryData.listen(`changed`, plot.render.bind(plot));
-  renderData.listen(`changed`, plot.render.bind(plot));
 
   return { ...plot, ...{ data, points, renderData, boundaryData } };
 }

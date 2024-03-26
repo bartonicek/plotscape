@@ -7,7 +7,7 @@ import { Discrete } from "./variables/Discrete";
 import { Reference } from "./variables/Reference";
 import { Variable } from "./variables/Variable";
 
-export type Variables = Record<PropertyKey, Variable<unknown>>;
+export type Variables = Record<PropertyKey, Variable<any, any>>;
 export type VariableValue<T extends Variable> = T extends Variable<infer V>
   ? V
   : never;
@@ -24,6 +24,11 @@ export type RowOf<T extends Variables> = {
 
 export type Primitive = string | number | symbol | object;
 export type SymbolProps<T> = { [key in keyof T & symbol]: T[key] };
+
+export enum Dimension {
+  Scalar,
+  Tuple,
+}
 
 export type Point = [x: number, y: number];
 export type Rect = [x0: number, y0: number, x1: number, y1: number];

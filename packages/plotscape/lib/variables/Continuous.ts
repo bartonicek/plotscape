@@ -1,12 +1,17 @@
 import { minMax } from "utils";
-import { ExpanseContinuous, newExpanseContinuous } from "../ExpanseContinuous";
 import { Indexable, indexable } from "../mixins/Indexable";
 import { Named, named } from "../mixins/Named";
 import { Proxyable, proxyable } from "../mixins/Proxyable";
 import { Reduced } from "../reducers/Reduced";
+import {
+  ExpanseContinuous,
+  newExpanseContinuous,
+} from "../scales/ExpanseContinuous";
+import { Variable } from "./Variable";
 
 export interface Continuous
   extends Named,
+    Variable<number>,
     Indexable<number>,
     Proxyable<number>,
     Reduced {

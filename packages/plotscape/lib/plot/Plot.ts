@@ -7,12 +7,12 @@ import {
   trunc0to1,
   values,
 } from "utils";
-import { Scale, isScaleContinuous, newScale } from "../Scale";
 import { Dataframe } from "../dataframe/Dataframe";
 import { newAxisLabels } from "../decorations/AxisLabels";
 import { newAxisTitle } from "../decorations/AxisTitle";
 import { getMargins } from "../funs";
 import graphicParameters from "../graphicParameters.json";
+import { Scale, isScaleContinuous, newScale } from "../scales/Scale";
 import { Scene } from "../scene/Scene";
 import { ActionKey, GraphicObject, KeyActions, Variables } from "../types";
 import { Context, newContext } from "./Context";

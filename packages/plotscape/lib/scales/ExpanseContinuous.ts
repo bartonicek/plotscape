@@ -1,7 +1,7 @@
 import { MapFn, identity, invertRange, minMax, prettyBreaks } from "utils";
+import { Emitter, subscribable } from "../mixins/Emitter";
+import { RangeWidget, newRangeWidget } from "../widgets/RangeWidget";
 import { Expanse } from "./Expanse";
-import { Emitter, subscribable } from "./mixins/Emitter";
-import { RangeWidget, newRangeWidget } from "./widgets/RangeWidget";
 
 /* -------------------------------- Interface ------------------------------- */
 

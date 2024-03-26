@@ -147,10 +147,20 @@ export function noopThis<T>(this: T) {
  * Increments a number by 1.
  *
  * @param x A number
- * @returns The number incremented by one
+ * @returns The number plus one
  */
 export function inc(x: number) {
   return x + 1;
+}
+
+/**
+ * Decrements a number by 1.
+ *
+ * @param x A number
+ * @returns The number minus one.
+ */
+export function dec(x: number) {
+  return x - 1;
 }
 
 /**
@@ -403,6 +413,26 @@ export function subsetOnIndices<T>(
 }
 
 /**
+ * Maps multiple functions over an array and concatenates the results
+ *
+ * @param array An array
+ * @param mapfns A number of map functions (variadic)
+ * @returns An array of length `array.length * mapfns.length`
+ */
+export function mapParallel<T, U>(array: T[], ...mapfns: ((next: T) => U)[]) {
+  const result = Array(array.length * mapfns.length) as U[];
+
+  for (let j = 0; j < mapfns.length; j++) {
+    const mapfn = mapfns[j];
+    for (let i = 0; i < array.length; i++) {
+      result[array.length * j + i] = mapfn(array[i]);
+    }
+  }
+
+  return result;
+}
+
+/**
  * Samples a random integer from within the pre-specified interval
  *
  * @param from Start of the interval (inclusive)
@@ -523,6 +553,13 @@ export function allEntries<T extends Record<PropertyKey, unknown>>(object: T) {
   const result = [] as { [key in keyof T]: [key, T[key]] }[keyof T][];
   for (const k of allKeys(object)) result.push([k, object[k]]);
   return result;
+}
+
+export function cleanProps<T extends Record<PropertyKey, unknown>>(object: T) {
+  for (const [k, v] of entries(object)) {
+    if (v === undefined) delete object[k];
+  }
+  return object;
 }
 
 /**

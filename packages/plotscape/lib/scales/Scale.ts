@@ -1,9 +1,9 @@
 import { noopThis } from "utils";
+import { Emitter, subscribable } from "../mixins/Emitter";
+import { Named, named } from "../mixins/Named";
+import { Widget } from "../widgets/Widget";
 import { Expanse, isExpanseContinuous } from "./Expanse";
 import { ExpanseContinuous, newExpanseContinuous } from "./ExpanseContinuous";
-import { Emitter, subscribable } from "./mixins/Emitter";
-import { Named, named } from "./mixins/Named";
-import { Widget } from "./widgets/Widget";
 
 type Aesthetic = `x` | `y`;
 
@@ -17,8 +17,9 @@ export interface Scale<T = unknown> extends Named, Emitter<`changed`> {
   codomain: ExpanseContinuous;
   clone(): Scale<T>;
   setAes(aesthetic: Aesthetic): this;
-  setDomain<V extends string | number>(domain: Expanse<V>): Scale<V>;
   setOther(other: Scale): this;
+  setDomain<V extends string | number>(domain: Expanse<V>): Scale<V>;
+  setCodomain(codomain: ExpanseContinuous): this;
 
   setMin(value: number): this;
   setMax(value: number): this;
@@ -63,6 +64,7 @@ export function newScale<T = number>(
     clone,
     setAes,
     setDomain,
+    setCodomain,
     setOther,
     setMin,
     setMax,
@@ -122,6 +124,11 @@ function setDomain<T>(this: Scale<T>, domain: Expanse<T>) {
   this.domain = domain;
   domain.listen(`changed`, () => this.emit(`changed`));
   return this as Scale<T>;
+}
+
+function setCodomain<T>(this: Scale<T>, codomain: ExpanseContinuous) {
+  this.codomain = codomain;
+  return this;
 }
 
 function setMin<T>(this: Scale<T>, value: number) {

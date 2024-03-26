@@ -1,6 +1,6 @@
-import { Scale } from "../Scale";
 import { formatLabels, getMargins } from "../funs";
 import { Contexts } from "../plot/Plot";
+import { Scale } from "../scales/Scale";
 
 export interface AxisLabels {
   scale: Scale;

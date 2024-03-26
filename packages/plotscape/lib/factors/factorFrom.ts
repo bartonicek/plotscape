@@ -1,5 +1,5 @@
-import { newExpanseDiscreteWeighted } from "../ExpanseDiscreteWeighted";
 import { newDataframe } from "../dataframe/Dataframe";
+import { newExpanseDiscreteWeighted } from "../scales/ExpanseDiscreteWeighted";
 import { POSITIONS } from "../symbols";
 import { Discrete, newDiscrete } from "../variables/Discrete";
 import { Reference, newReference } from "../variables/Reference";

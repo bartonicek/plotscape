@@ -3,6 +3,7 @@ import { pointInRect, rectsIntersect } from "../funs";
 import { ContextId, Contexts, Plot } from "../plot/Plot";
 import { LAYER, POSITIONS } from "../symbols";
 import { HorizontalAnchor, Point, Rect, VerticalAnchor } from "../types";
+import { Variable } from "../variables/Variable";
 import {
   Representation,
   mapEncodingToScale,
@@ -11,10 +12,10 @@ import {
 } from "./Representation";
 
 type Encodings = {
-  x: any;
-  y: any;
-  width: any;
-  height: any;
+  x: Variable;
+  y: Variable;
+  width: Variable;
+  height: Variable;
 };
 
 enum GapType {

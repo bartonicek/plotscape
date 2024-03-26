@@ -1,6 +1,6 @@
-import { Scale } from "../Scale";
 import { getMargins } from "../funs";
 import { Contexts } from "../plot/Plot";
+import { Scale } from "../scales/Scale";
 import { GraphicObject } from "../types";
 
 export interface AxisTitle extends GraphicObject {

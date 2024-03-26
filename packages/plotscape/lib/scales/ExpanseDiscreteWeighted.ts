@@ -7,10 +7,10 @@ import {
   seq,
   subsetOnIndices,
 } from "utils";
+import { orderByIndices } from "../funs";
+import { Emitter, subscribable } from "../mixins/Emitter";
+import { DragListWidget, newDragListWidget } from "../widgets/DragListWidget";
 import { Expanse } from "./Expanse";
-import { orderByIndices } from "./funs";
-import { Emitter, subscribable } from "./mixins/Emitter";
-import { DragListWidget, newDragListWidget } from "./widgets/DragListWidget";
 
 /* -------------------------------- Interface ------------------------------- */
 

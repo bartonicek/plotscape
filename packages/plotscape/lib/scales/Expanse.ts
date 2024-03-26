@@ -1,8 +1,8 @@
 import { MapFn } from "utils";
+import { Emitter } from "../mixins/Emitter";
+import { Widget } from "../widgets/Widget";
 import { ExpanseContinuous } from "./ExpanseContinuous";
 import { ExpanseDiscreteWeighted } from "./ExpanseDiscreteWeighted";
-import { Emitter } from "./mixins/Emitter";
-import { Widget } from "./widgets/Widget";
 
 export interface Expanse<T = unknown> extends Emitter<`changed`> {
   order?: number[];
@@ -32,11 +32,11 @@ export interface Expanse<T = unknown> extends Emitter<`changed`> {
 export function isExpanseContinuous(
   expanse: Expanse
 ): expanse is ExpanseContinuous {
-  return expanse.setMin != undefined;
+  return !!expanse.setMin;
 }
 
 export function isExpanseDiscreteWeighted(
   expanse: Expanse
 ): expanse is ExpanseDiscreteWeighted {
-  return expanse.setWeights != undefined;
+  return !!expanse.setWeights;
 }

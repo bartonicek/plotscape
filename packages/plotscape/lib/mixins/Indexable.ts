@@ -1,5 +1,5 @@
-import { Expanse } from "../Expanse";
-import { Scale } from "../Scale";
+import { Expanse } from "../scales/Expanse";
+import { Scale } from "../scales/Scale";
 
 export interface Indexable<T> {
   domain: Expanse<T>;

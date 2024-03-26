@@ -1,12 +1,11 @@
-import { mergeInto, values } from "utils";
+import { dec, inc, mapParallel, mergeInto, values } from "utils";
 import { Dataframe } from "../dataframe/Dataframe";
-import { pointInRect, rectsIntersect } from "../funs";
-import graphicParameters from "../graphicParameters.json";
+import { rectSegmentIntersect } from "../funs";
 import { ContextId, Contexts, Plot, Scales } from "../plot/Plot";
 import { LAYER, POSITIONS } from "../symbols";
 import { Point, Rect } from "../types";
 import { Reference } from "../variables/Reference";
-import { Variable } from "../variables/Variable";
+import { Tuple } from "../variables/Tuple";
 import {
   Representation,
   mapEncodingToScale,
@@ -15,31 +14,22 @@ import {
 } from "./Representation";
 
 type Encodings = {
-  x: Variable;
-  y: Variable;
-  size?: Variable;
+  x: Tuple;
+  y: Tuple;
 };
 
-type BoundaryData = Dataframe<
-  Encodings & { [POSITIONS]: Reference<Set<number>> }
->;
-
-export interface Points extends Representation {
+export interface Lines extends Representation {
   boundaryData: Dataframe<Encodings & { [POSITIONS]: Reference<Set<number>> }>;
   renderData: Dataframe<Encodings & { [LAYER]: Reference<ContextId> }>;
   scales: Scales;
-
-  sizePct: number;
 }
 
-export function newPoints(
+export function newLines(
   plot: Plot,
   boundaryData: Dataframe<Encodings & { [POSITIONS]: Reference<Set<number>> }>,
   renderData: Dataframe<Encodings & { [LAYER]: Reference<ContextId> }>
-): Points {
-  const scales = plot.scales;
-  const sizePct = 1;
-  const props = { boundaryData, renderData, scales, sizePct };
+): Lines {
+  const props = { boundaryData, renderData, scales: plot.scales };
   const methods = {
     render,
     check,
@@ -53,7 +43,7 @@ export function newPoints(
   return self;
 }
 
-function render(this: Points, contexts: Contexts) {
+function render(this: Lines, contexts: Contexts) {
   const { renderData: data, scales } = this;
   const n = data.n();
 
@@ -62,14 +52,12 @@ function render(this: Points, contexts: Contexts) {
 
     const x = data.col(`x`).scaledAt(i, scales.x);
     const y = data.col(`y`).scaledAt(i, scales.y);
-    let radius = data.col(`size`)?.scaledAt(i, scales.size);
-    radius = radius ? Math.sqrt(radius) : graphicParameters.defaultRadius;
 
-    contexts[layer].point(x, y, { radius });
+    contexts[layer].line(x, y);
   }
 }
 
-function check(this: Points, coords: Rect) {
+function check(this: Lines, coords: Rect) {
   const { boundaryData: data, scales } = this;
 
   const n = data.n();
@@ -78,42 +66,38 @@ function check(this: Points, coords: Rect) {
   for (let i = 0; i < n; i++) {
     const x = data.col(`x`).scaledAt(i, scales.x);
     const y = data.col(`y`).scaledAt(i, scales.y);
-    let radius = data.col(`size`)?.scaledAt(i, scales.size);
-    radius = radius ? Math.sqrt(radius) : graphicParameters.defaultRadius;
-    const c = radius / Math.sqrt(2);
 
-    if (rectsIntersect(coords, [x - c, y - c, x + c, y + c])) {
-      mergeInto(selected, data.col(POSITIONS).valueAt(i));
+    for (let j = 1; j < x.length; j++) {
+      if (rectSegmentIntersect(coords, [x[j - 1], y[j - 1], x[j], y[j]])) {
+        mergeInto(selected, data.col(POSITIONS).valueAt(i));
+      }
     }
   }
 
   return selected;
 }
 
-function query(this: Points, point: Point) {
+function query(this: Lines, point: Point) {
   const { boundaryData: data, scales } = this;
-
   const n = data.n();
+  const coords = mapParallel(point, dec, inc) as Rect;
 
   for (let i = 0; i < n; i++) {
     const x = data.col(`x`).scaledAt(i, scales.x);
     const y = data.col(`y`).scaledAt(i, scales.y);
-    let radius = data.col(`size`)?.scaledAt(i, scales.size);
-    radius = radius ? Math.sqrt(radius) : graphicParameters.defaultRadius;
-    const c = radius / Math.sqrt(2);
 
-    if (pointInRect(point, [x - c, y - c, x + c, y + c])) {
-      const result = {} as Record<string, any>;
+    for (let j = 1; j < x.length; j++) {
+      if (rectSegmentIntersect(coords, [x[j - 1], y[j - 1], x[j], y[j]])) {
+        const result = {} as Record<string, any>;
 
-      for (const v of values(data.cols())) {
-        if (v && v.hasName() && !(v.name() in result)) {
-          result[v.name()] = v.valueAt(i);
+        for (const v of values(data.cols())) {
+          if (v && v.hasName() && !(v.name() in result)) {
+            result[v.name()] = v.valueAt(i);
+          }
         }
-      }
 
-      return result;
+        return result;
+      }
     }
   }
-
-  return undefined;
 }

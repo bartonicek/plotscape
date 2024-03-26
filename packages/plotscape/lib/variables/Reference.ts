@@ -1,11 +1,13 @@
-import { Expanse } from "../Expanse";
-import { newExpanseContinuous } from "../ExpanseContinuous";
 import { Indexable, indexable } from "../mixins/Indexable";
 import { Named, named } from "../mixins/Named";
 import { Proxyable, proxyable } from "../mixins/Proxyable";
+import { Expanse } from "../scales/Expanse";
+import { newExpanseContinuous } from "../scales/ExpanseContinuous";
+import { Variable } from "./Variable";
 
 export interface Reference<T = unknown>
   extends Named,
+    Variable<T>,
     Indexable<T>,
     Proxyable<T> {
   clone<T>(): Reference<T>;
@@ -23,6 +25,6 @@ export function newReference<T>(values: T[]): Reference<T> {
 
 function clone<T>(this: Reference<T>) {
   const array = [...this.array];
-  const copy = newReference(array) as Reference<T>;
+  const copy = newReference(array);
   return copy;
 }

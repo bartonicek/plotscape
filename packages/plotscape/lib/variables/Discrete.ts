@@ -1,13 +1,18 @@
 import { compareAlphaNumeric } from "utils";
-import {
-  ExpanseDiscreteWeighted,
-  newExpanseDiscreteWeighted,
-} from "../ExpanseDiscreteWeighted";
 import { Indexable, indexable } from "../mixins/Indexable";
 import { Named, named } from "../mixins/Named";
 import { Proxyable, proxyable } from "../mixins/Proxyable";
+import {
+  ExpanseDiscreteWeighted,
+  newExpanseDiscreteWeighted,
+} from "../scales/ExpanseDiscreteWeighted";
+import { Variable } from "./Variable";
 
-export interface Discrete extends Named, Indexable<string>, Proxyable<string> {
+export interface Discrete
+  extends Named,
+    Variable<string>,
+    Indexable<string>,
+    Proxyable<string> {
   domain: ExpanseDiscreteWeighted;
   clone(): this;
   width(): Discrete;
