@@ -109,7 +109,7 @@ function encodePct(self: Histogram) {
 
   self.type = Type.Proportion;
   self.trainScales(boundaryData, (d) => ({ x: d.x0, y: d.y1 }));
-  self.scales.x.setName(partition1Data.col(`binMid`).name());
+  self.scales.x.setName(`cumulative count`);
   self.scales.y.setMin(0);
   self.render();
 }

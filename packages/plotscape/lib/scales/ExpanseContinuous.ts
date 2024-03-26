@@ -1,5 +1,5 @@
 import { MapFn, identity, invertRange, minMax, prettyBreaks } from "utils";
-import { Emitter, subscribable } from "../mixins/Emitter";
+import { Emitter, subscribable, untrack } from "../mixins/Emitter";
 import { RangeWidget, newRangeWidget } from "../widgets/RangeWidget";
 import { Expanse } from "./Expanse";
 
@@ -100,8 +100,7 @@ function setMax(this: ExpanseContinuous, value: number) {
 }
 
 function setMinMax(this: ExpanseContinuous, min: number, max: number) {
-  this.min = min;
-  this.max = max;
+  untrack(this, () => this.setMin(min).setMax(max));
   this.emit(`changed`);
   return this;
 }

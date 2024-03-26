@@ -1,8 +1,8 @@
-import { Dict, Normalize } from "utils";
+import { Dict, Normalize, noopThis } from "utils";
 
 type Events = string;
 
-export interface Emitter<T extends Events> {
+export interface Emitter<T extends Events = Events> {
   listeners: Record<T, Set<() => void>>;
   emit(type: T): this;
   listen(type: T, callback: () => void): this;
@@ -40,4 +40,11 @@ function remove<T extends Events>(
   if (!this.listeners[type]) return this;
   this.listeners[type].delete(callback);
   return this;
+}
+
+export function untrack(emitter: Emitter, callback: () => void) {
+  const emitOriginal = emitter.emit;
+  emitter.emit = noopThis;
+  callback();
+  emitter.emit = emitOriginal;
 }
