@@ -89,19 +89,6 @@ html, body {
   font-size: medium;
 }
 
-.ps-widget-modal {
-  font-size: min(2.5vmin, 14pt);
-  color: #3d3d3d;
-  background-color: #fefffe;
-  border: 1px solid #3d3d3d;
-  outline: none;
-  padding: 0;
-}
-
-.ps-widget button {
-  border: none;
-}
-
 .ps-query-display {
   display: none;
   white-space: nowrap;
@@ -112,6 +99,25 @@ html, body {
   border: 1px solid #7a7a7a;
   padding: 2%;
   pointer-events: none;
+}
+
+.ps-widget-modal {
+  position: absolute;
+  font-size: min(2.5vmin, 14pt);
+  color: #3d3d3d;
+  background-color: #fefffe;
+  border: 1px solid #3d3d3d;
+  outline: none;
+  padding: 0;
+}
+
+.ps-widget span {
+  font-family: sans-serif;
+  font-weight: bold;
+}
+
+.ps-widget button {
+  border: none;
 }
 
 .ps-widget-display {

@@ -1,3 +1,4 @@
+import { mix } from "../funs";
 import { Named, named } from "../mixins/Named";
 import { Proxyable, proxyable } from "../mixins/Proxyable";
 import { Expanse } from "../scales/Expanse";
@@ -18,10 +19,12 @@ export function newDerived<T, U>(
   derivefn: (index: number, variable?: Variable<U>) => T,
   variable?: Variable<U>
 ): Derived<T> {
-  const domain = newExpanseContinuous();
+  const domain = newExpanseContinuous() as unknown as Expanse<T>;
   const props = { variable, domain };
   const methods = { clone, n, derivefn, valueAt, scaledAt, setDomain };
-  return proxyable(named({ ...props, ...methods })) as unknown as Derived<T>;
+  const self = { ...props, ...methods };
+
+  return mix(self).with(named).with(proxyable) as Derived<T>;
 }
 
 function clone<T>(this: Derived<T>) {

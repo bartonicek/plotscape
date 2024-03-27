@@ -3,6 +3,15 @@ import { diff, exponentialToSuperscript, minMax, round, times } from "utils";
 import graphicParameters from "./graphicParameters.json";
 import { HexColour, Margins, Point, Rect } from "./types";
 
+export function mix<T>(base: T) {
+  return {
+    ...base,
+    with<U>(mixfn: (base: T) => U) {
+      return mix(mixfn(this));
+    },
+  };
+}
+
 export function bimap<T, U>(
   array1: T[],
   array2: T[],
@@ -160,5 +169,5 @@ export function orderByIndices<T>(
 
 export function processBaseColor(hex: HexColour) {
   const col = tinycolor(hex);
-  return col.saturate(25).lighten(25).toHexString() as HexColour;
+  return col.saturate(30).lighten(30).toHexString() as HexColour;
 }

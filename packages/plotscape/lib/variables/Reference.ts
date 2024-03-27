@@ -1,3 +1,4 @@
+import { mix } from "../funs";
 import { Indexable, indexable } from "../mixins/Indexable";
 import { Named, named } from "../mixins/Named";
 import { Proxyable, proxyable } from "../mixins/Proxyable";
@@ -20,7 +21,7 @@ export function newReference<T>(values: T[]): Reference<T> {
   const methods = { clone };
   const self = { ...props, ...methods };
 
-  return proxyable(indexable(named(self))) as Reference<T>;
+  return mix(self).with(named).with(indexable).with(proxyable);
 }
 
 function clone<T>(this: Reference<T>) {

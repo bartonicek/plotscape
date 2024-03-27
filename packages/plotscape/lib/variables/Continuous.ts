@@ -1,4 +1,5 @@
 import { minMax } from "utils";
+import { mix } from "../funs";
 import { Indexable, indexable } from "../mixins/Indexable";
 import { Named, named } from "../mixins/Named";
 import { Proxyable, proxyable } from "../mixins/Proxyable";
@@ -32,7 +33,7 @@ export function newContinuous(
   const methods = { range, min, max, clone };
   const self = { ...props, ...methods };
 
-  return reduced(proxyable(indexable(named(self))));
+  return mix(self).with(named).with(indexable).with(proxyable).with(reduced);
 }
 
 function clone(this: Continuous) {
