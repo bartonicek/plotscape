@@ -10,7 +10,11 @@ export interface WidgetDisplay {
 }
 
 export function newWidgetDisplay(parent: HTMLDivElement): WidgetDisplay {
-  const modal = element(`dialog`).addClass(`ps-modal`).appendTo(parent).get();
+  const modal = element(`dialog`)
+    .addClass(`ps-widget-modal`)
+    .appendTo(parent)
+    .get();
+
   const container = element(`div`)
     .addClass(`ps-widget-display`)
     .appendTo(modal)
@@ -18,6 +22,7 @@ export function newWidgetDisplay(parent: HTMLDivElement): WidgetDisplay {
 
   modal.onclick = (event) => (event.stopPropagation(), modal.close());
   container.onclick = (event) => event.stopPropagation();
+  container.onmousemove = (event) => event.stopPropagation();
 
   const initialized = false;
 

@@ -77,7 +77,7 @@ html, body {
   font-size: medium;
 }
 
-.ps-modal {
+.ps-widget-modal {
   font-size: min(2.5vmin, 14pt);
   color: #3d3d3d;
   background-color: #fefffe;

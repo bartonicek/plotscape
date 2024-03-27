@@ -1,8 +1,10 @@
 import {
+  diff,
   element,
   entries,
   inOrder,
   mergeInto,
+  squareRoot,
   throttle,
   trunc0to1,
   values,
@@ -25,6 +27,7 @@ import { Context, newContext } from "./Context";
 import { QueryDisplay, newQueryDisplay } from "./QueryDisplay";
 import { SelectionRect, newSelectionRect } from "./SelectionRect";
 import { WidgetDisplay, newWidgetDisplay } from "./WidgetDisplay";
+import { ZoomStack, newZoomStack } from "./ZoomStack";
 
 export const layers = [0, 1, 2, 3, 4, 5, 6, 7] as const;
 export const baseLayers = [4, 5, 6, 7] as const;
@@ -65,7 +68,7 @@ export interface Plot {
   graphicObjects: GraphicObject[];
 
   selectionRect: SelectionRect;
-  //   zoomStack: TODO;
+  zoomStack: ZoomStack;
   queryDisplay: QueryDisplay;
   widgetDisplay: WidgetDisplay;
 
@@ -99,7 +102,7 @@ export interface Plot {
   scaleAlpha(value: number): void;
   setAspectRatio(value: number): void;
   pushGraphicObject(object: GraphicObject): void;
-  addKeyAction(key: ActionKey, action: (event: Event) => void): void;
+  addKeyAction(key: ActionKey, action: (event: KeyboardEvent) => void): void;
 }
 
 /* ------------------------------- Constructor ------------------------------ */
@@ -207,6 +210,7 @@ export function newPlot(scene: Scene) {
   const aspectRatio = undefined;
 
   const selectionRect = newSelectionRect();
+  const zoomStack = newZoomStack();
   const queryDisplay = newQueryDisplay(container);
   const widgetDisplay = newWidgetDisplay(container);
 
@@ -231,6 +235,7 @@ export function newPlot(scene: Scene) {
     scales,
     graphicObjects,
     selectionRect,
+    zoomStack,
     queryDisplay,
     widgetDisplay,
     localKeyActions,
@@ -267,6 +272,8 @@ export function newPlot(scene: Scene) {
   self.addKeyAction(`BracketLeft`, () => self.scaleAlpha(9 / 10));
   self.addKeyAction(`KeyR`, () => (self.reset(), self.render()));
   self.addKeyAction(`KeyP`, showWidgetDisplay.bind(self));
+  self.addKeyAction(`KeyZ`, zoom.bind(self));
+  self.addKeyAction(`KeyX`, unzoom.bind(self));
 
   selectionRect.listen(`changed`, throttle(checkSelection.bind(self), 20));
 
@@ -360,7 +367,7 @@ function render(this: Plot) {
 }
 
 function reset(this: Plot) {
-  const { container, scales, contexts, selectionRect } = this;
+  const { container, scales, contexts, selectionRect, zoomStack } = this;
   const { clientWidth: width, clientHeight: height } = container;
   const [bottom, left, top, right] = getMargins();
 
@@ -369,11 +376,13 @@ function reset(this: Plot) {
 
   for (const v of values(scales)) v.norm.defaultize();
   scales.size.codomain.defaultize();
-  scales.width.codomain.setMax(innerWidth);
-  scales.area.codomain.setMax(Math.min(innerWidth, innerHeight));
-  selectionRect.clear();
 
-  // zoomStack.clear();
+  scales.width.codomain.setMax(innerWidth).setScale(1);
+  scales.height.codomain.setMax(innerHeight).setScale(1);
+  scales.area.codomain.setMax(Math.min(innerWidth, innerHeight)).setScale(1);
+
+  selectionRect.clear();
+  zoomStack.clear();
 
   for (const context of values(contexts)) context.setProps({ globalAlpha: 1 });
   this.render();
@@ -393,7 +402,7 @@ function pushGraphicObject(this: Plot, object: GraphicObject) {
 function addKeyAction(
   this: Plot,
   key: ActionKey,
-  action: (event: Event) => void
+  action: (event: KeyboardEvent) => void
 ) {
   if (!this.localKeyActions[key]) this.localKeyActions[key] = action;
   else this.localKeyActions[key] = inOrder(this.localKeyActions[key]!, action);
@@ -429,7 +438,8 @@ function setAspectRatio(this: Plot, value: number) {
   return this;
 }
 
-function showWidgetDisplay(this: Plot) {
+function showWidgetDisplay(this: Plot, event: KeyboardEvent) {
+  event.preventDefault();
   if (this.widgetDisplay.initialized) this.widgetDisplay.show();
   else {
     for (const key of [`x`, `y`] as const) {
@@ -456,6 +466,61 @@ function checkSelection(this: Plot) {
   }
 
   this.scene.marker.update(selected);
+}
+
+function zoom(this: Plot) {
+  const { scales, selectionRect, zoomStack } = this;
+  let [x0, y0, x1, y1] = selectionRect.coords;
+
+  if (Math.abs(x1 - x0) < 10 || Math.abs(y1 - y0) < 10) return;
+
+  const { x, y } = scales;
+
+  x0 = x.norm.normalize(trunc0to1(x.codomain.normalize(x0)));
+  x1 = x.norm.normalize(trunc0to1(x.codomain.normalize(x1)));
+  y0 = y.norm.normalize(trunc0to1(y.codomain.normalize(y0)));
+  y1 = y.norm.normalize(trunc0to1(y.codomain.normalize(y1)));
+
+  [x0, x1] = [x0, x1].sort(diff);
+  [y0, y1] = [y0, y1].sort(diff);
+
+  zoomStack.push([x0, y0, x1, y1]);
+  const [ix0, iy0, ix1, iy1] = zoomStack.current();
+  const [widthStretch, heightStretch, areaStretch] = zoomStack.currentStretch();
+
+  scales.x.norm.setMin(ix0).setMax(ix1);
+  scales.y.norm.setMin(iy0).setMax(iy1);
+  scales.width.codomain.setScale(widthStretch);
+  scales.height.codomain.setScale(heightStretch);
+  scales.area.codomain.setScale(squareRoot(areaStretch));
+  scales.size.codomain.setScale(squareRoot(areaStretch));
+
+  selectionRect.clear();
+  this.render();
+}
+
+function unzoom(this: Plot) {
+  const { zoomStack, scales } = this;
+
+  console.log(scales.x.norm);
+
+  if (zoomStack.isEmpty()) return;
+
+  zoomStack.pop();
+
+  console.log(zoomStack.current());
+
+  const [ix0, iy0, ix1, iy1] = zoomStack.current();
+  const [widthStretch, heightStretch, areaStretch] = zoomStack.currentStretch();
+
+  scales.x.norm.setMin(ix0).setMax(ix1);
+  scales.y.norm.setMin(iy0).setMax(iy1);
+  scales.width.codomain.setScale(widthStretch);
+  scales.height.codomain.setScale(heightStretch);
+  scales.area.codomain.setScale(squareRoot(areaStretch));
+  scales.size.codomain.setScale(squareRoot(areaStretch));
+
+  this.render();
 }
 
 /* ----------------------------- Event Handlers ----------------------------- */

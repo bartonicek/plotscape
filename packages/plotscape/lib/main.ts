@@ -1,3 +1,4 @@
+import "./style.css";
 export { fetchJSON } from "utils";
 
 export * from "./dataframe/ColumnParser";

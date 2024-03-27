@@ -55,10 +55,13 @@ export type ActionKey =
   | `Key${Uppercase<Letter>}`
   | `Digit${Digit}`;
 
-export type KeyActions = Partial<Record<ActionKey, (event: Event) => void>>;
-export interface GraphicObject extends Partial<Representation> {}
-export type HexColour = `#${string}`;
+export type KeyActions = Partial<
+  Record<ActionKey, (event: KeyboardEvent) => void>
+>;
 
+export interface GraphicObject extends Partial<Representation> {}
+
+export type HexColour = `#${string}`;
 export type RGB = [red: number, green: number, blue: number];
 
 export type BoundaryCols = { [POSITIONS]: Reference<Set<number>> };

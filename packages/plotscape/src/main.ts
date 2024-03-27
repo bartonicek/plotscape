@@ -10,7 +10,7 @@ import { newPCoordsplot } from "../lib/plots/PCoordsplot.ts";
 import { newScatter } from "../lib/plots/Scatterplot.ts";
 import { sumReducer } from "../lib/reducers/Reducer.ts";
 import { newScene } from "../lib/scene/Scene.ts";
-import "./style.css";
+import "../lib/style.css";
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
 
