@@ -4,7 +4,6 @@ import {
   entries,
   inOrder,
   mergeInto,
-  squareRoot,
   throttle,
   trunc0to1,
   values,
@@ -377,9 +376,9 @@ function reset(this: Plot) {
   for (const v of values(scales)) v.norm.defaultize();
   scales.size.codomain.defaultize();
 
-  scales.width.codomain.setMax(innerWidth).setScale(1);
-  scales.height.codomain.setMax(innerHeight).setScale(1);
-  scales.area.codomain.setMax(Math.min(innerWidth, innerHeight)).setScale(1);
+  scales.width.codomain.setMax(innerWidth);
+  scales.height.codomain.setMax(innerHeight);
+  scales.area.codomain.setMax(Math.min(innerWidth, innerHeight));
 
   selectionRect.clear();
   zoomStack.clear();
@@ -490,10 +489,10 @@ function zoom(this: Plot) {
 
   scales.x.norm.setMin(ix0).setMax(ix1);
   scales.y.norm.setMin(iy0).setMax(iy1);
-  scales.width.codomain.setScale(widthStretch);
-  scales.height.codomain.setScale(heightStretch);
-  scales.area.codomain.setScale(squareRoot(areaStretch));
-  scales.size.codomain.setScale(squareRoot(areaStretch));
+  // scales.width.codomain.setScale(widthStretch);
+  // scales.height.codomain.setScale(heightStretch);
+  // scales.area.codomain.setScale(squareRoot(areaStretch));
+  // scales.size.codomain.setScale(squareRoot(areaStretch));
 
   selectionRect.clear();
   this.render();
@@ -502,23 +501,18 @@ function zoom(this: Plot) {
 function unzoom(this: Plot) {
   const { zoomStack, scales } = this;
 
-  console.log(scales.x.norm);
-
   if (zoomStack.isEmpty()) return;
 
   zoomStack.pop();
-
-  console.log(zoomStack.current());
-
   const [ix0, iy0, ix1, iy1] = zoomStack.current();
   const [widthStretch, heightStretch, areaStretch] = zoomStack.currentStretch();
 
   scales.x.norm.setMin(ix0).setMax(ix1);
   scales.y.norm.setMin(iy0).setMax(iy1);
-  scales.width.codomain.setScale(widthStretch);
-  scales.height.codomain.setScale(heightStretch);
-  scales.area.codomain.setScale(squareRoot(areaStretch));
-  scales.size.codomain.setScale(squareRoot(areaStretch));
+  // scales.width.codomain.setScale(widthStretch);
+  // scales.height.codomain.setScale(heightStretch);
+  // scales.area.codomain.setScale(squareRoot(areaStretch));
+  // scales.size.codomain.setScale(squareRoot(areaStretch));
 
   this.render();
 }

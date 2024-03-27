@@ -1,5 +1,5 @@
 {
-  "name": "plotscape-refactor",
+  "name": "plotscape",
   "workspaces": ["packages/*"],
   "module": "index.ts",
   "type": "module",

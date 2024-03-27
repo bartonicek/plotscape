@@ -1,6 +1,7 @@
 import { element } from "utils";
 import { Dataframe } from "../dataframe/Dataframe";
 import { getMargins } from "../funs";
+import helpHTMLString from "../help.html?raw";
 import { Plot } from "../plot/Plot";
 import { Group, KeyActions, Variables } from "../types";
 import { Marker, newMarker } from "./Marker";
@@ -24,6 +25,11 @@ export interface Scene<T extends Variables = any> {
 }
 
 /* ------------------------------- Constructor ------------------------------ */
+const parser = new DOMParser();
+const helpHTML = parser.parseFromString(
+  helpHTMLString.replace(/(\r\n|\n|\r)/gm, ""),
+  "text/html"
+).body;
 
 export function newScene<T extends Variables>(
   app: HTMLDivElement,
@@ -64,6 +70,21 @@ export function newScene<T extends Variables>(
   container.addEventListener("mousedown", onMousedown.bind(self));
   window.addEventListener("keydown", onKeydown.bind(self));
   window.addEventListener("keyup", onKeyup.bind(self));
+
+  const helpModal = element(`dialog`)
+    .appendTo(container)
+    .append(helpHTML)
+    .addClass(`ps-help-modal`)
+    .get();
+
+  const helpButton = element(`button`)
+    .appendTo(container)
+    .addClass(`ps-help-button`)
+    .text(`?`)
+    .get();
+
+  helpButton.onclick = () => helpModal.showModal();
+  helpModal.onclick = () => helpModal.close();
 
   return self;
 }

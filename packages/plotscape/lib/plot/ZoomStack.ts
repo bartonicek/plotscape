@@ -53,6 +53,8 @@ function current(this: ZoomStack) {
 }
 
 function currentStretch(this: ZoomStack) {
+  if (this.coords.length === 1) return [1, 1, 1] as StretchTuple;
+
   const [ix0, iy0, ix1, iy1] = last(this.coords);
 
   const widthStretch = ix1 - ix0;
