@@ -5,12 +5,12 @@ import { Dimension } from "../types";
 import { Continuous } from "./Continuous";
 
 export interface Variable<T = unknown, Dim = Dimension.Scalar> extends Named {
-  n(): number;
   domain: Expanse<T>;
+  n(): number;
   valueAt(index: number, offset?: number): T;
   scaledAt(
     index: number,
-    scale: Scale
+    scale: Scale<T>
   ): Dim extends Dimension.Scalar ? number : number[];
   clone(): Variable<T, Dim>;
 }

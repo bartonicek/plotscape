@@ -2,7 +2,7 @@ import { minMax } from "utils";
 import { Indexable, indexable } from "../mixins/Indexable";
 import { Named, named } from "../mixins/Named";
 import { Proxyable, proxyable } from "../mixins/Proxyable";
-import { Reduced } from "../reducers/Reduced";
+import { Reduced, reduced } from "../mixins/Reduced";
 import {
   ExpanseContinuous,
   newExpanseContinuous,
@@ -14,7 +14,7 @@ export interface Continuous
     Variable<number>,
     Indexable<number>,
     Proxyable<number>,
-    Reduced {
+    Reduced<number> {
   domain: ExpanseContinuous;
   clone(): Continuous;
   range(): number;
@@ -22,14 +22,17 @@ export interface Continuous
   max(): number;
 }
 
-export function newContinuous(array: number[], domain?: ExpanseContinuous) {
+export function newContinuous(
+  array: number[],
+  domain?: ExpanseContinuous
+): Continuous {
   domain = domain ?? newExpanseContinuous(...minMax(array));
 
   const props = { array, domain };
   const methods = { range, min, max, clone };
   const self = { ...props, ...methods };
 
-  return proxyable(indexable(named(self))) as Continuous;
+  return reduced(proxyable(indexable(named(self))));
 }
 
 function clone(this: Continuous) {

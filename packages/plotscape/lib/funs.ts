@@ -1,6 +1,7 @@
+import tinycolor from "tinycolor2";
 import { diff, exponentialToSuperscript, minMax, round, times } from "utils";
 import graphicParameters from "./graphicParameters.json";
-import { Margins, Point, Rect } from "./types";
+import { HexColour, Margins, Point, Rect } from "./types";
 
 export function bimap<T, U>(
   array1: T[],
@@ -155,4 +156,9 @@ export function orderByIndices<T>(
   }
 
   return result;
+}
+
+export function processBaseColor(hex: HexColour) {
+  const col = tinycolor(hex);
+  return col.saturate(25).lighten(25).toHexString() as HexColour;
 }

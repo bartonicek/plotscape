@@ -1,7 +1,8 @@
-import { Variable } from "../variables/Variable";
-import { ReducerHandler } from "./ReducerHandler";
+import { ReducerHandler } from "../reducers/ReducerHandler";
 
-export interface Reduced {
+export interface Reduced<T = unknown> {
+  valueAt(index: number, offset?: number): T;
+
   reducer?: ReducerHandler;
   setReducer(reducer: ReducerHandler): this;
 
@@ -13,24 +14,24 @@ export interface Reduced {
   indexfn?(): number[];
 }
 
-export function reduced<T extends Variable>(variable: T): T & Reduced {
-  return {
-    ...variable,
-    setReducer,
-    stack,
-    normalizeByParent,
-    shiftLeft,
-    parent,
-  };
+export function reduced<
+  T extends {
+    reducer?: ReducerHandler;
+    valueAt(index: number, offset?: number): any;
+  }
+>(variable: T): T & Reduced<ReturnType<T["valueAt"]>> {
+  const methods = { setReducer, stack, normalizeByParent, shiftLeft, parent };
+  return { ...variable, ...methods } as T & Reduced<ReturnType<T["valueAt"]>>;
 }
 
-function setReducer(this: Reduced, reducer: ReducerHandler) {
+function setReducer<T>(this: Reduced<T>, reducer: ReducerHandler) {
   this.reducer = reducer;
   return this;
 }
 
-function stack<T extends Variable>(this: T & Reduced) {
+function stack<T>(this: Reduced<T>) {
   if (!this.reducer) return this;
+
   const reducer = this.reducer.stack();
   let result = reducer.result;
   if (this.indexfn) result = result.proxy(this.indexfn);
@@ -38,8 +39,9 @@ function stack<T extends Variable>(this: T & Reduced) {
   return result;
 }
 
-function normalizeByParent(this: Reduced) {
+function normalizeByParent<T>(this: Reduced<T>) {
   if (!this.reducer) return this;
+
   const reducer = this.reducer.normalizeByParent();
   let result = reducer.result;
   if (this.indexfn) result = result.proxy(this.indexfn);
@@ -47,12 +49,13 @@ function normalizeByParent(this: Reduced) {
   return reducer.result;
 }
 
-function shiftLeft(this: Reduced) {
+function shiftLeft<T>(this: Reduced<T>) {
   if (!this.reducer) return this;
-  const original = this as any;
-  const copy = { ...this } as any;
 
-  copy.valueAt = function (index: number) {
+  const original = this;
+  const copy = { ...this };
+
+  copy.valueAt = function (index: number, offset?: number) {
     if (index === 0) return copy.reducer?.reducer.initialfn();
     return original.valueAt(index, -1);
   };
@@ -60,7 +63,7 @@ function shiftLeft(this: Reduced) {
   return copy;
 }
 
-function parent(this: Reduced) {
+function parent<T>(this: Reduced<T>) {
   const { reducer } = this;
 
   if (!reducer) return this;

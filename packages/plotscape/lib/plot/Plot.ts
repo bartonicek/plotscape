@@ -10,11 +10,17 @@ import {
 import { Dataframe } from "../dataframe/Dataframe";
 import { newAxisLabels } from "../decorations/AxisLabels";
 import { newAxisTitle } from "../decorations/AxisTitle";
-import { getMargins } from "../funs";
+import { getMargins, processBaseColor } from "../funs";
 import graphicParameters from "../graphicParameters.json";
 import { Scale, isScaleContinuous, newScale } from "../scales/Scale";
 import { Scene } from "../scene/Scene";
-import { ActionKey, GraphicObject, KeyActions, Variables } from "../types";
+import {
+  ActionKey,
+  GraphicObject,
+  HexColour,
+  KeyActions,
+  Variables,
+} from "../types";
 import { Context, newContext } from "./Context";
 import { QueryDisplay, newQueryDisplay } from "./QueryDisplay";
 import { SelectionRect, newSelectionRect } from "./SelectionRect";
@@ -102,11 +108,12 @@ export function newPlot(scene: Scene) {
   const container = element(`div`).addClass(`ps-plot-container`).get();
   const contexts = {} as Contexts;
 
-  const {
-    groupColors: colors,
-    axisTitleFontsize,
-    axisLabelFontsize,
-  } = graphicParameters;
+  const { groupColors, axisTitleFontsize, axisLabelFontsize } =
+    graphicParameters;
+
+  const colors = groupColors.slice() as HexColour[];
+  const n = colors.length;
+  for (let i = 0; i < n; i++) colors.push(processBaseColor(colors[i]));
 
   const margins = getMargins();
 
@@ -426,7 +433,8 @@ function showWidgetDisplay(this: Plot) {
   if (this.widgetDisplay.initialized) this.widgetDisplay.show();
   else {
     for (const key of [`x`, `y`] as const) {
-      this.widgetDisplay.addWidget(this.scales[key].widget());
+      const widget = this.scales[key].widget();
+      if (widget) this.widgetDisplay.addWidget(widget);
     }
     this.widgetDisplay.show();
     this.widgetDisplay.initialized = true;

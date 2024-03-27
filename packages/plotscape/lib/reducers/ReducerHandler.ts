@@ -1,11 +1,11 @@
 import { Factor } from "../factors/Factor";
 import { Emitter, subscribable } from "../mixins/Emitter";
+import { Reduced, reduced } from "../mixins/Reduced";
 import { InferVariable } from "../types";
 import { newContinuous } from "../variables/Continuous";
 import { newDiscrete } from "../variables/Discrete";
 import { newReference } from "../variables/Reference";
 import { Variable } from "../variables/Variable";
-import { Reduced, reduced } from "./Reduced";
 import { Reducer } from "./Reducer";
 
 export interface ReducerHandler<T = any, U = any> extends Emitter<`changed`> {

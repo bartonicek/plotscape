@@ -3,26 +3,47 @@ import { Emitter, subscribable } from "../mixins/Emitter";
 import { Widget } from "./Widget";
 
 export interface DragListWidget extends Widget, Emitter<`changed`> {
-  name: HTMLSpanElement;
+  name: string;
   container: HTMLDivElement;
-  values: string[];
+  source: { values: string[] };
   render(): void;
   setName(name: string): this;
 }
 
-export function newDragListWidget(values: string[]): DragListWidget {
+export function newDragListWidget(source: {
+  values: string[];
+}): DragListWidget {
   const container = element(`div`)
     .addClass(`ps-widget`)
     .addClass(`ps-widget-draglist`)
     .get();
 
-  const _name = element(`span`).appendTo(container).get();
-  const list = element(`ul`).appendTo(container).get();
-
-  const props = { name: _name, container, values };
+  const name = ``;
+  const props = { name, container, source };
   const methods = { setName, render };
 
   const self = subscribable({ ...props, ...methods });
+  self.render();
+
+  return self;
+}
+
+function setName(this: DragListWidget, name: string) {
+  this.name = name;
+  this.render();
+  return this;
+}
+
+function render(this: DragListWidget) {
+  const { container, source } = this;
+  const values = source.values;
+
+  while (container.lastChild) container.removeChild(container.lastChild);
+
+  const name = element(`span`).appendTo(container).get();
+  const list = element(`ul`).appendTo(container).get();
+
+  name.innerText = `Levels of ${this.name}: `;
 
   for (const v of values) {
     const li = element(`li`)
@@ -32,26 +53,19 @@ export function newDragListWidget(values: string[]): DragListWidget {
       .get();
 
     li.addEventListener("dragstart", () => li.classList.add(`dragged`));
-    li.addEventListener("dragend", () => li.classList.remove(`dragged`));
+    li.addEventListener("dragend", () => {
+      const children = Array.from(list.childNodes) as HTMLElement[];
+      for (let i = 0; i < children.length; i++) {
+        values[i] = children[i].innerText;
+      }
+      this.emit(`changed`);
+      li.classList.remove(`dragged`);
+    });
   }
 
-  list.addEventListener(`dragover`, (event) => {
-    swapAt(list, event.clientY);
-    const children = Array.from(list.childNodes) as HTMLElement[];
-    const newValues = children.map((x) => x.innerText);
-    for (let i = 0; i < newValues.length; i++) values[i] = newValues[i];
-    self.emit(`changed`);
-  });
-
-  return self;
+  list.addEventListener(`mousedown`, (event) => event.stopPropagation());
+  list.addEventListener(`dragover`, (event) => swapAt(list, event.clientY));
 }
-
-function setName(this: DragListWidget, name: string) {
-  this.name.innerText = `Levels of ${name}: `;
-  return this;
-}
-
-function render(this: DragListWidget) {}
 
 function swapAt(container: HTMLElement, y: number) {
   const children = Array.from(container.childNodes) as (Node & Element)[];

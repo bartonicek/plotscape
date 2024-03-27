@@ -1,4 +1,4 @@
-import { named } from "../mixins/Named";
+import { Named, named } from "../mixins/Named";
 import { Expanse } from "../scales/Expanse";
 import { newExpanseContinuous } from "../scales/ExpanseContinuous";
 import { Scale } from "../scales/Scale";
@@ -10,10 +10,12 @@ type VariableTuple<T extends unknown[]> = {
 };
 
 export interface Tuple<T extends unknown[] = unknown[]>
-  extends Variable<T, Dimension.Tuple> {
+  extends Named,
+    Variable<T, Dimension.Tuple> {
   commonDomain: boolean;
   variables: VariableTuple<T>;
   setCommonDomain(): this;
+  unsetCommonDomain(): this;
 }
 
 export function newTuple<T extends any[]>(
@@ -22,7 +24,14 @@ export function newTuple<T extends any[]>(
   const commonDomain = false;
   const domain = newExpanseContinuous() as unknown as Expanse<T>;
   const props = { variables, domain, commonDomain };
-  const methods = { clone, n, valueAt, scaledAt, setCommonDomain };
+  const methods = {
+    clone,
+    n,
+    valueAt,
+    scaledAt,
+    setCommonDomain,
+    unsetCommonDomain,
+  };
   const self = { ...props, ...methods };
 
   return named(self);
@@ -62,14 +71,14 @@ function scaledAt<T extends unknown[]>(
   const result = Array(variables.length) as number[];
 
   const originalDomain = scale.domain;
-  if (commonDomain) scale.domain = domain;
+  if (commonDomain) scale.domain = domain; // Swap the scale domain for the common domain
 
   for (let j = 0; j < variables.length; j++) {
     if (!commonDomain) scale.domain = variables[j].domain;
     result[j] = variables[j].scaledAt(index, scale);
   }
 
-  scale.domain = originalDomain; // Need to set the domain back to the original value
+  scale.domain = originalDomain; // Set the domain back to the original value
   return result;
 }
 
@@ -89,5 +98,11 @@ function setCommonDomain<T extends unknown[]>(this: Tuple<T>) {
   this.domain.setMin!(min).setMax!(max);
   this.commonDomain = true;
 
+  return this;
+}
+
+function unsetCommonDomain<T extends unknown[]>(this: Tuple<T>) {
+  this.domain.setMin!(0).setMax!(1);
+  this.commonDomain = false;
   return this;
 }

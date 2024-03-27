@@ -1,16 +1,15 @@
-type Base<T = unknown> = {
+export interface Proxyable<T = unknown> {
+  n(): number;
   valueAt(index: number, offset?: number): T;
-};
 
-export interface Proxyable<T = unknown> extends Base<T> {
-  source?: Base<T>;
+  source?: Proxyable<T>;
   indexfn?: () => number[];
   proxy(indexfn: () => number[]): this;
 }
 
-export function proxyable<T extends Base>(
-  base: T
-): T & Proxyable<ReturnType<Base["valueAt"]>> {
+export function proxyable<
+  T extends { n(): number; valueAt(index: number, offset?: number): any }
+>(base: T): T & Proxyable<ReturnType<T["valueAt"]>> {
   return { ...base, proxy };
 }
 

@@ -26,7 +26,7 @@ export interface Expanse<T = unknown> extends Emitter<`changed`> {
   setDefaultWeights?(): this;
   setDefaultOrder?(): this;
 
-  widget(norm: ExpanseContinuous): Widget;
+  widget(norm: ExpanseContinuous): Widget | undefined;
 }
 
 export function isExpanseContinuous(

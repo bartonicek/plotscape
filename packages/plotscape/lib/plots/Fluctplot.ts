@@ -65,6 +65,11 @@ export function newFluctplot<T extends Variables>(
   self.partition1Data.listen(`changed`, plot.render.bind(plot));
   self.partition2Data.listen(`changed`, plot.render.bind(plot));
 
+  self.addKeyAction(`KeyR`, () => {
+    self.scales.x.setDefaultOrder();
+    self.scales.y.setDefaultOrder();
+  });
+
   self.addKeyAction(`KeyN`, () =>
     self.type === Type.Absolute ? encodePct(self) : encodeAbs(self)
   );

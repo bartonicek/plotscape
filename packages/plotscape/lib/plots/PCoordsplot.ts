@@ -1,10 +1,11 @@
-import { values } from "utils";
+import { TODO, values } from "utils";
 import { Dataframe } from "../dataframe/Dataframe";
 import { Plot, newPlot } from "../plot/Plot";
 import { Lines, newLines } from "../representations/Lines";
+import { newExpanseContinuous } from "../scales/ExpanseContinuous";
 import { newExpanseDiscreteAbsolute } from "../scales/ExpanseDiscreteAbsolute";
 import { Scene } from "../scene/Scene";
-import { BoundaryCols, RenderCols, Variables } from "../types";
+import { BoundaryCols, RenderCols, Type, Variables } from "../types";
 import { newDerived } from "../variables/Derived";
 import { Tuple, newTuple } from "../variables/Tuple";
 import { Variable } from "../variables/Variable";
@@ -19,6 +20,7 @@ type ReducedBindings = {
 };
 
 export interface PCoordsplot extends Plot {
+  type: Type;
   partition1Data: Dataframe<ReducedBindings & BoundaryCols>;
   partition2Data: Dataframe<ReducedBindings & RenderCols>;
   lines: Lines;
@@ -27,35 +29,66 @@ export interface PCoordsplot extends Plot {
 export function newPCoordsplot<T extends Variables>(
   scene: Scene<T>,
   selecfn: (cols: T) => DataBindings
-) {
+): PCoordsplot {
   const data = scene.data.select(selecfn);
   const plot = newPlot(scene);
 
-  const boundaryData = data.select(encodefn).join(scene.marker.data());
+  const partition1Data = data.select(reducefn).join(scene.marker.data());
+  const partition2Data = partition1Data;
+
+  const boundaryData = partition1Data
+    .select(encodefn)
+    .join(scene.marker.data());
   const renderData = boundaryData;
 
+  const type = Type.Proportion;
   const lines = newLines(plot, boundaryData, renderData);
 
   plot.pushGraphicObject(lines);
   plot.trainScales(boundaryData, (d) => ({ x: d.x, y: d.y }));
 
   boundaryData.listen(`changed`, plot.render.bind(plot));
+
+  const self = { ...plot, type, lines, partition1Data, partition2Data };
+  self.addKeyAction(`KeyN`, switchEncoding.bind(self));
+
+  return self;
 }
 
-const encodefn = (d: DataBindings) => {
+const reducefn = (d: DataBindings) => {
   const vals = newTuple(values(d));
   const names = newTuple(
     values(d).map((x) => newDerived((_, y) => y!.name(), x))
   );
 
   const domain = newExpanseDiscreteAbsolute(names.valueAt(0));
-  // @ts-ignore
-  for (const k of names.variables) k.setDomain(domain);
-  names.domain = domain as any;
+
+  for (const k of names.variables) (k as TODO).setDomain(domain);
+  names.domain = domain as TODO;
   names.n = () => vals.n();
 
   names.setName(`variable`);
   vals.setName(`scaled value`);
 
-  return { x: names, y: vals };
+  return { names, values: vals };
 };
+
+const encodefn = (d: ReducedBindings) => {
+  return { x: d.names, y: d.values };
+};
+
+function switchEncoding(this: PCoordsplot) {
+  if (this.type === Type.Proportion) {
+    this.partition1Data.col(`values`).setCommonDomain();
+    this.scales.y.setDomain(this.partition1Data.col(`values`).domain as TODO);
+    this.scales.y.setName(`value`);
+    this.type = Type.Absolute;
+    this.render();
+  } else {
+    this.partition1Data.col(`values`).unsetCommonDomain();
+    this.scales.y.setDomain(newExpanseContinuous());
+    this.scales.y.setName(`scaled value`);
+    this.type = Type.Proportion;
+    this.render();
+  }
+}

@@ -2,6 +2,7 @@ import { compareAlphaNumeric } from "utils";
 import { Indexable, indexable } from "../mixins/Indexable";
 import { Named, named } from "../mixins/Named";
 import { Proxyable, proxyable } from "../mixins/Proxyable";
+import { Reduced, reduced } from "../mixins/Reduced";
 import {
   ExpanseDiscreteWeighted,
   newExpanseDiscreteWeighted,
@@ -12,13 +13,17 @@ export interface Discrete
   extends Named,
     Variable<string>,
     Indexable<string>,
-    Proxyable<string> {
+    Proxyable<string>,
+    Reduced<string> {
   domain: ExpanseDiscreteWeighted;
   clone(): this;
   width(): Discrete;
 }
 
-export function newDiscrete(array: string[], domain?: ExpanseDiscreteWeighted) {
+export function newDiscrete(
+  array: string[],
+  domain?: ExpanseDiscreteWeighted
+): Discrete {
   const unique = Array.from(new Set(array)).sort(compareAlphaNumeric);
   domain = domain ?? newExpanseDiscreteWeighted(unique);
 
@@ -26,7 +31,7 @@ export function newDiscrete(array: string[], domain?: ExpanseDiscreteWeighted) {
   const methods = { width, clone };
   const self = { ...props, ...methods };
 
-  return proxyable(indexable(named(self))) as Discrete;
+  return reduced(proxyable(indexable(named(self))));
 }
 
 function clone(this: Discrete) {

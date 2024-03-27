@@ -17,8 +17,6 @@ const app = document.querySelector<HTMLDivElement>("#app")!;
 async function mpgScene() {
   const mpgJSON = await fetchJSON("../datasets/mpg.json");
 
-  console.log(mpgJSON);
-
   const spec = {
     year: col(`discrete`),
     manufacturer: col(`discrete`),
@@ -35,6 +33,23 @@ async function mpgScene() {
   const plot2 = newBarplot(scene, (d) => ({ v1: d.manufacturer }));
   const plot3 = newHistogram(scene, (d) => ({ v1: d.displ }));
   const plot4 = newFluctplot(scene, (d) => ({ v1: d.year, v2: d.drv }));
+}
+
+async function diamondsScene() {
+  const diamondsJSON = await fetchJSON(`../datasets/diamonds.json`);
+
+  const spec = {
+    carat: col(`continuous`),
+    price: col(`continuous`),
+    color: col(`discrete`),
+    cut: col(`discrete`),
+  };
+
+  const diamondsData = parseColumns(diamondsJSON, spec);
+  const scene = newScene(app, diamondsData);
+
+  const plot1 = newScatter(scene, (d) => ({ v1: d.carat, v2: d.price }));
+  const plot2 = newBarplot(scene, (d) => ({ v1: d.color }));
 }
 
 async function sacrametoScene() {
@@ -55,7 +70,7 @@ async function sacrametoScene() {
   const scene = newScene(app, sacramentoData);
 
   const plot1 = newScatter(scene, (d) => ({ v1: d.longitude, v2: d.latitude }));
-  plot1.setAspectRatio(1);
+  // plot1.setAspectRatio(1);
 
   const plot2 = newFluctplot(scene, (d) => ({ v1: d.beds, v2: d.baths }));
 
@@ -73,5 +88,6 @@ async function sacrametoScene() {
   }));
 }
 
+// diamondsScene();
 sacrametoScene();
 // mpgScene();

@@ -176,12 +176,12 @@ function widget(this: ExpanseContinuous, norm: ExpanseContinuous) {
 
   const widget = newRangeWidget(source);
   widget.listen(`changed`, () => {
-    let [min, max] = [widget.min(), widget.max()];
+    let { min, max } = widget;
+
     source.min = min;
     source.max = max;
 
-    min = this.normalize(min);
-    max = this.normalize(max);
+    [min, max] = [min, max].map(this.normalize.bind(this));
     [min, max] = invertRange(min, max);
 
     norm.setMin(min).setMax(max);

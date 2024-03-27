@@ -52,6 +52,9 @@ export type ActionKey =
 
 export type KeyActions = Partial<Record<ActionKey, (event: Event) => void>>;
 export interface GraphicObject extends Partial<Representation> {}
+export type HexColour = `#${string}`;
+
+export type RGB = [red: number, green: number, blue: number];
 
 export type BoundaryCols = { [POSITIONS]: Reference<Set<number>> };
 export type RenderCols = { [LAYER]: Reference<ContextId> };
@@ -68,6 +71,7 @@ export enum Type {
   Absolute,
   Proportion,
 }
+
 export enum Order {
   Alphanumeric,
   Custom,

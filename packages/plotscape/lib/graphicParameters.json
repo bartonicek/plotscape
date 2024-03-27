@@ -7,13 +7,9 @@
   "axisLabelFontsize": 14,
   "marginLines": [4, 4, 1, 1],
   "groupColors": [
-    "#A55DB0",
-    "#F53132",
-    "#58B956",
-    "#498AC5",
-    "#DBA8E3",
-    "#F1ACAC",
-    "#9DE19C",
-    "#9FC4F0"
+    "#984ea3",
+    "#e41a1c",
+    "#4daf4a",
+    "#377eb8"
   ]
 }

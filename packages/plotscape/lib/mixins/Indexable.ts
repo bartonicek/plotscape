@@ -4,18 +4,18 @@ import { Scale } from "../scales/Scale";
 export interface Indexable<T> {
   domain: Expanse<T>;
   array: T[];
+
   n(): number;
   values(): T[];
   valueAt(index: number, offset?: number): T;
   scaledAt(index: number, scale: Scale<T>): number;
-  retrain(array: T[]): void;
+  retrain(array: T[]): this;
 }
 
 export function indexable<T extends { array: unknown[]; domain: Expanse }>(
   object: T
-) {
-  return { ...object, n, values, valueAt, scaledAt, retrain } as T &
-    Indexable<T["array"][number]>;
+): T & Indexable<T["array"][number]> {
+  return { ...object, n, values, valueAt, scaledAt, retrain };
 }
 
 function n<T>(this: Indexable<T>) {
@@ -41,4 +41,5 @@ function scaledAt<T>(this: Indexable<T>, index: number, scale: Scale<T>) {
 
 function retrain<T>(this: Indexable<T>, array: T[]) {
   this.domain.retrain(array);
+  return this;
 }

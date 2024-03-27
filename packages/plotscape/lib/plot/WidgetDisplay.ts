@@ -26,9 +26,10 @@ export function newWidgetDisplay(parent: HTMLDivElement): WidgetDisplay {
 }
 
 function show(this: WidgetDisplay) {
+  if (!this.container.childNodes.length) return;
   this.modal.showModal();
 }
 
 function addWidget(this: WidgetDisplay, widget: Widget) {
-  this.container.appendChild(widget.container);
+  if (widget) this.container.appendChild(widget.container);
 }

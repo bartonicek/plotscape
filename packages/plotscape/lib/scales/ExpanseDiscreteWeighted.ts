@@ -172,6 +172,20 @@ function getBoundsInternal(self: ExpanseDiscreteWeighted, value: string) {
 }
 
 function widget(this: ExpanseDiscreteWeighted) {
-  const widget = newDragListWidget([...this.values]);
+  const { values } = this;
+  const source = { values: [...values] };
+
+  const widget = newDragListWidget(source);
+
+  widget.listen(`changed`, () => {
+    const indices = Array(values.length);
+
+    for (let i = 0; i < values.length; i++) {
+      indices[i] = source.values.indexOf(values[i]);
+    }
+
+    this.setOrder(indices);
+  });
+
   return widget;
 }

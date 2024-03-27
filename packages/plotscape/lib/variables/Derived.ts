@@ -20,12 +20,16 @@ export function newDerived<T, U>(
 ): Derived<T> {
   const domain = newExpanseContinuous();
   const props = { variable, domain };
-  const methods = { clone, derivefn, valueAt, scaledAt, setDomain };
+  const methods = { clone, n, derivefn, valueAt, scaledAt, setDomain };
   return proxyable(named({ ...props, ...methods })) as unknown as Derived<T>;
 }
 
 function clone<T>(this: Derived<T>) {
   return this;
+}
+
+function n<T>(this: Derived<T>) {
+  return -1;
 }
 
 function setDomain<T>(this: Derived<T>, domain: Expanse<T>) {

@@ -41,7 +41,7 @@ export interface Scale<T = unknown> extends Named, Emitter<`changed`> {
   breaks(): T[];
   ratio(): number;
 
-  widget(): Widget;
+  widget(): Widget | undefined;
 }
 
 export interface ScaleContinuous extends Scale<number> {
@@ -203,7 +203,9 @@ function ratio<T>(this: Scale<T>) {
 }
 
 function widget<T>(this: Scale<T>) {
-  return this.domain.widget(this.norm).setName(this.name());
+  const widget = this.domain.widget(this.norm);
+  if (!widget) return undefined;
+  return widget.setName(this.name());
 }
 
 /* --------------------------------- Helpers -------------------------------- */
