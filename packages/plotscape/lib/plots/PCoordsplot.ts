@@ -47,18 +47,22 @@ export function newPCoordsplot<T extends Variables>(
   plot.pushGraphicObject(lines);
   plot.trainScales(boundaryData, (d) => ({ x: d.x, y: d.y }));
 
-  boundaryData.listen(`changed`, plot.render.bind(plot));
-
   const self = { ...plot, type, lines, partition1Data, partition2Data };
   self.addKeyAction(`KeyN`, switchEncoding.bind(self));
+  self.addKeyAction(`KeyR`, () => self.scales.x.setDefaultOrder());
 
+  boundaryData.listen(`changed`, plot.render.bind(plot));
   return self;
 }
 
 const reducefn = (d: DataBindings) => {
   const vals = newTuple(values(d));
   const names = newTuple(
-    values(d).map((x) => newDerived((_, y) => y!.name(), x))
+    values(d).map((x) => {
+      const variable = newDerived((_, y) => y!.name(), x);
+      variable.setName(x.name());
+      return variable;
+    })
   );
 
   const domain = newExpanseDiscreteAbsolute(names.valueAt(0));

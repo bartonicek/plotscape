@@ -1,19 +1,26 @@
+import { seq } from "utils";
 import { Named, named } from "../mixins/Named";
 import { Expanse } from "../scales/Expanse";
 import { newExpanseContinuous } from "../scales/ExpanseContinuous";
 import { Scale } from "../scales/Scale";
-import { Dimension } from "../types";
 import { Variable, isContinuous } from "./Variable";
 
 type VariableTuple<T extends unknown[]> = {
   [key in keyof T]: Variable<T[key]>;
 };
 
-export interface Tuple<T extends unknown[] = unknown[]>
-  extends Named,
-    Variable<T, Dimension.Tuple> {
-  commonDomain: boolean;
+export interface Tuple<T extends unknown[] = unknown[]> extends Named {
+  order: number[];
   variables: VariableTuple<T>;
+  commonDomain: boolean;
+
+  domain: Expanse;
+  n(): number;
+  valueAt(index: number, offset?: number): T;
+  scaledAt(index: number, scale: Scale): number[];
+  clone(): Tuple<T>;
+
+  setOrder(indices: number[]): this;
   setCommonDomain(): this;
   unsetCommonDomain(): this;
 }
@@ -21,14 +28,16 @@ export interface Tuple<T extends unknown[] = unknown[]>
 export function newTuple<T extends any[]>(
   variables: VariableTuple<T>
 ): Tuple<T> {
+  const order = seq(0, variables.length - 1);
   const commonDomain = false;
   const domain = newExpanseContinuous() as unknown as Expanse<T>;
-  const props = { variables, domain, commonDomain };
+  const props = { variables, order, domain, commonDomain };
   const methods = {
     clone,
     n,
     valueAt,
     scaledAt,
+    setOrder,
     setCommonDomain,
     unsetCommonDomain,
   };
@@ -54,10 +63,11 @@ function valueAt<T extends unknown[]>(
   index: number,
   offset = 0
 ) {
-  const { variables } = this;
+  const { variables, order } = this;
   const result = Array(variables.length) as T;
-  for (let i = 0; i < variables.length; i++) {
-    result[i] = variables[i].valueAt(index, offset);
+  for (let j = 0; j < variables.length; j++) {
+    const variable = variables[j];
+    result[order[j]] = variable.valueAt(index, offset);
   }
   return result;
 }
@@ -67,19 +77,25 @@ function scaledAt<T extends unknown[]>(
   index: number,
   scale: Scale
 ) {
-  const { variables, domain, commonDomain } = this;
+  const { variables, order, domain, commonDomain } = this;
   const result = Array(variables.length) as number[];
 
   const originalDomain = scale.domain;
   if (commonDomain) scale.domain = domain; // Swap the scale domain for the common domain
 
   for (let j = 0; j < variables.length; j++) {
-    if (!commonDomain) scale.domain = variables[j].domain;
-    result[j] = variables[j].scaledAt(index, scale);
+    const variable = variables[j];
+    if (!commonDomain) scale.domain = variable.domain;
+    result[order[j]] = variable.scaledAt(index, scale);
   }
 
   scale.domain = originalDomain; // Set the domain back to the original value
   return result;
+}
+
+function setOrder<T extends unknown[]>(this: Tuple<T>, indices: number[]) {
+  for (let i = 0; i < indices.length; i++) this.order[i] = indices[i];
+  return this;
 }
 
 function setCommonDomain<T extends unknown[]>(this: Tuple<T>) {

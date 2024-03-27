@@ -1,18 +1,14 @@
 import { Named } from "../mixins/Named";
 import { Expanse, isExpanseContinuous } from "../scales/Expanse";
 import { Scale } from "../scales/Scale";
-import { Dimension } from "../types";
 import { Continuous } from "./Continuous";
 
-export interface Variable<T = unknown, Dim = Dimension.Scalar> extends Named {
+export interface Variable<T = unknown> extends Named {
   domain: Expanse<T>;
   n(): number;
   valueAt(index: number, offset?: number): T;
-  scaledAt(
-    index: number,
-    scale: Scale<T>
-  ): Dim extends Dimension.Scalar ? number : number[];
-  clone(): Variable<T, Dim>;
+  scaledAt(index: number, scale: Scale<T>): number;
+  clone(): Variable<T>;
 }
 
 export function isContinuous(variable: Variable): variable is Continuous {

@@ -1,5 +1,6 @@
 import { compareAlphaNumeric, seq } from "utils";
 import { Emitter, subscribable } from "../mixins/Emitter";
+import { DragListWidget, newDragListWidget } from "../widgets/DragListWidget";
 import { Expanse } from "./Expanse";
 
 export interface ExpanseDiscreteAbsolute
@@ -13,7 +14,7 @@ export interface ExpanseDiscreteAbsolute
   retrain(array: string[]): this;
   clone(): ExpanseDiscreteAbsolute;
 
-  widget(): undefined;
+  widget(): DragListWidget;
 }
 
 export function newExpanseDiscreteAbsolute(
@@ -40,7 +41,8 @@ export function newExpanseDiscreteAbsolute(
 }
 
 function normalize(this: ExpanseDiscreteAbsolute, value: string) {
-  return this.values.indexOf(value) / (this.values.length - 1);
+  const { order, values } = this;
+  return order[values.indexOf(value)] / (values.length - 1);
 }
 
 function unnormalize(this: ExpanseDiscreteAbsolute, value: number) {
@@ -86,21 +88,20 @@ function breaks(this: ExpanseDiscreteAbsolute) {
 }
 
 function widget(this: ExpanseDiscreteAbsolute) {
-  // const { values } = this;
-  // const source = { values };
+  const { values } = this;
+  const source = { values: [...values] };
 
-  // const widget = newDragListWidget(source);
+  const widget = newDragListWidget(source);
 
-  // widget.listen(`changed`, () => {
-  //   const indices = Array(values.length);
+  widget.listen(`changed`, () => {
+    const indices = Array(values.length);
 
-  //   for (let i = 0; i < values.length; i++) {
-  //     indices[i] = values.indexOf(source.values[i]);
-  //   }
+    for (let i = 0; i < values.length; i++) {
+      indices[i] = source.values.indexOf(values[i]);
+    }
 
-  //   this.setOrder(indices);
-  // });
+    this.setOrder(indices);
+  });
 
-  // return widget;
-  return undefined;
+  return widget;
 }
