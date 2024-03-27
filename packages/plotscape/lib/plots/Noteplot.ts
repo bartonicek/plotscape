@@ -1,8 +1,8 @@
-import { element, values } from "utils";
+import { element, noop, values } from "utils";
 import { newPlot } from "../plot/Plot";
 import { Scene } from "../scene/Scene";
 
-export function newNoteplot(scene: Scene) {
+export function newNoteplot(scene: Scene): any {
   const plot = newPlot(scene);
 
   // Remove all contexts
@@ -10,4 +10,8 @@ export function newNoteplot(scene: Scene) {
 
   const textarea = element(`textarea`).appendTo(plot.container).get();
   textarea.value = `\nWrite notes here....`;
+
+  plot.localKeyActions[`KeyP`] = noop;
+
+  return { ...plot, textarea };
 }

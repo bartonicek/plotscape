@@ -73,7 +73,7 @@ function normalize(this: ExpanseDiscreteWeighted, value: string) {
   return midpoint / max;
 }
 
-function unnormalize(this: ExpanseDiscreteWeighted, value: number) {
+function unnormalize(this: ExpanseDiscreteWeighted, _: number) {
   throw new Error(`Not implemented yet`);
   return this.values[0];
 }

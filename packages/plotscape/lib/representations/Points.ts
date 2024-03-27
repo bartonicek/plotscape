@@ -20,10 +20,6 @@ type Encodings = {
   size?: Variable;
 };
 
-type BoundaryData = Dataframe<
-  Encodings & { [POSITIONS]: Reference<Set<number>> }
->;
-
 export interface Points extends Representation {
   boundaryData: Dataframe<Encodings & { [POSITIONS]: Reference<Set<number>> }>;
   renderData: Dataframe<Encodings & { [LAYER]: Reference<ContextId> }>;

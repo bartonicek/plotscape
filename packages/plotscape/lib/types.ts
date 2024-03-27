@@ -5,11 +5,16 @@ import { LAYER, POSITIONS } from "./symbols";
 import { Continuous } from "./variables/Continuous";
 import { Discrete } from "./variables/Discrete";
 import { Reference } from "./variables/Reference";
+import { Tuple } from "./variables/Tuple";
 import { Variable } from "./variables/Variable";
 
-export type Variables = Record<PropertyKey, Variable<any, any>>;
-export type VariableValue<T extends Variable> = T extends Variable<infer V>
+export type Variables = Record<PropertyKey, Variable | Tuple>;
+export type VariableValue<T extends Variable | Tuple> = T extends Variable<
+  infer V
+>
   ? V
+  : T extends Tuple<infer W>
+  ? W
   : never;
 
 export type InferVariable<T> = T extends number

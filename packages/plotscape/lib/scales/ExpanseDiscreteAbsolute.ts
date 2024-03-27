@@ -45,7 +45,7 @@ function normalize(this: ExpanseDiscreteAbsolute, value: string) {
   return order[values.indexOf(value)] / (values.length - 1);
 }
 
-function unnormalize(this: ExpanseDiscreteAbsolute, value: number) {
+function unnormalize(this: ExpanseDiscreteAbsolute, _: number) {
   throw new Error(`Not implemented yet`);
   return this.values[0];
 }

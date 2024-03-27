@@ -55,7 +55,7 @@ function shiftLeft<T>(this: Reduced<T>) {
   const original = this;
   const copy = { ...this };
 
-  copy.valueAt = function (index: number, offset?: number) {
+  copy.valueAt = function (index: number) {
     if (index === 0) return copy.reducer?.reducer.initialfn();
     return original.valueAt(index, -1);
   };

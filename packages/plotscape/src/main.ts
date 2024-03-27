@@ -10,9 +10,6 @@ import { newPCoordsplot } from "../lib/plots/PCoordsplot.ts";
 import { newScatter } from "../lib/plots/Scatterplot.ts";
 import { sumReducer } from "../lib/reducers/Reducer.ts";
 import { newScene } from "../lib/scene/Scene.ts";
-import { newContinuous } from "../lib/variables/Continuous.ts";
-import { newDiscrete } from "../lib/variables/Discrete.ts";
-import { newTuple } from "../lib/variables/Tuple.ts";
 import "./style.css";
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
@@ -94,12 +91,3 @@ async function sacrametoScene() {
 // diamondsScene();
 sacrametoScene();
 // mpgScene();
-
-const foo = newContinuous([1, 2, 3]);
-const bar = newContinuous([100, 200, 300]);
-const baz = newDiscrete([`a`, `b`, `c`]);
-
-const fff = newTuple([foo, bar, baz]);
-fff.setOrder([1, 0, 2]);
-
-console.log(fff.valueAt(2));
