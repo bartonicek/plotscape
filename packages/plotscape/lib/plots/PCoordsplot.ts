@@ -1,4 +1,5 @@
 import { TODO, values } from "utils";
+import { oneRowOneCase } from "../constants";
 import { Dataframe } from "../dataframe/Dataframe";
 import { Plot, newPlot } from "../plot/Plot";
 import { Lines, newLines } from "../representations/Lines";
@@ -36,10 +37,8 @@ export function newPCoordsplot<T extends Variables>(
   const partition1Data = data.select(reducefn).join(scene.marker.data());
   const partition2Data = partition1Data;
 
-  const boundaryData = partition1Data
-    .select(encodefn)
-    .join(scene.marker.data());
-  const renderData = boundaryData;
+  const boundaryData = partition1Data.select(encodefn).join(oneRowOneCase);
+  const renderData = partition2Data.select(encodefn).join(scene.marker.data());
 
   const type = Type.Proportion;
   const lines = newLines(plot, boundaryData, renderData);

@@ -1,5 +1,5 @@
 import { allEntries, asInt, diff, inc, last, subsetOnIndices } from "utils";
-import { ValueEmitter, getter, isEmitter } from "../ValueEmitter";
+import { ObservableValue, getter, isObservable } from "../ObservableValue";
 import { newDataframe } from "../dataframe/Dataframe";
 import { bimap, midpoint } from "../funs";
 import { newExpanseContinuous } from "../scales/ExpanseContinuous";
@@ -11,8 +11,8 @@ import { newFactorComputed } from "./FactorComputed";
 
 export function factorBin(
   variable: Continuous,
-  width?: number | ValueEmitter<number>,
-  anchor?: number | ValueEmitter<number>
+  width?: number | ObservableValue<number>,
+  anchor?: number | ObservableValue<number>
 ): Factor<{
   binStart: Continuous;
   binMid: Continuous;
@@ -41,8 +41,8 @@ export function factorBin(
     self.emit();
   };
 
-  if (isEmitter(width)) width.listen(update);
-  if (isEmitter(anchor)) anchor.listen(update);
+  if (isObservable(width)) width.listen(update);
+  if (isObservable(anchor)) anchor.listen(update);
 
   return self;
 }

@@ -1,4 +1,5 @@
-import { newValueEmitter } from "../ValueEmitter";
+import { newObservableValue } from "../ObservableValue";
+import { one, zero } from "../constants";
 import { Dataframe } from "../dataframe/Dataframe";
 import { factorBin } from "../factors/factorBin";
 import { Plot, newPlot } from "../plot/Plot";
@@ -9,7 +10,6 @@ import { RectanglesXY, newRectanglesXY } from "../representations/RectanglesXY";
 import { Scene } from "../scene/Scene";
 import { BoundaryCols, RenderCols, Type, Variables } from "../types";
 import { Continuous } from "../variables/Continuous";
-import { one, zero } from "../variables/constants";
 
 type DataBindings = {
   v1: Continuous;
@@ -38,8 +38,8 @@ export function newHistogram<T extends Variables>(
   const plot = newPlot(scene);
   const data = scene.data.select(selectfn);
 
-  const anchor = newValueEmitter(data.col(`v1`).min());
-  const width = newValueEmitter(data.col(`v1`).range() / 15);
+  const anchor = newObservableValue(data.col(`v1`).min());
+  const width = newObservableValue(data.col(`v1`).range() / 15);
 
   const toReduce = data.col(`v2`) ?? one;
   const reducer = options?.reducer ?? sumReducer;
@@ -64,17 +64,14 @@ export function newHistogram<T extends Variables>(
     self.type === Type.Absolute ? encodePct(self) : encodeAbs(self)
   );
 
-  self.addKeyAction(`Minus`, () => width.setValue(width.value * (9 / 10)));
-  self.addKeyAction(`Equal`, () => width.setValue(width.value * (10 / 9)));
+  self.addKeyAction(`Minus`, () => width.setValue((w) => w * (9 / 10)));
+  self.addKeyAction(`Equal`, () => width.setValue((w) => w * (10 / 9)));
 
   const inc = data.col(`v1`).range() / 20;
-  self.addKeyAction(`Quote`, () => anchor.setValue(anchor.value - inc));
-  self.addKeyAction(`Semicolon`, () => anchor.setValue(anchor.value + inc));
+  self.addKeyAction(`Quote`, () => anchor.setValue((a) => a - inc));
+  self.addKeyAction(`Semicolon`, () => anchor.setValue((a) => a + inc));
 
-  self.addKeyAction(`KeyR`, () => {
-    width.defaultize();
-    anchor.defaultize();
-  });
+  self.addKeyAction(`KeyR`, () => (width.defaultize(), anchor.defaultize()));
 
   partition1Data.listen(() => {
     self.trainScales(bars.boundaryData!, (d) => ({ x: d.x0, y: d.y1 }));

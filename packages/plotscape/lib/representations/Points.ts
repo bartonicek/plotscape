@@ -4,8 +4,7 @@ import { pointInRect, rectsIntersect } from "../funs";
 import graphicParameters from "../graphicParameters.json";
 import { ContextId, Contexts, Plot, Scales } from "../plot/Plot";
 import { LAYER, POSITIONS } from "../symbols";
-import { Point, Rect } from "../types";
-import { Reference } from "../variables/Reference";
+import { BoundaryCols, Point, Rect, RenderCols } from "../types";
 import { Variable } from "../variables/Variable";
 import {
   Representation,
@@ -21,8 +20,8 @@ type Encodings = {
 };
 
 export interface Points extends Representation {
-  boundaryData: Dataframe<Encodings & { [POSITIONS]: Reference<Set<number>> }>;
-  renderData: Dataframe<Encodings & { [LAYER]: Reference<ContextId> }>;
+  boundaryData: Dataframe<Encodings & BoundaryCols>;
+  renderData: Dataframe<Encodings & RenderCols>;
   scales: Scales;
 
   sizePct: number;
@@ -30,8 +29,8 @@ export interface Points extends Representation {
 
 export function newPoints(
   plot: Plot,
-  boundaryData: Dataframe<Encodings & { [POSITIONS]: Reference<Set<number>> }>,
-  renderData: Dataframe<Encodings & { [LAYER]: Reference<ContextId> }>
+  boundaryData: Dataframe<Encodings & BoundaryCols>,
+  renderData: Dataframe<Encodings & RenderCols>
 ): Points {
   const scales = plot.scales;
   const sizePct = 1;

@@ -22,6 +22,7 @@ export interface Lines extends Representation {
   boundaryData: Dataframe<Encodings & { [POSITIONS]: Reference<Set<number>> }>;
   renderData: Dataframe<Encodings & { [LAYER]: Reference<ContextId> }>;
   scales: Scales;
+  contexts: Contexts;
 }
 
 export function newLines(
@@ -29,7 +30,8 @@ export function newLines(
   boundaryData: Dataframe<Encodings & { [POSITIONS]: Reference<Set<number>> }>,
   renderData: Dataframe<Encodings & { [LAYER]: Reference<ContextId> }>
 ): Lines {
-  const props = { boundaryData, renderData, scales: plot.scales };
+  const { scales, contexts } = plot;
+  const props = { boundaryData, renderData, scales, contexts };
   const methods = {
     render,
     check,
@@ -43,8 +45,8 @@ export function newLines(
   return self;
 }
 
-function render(this: Lines, contexts: Contexts) {
-  const { renderData: data, scales } = this;
+function render(this: Lines) {
+  const { renderData: data, scales, contexts } = this;
   const n = data.n();
   const order = scales.x.domain.order!;
 

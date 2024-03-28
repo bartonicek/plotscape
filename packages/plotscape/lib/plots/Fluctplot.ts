@@ -1,5 +1,6 @@
 import { Dataframe } from "@abartonicek/plotscape5";
 import { square, squareRoot } from "utils";
+import { one } from "../constants";
 import { factorFrom } from "../factors/factorFrom";
 import { factorProduct } from "../factors/factorProduct";
 import { Plot, newPlot } from "../plot/Plot";
@@ -11,7 +12,6 @@ import { Scene } from "../scene/Scene";
 import { BoundaryCols, RenderCols, Type, Variables } from "../types";
 import { Continuous } from "../variables/Continuous";
 import { Discrete } from "../variables/Discrete";
-import { one } from "../variables/constants";
 
 type DataBindings = {
   v1: Discrete;

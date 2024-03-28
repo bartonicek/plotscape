@@ -1,4 +1,5 @@
 import { sum } from "utils";
+import { one, zero } from "../constants";
 import { Dataframe } from "../dataframe/Dataframe";
 import { factorFrom } from "../factors/factorFrom";
 import { getOrderIndices } from "../funs";
@@ -18,7 +19,6 @@ import {
 } from "../types";
 import { Continuous } from "../variables/Continuous";
 import { Discrete } from "../variables/Discrete";
-import { one, zero } from "../variables/constants";
 
 type DataBindings = {
   v1: Discrete;

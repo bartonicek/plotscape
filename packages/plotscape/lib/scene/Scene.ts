@@ -1,4 +1,4 @@
-import { element } from "utils";
+import { element, rep } from "utils";
 import { Dataframe } from "../dataframe/Dataframe";
 import { getMargins } from "../funs";
 import helpHTMLString from "../help.html?raw";
@@ -15,13 +15,17 @@ export interface Scene<T extends Variables = any> {
   marker: Marker;
   plots: Plot[];
 
+  hasLayout: boolean;
   keyActions: KeyActions;
 
   addPlot(plot: Plot): this;
+
   setDimensions(rows: number, cols: number): this;
+  setLayout(layour: number[][]): this;
+  setGroup(group: Group): this;
+
   deactivateAll(): this;
   deactivateAllExcept(keepActive: Plot): this;
-  setGroup(group: Group): this;
 }
 
 /* ------------------------------- Constructor ------------------------------ */
@@ -51,14 +55,16 @@ export function newScene<T extends Variables>(
 
   const marker = newMarker(data.n());
   const keyActions: KeyActions = {};
+  const hasLayout = false;
 
-  const props = { container, data, marker, plots, keyActions };
+  const props = { container, data, marker, hasLayout, plots, keyActions };
   const methods = {
     addPlot,
+    setGroup,
+    setLayout,
     setDimensions,
     deactivateAll,
     deactivateAllExcept,
-    setGroup,
   };
 
   const self = { ...props, ...methods };
@@ -98,9 +104,33 @@ function setDimensions(this: Scene, rows: number, cols: number) {
   return this;
 }
 
+function setLayout(this: Scene, layout: number[][]) {
+  const { container, plots } = this;
+
+  let layoutString = ``;
+  for (const row of layout) {
+    const rowString = `"${row.map((x) => `p${x}`).join(` `)}"`;
+    layoutString += rowString;
+  }
+
+  for (let i = 0; i < plots.length; i++) {
+    plots[i].container.style.gridArea = `p${i + 1}`;
+  }
+
+  container.style.gridTemplateRows = rep(`1fr`, layout.length).join(` `);
+  container.style.gridTemplateColumns = rep(`1fr`, layout[0].length).join(` `);
+  container.style.gridTemplateAreas = layoutString;
+  for (const plot of this.plots) plot.resize();
+
+  this.hasLayout = true;
+  return this;
+}
+
 function addPlot(this: Scene, plot: Plot) {
   this.container.append(plot.container);
   this.plots.push(plot);
+
+  if (this.hasLayout) plot.container.style.gridArea = `p${this.plots.length}`;
 
   const nCols = Math.ceil(Math.sqrt(this.plots.length));
   const nRows = Math.ceil(this.plots.length / nCols);

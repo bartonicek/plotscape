@@ -86,6 +86,12 @@ async function sacrametoScene() {
     v2: d.longitude,
     v3: d.price,
   }));
+
+  scene.setLayout([
+    [1, 2, 3, 3],
+    [6, 4, 4, 5],
+    [6, 7, 7, 7],
+  ]);
 }
 
 // diamondsScene();

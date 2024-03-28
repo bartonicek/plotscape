@@ -1,7 +1,7 @@
 import { Observable, observable } from "./mixins/Observable";
 import { Primitive } from "./types";
 
-export interface ValueEmitter<T> extends Observable {
+export interface ObservableValue<T> extends Observable {
   value: T;
   defaultValue: T;
   defaultize(): void;
@@ -9,7 +9,7 @@ export interface ValueEmitter<T> extends Observable {
   setValue(value: (prev: T) => T): void;
 }
 
-export function newValueEmitter<T>(value: T): ValueEmitter<T> {
+export function newObservableValue<T>(value: T): ObservableValue<T> {
   const props = { value, defaultValue: value };
   const methods = { defaultize, setValue };
   const self = { ...props, ...methods };
@@ -17,24 +17,24 @@ export function newValueEmitter<T>(value: T): ValueEmitter<T> {
   return observable(self);
 }
 
-export function isEmitter<T>(
-  value: T | ValueEmitter<T>
-): value is ValueEmitter<T> {
-  return value && typeof value === "object" && "value" in value;
+export function isObservable<T>(
+  value: T | ObservableValue<T>
+): value is ObservableValue<T> {
+  return value && typeof value === `object` && `listen` in value;
 }
 
-export function getter<T>(source: T | ValueEmitter<T>) {
-  if (isEmitter(source)) return () => source.value;
+export function getter<T>(source: T | ObservableValue<T>) {
+  if (isObservable(source)) return () => source.value;
   return () => source;
 }
 
-export function defaultize<T>(this: ValueEmitter<T>) {
+export function defaultize<T>(this: ObservableValue<T>) {
   this.value = this.defaultValue;
   this.emit();
 }
 
 function setValue<T extends Primitive>(
-  this: ValueEmitter<T>,
+  this: ObservableValue<T>,
   value: T | ((prev: T) => T)
 ) {
   this.value = typeof value != "function" ? value : value(this.value);

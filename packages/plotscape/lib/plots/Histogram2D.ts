@@ -1,5 +1,6 @@
 import { identity, square, squareRoot } from "utils";
-import { newValueEmitter } from "../ValueEmitter";
+import { newObservableValue } from "../ObservableValue";
+import { one } from "../constants";
 import { Dataframe } from "../dataframe/Dataframe";
 import { factorBin } from "../factors/factorBin";
 import { factorProduct } from "../factors/factorProduct";
@@ -11,7 +12,6 @@ import { RectanglesWH, newRectanglesWH } from "../representations/RectanglesWH";
 import { Scene } from "../scene/Scene";
 import { BoundaryCols, RenderCols, Type, Variables } from "../types";
 import { Continuous } from "../variables/Continuous";
-import { one } from "../variables/constants";
 
 type DataBindings = {
   v1: Continuous;
@@ -38,8 +38,8 @@ export function newHistogram2D<T extends Variables>(
   const plot = newPlot(scene);
   const data = scene.data.select(selectfn);
 
-  const width1 = newValueEmitter(data.col(`v1`).range() / 15);
-  const width2 = newValueEmitter(data.col(`v2`).range() / 15);
+  const width1 = newObservableValue(data.col(`v1`).range() / 15);
+  const width2 = newObservableValue(data.col(`v2`).range() / 15);
 
   const reducers = { stat1: newReducerHandler(one, sumReducer) };
   const factor1 = factorBin(data.col(`v1`), width1, data.col(`v1`).min());
