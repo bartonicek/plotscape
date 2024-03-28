@@ -1,15 +1,14 @@
-# plotscape-refactor
+# Plotscape
 
-To install dependencies:
+Plotscape is a library for creating interactive figures, with support for features such as linked brushing,
+representation switching, and interactive parameter manipulation.
 
-```bash
-bun install
-```
+This page is actually the landing page of a monorepo (= a collection of packages). It includes the following packages:
 
-To run:
+- The main TypeScript/JavaScript library can be found at [packages/plotscape](https://github.com/bartonicek/plotscape/tree/master/packages/plotscape).
+- The R interface package (`plotscaper`) can be found at [packages/plotscaper](https://github.com/bartonicek/plotscape/tree/master/packages/plotscaper).
+- A utilities package used internally can be found at [packages/utils](https://github.com/bartonicek/plotscape/tree/master/packages/utils).
 
-```bash
-bun run index.ts
-```
+In other words, if you want to make interactive figures in R, go to [packages/plotscaper](https://github.com/bartonicek/plotscape/tree/master/packages/plotscaper) and follow the instructions there. If you want to make the figures for the Web, in TypeScript/JavaScript, then please install the `npm` package corresponding to the [packages/plotscape](https://github.com/bartonicek/plotscape/tree/master/packages/plotscape), which you can find at [TODO].
 
-This project was created using `bun init` in bun v1.0.14. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+Happy visualization!
