@@ -1,8 +1,10 @@
 import { element, rep } from "utils";
 import { Dataframe } from "../dataframe/Dataframe";
 import { getMargins } from "../funs";
+// @ts-ignore
 import helpHTMLString from "../help.html?raw";
 import { Plot } from "../plot/Plot";
+import { PlotKey, PlotMap, plotMap } from "../plots/plotMap";
 import { Group, KeyActions, Variables } from "../types";
 import { Marker, newMarker } from "./Marker";
 
@@ -19,6 +21,10 @@ export interface Scene<T extends Variables = any> {
   keyActions: KeyActions;
 
   addPlot(plot: Plot): this;
+  addPlotByKey<K extends PlotKey>(
+    key: K,
+    selectfn: Parameters<PlotMap[K]>[1]
+  ): this;
 
   setDimensions(rows: number, cols: number): this;
   setLayout(layour: number[][]): this;
@@ -60,6 +66,7 @@ export function newScene<T extends Variables>(
   const props = { container, data, marker, hasLayout, plots, keyActions };
   const methods = {
     addPlot,
+    addPlotByKey,
     setGroup,
     setLayout,
     setDimensions,
@@ -135,6 +142,16 @@ function addPlot(this: Scene, plot: Plot) {
   const nCols = Math.ceil(Math.sqrt(this.plots.length));
   const nRows = Math.ceil(this.plots.length / nCols);
   this.setDimensions(nRows, nCols);
+  return this;
+}
+
+function addPlotByKey<K extends PlotKey>(
+  this: Scene,
+  key: K,
+  selectfn: Parameters<PlotMap[K]>[1]
+) {
+  const constructor = plotMap[key];
+  constructor(this, selectfn as any);
   return this;
 }
 

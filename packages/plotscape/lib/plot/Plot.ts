@@ -485,7 +485,7 @@ function zoom(this: Plot) {
 
   zoomStack.push([x0, y0, x1, y1]);
   const [ix0, iy0, ix1, iy1] = zoomStack.current();
-  const [widthStretch, heightStretch, areaStretch] = zoomStack.currentStretch();
+  // const [widthStretch, heightStretch, areaStretch] = zoomStack.currentStretch();
 
   scales.x.norm.setMin(ix0).setMax(ix1);
   scales.y.norm.setMin(iy0).setMax(iy1);
@@ -505,7 +505,7 @@ function unzoom(this: Plot) {
 
   zoomStack.pop();
   const [ix0, iy0, ix1, iy1] = zoomStack.current();
-  const [widthStretch, heightStretch, areaStretch] = zoomStack.currentStretch();
+  // const [widthStretch, heightStretch, areaStretch] = zoomStack.currentStretch();
 
   scales.x.norm.setMin(ix0).setMax(ix1);
   scales.y.norm.setMin(iy0).setMax(iy1);

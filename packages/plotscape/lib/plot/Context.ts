@@ -10,7 +10,7 @@ type RenderOptions = {
 
 /* -------------------------------- Interface ------------------------------- */
 
-export interface Context extends Observable<"resized"> {
+export interface Context extends Observable {
   container: HTMLDivElement;
   canvas: HTMLCanvasElement;
   canvasWrapper: ElementWrapper<HTMLCanvasElement>;
@@ -147,8 +147,7 @@ function resize(this: Context) {
 
   if (clipped) this.clip();
 
-  this.emit("resized");
-
+  this.emit();
   return this;
 }
 
