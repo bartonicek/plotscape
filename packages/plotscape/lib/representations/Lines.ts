@@ -3,8 +3,7 @@ import { Dataframe } from "../dataframe/Dataframe";
 import { orderByIndices, rectSegmentIntersect } from "../funs";
 import { ContextId, Contexts, Plot, Scales } from "../plot/Plot";
 import { LAYER, POSITIONS } from "../symbols";
-import { Point, Rect } from "../types";
-import { Reference } from "../variables/Reference";
+import { BoundaryCols, Point, Rect, RenderCols } from "../types";
 import { Tuple } from "../variables/Tuple";
 import {
   Representation,
@@ -19,16 +18,16 @@ type Encodings = {
 };
 
 export interface Lines extends Representation {
-  boundaryData: Dataframe<Encodings & { [POSITIONS]: Reference<Set<number>> }>;
-  renderData: Dataframe<Encodings & { [LAYER]: Reference<ContextId> }>;
+  boundaryData: Dataframe<Encodings & BoundaryCols>;
+  renderData: Dataframe<Encodings & RenderCols>;
   scales: Scales;
   contexts: Contexts;
 }
 
 export function newLines(
   plot: Plot,
-  boundaryData: Dataframe<Encodings & { [POSITIONS]: Reference<Set<number>> }>,
-  renderData: Dataframe<Encodings & { [LAYER]: Reference<ContextId> }>
+  boundaryData: Dataframe<Encodings & BoundaryCols>,
+  renderData: Dataframe<Encodings & RenderCols>
 ): Lines {
   const { scales, contexts } = plot;
   const props = { boundaryData, renderData, scales, contexts };
