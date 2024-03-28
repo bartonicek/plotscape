@@ -1,8 +1,8 @@
 import { Dataframe } from "../dataframe/Dataframe";
-import { Emitter } from "../mixins/Emitter";
+import { Observable } from "../mixins/Observable";
 import { Variables } from "../types";
 
-export interface Factor<T extends Variables = any> extends Emitter<`changed`> {
+export interface Factor<T extends Variables = any> extends Observable {
   parent?: Factor;
   cardinality: number;
   levels: number[];

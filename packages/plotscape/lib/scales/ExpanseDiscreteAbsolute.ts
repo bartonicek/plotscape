@@ -1,11 +1,9 @@
 import { compareAlphaNumeric, seq } from "utils";
-import { Emitter, subscribable } from "../mixins/Emitter";
+import { Observable, observable } from "../mixins/Observable";
 import { DragListWidget, newDragListWidget } from "../widgets/DragListWidget";
 import { Expanse } from "./Expanse";
 
-export interface ExpanseDiscreteAbsolute
-  extends Expanse<string>,
-    Emitter<"changed"> {
+export interface ExpanseDiscreteAbsolute extends Expanse<string>, Observable {
   order: number[];
   values: string[];
   setOrder(indices: number[]): this;
@@ -35,7 +33,7 @@ export function newExpanseDiscreteAbsolute(
     widget,
   };
 
-  const self = subscribable({ ...props, ...methods });
+  const self = observable({ ...props, ...methods });
 
   return self;
 }
@@ -52,26 +50,26 @@ function unnormalize(this: ExpanseDiscreteAbsolute, _: number) {
 
 function setValues(this: ExpanseDiscreteAbsolute, values: string[]) {
   for (let i = 0; i < values.length; i++) this.values[i] = values[i];
-  this.emit(`changed`);
+  this.emit();
   return this;
 }
 
 function setOrder(this: ExpanseDiscreteAbsolute, indices: number[]) {
   for (let i = 0; i < indices.length; i++) this.order[i] = indices[i];
-  this.emit(`changed`);
+  this.emit();
   return this;
 }
 
 function setDefaultOrder(this: ExpanseDiscreteAbsolute) {
   for (let i = 0; i < this.order.length; i++) this.order[i] = i;
-  this.emit(`changed`);
+  this.emit();
   return this;
 }
 
 function retrain(this: ExpanseDiscreteAbsolute, array: string[]) {
   const values = Array.from(new Set(array)).sort(compareAlphaNumeric);
   this.values = values;
-  this.emit(`changed`);
+  this.emit();
 
   return this;
 }
@@ -93,7 +91,7 @@ function widget(this: ExpanseDiscreteAbsolute) {
 
   const widget = newDragListWidget(source);
 
-  widget.listen(`changed`, () => {
+  widget.listen(() => {
     const indices = Array(values.length);
 
     for (let i = 0; i < values.length; i++) {

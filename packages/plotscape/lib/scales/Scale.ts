@@ -1,6 +1,6 @@
 import { noopThis } from "utils";
-import { Emitter, subscribable } from "../mixins/Emitter";
 import { Named, named } from "../mixins/Named";
+import { Observable, observable } from "../mixins/Observable";
 import { Widget } from "../widgets/Widget";
 import { Expanse, isExpanseContinuous } from "./Expanse";
 import { ExpanseContinuous, newExpanseContinuous } from "./ExpanseContinuous";
@@ -9,7 +9,7 @@ type Aesthetic = `x` | `y`;
 
 /* -------------------------------- Interface ------------------------------- */
 
-export interface Scale<T = unknown> extends Named, Emitter<`changed`> {
+export interface Scale<T = unknown> extends Named, Observable {
   other?: Scale;
   aes?: Aesthetic;
   domain: Expanse<T>;
@@ -84,8 +84,8 @@ export function newScale<T = number>(
     widget,
   };
 
-  const self = subscribable(named({ ...props, ...methods }));
-  self.norm.listen(`changed`, () => self.emit(`changed`));
+  const self = observable(named({ ...props, ...methods }));
+  self.norm.listen(() => self.emit());
 
   return self;
 }
@@ -122,7 +122,7 @@ function pullback<T>(this: Scale<T>, value: number) {
 
 function setDomain<T>(this: Scale<T>, domain: Expanse<T>) {
   this.domain = domain;
-  domain.listen(`changed`, () => this.emit(`changed`));
+  domain.listen(() => this.emit());
   return this as Scale<T>;
 }
 

@@ -7,12 +7,11 @@ import {
   uniqueIntegers,
   values,
 } from "utils";
-import { Emitter, subscribable } from "../mixins/Emitter";
+import { Observable, observable } from "../mixins/Observable";
 import { RowOf, SymbolProps, VariableValue, Variables } from "../types";
 import { ColumnParser, ParsedColumns } from "./ColumnParser";
 
-export interface Dataframe<T extends Variables = Variables>
-  extends Emitter<`changed`> {
+export interface Dataframe<T extends Variables = Variables> extends Observable {
   columns: T;
   n(): number;
   keys(): string[];
@@ -43,7 +42,7 @@ export function newDataframe<T extends Variables>(columns: T): Dataframe<T> {
   };
   const self = { ...props, ...methods };
 
-  return subscribable(self);
+  return observable(self);
 }
 
 export function parseColumns<T extends Record<string, ColumnParser>>(
@@ -141,7 +140,7 @@ function select<T extends Variables, U extends Partial<Variables>>(
   }
 
   const result = newDataframe(cols);
-  this.listen(`changed`, () => result.emit(`changed`));
+  this.listen(() => result.emit());
   return result;
 }
 
@@ -151,8 +150,8 @@ function join<T extends Variables, U extends Variables>(
 ) {
   const columns = { ...this.columns, ...other.columns };
   const result = newDataframe(columns) as Dataframe<Normalize<T & U>>;
-  this.listen(`changed`, () => result.emit(`changed`));
-  other.listen(`changed`, () => result.emit(`changed`));
+  this.listen(() => result.emit());
+  other.listen(() => result.emit());
 
   return result;
 }

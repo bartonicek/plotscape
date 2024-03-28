@@ -29,11 +29,11 @@ export function factorProduct<T extends Variables, U extends Variables>(
       cols[k].indexfn = v.indexfn;
     }
 
-    self.emit(`changed`);
+    self.emit();
   };
 
-  factor1.listen(`changed`, update);
-  factor2.listen(`changed`, update);
+  factor1.listen(update);
+  factor2.listen(update);
 
   return self;
 }

@@ -71,7 +71,7 @@ export function newBarplot<T extends Variables>(
   self.addKeyAction(`KeyO`, switchOrder.bind(self));
   self.addKeyAction(`KeyN`, switchEncoding.bind(self));
 
-  partition2Data.listen(`changed`, self.render.bind(self));
+  partition2Data.listen(self.render.bind(self));
   return self;
 }
 

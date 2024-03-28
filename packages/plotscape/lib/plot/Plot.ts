@@ -274,7 +274,7 @@ export function newPlot(scene: Scene) {
   self.addKeyAction(`KeyZ`, zoom.bind(self));
   self.addKeyAction(`KeyX`, unzoom.bind(self));
 
-  selectionRect.listen(`changed`, throttle(checkSelection.bind(self), 20));
+  selectionRect.listen(throttle(checkSelection.bind(self), 20));
 
   self.pushGraphicObject(newAxisLabels(scales.x));
   self.pushGraphicObject(newAxisLabels(scales.y));
@@ -283,7 +283,7 @@ export function newPlot(scene: Scene) {
   self.pushGraphicObject(selectionRect);
   scene.addPlot(self);
 
-  for (const s of values(self.scales)) s.listen(`changed`, () => self.render());
+  for (const s of values(self.scales)) s.listen(() => self.render());
   return self;
 }
 

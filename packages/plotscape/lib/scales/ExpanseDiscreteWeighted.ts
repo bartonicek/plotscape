@@ -8,15 +8,13 @@ import {
   subsetOnIndices,
 } from "utils";
 import { orderByIndices } from "../funs";
-import { Emitter, subscribable } from "../mixins/Emitter";
+import { Observable, observable } from "../mixins/Observable";
 import { DragListWidget, newDragListWidget } from "../widgets/DragListWidget";
 import { Expanse } from "./Expanse";
 
 /* -------------------------------- Interface ------------------------------- */
 
-export interface ExpanseDiscreteWeighted
-  extends Expanse<string>,
-    Emitter<"changed"> {
+export interface ExpanseDiscreteWeighted extends Expanse<string>, Observable {
   order: number[];
   values: string[];
   weights: number[];
@@ -62,7 +60,7 @@ export function newExpanseDiscreteWeighted(
 
   const self = { ...props, ...methods };
 
-  return subscribable(self);
+  return observable(self);
 }
 
 /* --------------------------------- Methods -------------------------------- */
@@ -92,7 +90,7 @@ function getWidthExpanse(this: ExpanseDiscreteWeighted) {
 
 function setValues(this: ExpanseDiscreteWeighted, values: string[]) {
   for (let i = 0; i < values.length; i++) this.values[i] = values[i];
-  this.emit(`changed`);
+  this.emit();
   return this;
 }
 
@@ -104,7 +102,7 @@ function setWeights(this: ExpanseDiscreteWeighted, weights: number[]) {
     this.cumWeights[i] = cumWeights[i];
   }
 
-  this.emit(`changed`);
+  this.emit();
   return this;
 }
 
@@ -116,14 +114,14 @@ function setOrder(this: ExpanseDiscreteWeighted, indices: number[]) {
     this.cumWeights[i] = cumWeights[i];
   }
 
-  this.emit(`changed`);
+  this.emit();
   return this;
 }
 
 function setDefaultWeights(this: ExpanseDiscreteWeighted) {
   this.weights.fill(1);
   for (let i = 0; i < this.cumWeights.length; i++) this.cumWeights[i] = i + 1;
-  this.emit(`changed`);
+  this.emit();
   return this;
 }
 
@@ -135,7 +133,7 @@ function setDefaultOrder(this: ExpanseDiscreteWeighted) {
     this.cumWeights[i] = cumWeights[i];
   }
 
-  this.emit(`changed`);
+  this.emit();
   return this;
 }
 
@@ -147,7 +145,7 @@ function retrain(this: ExpanseDiscreteWeighted, array: string[]) {
   this.values = values;
   this.weights = weights;
   this.cumWeights = cumWeights;
-  this.emit(`changed`);
+  this.emit();
 
   return this;
 }
@@ -177,7 +175,7 @@ function widget(this: ExpanseDiscreteWeighted) {
 
   const widget = newDragListWidget(source);
 
-  widget.listen(`changed`, () => {
+  widget.listen(() => {
     const indices = Array(values.length);
 
     for (let i = 0; i < values.length; i++) {

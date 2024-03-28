@@ -15,16 +15,14 @@ export function proxyable<
 
 function proxy<T>(this: Proxyable<T>, indexfn: () => number[]) {
   const source = this;
-  const copy = { ...this, indexfn };
+  const copy = { ...this, source, indexfn, n, valueAt, proxy };
+  return copy;
+}
 
-  // @ts-ignore
-  copy.n = function () {
-    return this.indexfn().length;
-  };
+function n<T>(this: Proxyable<T>) {
+  return this.indexfn!().length;
+}
 
-  copy.valueAt = function (index: number, offset: number) {
-    return this.source!.valueAt(this.indexfn()[index], offset);
-  };
-
-  return { ...proxyable(copy), source };
+function valueAt<T>(this: Proxyable<T>, index: number, offset = 0) {
+  return this.source!.valueAt(this.indexfn!()[index], offset);
 }

@@ -1,5 +1,5 @@
 import { Dataframe } from "../dataframe/Dataframe";
-import { subscribable } from "../mixins/Emitter";
+import { observable } from "../mixins/Observable";
 import { Variables } from "../types";
 import { Factor } from "./Factor";
 import { newFactorMono } from "./FactorMono";
@@ -13,7 +13,7 @@ export function newFactorComputed<T extends Variables>(
   parent = parent ?? newFactorMono();
   const self = { parent, cardinality, levels, data, levelAt };
 
-  return subscribable(self);
+  return observable(self);
 }
 
 function levelAt(this: Factor, index: number) {

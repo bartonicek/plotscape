@@ -76,13 +76,13 @@ export function newHistogram<T extends Variables>(
     anchor.defaultize();
   });
 
-  partition1Data.listen(`changed`, () => {
+  partition1Data.listen(() => {
     self.trainScales(bars.boundaryData!, (d) => ({ x: d.x0, y: d.y1 }));
     self.scales.x.setName(partition1Data.col(`binMid`).name());
     self.scales.y.setMin(0);
   });
 
-  partition2Data.listen(`changed`, self.render.bind(self));
+  partition2Data.listen(self.render.bind(self));
 }
 
 function encodeAbs(self: Histogram) {

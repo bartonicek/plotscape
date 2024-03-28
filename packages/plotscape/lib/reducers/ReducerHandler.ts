@@ -1,5 +1,5 @@
 import { Factor } from "../factors/Factor";
-import { Emitter, subscribable } from "../mixins/Emitter";
+import { Observable, observable } from "../mixins/Observable";
 import { Reduced, reduced } from "../mixins/Reduced";
 import { InferVariable } from "../types";
 import { newContinuous } from "../variables/Continuous";
@@ -8,7 +8,7 @@ import { newReference } from "../variables/Reference";
 import { Variable } from "../variables/Variable";
 import { Reducer } from "./Reducer";
 
-export interface ReducerHandler<T = any, U = any> extends Emitter<`changed`> {
+export interface ReducerHandler<T = any, U = any> extends Observable {
   name: string;
   factor?: Factor;
   parent?: ReducerHandler<T, U>;
@@ -53,7 +53,7 @@ export function newReducerHandler<T, U>(
     normalizeByParent,
   };
 
-  const self = subscribable({ ...props, ...methods });
+  const self = observable({ ...props, ...methods });
   self.result.setReducer(self as any);
   return self;
 }
@@ -82,7 +82,7 @@ function clone<T, U>(this: ReducerHandler<T, U>): ReducerHandler<T, U> {
   if (parent) copy.setParent(parent);
   if (factor) copy.setFactor(factor);
 
-  this.listen(`changed`, () => copy.recompute());
+  this.listen(() => copy.recompute());
   return copy;
 }
 
@@ -104,7 +104,7 @@ function recompute<T, U>(this: ReducerHandler<T, U>) {
   if (normalized) normalizeInternal(this);
 
   result.domain.retrain(array as any);
-  this.emit(`changed`);
+  this.emit();
   return this;
 }
 

@@ -62,8 +62,8 @@ export function newFluctplot<T extends Variables>(
   const nMax = Math.max(factor1.cardinality, factor2.cardinality) + 1;
   plot.scales.area.codomain.setScale(1 / nMax).setTransform(square, squareRoot);
 
-  self.partition1Data.listen(`changed`, plot.render.bind(plot));
-  self.partition2Data.listen(`changed`, plot.render.bind(plot));
+  self.partition1Data.listen(plot.render.bind(plot));
+  self.partition2Data.listen(plot.render.bind(plot));
 
   self.addKeyAction(`KeyR`, () => {
     self.scales.x.setDefaultOrder();

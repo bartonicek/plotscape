@@ -1,6 +1,6 @@
 import { zero } from "utils";
 import { newDataframe } from "../dataframe/Dataframe";
-import { subscribable } from "../mixins/Emitter";
+import { observable } from "../mixins/Observable";
 import { Factor } from "./Factor";
 
 export function newFactorMono(): Factor<{}> {
@@ -9,5 +9,5 @@ export function newFactorMono(): Factor<{}> {
   const levelAt = zero;
   const data = newDataframe({});
 
-  return subscribable({ cardinality, levels, data, levelAt });
+  return observable({ cardinality, levels, data, levelAt });
 }

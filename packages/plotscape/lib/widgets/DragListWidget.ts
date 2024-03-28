@@ -1,8 +1,8 @@
 import { element } from "utils";
-import { Emitter, subscribable } from "../mixins/Emitter";
+import { Observable, observable } from "../mixins/Observable";
 import { Widget } from "./Widget";
 
-export interface DragListWidget extends Widget, Emitter<`changed`> {
+export interface DragListWidget extends Widget, Observable {
   name: string;
   container: HTMLDivElement;
   source: { values: string[] };
@@ -22,7 +22,7 @@ export function newDragListWidget(source: {
   const props = { name, container, source };
   const methods = { setName, render };
 
-  const self = subscribable({ ...props, ...methods });
+  const self = observable({ ...props, ...methods });
   self.render();
 
   return self;
@@ -58,7 +58,7 @@ function render(this: DragListWidget) {
       for (let i = 0; i < children.length; i++) {
         values[i] = children[i].innerText;
       }
-      this.emit(`changed`);
+      this.emit();
       li.classList.remove(`dragged`);
     });
   }

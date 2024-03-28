@@ -27,7 +27,7 @@ export function newScatter<T extends Variables>(
   plot.pushGraphicObject(points);
   plot.trainScales(boundaryData, (d) => ({ x: d.x, y: d.y }));
 
-  boundaryData.listen(`changed`, plot.render.bind(plot));
+  boundaryData.listen(plot.render.bind(plot));
 
   return { ...plot, ...{ data, points, renderData, boundaryData } };
 }

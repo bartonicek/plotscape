@@ -1,11 +1,11 @@
 import { MapFn, identity, invertRange, minMax, prettyBreaks } from "utils";
-import { Emitter, subscribable, untrack } from "../mixins/Emitter";
+import { Observable, observable, untrack } from "../mixins/Observable";
 import { RangeWidget, newRangeWidget } from "../widgets/RangeWidget";
 import { Expanse } from "./Expanse";
 
 /* -------------------------------- Interface ------------------------------- */
 
-export interface ExpanseContinuous extends Expanse<number>, Emitter<"changed"> {
+export interface ExpanseContinuous extends Expanse<number>, Observable {
   min: number;
   max: number;
   scale: number;
@@ -70,7 +70,7 @@ export function newExpanseContinuous(min = 0, max = 1): ExpanseContinuous {
   };
   const self = { ...props, ...methods };
 
-  return subscribable(self);
+  return observable(self);
 }
 
 /* --------------------------------- Methods -------------------------------- */
@@ -89,19 +89,19 @@ function unnormalize(this: ExpanseContinuous, value: number) {
 
 function setMin(this: ExpanseContinuous, value: number) {
   this.min = value;
-  this.emit("changed");
+  this.emit();
   return this;
 }
 
 function setMax(this: ExpanseContinuous, value: number) {
   this.max = value;
-  this.emit("changed");
+  this.emit();
   return this;
 }
 
 function setMinMax(this: ExpanseContinuous, min: number, max: number) {
   untrack(this, () => this.setMin(min).setMax(max));
-  this.emit(`changed`);
+  this.emit();
   return this;
 }
 
@@ -143,7 +143,7 @@ function expand(this: ExpanseContinuous, value: number) {
 function defaultize(this: ExpanseContinuous) {
   this.min = this.defaultMin;
   this.max = this.defaultMax;
-  this.emit(`changed`);
+  this.emit();
   return this;
 }
 
@@ -172,10 +172,10 @@ function widget(this: ExpanseContinuous, norm: ExpanseContinuous) {
   min = this.unnormalize(min);
   max = this.unnormalize(max);
 
-  const source = subscribable({ min, max });
+  const source = observable({ min, max });
 
   const widget = newRangeWidget(source);
-  widget.listen(`changed`, () => {
+  widget.listen(() => {
     let { min, max } = widget;
 
     source.min = min;

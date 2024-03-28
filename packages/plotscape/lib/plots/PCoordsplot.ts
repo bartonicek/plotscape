@@ -51,7 +51,7 @@ export function newPCoordsplot<T extends Variables>(
   self.addKeyAction(`KeyN`, switchEncoding.bind(self));
   self.addKeyAction(`KeyR`, () => self.scales.x.setDefaultOrder());
 
-  boundaryData.listen(`changed`, plot.render.bind(plot));
+  boundaryData.listen(plot.render.bind(plot));
   return self;
 }
 

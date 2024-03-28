@@ -1,13 +1,13 @@
 import { element } from "utils";
 import { formatLabel } from "../funs";
-import { Emitter, subscribable } from "../mixins/Emitter";
+import { Observable, observable } from "../mixins/Observable";
 import { Widget } from "./Widget";
 
-type Source = { min: number; max: number } & Emitter<`changed`>;
+type Source = { min: number; max: number } & Observable;
 
-export interface RangeWidget extends Widget, Emitter<`changed`> {
+export interface RangeWidget extends Widget, Observable {
   name: string;
-  source: { min: number; max: number } & Emitter<`changed`>;
+  source: { min: number; max: number } & Observable;
   min: number;
   max: number;
   render(): void;
@@ -25,7 +25,7 @@ export function newRangeWidget(source: Source): RangeWidget {
 
   const props = { container, name, source, min, max };
   const methods = { setName, render, min, max };
-  const self = subscribable({ ...props, ...methods });
+  const self = observable({ ...props, ...methods });
 
   self.render();
   return self;
@@ -57,7 +57,7 @@ function render(this: RangeWidget) {
     if (!(event.code === `Enter`)) return;
     this.min = parseFloat(inputMin.value);
     this.max = parseFloat(inputMax.value);
-    this.emit(`changed`);
+    this.emit();
     this.render();
   };
 

@@ -1,7 +1,7 @@
 import { Normalize, allEntries, values } from "utils";
 import { Dataframe, newDataframe } from "../dataframe/Dataframe";
 import { Factor } from "../factors/Factor";
-import { Emitter, subscribable } from "../mixins/Emitter";
+import { Observable, observable } from "../mixins/Observable";
 import { Variables } from "../types";
 import { ReducerHandler } from "./ReducerHandler";
 
@@ -14,7 +14,7 @@ export interface ReducedDataframe<
   T extends Variables = {},
   U extends Reducers = {}
 > extends Dataframe<Normalize<T & Results<U>>>,
-    Emitter<`changed`> {
+    Observable {
   factor: Factor<T>;
   reducers: U;
   recompute(): void;
@@ -39,10 +39,10 @@ export function newReducedDataframe<T extends Variables, U extends Reducers>(
   const data = newDataframe(columns as Normalize<T & Results<U>>);
   const props = { factor, reducers: reducersCopy, recompute };
 
-  const self = subscribable({ ...data, ...props }) as ReducedDataframe<T, U>;
+  const self = observable({ ...data, ...props }) as ReducedDataframe<T, U>;
   self.recompute();
 
-  factor.listen(`changed`, self.recompute.bind(self));
+  factor.listen(self.recompute.bind(self));
   return self;
 }
 
@@ -57,5 +57,5 @@ function recompute<T extends Variables, U extends Reducers>(
   }
 
   this.cachedN = undefined;
-  this.emit(`changed`);
+  this.emit();
 }

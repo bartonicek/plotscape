@@ -1,7 +1,7 @@
-import { Emitter, subscribable } from "./mixins/Emitter";
+import { Observable, observable } from "./mixins/Observable";
 import { Primitive } from "./types";
 
-export interface ValueEmitter<T> extends Emitter<`changed`> {
+export interface ValueEmitter<T> extends Observable {
   value: T;
   defaultValue: T;
   defaultize(): void;
@@ -14,7 +14,7 @@ export function newValueEmitter<T>(value: T): ValueEmitter<T> {
   const methods = { defaultize, setValue };
   const self = { ...props, ...methods };
 
-  return subscribable(self);
+  return observable(self);
 }
 
 export function isEmitter<T>(
@@ -30,7 +30,7 @@ export function getter<T>(source: T | ValueEmitter<T>) {
 
 export function defaultize<T>(this: ValueEmitter<T>) {
   this.value = this.defaultValue;
-  this.emit(`changed`);
+  this.emit();
 }
 
 function setValue<T extends Primitive>(
@@ -38,5 +38,5 @@ function setValue<T extends Primitive>(
   value: T | ((prev: T) => T)
 ) {
   this.value = typeof value != "function" ? value : value(this.value);
-  this.emit(`changed`);
+  this.emit();
 }

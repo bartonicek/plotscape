@@ -2,7 +2,7 @@ import { seq } from "utils";
 import { Dataframe, newDataframe } from "../dataframe/Dataframe";
 import { Factor } from "../factors/Factor";
 import { newFactorComputed } from "../factors/FactorComputed";
-import { Emitter, subscribable } from "../mixins/Emitter";
+import { Observable, observable } from "../mixins/Observable";
 import { ContextId } from "../plot/Plot";
 import { LAYER, POSITIONS } from "../symbols";
 import { Group } from "../types";
@@ -25,7 +25,7 @@ const transientGroups = [0, 1, 2, 3] as const;
 
 /* -------------------------------- Interface ------------------------------- */
 
-export interface Marker extends Emitter<`changed`> {
+export interface Marker extends Observable {
   n: number;
   factor: Factor<MarkerCols>;
   group: Group;
@@ -59,7 +59,7 @@ export function newMarker(n: number): Marker {
   const props = { n, group, indices, positions, transientPositions, factor };
   const methods = { setGroup, update, clearAll, clearTransient, data };
 
-  const self = subscribable({ ...props, ...methods });
+  const self = observable({ ...props, ...methods });
 
   return self;
 }
@@ -96,8 +96,8 @@ function update(this: Marker, selected: Set<number>) {
     }
   }
 
-  this.factor.emit(`changed`);
-  this.emit(`changed`);
+  this.factor.emit();
+  this.emit();
   return this;
 }
 
@@ -108,7 +108,7 @@ function clearAll(this: Marker) {
   for (let i = 0; i < this.n; i++) positions[Group.Group1].add(i);
   indices.fill(Group.Group1);
 
-  this.factor.emit(`changed`);
+  this.factor.emit();
   return this;
 }
 
@@ -123,7 +123,7 @@ function clearTransient(this: Marker) {
   }
 
   transientPositions.clear();
-  this.factor.emit(`changed`);
+  this.factor.emit();
   return this;
 }
 
@@ -132,7 +132,7 @@ function data(this: Marker) {
   const data = factor.data.proxy(indices);
   const positions = Array.from(Array(n), (_, i) => new Set([i]));
   data.columns[POSITIONS] = newReference(positions);
-  this.factor.listen(`changed`, () => data.emit(`changed`));
+  this.factor.listen(() => data.emit());
 
   return data;
 }

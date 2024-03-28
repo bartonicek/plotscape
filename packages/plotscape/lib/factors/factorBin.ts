@@ -38,11 +38,11 @@ export function factorBin(
       self.data.columns[k].indexfn = v.indexfn;
     }
 
-    self.emit(`changed`);
+    self.emit();
   };
 
-  if (isEmitter(width)) width.listen(`changed`, update);
-  if (isEmitter(anchor)) anchor.listen(`changed`, update);
+  if (isEmitter(width)) width.listen(update);
+  if (isEmitter(anchor)) anchor.listen(update);
 
   return self;
 }

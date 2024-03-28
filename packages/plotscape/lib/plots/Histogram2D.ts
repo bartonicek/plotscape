@@ -85,7 +85,7 @@ export function newHistogram2D<T extends Variables>(
     width2.defaultize();
   });
 
-  partition1Data.listen(`changed`, () => {
+  partition1Data.listen(() => {
     self.trainScales(squares.boundaryData!, identity);
     const nMax = Math.max(factor1.cardinality, factor2.cardinality);
     self.trainScales(squares.boundaryData!, identity);
@@ -93,7 +93,7 @@ export function newHistogram2D<T extends Variables>(
     self.render();
   });
 
-  partition2Data.listen(`changed`, self.render.bind(self));
+  partition2Data.listen(self.render.bind(self));
 
   self.render();
 }

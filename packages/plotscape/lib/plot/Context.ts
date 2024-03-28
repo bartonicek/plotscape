@@ -1,6 +1,6 @@
 import { ElementWrapper, StyleDict, element, entries } from "utils";
 import graphicParameters from "../graphicParameters.json";
-import { Emitter, subscribable } from "../mixins/Emitter";
+import { Observable, observable } from "../mixins/Observable";
 import { HorizontalAnchor, Margins, VerticalAnchor } from "../types";
 
 type RenderOptions = {
@@ -10,7 +10,7 @@ type RenderOptions = {
 
 /* -------------------------------- Interface ------------------------------- */
 
-export interface Context extends Emitter<"resized"> {
+export interface Context extends Observable<"resized"> {
   container: HTMLDivElement;
   canvas: HTMLCanvasElement;
   canvasWrapper: ElementWrapper<HTMLCanvasElement>;
@@ -118,7 +118,7 @@ export function newContext(container: HTMLDivElement): Context {
     text,
   };
 
-  const self = subscribable({ ...props, ...pars, ...methods });
+  const self = observable({ ...props, ...pars, ...methods });
   self.resize();
 
   window.addEventListener("resize", () => self.resize());
