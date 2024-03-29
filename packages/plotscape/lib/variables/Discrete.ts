@@ -26,9 +26,10 @@ export function newDiscrete(
   domain?: ExpanseDiscreteWeighted
 ): Discrete {
   const unique = Array.from(new Set(array)).sort(compareAlphaNumeric);
+  const tag = `Discrete`;
   domain = domain ?? newExpanseDiscreteWeighted(unique);
 
-  const props = { array, domain };
+  const props = { array, domain, [Symbol.toStringTag]: tag };
   const methods = { width, clone };
   const self = { ...props, ...methods };
 

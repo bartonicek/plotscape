@@ -20,7 +20,6 @@ export interface ColumnParserDiscrete extends Named {
 
 export function newColumnParserDiscrete(): ColumnParserDiscrete {
   const options = { case: Case.None, capitalize: false, stripWS: false };
-
   return named({
     options,
     parse,

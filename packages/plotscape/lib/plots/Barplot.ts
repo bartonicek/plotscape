@@ -1,4 +1,5 @@
 import { sum } from "utils";
+import { GapDimension } from "../GapHandler";
 import { one, zero } from "../constants";
 import { Dataframe } from "../dataframe/Dataframe";
 import { factorFrom } from "../factors/factorFrom";
@@ -59,7 +60,7 @@ export function newBarplot<T extends Variables>(
 
   const [type, order] = [Type.Absolute, Order.Alphanumeric];
   const bars = newRectanglesWH(plot);
-  bars.setVAnchor(VerticalAnchor.Bottom);
+  bars.setVAnchor(VerticalAnchor.Bottom).setGapDimension(GapDimension.Width);
 
   const self = { ...plot, bars, type, order, partition1Data, partition2Data };
   encodeAbs(self);
@@ -104,7 +105,6 @@ function encodeAbs(self: Barplot) {
 
   bars.setBoundaryData(boundaryData);
   bars.setRenderData(renderData);
-  bars.setWidthPct(0.8);
 
   self.type = Type.Absolute;
   self.trainScales(boundaryData, (d) => ({
@@ -128,7 +128,6 @@ function encodePct(self: Barplot) {
 
   bars.setBoundaryData(boundaryData);
   bars.setRenderData(renderData);
-  bars.setWidthGapPx(1);
 
   self.type = Type.Proportion;
   self.trainScales(boundaryData, (d) => ({

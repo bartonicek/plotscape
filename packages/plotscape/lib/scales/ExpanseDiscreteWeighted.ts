@@ -37,11 +37,18 @@ export interface ExpanseDiscreteWeighted extends Expanse<string>, Observable {
 export function newExpanseDiscreteWeighted(
   values: string[]
 ): ExpanseDiscreteWeighted {
+  const tag = `ExpanseDiscreteWeighted`;
   const order = seq(0, values.length - 1);
   const weights = rep(1, values.length);
   const cumWeights = cumsum(weights);
 
-  const props = { order, values, weights, cumWeights };
+  const props = {
+    [Symbol.toStringTag]: tag,
+    order,
+    values,
+    weights,
+    cumWeights,
+  };
   const methods = {
     clone,
     normalize,

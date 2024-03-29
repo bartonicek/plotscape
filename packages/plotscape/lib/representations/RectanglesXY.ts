@@ -1,6 +1,6 @@
 import { mergeInto, values } from "utils";
 import { pointInRect, rectsIntersect } from "../funs";
-import { ContextId, Contexts, Plot } from "../plot/Plot";
+import { ContextId, Contexts, Plot, layers } from "../plot/Plot";
 import { LAYER, POSITIONS } from "../symbols";
 import { Point, Rect } from "../types";
 import { Variable } from "../variables/Variable";
@@ -21,8 +21,8 @@ type Encodings = {
 export interface RectanglesXY extends Representation<Encodings> {}
 
 export function newRectanglesXY(plot: Plot): RectanglesXY {
-  const scales = { ...plot.scales };
-  const props = { scales };
+  const { scales, contexts } = plot;
+  const props = { scales, contexts };
   const methods = {
     setBoundaryData,
     setRenderData,
@@ -41,6 +41,8 @@ function render(this: RectanglesXY, contexts: Contexts) {
 
   const { renderData: data, scales } = this;
   const n = data.n();
+
+  for (const id of layers) contexts[id].clear();
 
   for (let i = 0; i < n; i++) {
     const layer = data.col(LAYER).valueAt(i) as ContextId;

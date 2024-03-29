@@ -37,17 +37,16 @@ export interface ExpanseContinuous extends Expanse<number>, Observable {
 /* ------------------------------- Constructor ------------------------------ */
 
 export function newExpanseContinuous(min = 0, max = 1): ExpanseContinuous {
+  const tag = `ExpanseContinuous`;
   const [defaultMin, defaultMax, scale] = [min, max, 1];
   const [trans, inv] = [identity, identity];
-
   const props = {
+    [Symbol.toStringTag]: tag,
     min,
     max,
     scale,
     defaultMin,
     defaultMax,
-    trans,
-    inv,
   };
 
   const methods = {
@@ -61,6 +60,8 @@ export function newExpanseContinuous(min = 0, max = 1): ExpanseContinuous {
     setDefaultMin,
     setDefaultMax,
     setScale,
+    trans,
+    inv,
     setTransform,
     expand,
     defaultize,

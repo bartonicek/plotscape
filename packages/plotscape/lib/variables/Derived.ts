@@ -19,8 +19,9 @@ export function newDerived<T, U>(
   derivefn: (index: number, variable?: Variable<U>) => T,
   variable?: Variable<U>
 ): Derived<T> {
+  const tag = `Derived`;
   const domain = newExpanseContinuous() as unknown as Expanse<T>;
-  const props = { variable, domain };
+  const props = { [Symbol.toStringTag]: tag, variable, domain };
   const methods = { clone, n, derivefn, valueAt, scaledAt, setDomain };
   const self = { ...props, ...methods };
 

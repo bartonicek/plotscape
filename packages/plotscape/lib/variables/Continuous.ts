@@ -27,9 +27,10 @@ export function newContinuous(
   array: number[],
   domain?: ExpanseContinuous
 ): Continuous {
+  const tag = `Continuous`;
   domain = domain ?? newExpanseContinuous(...minMax(array));
 
-  const props = { array, domain };
+  const props = { array, domain, [Symbol.toStringTag]: tag };
   const methods = { range, min, max, clone };
   const self = { ...props, ...methods };
 

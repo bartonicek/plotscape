@@ -53,10 +53,9 @@ export function newHistogram2D<T extends Variables>(
   const partition2Data = partition2.data();
 
   const type = Type.Absolute;
-  const squares = newRectanglesWH(plot);
+  const squares = newRectanglesWH(plot).noGap();
   squares.mapEncodingToScale(`width`, `area`);
   squares.mapEncodingToScale(`height`, `area`);
-  squares.setWidthGapPx(1).setHeightGapPx(1);
 
   const self = { ...plot, type, squares, partition1Data, partition2Data };
   encodeAbs(self);

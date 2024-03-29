@@ -55,11 +55,12 @@ export function newScale<T = number>(
   norm?: ExpanseContinuous,
   codomain?: ExpanseContinuous
 ): Scale<T> {
+  const tag = `Scale`;
   domain = domain ?? (newExpanseContinuous() as unknown as Expanse<T>);
   norm = norm ?? newExpanseContinuous();
   codomain = codomain ?? newExpanseContinuous();
 
-  const props = { domain, norm, codomain };
+  const props = { [Symbol.toStringTag]: tag, domain, norm, codomain };
   const methods = {
     clone,
     setAes,

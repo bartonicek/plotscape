@@ -18,9 +18,9 @@ export interface ExpanseDiscreteAbsolute extends Expanse<string>, Observable {
 export function newExpanseDiscreteAbsolute(
   values: string[]
 ): ExpanseDiscreteAbsolute {
+  const tag = `ExpanseDiscreteAbsolute`;
   const order = seq(0, values.length - 1);
-
-  const props = { order, values };
+  const props = { [Symbol.toStringTag]: tag, order, values };
   const methods = {
     clone,
     normalize,

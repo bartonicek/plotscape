@@ -10,7 +10,6 @@ export interface ColumnParserContinuous extends Named {
 
 export function newColumnParserContinuous(): ColumnParserContinuous {
   const options = { center: false, scale: false };
-
   return named({
     options,
     parse,

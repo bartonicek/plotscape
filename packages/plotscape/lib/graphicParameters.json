@@ -1,5 +1,6 @@
 {
-  "defaultWidth": 0.8,
+  "defaultGapPct": 0.8,
+  "defaultGapPx": 1,
   "defaultNormX": 0.05,
   "defaultNormY": 0.05,
   "defaultRadius": 5,

@@ -51,7 +51,7 @@ export function newFluctplot<T extends Variables>(
   const partition2Data = partition2.data();
 
   const type = Type.Absolute;
-  const squares = newRectanglesWH(plot);
+  const squares = newRectanglesWH(plot).setDefaultGap(1, 0);
   squares.mapEncodingToScale(`width`, `area`);
   squares.mapEncodingToScale(`height`, `area`);
 

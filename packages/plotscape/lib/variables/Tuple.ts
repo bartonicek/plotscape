@@ -28,10 +28,11 @@ export interface Tuple<T extends unknown[] = unknown[]> extends Named {
 export function newTuple<T extends any[]>(
   variables: VariableTuple<T>
 ): Tuple<T> {
-  const order = seq(0, variables.length - 1);
+  const tag = `Tuple`;
   const commonDomain = false;
+  const order = seq(0, variables.length - 1);
   const domain = newExpanseContinuous() as unknown as Expanse<T>;
-  const props = { variables, order, domain, commonDomain };
+  const props = { tag, variables, order, domain, commonDomain };
   const methods = {
     clone,
     n,

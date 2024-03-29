@@ -28,7 +28,8 @@ export interface Dataframe<T extends Variables = Variables> extends Observable {
 }
 
 export function newDataframe<T extends Variables>(columns: T): Dataframe<T> {
-  const props = { columns };
+  const tag = `Dataframe`;
+  const props = { [Symbol.toStringTag]: tag, columns };
   const methods = {
     n,
     keys,

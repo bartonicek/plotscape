@@ -1,10 +1,11 @@
 import { mergeInto, values } from "utils";
+import { ObservableValue, newObservableValue } from "../ObservableValue";
 import { Dataframe } from "../dataframe/Dataframe";
 import { pointInRect, rectsIntersect } from "../funs";
 import graphicParameters from "../graphicParameters.json";
-import { ContextId, Contexts, Plot, Scales } from "../plot/Plot";
+import { ContextId, Contexts, Plot, Scales, layers } from "../plot/Plot";
 import { LAYER, POSITIONS } from "../symbols";
-import { BoundaryCols, Point, Rect, RenderCols } from "../types";
+import { BoundaryCols, KeyActions, Point, Rect, RenderCols } from "../types";
 import { Variable } from "../variables/Variable";
 import {
   Representation,
@@ -23,8 +24,8 @@ export interface Points extends Representation {
   boundaryData: Dataframe<Encodings & BoundaryCols>;
   renderData: Dataframe<Encodings & RenderCols>;
   scales: Scales;
-
-  sizePct: number;
+  contexts: Contexts;
+  sizePct: ObservableValue<number>;
 }
 
 export function newPoints(
@@ -32,9 +33,22 @@ export function newPoints(
   boundaryData: Dataframe<Encodings & BoundaryCols>,
   renderData: Dataframe<Encodings & RenderCols>
 ): Points {
-  const scales = plot.scales;
-  const sizePct = 1;
-  const props = { boundaryData, renderData, scales, sizePct };
+  const { scales, contexts } = plot;
+  const sizePct = newObservableValue(1);
+  const keyActions = {} as KeyActions;
+
+  keyActions[`Equal`] = () => sizePct.setValue((v) => (v * 10) / 9);
+  keyActions[`Minus`] = () => sizePct.setValue((v) => (v * 9) / 10);
+  keyActions[`KeyR`] = () => sizePct.defaultize();
+
+  const props = {
+    boundaryData,
+    renderData,
+    scales,
+    contexts,
+    keyActions,
+    sizePct,
+  };
   const methods = {
     render,
     check,
@@ -44,13 +58,15 @@ export function newPoints(
     mapEncodingToScale,
   };
   const self = { ...props, ...methods };
-
+  sizePct.listen(self.render.bind(self));
   return self;
 }
 
-function render(this: Points, contexts: Contexts) {
-  const { renderData: data, scales } = this;
+function render(this: Points) {
+  const { renderData: data, scales, contexts, sizePct } = this;
   const n = data.n();
+
+  for (const id of layers) contexts[id].clear();
 
   for (let i = 0; i < n; i++) {
     const layer = data.col(LAYER).valueAt(i) as ContextId;
@@ -59,6 +75,7 @@ function render(this: Points, contexts: Contexts) {
     const y = data.col(`y`).scaledAt(i, scales.y);
     let radius = data.col(`size`)?.scaledAt(i, scales.size);
     radius = radius ? Math.sqrt(radius) : graphicParameters.defaultRadius;
+    radius = radius * sizePct.value;
 
     contexts[layer].point(x, y, { radius });
   }

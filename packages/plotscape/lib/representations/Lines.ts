@@ -1,7 +1,7 @@
 import { dec, inc, mapParallel, mergeInto, values } from "utils";
 import { Dataframe } from "../dataframe/Dataframe";
 import { orderByIndices, rectSegmentIntersect } from "../funs";
-import { ContextId, Contexts, Plot, Scales } from "../plot/Plot";
+import { ContextId, Contexts, Plot, Scales, layers } from "../plot/Plot";
 import { LAYER, POSITIONS } from "../symbols";
 import { BoundaryCols, Point, Rect, RenderCols } from "../types";
 import { Tuple } from "../variables/Tuple";
@@ -50,6 +50,8 @@ function render(this: Lines) {
   const order = scales.x.domain.order!;
 
   if (!order) return;
+
+  for (const id of layers) contexts[id].clear();
 
   for (let i = 0; i < n; i++) {
     const layer = data.col(LAYER).valueAt(i) as ContextId;

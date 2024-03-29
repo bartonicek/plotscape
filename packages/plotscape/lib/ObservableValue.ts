@@ -6,7 +6,7 @@ export interface ObservableValue<T> extends Observable {
   defaultValue: T;
   defaultize(): void;
   setValue(value: T): void;
-  setValue(value: (prev: T) => T): void;
+  setValue(value: number | ((prev: T) => T)): void;
 }
 
 export function newObservableValue<T>(value: T): ObservableValue<T> {

@@ -1,4 +1,5 @@
 import { fetchJSON } from "utils";
+import { GapType, newGapHandler } from "../lib/GapHandler.ts";
 import { col } from "../lib/dataframe/ColumnParser.ts";
 import { parseColumns } from "../lib/dataframe/Dataframe.ts";
 import { newBarplot } from "../lib/plots/Barplot.ts";
@@ -97,3 +98,15 @@ async function sacrametoScene() {
 // diamondsScene();
 sacrametoScene();
 // mpgScene();
+
+const gh = newGapHandler();
+
+gh.setGapType(GapType.Pct);
+gh.increaseGap();
+gh.increaseGap();
+
+console.log(gh.applyGap(300, 400));
+
+gh.defaultize();
+
+console.log(gh.applyGap(300, 400));

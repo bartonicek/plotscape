@@ -11,9 +11,10 @@ import {
 } from "../types";
 
 export interface Representation<T extends Variables = Variables> {
-  scales: Scales;
   boundaryData?: Dataframe<T & BoundaryCols>;
   renderData?: Dataframe<T & RenderCols>;
+  scales: Scales;
+  contexts: Contexts;
   keyActions?: KeyActions;
 
   setBoundaryData(data: Dataframe<T & BoundaryCols>): void;

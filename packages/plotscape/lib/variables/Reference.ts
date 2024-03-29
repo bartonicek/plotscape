@@ -15,9 +15,9 @@ export interface Reference<T = unknown>
 }
 
 export function newReference<T>(values: T[]): Reference<T> {
+  const tag = `Reference`;
   const domain = newExpanseContinuous() as unknown as Expanse<T>;
-
-  const props = { array: values, domain };
+  const props = { array: values, domain, [Symbol.toStringTag]: tag };
   const methods = { clone };
   const self = { ...props, ...methods };
 
