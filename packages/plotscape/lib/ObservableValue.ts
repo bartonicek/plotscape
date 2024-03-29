@@ -18,13 +18,14 @@ export function newObservableValue<T>(value: T): ObservableValue<T> {
 }
 
 export function isObservable<T>(
-  value: T | ObservableValue<T>
+  value?: T | ObservableValue<T>
 ): value is ObservableValue<T> {
+  if (value === undefined) return false;
   return value && typeof value === `object` && `listen` in value;
 }
 
-export function getter<T>(source: T | ObservableValue<T>) {
-  if (isObservable(source)) return () => source.value;
+export function getter<T>(source?: T | ObservableValue<T>) {
+  if (source && isObservable(source)) return () => source.value;
   return () => source;
 }
 

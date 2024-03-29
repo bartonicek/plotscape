@@ -1,5 +1,6 @@
 import { Dataframe } from "@abartonicek/plotscape5";
 import { square, squareRoot } from "utils";
+import { GapType } from "../GapHandler";
 import { one } from "../constants";
 import { factorFrom } from "../factors/factorFrom";
 import { factorProduct } from "../factors/factorProduct";
@@ -85,6 +86,7 @@ function encodeAbs(self: Fluctplot) {
 
   squares.setBoundaryData(boundaryData);
   squares.setRenderData(renderData);
+  squares.setGapType(GapType.Pct);
 
   self.type = Type.Absolute;
   self.trainScales(boundaryData, (d) => ({ x: d.x, y: d.y, area: d.width }));
@@ -99,6 +101,7 @@ function encodePct(self: Fluctplot) {
 
   squares.setBoundaryData(boundaryData);
   squares.setRenderData(renderData);
+  squares.setGapType(GapType.Px);
 
   self.type = Type.Proportion;
   self.trainScales(boundaryData, (d) => ({ x: d.x, y: d.y, area: d.width }));

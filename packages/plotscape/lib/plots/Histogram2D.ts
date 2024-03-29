@@ -38,8 +38,8 @@ export function newHistogram2D<T extends Variables>(
   const plot = newPlot(scene);
   const data = scene.data.select(selectfn);
 
-  const width1 = newObservableValue(data.col(`v1`).range() / 15);
-  const width2 = newObservableValue(data.col(`v2`).range() / 15);
+  const width1 = newObservableValue(data.col(`v1`).range() / 30);
+  const width2 = newObservableValue(data.col(`v2`).range() / 30);
 
   const reducers = { stat1: newReducerHandler(one, sumReducer) };
   const factor1 = factorBin(data.col(`v1`), width1, data.col(`v1`).min());

@@ -1,5 +1,5 @@
 import { sum } from "utils";
-import { GapDimension } from "../GapHandler";
+import { GapDimension, GapType } from "../GapHandler";
 import { one, zero } from "../constants";
 import { Dataframe } from "../dataframe/Dataframe";
 import { factorFrom } from "../factors/factorFrom";
@@ -105,6 +105,7 @@ function encodeAbs(self: Barplot) {
 
   bars.setBoundaryData(boundaryData);
   bars.setRenderData(renderData);
+  bars.setGapType(GapType.Pct);
 
   self.type = Type.Absolute;
   self.trainScales(boundaryData, (d) => ({
@@ -128,6 +129,7 @@ function encodePct(self: Barplot) {
 
   bars.setBoundaryData(boundaryData);
   bars.setRenderData(renderData);
+  bars.setGapType(GapType.Px);
 
   self.type = Type.Proportion;
   self.trainScales(boundaryData, (d) => ({

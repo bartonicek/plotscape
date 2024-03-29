@@ -108,8 +108,8 @@ function applyGap(this: GapHandler, width: number, height: number) {
 
   const operation = gapType === GapType.Pct ? prod : diff;
 
-  if (gapDimension <= 1) width = operation(width, amount);
-  if (gapDimension >= 1) height = operation(height, amount);
+  if (gapDimension <= 1) width = Math.max(operation(width, amount), 1);
+  if (gapDimension >= 1) height = Math.max(operation(height, amount), 1);
 
   return [width, height] as [number, number];
 }

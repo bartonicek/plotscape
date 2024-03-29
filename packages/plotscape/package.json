@@ -9,7 +9,7 @@
   "sideEffects": ["**/*.css"],
   "scripts": {
     "dev": "vite",
-    "build": "tsc --p ./tsconfig-build.json && vite build",
+    "build": "tsc --p ./tsconfig-build.json && vite build && cp ./dist/main.iife.js ../plotscaper/inst/htmlwidgets/plotscape",
     "preview": "vite preview"
   },
   "devDependencies": {
