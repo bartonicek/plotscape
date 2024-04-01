@@ -26,6 +26,7 @@ html, body {
 }
 
 .ps-plot-container {
+  overflow: auto;
   z-index: 0;
   position: relative;
   border: 1px solid black;
@@ -77,6 +78,18 @@ html, body {
   padding-left: 5vmin;
   padding-right: 5vmin;
 }
+
+.ps-help-modal h1, h2, h3, hr {
+  margin: 0;
+  font-weight: lighter;
+  font-family: sans-serif;
+}
+
+.ps-help-modal ul {
+  list-style: none;
+  padding: 0;
+}
+
 
 .ps-help-button {
   position: absolute;
