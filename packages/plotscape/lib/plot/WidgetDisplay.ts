@@ -1,10 +1,11 @@
 import { element } from "utils";
 import { Widget } from "../widgets/Widget";
 
+/** Displays widgets related to plot parameters. */
 export interface WidgetDisplay {
-  initialized: boolean;
   modal: HTMLDialogElement;
   container: HTMLDivElement;
+  initialized: boolean;
   show(): void;
   addWidget(widget: Widget): void;
 }

@@ -6,6 +6,7 @@ import { Expanse } from "../scales/Expanse";
 import { newExpanseContinuous } from "../scales/ExpanseContinuous";
 import { Variable } from "./Variable";
 
+/** Returns any kind of value by index. */
 export interface Reference<T = unknown>
   extends Named,
     Variable<T>,

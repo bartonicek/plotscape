@@ -10,6 +10,7 @@ import {
 } from "../scales/ExpanseContinuous";
 import { Variable } from "./Variable";
 
+/** Returns numeric values by index. */
 export interface Continuous
   extends Named,
     Variable<number>,

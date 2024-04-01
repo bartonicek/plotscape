@@ -9,6 +9,15 @@ type Aesthetic = `x` | `y`;
 
 /* -------------------------------- Interface ------------------------------- */
 
+/**
+ * Maps values from one expanse (domain) to another (codomain) and back.
+ * Also has an intermediate expanse norm which can be used for e.g. panning,
+ * zooming etc...
+ *
+ * Example: with a `[0.05, 0.95]` norm, a minimum value in the domain will get
+ * mapped to the 5% value in the codomain, and the maximum value in the domain
+ * will get mapped to the 95% value in the codomain.
+ * */
 export interface Scale<T = unknown> extends Named, Observable {
   other?: Scale;
   aes?: Aesthetic;

@@ -1,9 +1,10 @@
 import { Expanse } from "../scales/Expanse";
 import { Scale } from "../scales/Scale";
 
+/** Can return values at specific indices on an underlying array. */
 export interface Indexable<T> {
-  domain: Expanse<T>;
   array: T[];
+  domain: Expanse<T>;
 
   n(): number;
   values(): T[];

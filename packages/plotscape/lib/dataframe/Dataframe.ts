@@ -11,6 +11,7 @@ import { Observable, observable } from "../mixins/Observable";
 import { RowOf, SymbolProps, VariableValue, Variables } from "../types";
 import { ColumnParser, ParsedColumns } from "./ColumnParser";
 
+/** Stores and provides access to variables. */
 export interface Dataframe<T extends Variables = Variables> extends Observable {
   columns: T;
   n(): number;

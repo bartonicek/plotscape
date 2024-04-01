@@ -10,6 +10,7 @@ import {
 } from "../scales/ExpanseDiscreteWeighted";
 import { Variable } from "./Variable";
 
+/** Returns string values by index. */
 export interface Discrete
   extends Named,
     Variable<string>,

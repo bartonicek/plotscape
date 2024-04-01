@@ -1,29 +1,30 @@
 import { Dict, noopThis } from "utils";
 
+/** Can be observed for changes. */
 export interface Observable {
-  listeners: Set<() => void>;
+  observers: Set<() => void>;
   emit(): this;
   listen(callback: () => void): this;
   remove(callback: () => void): this;
 }
 
 export function observable<T extends Dict>(object: T): T & Observable {
-  const listeners = new Set<() => void>();
-  return { ...object, listeners, listen, emit, remove };
+  const observers = new Set<() => void>();
+  return { ...object, observers, listen, emit, remove };
 }
 
 function emit(this: Observable) {
-  for (const cb of this.listeners) cb();
+  for (const cb of this.observers) cb();
   return this;
 }
 
 function listen(this: Observable, callback: () => void) {
-  this.listeners.add(callback);
+  this.observers.add(callback);
   return this;
 }
 
 function remove(this: Observable, callback: () => void) {
-  this.listeners.delete(callback);
+  this.observers.delete(callback);
   return this;
 }
 

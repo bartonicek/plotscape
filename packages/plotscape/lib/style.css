@@ -26,6 +26,7 @@ html, body {
 }
 
 .ps-plot-container {
+  z-index: 0;
   position: relative;
   border: 1px solid black;
   border: 2px solid transparent;

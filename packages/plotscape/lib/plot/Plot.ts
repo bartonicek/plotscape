@@ -58,6 +58,7 @@ export type Scales = {
 
 /* -------------------------------- Interface ------------------------------- */
 
+/** Displays data and handles interaction. */
 export interface Plot {
   scene: Scene;
   container: HTMLDivElement;

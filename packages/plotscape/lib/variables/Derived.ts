@@ -6,6 +6,9 @@ import { newExpanseContinuous } from "../scales/ExpanseContinuous";
 import { Scale } from "../scales/Scale";
 import { Variable } from "./Variable";
 
+/** Returns values by index based on a function which may or
+ * may not refer to another variable.
+ */
 export interface Derived<T> extends Named, Variable<T>, Proxyable<T> {
   variable?: Variable;
   domain: Expanse<T>;

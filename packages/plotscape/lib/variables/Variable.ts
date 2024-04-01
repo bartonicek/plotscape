@@ -3,6 +3,7 @@ import { Expanse, isExpanseContinuous } from "../scales/Expanse";
 import { Scale } from "../scales/Scale";
 import { Continuous } from "./Continuous";
 
+/** Returns values by index. Can also scale that value when given a scale. */
 export interface Variable<T = unknown> extends Named {
   domain: Expanse<T>;
   n(): number;

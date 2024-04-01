@@ -4,12 +4,13 @@ import { Rect } from "../types";
 
 type StretchTuple = [height: number, width: number, area: number];
 
+/** Handles nested zooms and unzooms. */
 export interface ZoomStack {
   coords: Rect[];
-  push(coords: Rect): this;
   clear(): this;
-  isEmpty(): boolean;
+  push(coords: Rect): this;
   pop(): Rect;
+  isEmpty(): boolean;
 
   current(): Rect;
   currentStretch(): StretchTuple;

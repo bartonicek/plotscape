@@ -14,6 +14,17 @@ import { Expanse } from "./Expanse";
 
 /* -------------------------------- Interface ------------------------------- */
 
+/** Can normalize values from `string[]` to `[0, 1]` and vice versa.
+ * Values are places in the center of bins along `[0, 1]`. The bins
+ * can be assigned weights such that the width of the bin is proportional
+ * to its weight.
+ *
+ * Example with no weights: `[a, b, c, d] -> [0.125, 0.375, 0.625, 0.875]`
+ * (binwidth = 0.125 * 2)
+ *
+ * Example with weights `[1, 1, 1, 5]`: `[a, b, c, d] -> [0.0625, 0.1875, 0.3125, 0.6875]`
+ *
+ *  */
 export interface ExpanseDiscreteWeighted extends Expanse<string>, Observable {
   order: number[];
   values: string[];

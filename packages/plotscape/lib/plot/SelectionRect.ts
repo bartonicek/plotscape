@@ -2,11 +2,12 @@ import { Observable, observable } from "../mixins/Observable";
 import { Rect } from "../types";
 import { Contexts } from "./Plot";
 
+/** Takes care of keeping track of and rendering the selection rectangle. */
 export interface SelectionRect extends Observable {
   coords: Rect;
-  setCoords(coords: Rect): void;
   clear(): void;
   render(contexts: Contexts): void;
+  setCoords(coords: Rect): void;
 }
 
 export function newSelectionRect(): SelectionRect {

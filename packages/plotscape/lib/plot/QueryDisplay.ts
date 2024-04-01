@@ -2,6 +2,7 @@ import { Dict, element } from "utils";
 import { formatLabel } from "../funs";
 import { Point } from "../types";
 
+/** Displays queries on graphical objects in a plot. */
 export interface QueryDisplay {
   parentContainer: HTMLDivElement;
   container: HTMLDivElement;

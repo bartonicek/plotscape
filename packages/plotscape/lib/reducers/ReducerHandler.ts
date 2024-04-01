@@ -8,6 +8,9 @@ import { newReference } from "../variables/Reference";
 import { Variable } from "../variables/Variable";
 import { Reducer } from "./Reducer";
 
+/** Takes care of reducing a variable (`source`) into a set of summaries
+ * (`result`), based on a partitioning of the data (`factor`). It may
+ * have a reference to a parent, in which case it can be stacked or normalized.*/
 export interface ReducerHandler<T = any, U = any> extends Observable {
   name: string;
   factor?: Factor;

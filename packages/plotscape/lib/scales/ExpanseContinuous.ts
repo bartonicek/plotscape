@@ -5,6 +5,7 @@ import { Expanse } from "./Expanse";
 
 /* -------------------------------- Interface ------------------------------- */
 
+/** Can normalize values from `[min, max]` to `[0, 1]` and vice versa. */
 export interface ExpanseContinuous extends Expanse<number>, Observable {
   min: number;
   max: number;

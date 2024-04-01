@@ -10,6 +10,9 @@ import { Marker, newMarker } from "./Marker";
 
 /* -------------------------------- Interface ------------------------------- */
 
+/** Provides a graphical/state context into which plots get placed.
+ * Orchestrates resizing, layout, and between-plot interaction.
+ */
 export interface Scene<T extends Variables = any> {
   data: Dataframe<T>;
   container: HTMLDivElement;

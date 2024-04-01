@@ -3,6 +3,11 @@ import { Observable, observable } from "../mixins/Observable";
 import { DragListWidget, newDragListWidget } from "../widgets/DragListWidget";
 import { Expanse } from "./Expanse";
 
+/** Can normalize values from `string[]` to `[0, 1]` and vice versa.
+ * Values are placed at equidistant place covering the whole of `[0, 1]`.
+ *
+ * Example: `[a, b, c, d] -> [0, 0.333, 0.666, 1].`
+ *  */
 export interface ExpanseDiscreteAbsolute extends Expanse<string>, Observable {
   order: number[];
   values: string[];

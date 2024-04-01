@@ -1,3 +1,4 @@
+/** Can be assigned a name. */
 export interface Named {
   _name: string | undefined;
   name(): string;

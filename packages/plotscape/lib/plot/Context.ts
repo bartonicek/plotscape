@@ -10,6 +10,10 @@ type RenderOptions = {
 
 /* -------------------------------- Interface ------------------------------- */
 
+/**
+ * Wrapper around the HTML canvas element and its corresponding 2d context.
+ * Includes methods for resizing, styling, and drawing.
+ */
 export interface Context extends Observable {
   container: HTMLDivElement;
   canvas: HTMLCanvasElement;
@@ -26,7 +30,6 @@ export interface Context extends Observable {
 
   resize(): this;
   clip(): this;
-
   setMargins(margins: Margins): this;
   addClass(name: string): this;
   getProp<K extends keyof CanvasRenderingContext2D>(

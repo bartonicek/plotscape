@@ -1,5 +1,10 @@
 import { ReducerHandler } from "../reducers/ReducerHandler";
 
+/** A set of summaries on some partitioned data obtained by applying
+ * a reduce operation. Can have a reference to a parent reducer,
+ * in which case it can be stacked, normalized, or return a copy
+ * of the values of the parent reducer.
+ */
 export interface Reduced<T = unknown> {
   valueAt(index: number, offset?: number): T;
 

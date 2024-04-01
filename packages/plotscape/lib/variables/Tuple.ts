@@ -9,6 +9,7 @@ type VariableTuple<T extends unknown[]> = {
   [key in keyof T]: Variable<T[key]>;
 };
 
+/** Returns an array of values by index. */
 export interface Tuple<T extends unknown[] = unknown[]> extends Named {
   order: number[];
   variables: VariableTuple<T>;

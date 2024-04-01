@@ -1,3 +1,11 @@
+/** Can intercept indexed access to values.
+ * Specifically, if an object has a `valueAt(index: number): T` method,
+ * `.proxy(indexfn: () => number[])` makes it so that the accessed
+ * indices are rerouted through the indices returned by `indexfn`.
+ *
+ * (`indexfn` is a callback so that it can be used as a pointer
+ * to a mutable object).
+ * */
 export interface Proxyable<T = unknown> {
   n(): number;
   valueAt(index: number, offset?: number): T;
