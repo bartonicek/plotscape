@@ -8,7 +8,6 @@ import { newHistogram2D } from "../lib/plots/Histogram2D.ts";
 import { newNoteplot } from "../lib/plots/Noteplot.ts";
 import { newPCoordsplot } from "../lib/plots/PCoordsplot.ts";
 import { newScatter } from "../lib/plots/Scatterplot.ts";
-import { sumReducer } from "../lib/reducers/Reducer.ts";
 import { newScene } from "../lib/scene/Scene.ts";
 import "../lib/style.css";
 
@@ -53,7 +52,8 @@ async function diamondsScene() {
 }
 
 async function sacrametoScene() {
-  const sacramentoJSON = await fetchJSON("../datasets/sacramento.json");
+  const URL = `https://raw.githubusercontent.com/bartonicek/plotscape/master/packages/plotscape/datasets/sacramento.json`;
+  const sacramentoJSON = await fetchJSON(URL);
 
   const spec = {
     city: col(`discrete`).toLowerCase().capitalize(),
@@ -70,13 +70,8 @@ async function sacrametoScene() {
   const scene = newScene(app, sacramentoData);
 
   const plot1 = newScatter(scene, (d) => ({ v1: d.longitude, v2: d.latitude }));
-  // plot1.setAspectRatio(1);
-
   const plot2 = newFluctplot(scene, (d) => ({ v1: d.beds, v2: d.baths }));
-
-  const opts = { reducer: sumReducer };
-  const plot3 = newBarplot(scene, (d) => ({ v1: d.city, v2: d.price }));
-
+  const plot3 = newBarplot(scene, (d) => ({ v1: d.city }));
   const plot4 = newHistogram(scene, (d) => ({ v1: d.sqft }));
   const plot5 = newHistogram2D(scene, (d) => ({ v1: d.sqft, v2: d.price }));
   const plot6 = newNoteplot(scene);
@@ -87,11 +82,11 @@ async function sacrametoScene() {
     v3: d.price,
   }));
 
-  // scene.setLayout([
-  //   [1, 2, 3, 3],
-  //   [6, 4, 4, 5],
-  //   [6, 7, 7, 7],
-  // ]);
+  scene.setLayout([
+    [1, 1, 3, 3],
+    [1, 1, 4, 5],
+    [6, 7, 7, 7],
+  ]);
 }
 
 // diamondsScene();
