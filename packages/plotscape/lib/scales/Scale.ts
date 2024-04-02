@@ -21,9 +21,13 @@ type Aesthetic = `x` | `y`;
 export interface Scale<T = unknown> extends Named, Observable {
   other?: Scale;
   aes?: Aesthetic;
+
   domain: Expanse<T>;
   norm: ExpanseContinuous;
   codomain: ExpanseContinuous;
+
+  _widget?: Widget;
+
   clone(): Scale<T>;
   setAes(aesthetic: Aesthetic): this;
   setOther(other: Scale): this;
@@ -215,7 +219,8 @@ function ratio<T>(this: Scale<T>) {
 function widget<T>(this: Scale<T>) {
   const widget = this.domain.widget(this.norm);
   if (!widget) return undefined;
-  return widget.setName(this.name());
+  widget.setName(this.name());
+  return widget;
 }
 
 /* --------------------------------- Helpers -------------------------------- */

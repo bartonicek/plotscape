@@ -59,7 +59,7 @@ export function newFluctplot<T extends Variables>(
   const self = { ...plot, squares, type, partition1Data, partition2Data };
   encodeAbs(self);
 
-  plot.pushGraphicObject(squares);
+  plot.addGraphicObject(squares);
   const nMax = Math.max(factor1.cardinality, factor2.cardinality) + 1;
   plot.scales.area.codomain.setScale(1 / nMax).setTransform(square, squareRoot);
 

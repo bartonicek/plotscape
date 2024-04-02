@@ -189,9 +189,14 @@ function getBoundsInternal(self: ExpanseDiscreteWeighted, value: string) {
 
 function widget(this: ExpanseDiscreteWeighted) {
   const { values } = this;
-  const source = { values: [...values] };
 
+  const source = observable({ values: [...values] });
   const widget = newDragListWidget(source);
+
+  this.listen(() => {
+    source.values = orderByIndices(values, this.order);
+    source.emit();
+  });
 
   widget.listen(() => {
     const indices = Array(values.length);

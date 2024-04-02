@@ -715,3 +715,14 @@ export function exponentialToSuperscript(n: string) {
   exponent = convertToSuperscript(exponent);
   return base + "×10" + exponent;
 }
+
+/**
+ * Clears all children from an Element.
+ *
+ * @param element An element
+ * @returns The element back
+ */
+export function clearChildren(element: Element) {
+  while (element.lastChild) element.removeChild(element.lastChild);
+  return element;
+}

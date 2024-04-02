@@ -65,7 +65,7 @@ export function newBarplot<T extends Variables>(
   const self = { ...plot, bars, type, order, partition1Data, partition2Data };
   encodeAbs(self);
 
-  self.pushGraphicObject(self.bars);
+  self.addGraphicObject(self.bars);
   self.scales.y.freezeMin().link(self.scales.height);
 
   self.addKeyAction(`KeyR`, defaultize.bind(self));

@@ -22,6 +22,7 @@ import {
   KeyActions,
   Variables,
 } from "../types";
+import { WidgetSource } from "../widgets/WidgetSource";
 import { Context, newContext } from "./Context";
 import { QueryDisplay, newQueryDisplay } from "./QueryDisplay";
 import { SelectionRect, newSelectionRect } from "./SelectionRect";
@@ -72,6 +73,8 @@ export interface Plot {
   queryDisplay: QueryDisplay;
   widgetDisplay: WidgetDisplay;
 
+  widgetSources: WidgetSource[];
+
   pars: {
     active: boolean;
     mousedown: boolean;
@@ -101,7 +104,8 @@ export interface Plot {
   setAlpha(value: number): void;
   scaleAlpha(value: number): void;
   setAspectRatio(value: number): void;
-  pushGraphicObject(object: GraphicObject): void;
+  addGraphicObject(object: GraphicObject): void;
+  addWidgetSource(source: WidgetSource): void;
   addKeyAction(key: ActionKey, action: (event: KeyboardEvent) => void): void;
 }
 
@@ -213,6 +217,7 @@ export function newPlot(scene: Scene) {
   const zoomStack = newZoomStack();
   const queryDisplay = newQueryDisplay(container);
   const widgetDisplay = newWidgetDisplay(container);
+  const widgetSources = [] as WidgetSource[];
 
   const localKeyActions = {} as KeyActions;
   const globalKeyActions = {} as KeyActions;
@@ -238,6 +243,7 @@ export function newPlot(scene: Scene) {
     zoomStack,
     queryDisplay,
     widgetDisplay,
+    widgetSources,
     localKeyActions,
     globalKeyActions,
   };
@@ -252,7 +258,8 @@ export function newPlot(scene: Scene) {
     scaleAlpha,
     setAspectRatio,
     trainScales,
-    pushGraphicObject,
+    addGraphicObject,
+    addWidgetSource,
     addKeyAction,
   };
 
@@ -282,12 +289,15 @@ export function newPlot(scene: Scene) {
 
   selectionRect.listen(throttle(checkSelection.bind(self), 20));
 
-  self.pushGraphicObject(newAxisLabels(scales.x));
-  self.pushGraphicObject(newAxisLabels(scales.y));
-  self.pushGraphicObject(newAxisTitle(scales.x));
-  self.pushGraphicObject(newAxisTitle(scales.y));
-  self.pushGraphicObject(selectionRect);
+  self.addGraphicObject(newAxisLabels(scales.x));
+  self.addGraphicObject(newAxisLabels(scales.y));
+  self.addGraphicObject(newAxisTitle(scales.x));
+  self.addGraphicObject(newAxisTitle(scales.y));
+  self.addGraphicObject(selectionRect);
   scene.addPlot(self);
+
+  self.addWidgetSource(self.scales.x);
+  self.addWidgetSource(self.scales.y);
 
   for (const s of values(self.scales)) s.listen(() => self.render());
   return self;
@@ -317,7 +327,7 @@ function resize(this: Plot) {
 
     const currentRatio = xRatio / yRatio;
     if (currentRatio === 0 || isNaN(currentRatio) || !isFinite(currentRatio)) {
-      return;
+      return this;
     }
 
     const [width, height] = [x, y].map(
@@ -329,17 +339,20 @@ function resize(this: Plot) {
   }
 
   this.render();
+  return this;
 }
 
 function activate(this: Plot) {
   this.pars.active = true;
   this.container.classList.add(`active`);
+  return this;
 }
 
 function deactivate(this: Plot) {
   this.pars.active = false;
   this.container.classList.remove(`active`);
   this.selectionRect.clear();
+  return this;
 }
 
 function trainScales<T extends Variables>(
@@ -348,7 +361,9 @@ function trainScales<T extends Variables>(
   selectfn: (cols: T) => Variables
 ) {
   const trainers = selectfn(data.columns);
-  const { scales } = this;
+  const { scales, widgetDisplay } = this;
+
+  widgetDisplay.setInitialized(false);
 
   for (const [k, v] of entries(trainers) as [keyof Scales, any][]) {
     const scale = scales[k];
@@ -363,6 +378,7 @@ function trainScales<T extends Variables>(
   }
 
   this.render();
+  return this;
 }
 
 function render(this: Plot) {
@@ -390,10 +406,12 @@ function reset(this: Plot) {
   zoomStack.clear();
 
   for (const context of values(contexts)) context.setProps({ globalAlpha: 1 });
+
   this.render();
+  return this;
 }
 
-function pushGraphicObject(this: Plot, object: GraphicObject) {
+function addGraphicObject(this: Plot, object: GraphicObject) {
   this.graphicObjects.push(object);
   if (object.keyActions) {
     for (const [k, v] of entries(object.keyActions) as any[]) {
@@ -402,6 +420,12 @@ function pushGraphicObject(this: Plot, object: GraphicObject) {
   }
 
   this.render();
+  return this;
+}
+
+function addWidgetSource(this: Plot, source: WidgetSource) {
+  this.widgetSources.push(source);
+  return this;
 }
 
 function addKeyAction(
@@ -409,8 +433,10 @@ function addKeyAction(
   key: ActionKey,
   action: (event: KeyboardEvent) => void
 ) {
-  if (!this.localKeyActions[key]) this.localKeyActions[key] = action;
-  else this.localKeyActions[key] = inOrder(this.localKeyActions[key]!, action);
+  const { localKeyActions } = this;
+  if (!localKeyActions[key]) localKeyActions[key] = action;
+  else localKeyActions[key] = inOrder(localKeyActions[key]!, action);
+  return this;
 }
 
 function setAlpha(this: Plot, value: number) {
@@ -420,6 +446,7 @@ function setAlpha(this: Plot, value: number) {
     context.setProps({ globalAlpha: value });
   }
   this.render();
+  return this;
 }
 
 function scaleAlpha(this: Plot, value: number) {
@@ -430,6 +457,7 @@ function scaleAlpha(this: Plot, value: number) {
     context.setProps({ globalAlpha: trunc0to1(alpha * value) });
   }
   this.render();
+  return this;
 }
 
 function setAspectRatio(this: Plot, value: number) {
@@ -445,15 +473,22 @@ function setAspectRatio(this: Plot, value: number) {
 
 function showWidgetDisplay(this: Plot, event: KeyboardEvent) {
   event.preventDefault();
-  if (this.widgetDisplay.initialized) this.widgetDisplay.show();
+
+  const { widgetDisplay, widgetSources } = this;
+
+  if (widgetDisplay.isInitialized()) widgetDisplay.show();
   else {
-    for (const key of [`x`, `y`] as const) {
-      const widget = this.scales[key].widget();
-      if (widget) this.widgetDisplay.addWidget(widget);
+    // Delayed initialization so that e.g. scales can be trained
+    widgetDisplay.clear();
+
+    for (const source of widgetSources) {
+      const widget = source.widget();
+      if (widget) widgetDisplay.addWidget(widget.render());
     }
-    this.widgetDisplay.show();
-    this.widgetDisplay.initialized = true;
+
+    widgetDisplay.setInitialized(true).show();
   }
+  return this;
 }
 
 function checkSelection(this: Plot) {
@@ -471,6 +506,7 @@ function checkSelection(this: Plot) {
   }
 
   this.scene.marker.update(selected);
+  return this;
 }
 
 function zoom(this: Plot) {
@@ -502,6 +538,7 @@ function zoom(this: Plot) {
 
   selectionRect.clear();
   this.render();
+  return this;
 }
 
 function unzoom(this: Plot) {
@@ -521,6 +558,7 @@ function unzoom(this: Plot) {
   // scales.size.codomain.setScale(squareRoot(areaStretch));
 
   this.render();
+  return this;
 }
 
 /* ----------------------------- Event Handlers ----------------------------- */

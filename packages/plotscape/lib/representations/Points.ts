@@ -37,8 +37,8 @@ export function newPoints(
   const sizePct = newObservableValue(1);
   const keyActions = {} as KeyActions;
 
-  keyActions[`Equal`] = () => sizePct.setValue((v) => (v * 10) / 9);
-  keyActions[`Minus`] = () => sizePct.setValue((v) => (v * 9) / 10);
+  keyActions[`Equal`] = () => sizePct.set((v) => (v * 10) / 9);
+  keyActions[`Minus`] = () => sizePct.set((v) => (v * 9) / 10);
   keyActions[`KeyR`] = () => sizePct.defaultize();
 
   const props = {

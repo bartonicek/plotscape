@@ -170,13 +170,21 @@ function breaks(this: ExpanseContinuous, norm: ExpanseContinuous) {
 }
 
 function widget(this: ExpanseContinuous, norm: ExpanseContinuous) {
-  let [min, max] = [norm.normalize(0), norm.normalize(1)];
-  min = this.unnormalize(min);
-  max = this.unnormalize(max);
+  const [min, max] = [0, 1].map((x) => this.unnormalize(norm.normalize(x)));
 
   const source = observable({ min, max });
-
   const widget = newRangeWidget(source);
+
+  const update = () => {
+    const [min, max] = [0, 1].map((x) => this.unnormalize(norm.normalize(x)));
+    source.min = min;
+    source.max = max;
+    source.emit();
+  };
+
+  this.listen(update);
+  norm.listen(update);
+
   widget.listen(() => {
     let { min, max } = widget;
 

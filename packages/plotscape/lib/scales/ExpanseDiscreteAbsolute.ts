@@ -1,4 +1,5 @@
 import { compareAlphaNumeric, seq } from "utils";
+import { orderByIndices } from "../funs";
 import { Observable, observable } from "../mixins/Observable";
 import { DragListWidget, newDragListWidget } from "../widgets/DragListWidget";
 import { Expanse } from "./Expanse";
@@ -92,9 +93,14 @@ function breaks(this: ExpanseDiscreteAbsolute) {
 
 function widget(this: ExpanseDiscreteAbsolute) {
   const { values } = this;
-  const source = { values: [...values] };
 
+  const source = observable({ values: [...values] });
   const widget = newDragListWidget(source);
+
+  this.listen(() => {
+    source.values = orderByIndices(values, this.order);
+    source.emit();
+  });
 
   widget.listen(() => {
     const indices = Array(values.length);

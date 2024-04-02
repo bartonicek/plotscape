@@ -1,4 +1,4 @@
-import { element } from "utils";
+import { clearChildren, element } from "utils";
 import { Widget } from "../widgets/Widget";
 
 /** Displays widgets related to plot parameters. */
@@ -6,8 +6,11 @@ export interface WidgetDisplay {
   modal: HTMLDialogElement;
   container: HTMLDivElement;
   initialized: boolean;
-  show(): void;
-  addWidget(widget: Widget): void;
+  show(): this;
+  clear(): this;
+  addWidget(widget: Widget): this;
+  isInitialized(): boolean;
+  setInitialized(value: boolean): this;
 }
 
 export function newWidgetDisplay(parent: HTMLDivElement): WidgetDisplay {
@@ -27,15 +30,38 @@ export function newWidgetDisplay(parent: HTMLDivElement): WidgetDisplay {
 
   const initialized = false;
 
-  const self = { initialized, container, modal, show, addWidget };
+  const props = { initialized, container, modal };
+  const methods = { show, addWidget, clear, isInitialized, setInitialized };
+  const self = { ...props, ...methods };
+
   return self;
 }
 
-function show(this: WidgetDisplay) {
-  if (!this.container.childNodes.length) return;
-  this.modal.showModal();
+function isInitialized(this: WidgetDisplay) {
+  return this.initialized;
 }
 
-function addWidget(this: WidgetDisplay, widget: Widget) {
-  if (widget) this.container.appendChild(widget.container);
+function setInitialized(this: WidgetDisplay, value: boolean) {
+  this.initialized = value;
+  return this;
+}
+
+function show(this: WidgetDisplay) {
+  if (!this.container.childNodes.length) return this;
+  this.modal.showModal();
+  return this;
+}
+
+function clear(this: WidgetDisplay) {
+  const { container } = this;
+  clearChildren(container);
+  return this;
+}
+
+function addWidget(this: WidgetDisplay, widget: Widget | undefined) {
+  if (widget) {
+    widget.render();
+    this.container.appendChild(widget.container);
+  }
+  return this;
 }

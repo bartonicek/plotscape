@@ -43,7 +43,7 @@ export function newPCoordsplot<T extends Variables>(
   const type = Type.Proportion;
   const lines = newLines(plot, boundaryData, renderData);
 
-  plot.pushGraphicObject(lines);
+  plot.addGraphicObject(lines);
   plot.trainScales(boundaryData, (d) => ({ x: d.x, y: d.y }));
 
   const self = { ...plot, type, lines, partition1Data, partition2Data };

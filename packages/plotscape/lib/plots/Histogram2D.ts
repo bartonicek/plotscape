@@ -38,12 +38,17 @@ export function newHistogram2D<T extends Variables>(
   const plot = newPlot(scene);
   const data = scene.data.select(selectfn);
 
-  const width1 = newObservableValue(data.col(`v1`).range() / 30);
-  const width2 = newObservableValue(data.col(`v2`).range() / 30);
+  const [v1, v2] = [data.col(`v1`), data.col(`v2`)];
+  const [range1, range2] = [v1.range(), v2.range()];
+
+  const binName = (name: string) => `Binwidth of ${name}: `;
+
+  const width1 = newObservableValue(range1 / 30).setName(binName(v1.name()));
+  const width2 = newObservableValue(range2 / 30).setName(binName(v1.name()));
 
   const reducers = { stat1: newReducerHandler(one, sumReducer) };
-  const factor1 = factorBin(data.col(`v1`), width1, data.col(`v1`).min());
-  const factor2 = factorBin(data.col(`v2`), width2, data.col(`v2`).min());
+  const factor1 = factorBin(v1, width1, data.col(`v1`).min());
+  const factor2 = factorBin(v2, width2, data.col(`v2`).min());
   const factor3 = factorProduct(factor1, factor2);
 
   const partition1 = newPartition(reducers).refine(factor3);
@@ -60,7 +65,7 @@ export function newHistogram2D<T extends Variables>(
   const self = { ...plot, type, squares, partition1Data, partition2Data };
   encodeAbs(self);
 
-  self.pushGraphicObject(squares);
+  self.addGraphicObject(squares);
 
   const nMax = Math.max(factor1.cardinality, factor2.cardinality) + 1;
   self.scales.area.codomain.setScale(1 / nMax).setTransform(square, squareRoot);
@@ -70,19 +75,22 @@ export function newHistogram2D<T extends Variables>(
   );
 
   self.addKeyAction(`Minus`, () => {
-    width1.setValue(width1.value * (9 / 10));
-    width2.setValue(width2.value * (9 / 10));
+    width1.set(width1.value * (9 / 10));
+    width2.set(width2.value * (9 / 10));
   });
 
   self.addKeyAction(`Equal`, () => {
-    width1.setValue(width1.value * (10 / 9));
-    width2.setValue(width2.value * (10 / 9));
+    width1.set(width1.value * (10 / 9));
+    width2.set(width2.value * (10 / 9));
   });
 
   self.addKeyAction(`KeyR`, () => {
     width1.defaultize();
     width2.defaultize();
   });
+
+  self.addWidgetSource(width1);
+  self.addWidgetSource(width2);
 
   partition1Data.listen(() => {
     self.trainScales(squares.boundaryData!, identity);

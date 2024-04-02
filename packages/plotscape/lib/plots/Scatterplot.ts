@@ -25,7 +25,7 @@ export function newScatter<T extends Variables>(
   const renderData = data.select(encodefn).join(scene.marker.data());
   const points = newPoints(plot, boundaryData, renderData);
 
-  plot.pushGraphicObject(points);
+  plot.addGraphicObject(points);
   plot.trainScales(boundaryData, (d) => ({ x: d.x, y: d.y }));
 
   boundaryData.listen(plot.render.bind(plot));

@@ -38,8 +38,9 @@ export function newHistogram<T extends Variables>(
   const plot = newPlot(scene);
   const data = scene.data.select(selectfn);
 
-  const anchor = newObservableValue(data.col(`v1`).min());
-  const width = newObservableValue(data.col(`v1`).range() / 15);
+  const [min, range] = [data.col(`v1`).min(), data.col(`v1`).range()];
+  const anchor = newObservableValue(min).setName(`Anchor: `);
+  const width = newObservableValue(range / 15).setName(`Binwidth: `);
 
   const toReduce = data.col(`v2`) ?? one;
   const reducer = options?.reducer ?? sumReducer;
@@ -57,21 +58,24 @@ export function newHistogram<T extends Variables>(
   const self = { ...plot, type, bars, partition1Data, partition2Data };
   encodeAbs(self);
 
-  self.pushGraphicObject(bars);
+  self.addGraphicObject(bars);
   self.scales.y.freezeMin();
 
   self.addKeyAction(`KeyN`, () =>
     self.type === Type.Absolute ? encodePct(self) : encodeAbs(self)
   );
 
-  self.addKeyAction(`Minus`, () => width.setValue((w) => w * (9 / 10)));
-  self.addKeyAction(`Equal`, () => width.setValue((w) => w * (10 / 9)));
+  self.addKeyAction(`Minus`, () => width.set((w) => w * (9 / 10)));
+  self.addKeyAction(`Equal`, () => width.set((w) => w * (10 / 9)));
 
   const inc = data.col(`v1`).range() / 20;
-  self.addKeyAction(`Quote`, () => anchor.setValue((a) => a - inc));
-  self.addKeyAction(`Semicolon`, () => anchor.setValue((a) => a + inc));
+  self.addKeyAction(`Quote`, () => anchor.set((a) => a - inc));
+  self.addKeyAction(`Semicolon`, () => anchor.set((a) => a + inc));
 
   self.addKeyAction(`KeyR`, () => (width.defaultize(), anchor.defaultize()));
+
+  self.addWidgetSource(width);
+  self.addWidgetSource(anchor);
 
   partition1Data.listen(() => {
     self.trainScales(bars.boundaryData!, (d) => ({ x: d.x0, y: d.y1 }));
@@ -94,7 +98,7 @@ function encodeAbs(self: Histogram) {
   self.type = Type.Absolute;
   self.trainScales(boundaryData, (d) => ({ x: d.x0, y: d.y1 }));
   self.scales.x.setName(partition1Data.col(`binMid`).name());
-  self.scales.y.setMin(0);
+  self.scales.y.setMin(0).setName(`count`);
   self.render();
 }
 
@@ -113,7 +117,7 @@ function encodePct(self: Histogram) {
   self.type = Type.Proportion;
   self.trainScales(boundaryData, (d) => ({ x: d.x0, y: d.y1 }));
   self.scales.x.setName(`cumulative count`);
-  self.scales.y.setMin(0);
+  self.scales.y.setMin(0).setName(`proportion`);
   self.render();
 }
 

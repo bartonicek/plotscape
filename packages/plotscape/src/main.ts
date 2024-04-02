@@ -9,7 +9,6 @@ import { newNoteplot } from "../lib/plots/Noteplot.ts";
 import { newPCoordsplot } from "../lib/plots/PCoordsplot.ts";
 import { newScatter } from "../lib/plots/Scatterplot.ts";
 import { sumReducer } from "../lib/reducers/Reducer.ts";
-import { newExpanseDiscreteWeighted } from "../lib/scales/ExpanseDiscreteWeighted.ts";
 import { newScene } from "../lib/scene/Scene.ts";
 import "../lib/style.css";
 
@@ -98,11 +97,3 @@ async function sacrametoScene() {
 // diamondsScene();
 sacrametoScene();
 // mpgScene();
-
-const x = ["a", "b", "c", "d"];
-const foo = newExpanseDiscreteWeighted(x);
-
-foo.setWeights([1, 1, 1, 5]);
-
-console.log(foo.cumWeights);
-console.log(x.map((x) => foo.normalize(x)));

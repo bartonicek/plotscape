@@ -3,7 +3,7 @@ export interface Named {
   _name: string | undefined;
   name(): string;
   hasName(): boolean;
-  setName(name?: string): void;
+  setName(name?: string): this;
 }
 
 export function named<T>(object: T): T & Named {
@@ -20,6 +20,7 @@ function hasName(this: Named) {
   return this._name != undefined;
 }
 
-function setName(this: Named, name?: string): void {
+function setName(this: Named, name?: string) {
   this._name = name;
+  return this;
 }

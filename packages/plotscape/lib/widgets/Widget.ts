@@ -1,5 +1,7 @@
-export interface Widget {
+import { Named } from "../mixins/Named";
+import { Observable } from "../mixins/Observable";
+
+export interface Widget extends Named, Observable {
   container: HTMLDivElement;
-  render(): void;
-  setName(name: string): this;
+  render(): this;
 }

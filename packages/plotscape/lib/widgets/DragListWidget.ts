@@ -1,49 +1,37 @@
-import { element } from "utils";
+import { clearChildren, element } from "utils";
+import { named } from "../mixins/Named";
 import { Observable, observable } from "../mixins/Observable";
 import { Widget } from "./Widget";
 
-export interface DragListWidget extends Widget, Observable {
-  name: string;
-  container: HTMLDivElement;
-  source: { values: string[] };
-  render(): void;
-  setName(name: string): this;
+type Source = { values: string[] } & Observable;
+
+export interface DragListWidget extends Widget {
+  source: Source;
 }
 
-export function newDragListWidget(source: {
-  values: string[];
-}): DragListWidget {
+export function newDragListWidget(source: Source): DragListWidget {
   const container = element(`div`)
     .addClass(`ps-widget`)
     .addClass(`ps-widget-draglist`)
     .get();
 
-  const name = ``;
-  const props = { name, container, source };
-  const methods = { setName, render };
-
-  const self = observable({ ...props, ...methods });
+  const self = observable(named({ container, source, render }));
   self.render();
 
+  source.listen(self.render.bind(self));
   return self;
-}
-
-function setName(this: DragListWidget, name: string) {
-  this.name = name;
-  this.render();
-  return this;
 }
 
 function render(this: DragListWidget) {
   const { container, source } = this;
   const values = source.values;
 
-  while (container.lastChild) container.removeChild(container.lastChild);
+  clearChildren(container);
 
   const name = element(`span`).appendTo(container).get();
   const list = element(`ul`).appendTo(container).get();
 
-  name.innerText = `Levels of ${this.name}: `;
+  name.innerText = `Levels of ${this.name()}: `;
 
   for (const v of values) {
     const li = element(`li`)
@@ -65,6 +53,8 @@ function render(this: DragListWidget) {
 
   list.addEventListener(`mousedown`, (event) => event.stopPropagation());
   list.addEventListener(`dragover`, (event) => swapAt(list, event.clientY));
+
+  return this;
 }
 
 function swapAt(container: HTMLElement, y: number) {
