@@ -6,14 +6,14 @@ Plotscape is a TypeScript library designed for making interactive figures geared
 
 First, initialize a new frontend project using your build tool of choice. I like using Bun + Vite, so here's what I would do:
 
-```
+```bash
 bun create vite my-new-figure
 cd my-new-figure
 ```
 
 Next, install plotscape as well as all other required dependencies:
 
-```
+```bash
 bun i @abartonicek/plotscape
 ```
 
@@ -64,12 +64,14 @@ scene.setLayout([
 ]);
 ```
 
-That's it! You should now be able to try the interactive by launching a development server:
+Finally, launch a development server:
 
-`bun run dev`
+```bash
+bun run dev    # Or "npm run dev"
+```
 
-(or `npm run dev`)
+![A static image of a plotscape figure](./images/plotscape.png)
 
-You should now see your interactive figure. Try selecting some objects in one of the plots by clicking/clicking and dragging. To see a list of the available ways of interacting with the figure, click on the question mark in the top right.
+You should now see your interactive figure! Try selecting some objects in one of the plots by clicking/clicking and dragging. To see a list of the available ways of interacting with the figure, click on the question mark in the top right.
 
 More information about the package to come, happy data exploring!
