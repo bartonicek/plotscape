@@ -19,6 +19,12 @@ export type ParsedColumns<T extends Record<string, ColumnParser>> = Normalize<{
 
 export function col(type: `continuous`): ColumnParserContinuous;
 export function col(type: `discrete`): ColumnParserDiscrete;
+/**
+ * A columns parser helper function.
+ * @param type The type of variable: either `discrete` or `continuous`
+ * @returns A column parser object that has methods for modifying
+ * how the corresponding variable will be parsed.
+ */
 export function col(type: `continuous` | `discrete`) {
   if (type === `continuous`) return newColumnParserContinuous();
   else return newColumnParserDiscrete();

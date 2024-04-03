@@ -74,4 +74,4 @@ bun run dev    # Or "npm run dev"
 
 You should now see your interactive figure! Try selecting some objects in one of the plots by clicking/clicking and dragging. To see a list of the available ways of interacting with the figure, click on the question mark in the top right.
 
-More information about the package to come, happy data exploring!
+More information about the package to come, happy data exploration!

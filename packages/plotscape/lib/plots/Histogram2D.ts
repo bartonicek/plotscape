@@ -31,6 +31,12 @@ export interface Histogram2D extends Plot {
   squares: RectanglesWH;
 }
 
+/**
+ * Creates a new 2D histogram and embeds it in a scene.
+ * @param scene A scene object
+ * @param selectfn A function which selects the variables to plot
+ * @returns The newly created 2D histogram
+ */
 export function newHistogram2D<T extends Variables>(
   scene: Scene<T>,
   selectfn: (cols: T) => DataBindings

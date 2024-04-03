@@ -14,6 +14,12 @@ type DataBindings = {
 
 export interface Scatterplot extends Plot {}
 
+/**
+ * Creates a new scatterplot and embeds it in a scene.
+ * @param scene A scene object
+ * @param selectfn A function which selects variables to plot
+ * @returns The newly created scatterplot
+ */
 export function newScatter<T extends Variables>(
   scene: Scene<T>,
   selectfn: (cols: T) => DataBindings

@@ -1,6 +1,6 @@
 import { fetchJSON } from "utils";
 import { col } from "../lib/dataframe/ColumnParser.ts";
-import { parseColumns } from "../lib/dataframe/Dataframe.ts";
+import { parseColumns } from "../lib/dataframe/parseColumns.ts";
 import { newBarplot } from "../lib/plots/Barplot.ts";
 import { newFluctplot } from "../lib/plots/Fluctplot.ts";
 import { newHistogram } from "../lib/plots/Histogram.ts";

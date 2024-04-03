@@ -33,6 +33,12 @@ export interface Fluctplot extends Plot {
   squares: RectanglesWH;
 }
 
+/**
+ * Creates a new fluctuation diagram and embeds it in a scene.
+ * @param scene A scene object
+ * @param selectfn A function which selects the variables to plot
+ * @returns The newly created fluctuation diagram
+ */
 export function newFluctplot<T extends Variables>(
   scene: Scene<T>,
   selectfn: (cols: T) => DataBindings

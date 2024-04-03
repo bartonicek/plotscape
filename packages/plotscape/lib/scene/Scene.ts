@@ -44,6 +44,14 @@ const helpHTML = parser.parseFromString(
   "text/html"
 ).body;
 
+/**
+ * Creates a new scene object that provides a graphical/state context
+ * into which plots get placed.
+ *
+ * @param app A `<div>` element that the figure will be mounted to.
+ * @param data A dataframe
+ * @returns The scene object
+ */
 export function newScene<T extends Variables>(
   app: HTMLDivElement,
   data: Dataframe<T>

@@ -27,6 +27,12 @@ export interface PCoordsplot extends Plot {
   lines: Lines;
 }
 
+/**
+ * Creates a new parallel coordinates plot and embeds it in a scene.
+ * @param scene A scene object
+ * @param selectfn A function which selects the variables to plot
+ * @returns The newly created parallel coordinates plot
+ */
 export function newPCoordsplot<T extends Variables>(
   scene: Scene<T>,
   selecfn: (cols: T) => DataBindings

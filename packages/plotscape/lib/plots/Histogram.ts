@@ -30,6 +30,12 @@ export interface Histogram extends Plot {
   bars: RectanglesXY;
 }
 
+/**
+ * Creates a new histogram and embeds it in a scene. Can switch representation into a spinogram.
+ * @param scene A scene object
+ * @param selectfn A function which selects the variables to plot
+ * @returns The newly created histogram
+ */
 export function newHistogram<T extends Variables>(
   scene: Scene<T>,
   selectfn: (cols: T) => DataBindings,

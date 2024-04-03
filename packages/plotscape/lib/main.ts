@@ -3,6 +3,8 @@ export { fetchJSON } from "utils";
 
 export * from "./dataframe/ColumnParser";
 export * from "./dataframe/Dataframe";
+export * from "./dataframe/parseColumns";
+export * from "./dataframe/parseRows";
 export * from "./reducers/Reducer";
 
 export * from "./plot/Plot";
