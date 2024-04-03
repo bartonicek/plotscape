@@ -1,4 +1,4 @@
-import { dec, inc, mapParallel, mergeInto, values } from "utils";
+import { dec, inc, mapParallel, mergeInto } from "utils";
 import { Dataframe } from "../dataframe/Dataframe";
 import { orderByIndices, rectSegmentIntersect } from "../funs";
 import { ContextId, Contexts, Plot, Scales, layers } from "../plot/Plot";
@@ -108,10 +108,11 @@ function query(this: Lines, point: Point) {
       if (rectSegmentIntersect(coords, [x[j - 1], y[j - 1], x[j], y[j]])) {
         const result = {} as Record<string, any>;
 
-        for (const v of values(data.cols())) {
-          if (v && v.hasName() && !(v.name() in result)) {
-            result[v.name()] = v.valueAt(i);
-          }
+        const xVals = data.col(`x`).valueAt(i) as string[];
+        const yVals = data.col(`y`).valueAt(i);
+
+        for (let i = 0; i < xVals.length; i++) {
+          result[xVals[i]] = yVals[i];
         }
 
         return result;

@@ -270,15 +270,14 @@ export function newPlot(scene: Scene) {
   window.addEventListener(`keyup`, onKeyup.bind(self));
 
   container.addEventListener(`mousedown`, onMousedown.bind(self));
-  container.addEventListener(`mousemove`, throttle(onMousemove.bind(self), 20));
   container.addEventListener(`mouseup`, onMouseup.bind(self));
+  container.addEventListener(`mousemove`, throttle(onMousemove.bind(self), 20));
   container.addEventListener(`dblclick`, onDoubleclick.bind(self));
   container.addEventListener(`contextmenu`, onContextmenu.bind(self));
 
   const resizeObserver = new ResizeObserver(throttle(resize.bind(self), 10));
   resizeObserver.observe(container);
 
-  self.addKeyAction(`KeyQ`, () => (self.pars.mode = Mode.Query));
   self.addKeyAction(`BracketRight`, () => self.scaleAlpha(10 / 9));
   self.addKeyAction(`BracketLeft`, () => self.scaleAlpha(9 / 10));
   self.addKeyAction(`KeyR`, () => (self.reset(), self.render()));
@@ -286,6 +285,9 @@ export function newPlot(scene: Scene) {
   self.addKeyAction(`KeyZ`, zoom.bind(self));
   self.addKeyAction(`KeyX`, unzoom.bind(self));
   self.addKeyAction(`KeyS`, () => (container.style.resize = `both`));
+  self.addKeyAction(`KeyQ`, () => {
+    for (const p of scene.plots) p.pars.mode = Mode.Query;
+  });
 
   selectionRect.listen(throttle(checkSelection.bind(self), 20));
 
