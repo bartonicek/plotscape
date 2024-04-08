@@ -42,5 +42,7 @@ function render<T extends Value>(this: ValueWidget<T>) {
     this.emit();
   });
 
+  input.onmousedown = (event) => event.stopPropagation();
+
   return this;
 }
