@@ -17,6 +17,7 @@ export interface ExpanseContinuous extends Expanse<number>, Observable {
 
   clone(): ExpanseContinuous;
   range(): number;
+  transRange(): number;
   normalize(value: number): number;
   unnormalize(value: number): number;
 
@@ -53,6 +54,7 @@ export function newExpanseContinuous(min = 0, max = 1): ExpanseContinuous {
   const methods = {
     clone,
     range,
+    transRange,
     normalize,
     unnormalize,
     setMin,
@@ -78,15 +80,21 @@ export function newExpanseContinuous(min = 0, max = 1): ExpanseContinuous {
 /* --------------------------------- Methods -------------------------------- */
 
 function range(this: ExpanseContinuous) {
-  return this.trans(this.max - this.min);
+  return this.max - this.min;
+}
+
+function transRange(this: ExpanseContinuous) {
+  return this.trans(this.max) - this.trans(this.min);
 }
 
 function normalize(this: ExpanseContinuous, value: number) {
-  return (this.trans(value) - this.trans(this.min)) / this.range() / this.scale;
+  const { min, scale, trans } = this;
+  return (trans(value) - trans(min)) / this.transRange() / scale;
 }
 
 function unnormalize(this: ExpanseContinuous, value: number) {
-  return this.inv(this.min) + this.inv(value * this.range()) * this.scale;
+  const { min, scale, trans, inv } = this;
+  return inv(trans(min) + value * this.transRange()) * scale;
 }
 
 function setMin(this: ExpanseContinuous, value: number) {

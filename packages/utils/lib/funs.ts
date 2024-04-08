@@ -194,6 +194,26 @@ export function squareRoot(x: number) {
 }
 
 /**
+ * Computes the base-10 logarithm of a number
+ *
+ * @param x A number
+ * @returns Its base-10 logarithm
+ */
+export function log10(x: number) {
+  return Math.log10(x);
+}
+
+/**
+ * Computes 10 raised to the power of a number
+ *
+ * @param x A number (the exponent)
+ * @returns Ten raised to the power of the number
+ */
+export function exp10(x: number) {
+  return 10 ** x;
+}
+
+/**
  * Returns the string representation of the supplied object.
  *
  * @param x Object with a `toString()` method

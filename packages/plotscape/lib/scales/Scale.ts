@@ -1,4 +1,4 @@
-import { noopThis } from "utils";
+import { MapFn, noopThis } from "utils";
 import { Named, named } from "../mixins/Named";
 import { Observable, observable } from "../mixins/Observable";
 import { Widget } from "../widgets/Widget";
@@ -36,6 +36,7 @@ export interface Scale<T = unknown> extends Named, Observable {
 
   setMin(value: number): this;
   setMax(value: number): this;
+  setTransform(trans: MapFn<number, number>, inv: MapFn<number, number>): this;
 
   setWeights(weights: number[]): this;
   setOrder(indices: number[]): this;
@@ -82,6 +83,7 @@ export function newScale<T = number>(
     setOther,
     setMin,
     setMax,
+    setTransform,
     setOrder,
     setWeights,
     setDefaultOrder,
@@ -152,6 +154,16 @@ function setMin<T>(this: Scale<T>, value: number) {
 
 function setMax<T>(this: Scale<T>, value: number) {
   this.domain.setDefaultMax?.(value);
+  return this;
+}
+
+function setTransform<T>(
+  this: Scale<T>,
+  trans: MapFn<number, number>,
+  inv: MapFn<number, number>
+) {
+  if (!isExpanseContinuous(this.domain)) return this;
+  this.domain.setTransform(trans, inv);
   return this;
 }
 

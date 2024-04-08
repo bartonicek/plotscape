@@ -1,6 +1,5 @@
 {
   "name": "@abartonicek/plotscape",
-  "private": true,
   "version": "0.0.0",
   "type": "module",
   "main": "./dist/main.js",
@@ -16,5 +15,8 @@
     "typescript": "^5.2.2",
     "vite": "^5.1.6",
     "utils": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

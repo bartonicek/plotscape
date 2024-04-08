@@ -1,4 +1,4 @@
-import { fetchJSON } from "utils";
+import { exp10, fetchJSON, log10 } from "utils";
 import { col } from "../lib/dataframe/ColumnParser.ts";
 import { parseColumns } from "../lib/dataframe/parseColumns.ts";
 import { newBarplot } from "../lib/plots/Barplot.ts";
@@ -49,6 +49,9 @@ async function diamondsScene() {
 
   const plot1 = newScatter(scene, (d) => ({ v1: d.carat, v2: d.price }));
   const plot2 = newBarplot(scene, (d) => ({ v1: d.color }));
+
+  plot1.scales.x.setTransform(log10, exp10);
+  plot1.scales.y.setTransform(log10, exp10);
 }
 
 async function sacrametoScene() {
@@ -83,7 +86,7 @@ async function sacrametoScene() {
   }));
 
   scene.setLayout([
-    [1, 1, 3, 3],
+    [1, 1, 2, 3],
     [1, 1, 4, 5],
     [6, 7, 7, 7],
   ]);
