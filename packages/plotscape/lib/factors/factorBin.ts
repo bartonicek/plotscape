@@ -120,6 +120,5 @@ function bin(variable: Continuous, width?: number, anchor?: number) {
   };
 
   const data = newDataframe(columns);
-
   return newFactorComputed(sorted.length, levels, data);
 }

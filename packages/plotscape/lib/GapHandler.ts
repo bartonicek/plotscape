@@ -91,14 +91,14 @@ function defaultize(this: GapHandler) {
 
 function increaseGap(this: GapHandler) {
   if (this.type === GapType.Pct) this.amount = (this.amount * 9) / 10;
-  else this.amount = Math.max(this.amount - 1, 0);
+  else this.amount++;
   this.emit();
   return this;
 }
 
 function decreaseGap(this: GapHandler) {
   if (this.type === GapType.Pct) this.amount = (this.amount * 10) / 9;
-  else this.amount++;
+  else this.amount = Math.max(this.amount - 1, 0);
   this.emit();
   return this;
 }
