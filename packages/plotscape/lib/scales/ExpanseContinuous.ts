@@ -172,6 +172,7 @@ function clone(this: ExpanseContinuous) {
 
 function breaks(this: ExpanseContinuous, norm: ExpanseContinuous) {
   let [min, max] = [norm.normalize(0), norm.normalize(1)];
+
   min = this.unnormalize(min);
   max = this.unnormalize(max);
   return prettyBreaks(min, max);

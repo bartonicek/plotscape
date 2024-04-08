@@ -117,6 +117,9 @@ html, body {
 }
 
 .ps-widget-modal {
+  margin: 0;
+  left: 10vmin;
+  top: 10vmin;
   position: absolute;
   font-size: min(2.5vmin, 14pt);
   color: #3d3d3d;
@@ -126,6 +129,14 @@ html, body {
   padding: 0;
 }
 
+.ps-widget-display {
+  cursor: move;
+  position: relative;
+  min-width: 40vmin;
+  padding-top: 2vmin;
+  padding-bottom: 2vmin;
+}
+
 .ps-widget span {
   font-family: sans-serif;
   font-weight: bold;
@@ -133,12 +144,6 @@ html, body {
 
 .ps-widget button {
   border: none;
-}
-
-.ps-widget-display {
-  min-width: 40vmin;
-  padding-top: 2vmin;
-  padding-bottom: 2vmin;
 }
 
 .ps-widget-display button {
@@ -164,6 +169,7 @@ html, body {
 }
 
 .ps-widget-draglist li {
+  cursor: grab;
   background-color:#fefffe;
   padding: 5px;
 }

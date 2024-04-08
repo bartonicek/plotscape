@@ -216,7 +216,7 @@ export function newPlot(scene: Scene) {
   const selectionRect = newSelectionRect();
   const zoomStack = newZoomStack();
   const queryDisplay = newQueryDisplay(container);
-  const widgetDisplay = newWidgetDisplay(container);
+  const widgetDisplay = newWidgetDisplay(scene.container);
   const widgetSources = [] as WidgetSource[];
 
   const localKeyActions = {} as KeyActions;

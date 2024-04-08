@@ -38,6 +38,9 @@ function render(this: RangeWidget) {
   inputMin.size = 6;
   inputMax.size = 6;
 
+  inputMin.onmousedown = (event) => event.stopPropagation();
+  inputMax.onmousedown = (event) => event.stopPropagation();
+
   inputMin.value = formatLabel(source.min);
   inputMax.value = formatLabel(source.max);
 
