@@ -49,9 +49,6 @@ export function product<T extends Variables, U extends Variables>(
 
   const factor1Map = {} as Record<number, number>;
   const factor2Map = {} as Record<number, number>;
-  // TODO
-  // const factor1ChildrenMap = {} as Record<number, Set<number>>;
-  // const factor2ChildrenMap = {} as Record<number, Set<number>>;
   const positionsMap = {} as Record<number, Set<number>>;
 
   for (let i = 0; i < factor1.levels.length; i++) {
@@ -60,17 +57,12 @@ export function product<T extends Variables, U extends Variables>(
     if (!(level in factor1Map)) {
       factor1Map[level] = factor1.levelAt(i);
       factor2Map[level] = factor2.levelAt(i);
-      // factor1ChildrenMap[factor1.levelAt(i)] = new Set();
-      // factor2ChildrenMap[factor2.levelAt(i)] = new Set();
       positionsMap[level] = new Set();
     }
 
     dirtyLevels.push(level);
     dirtyUniqueLevels.add(level);
     positionsMap[level].add(i);
-
-    // factor1ChildrenMap[factor1.levelAt(i)].add(i);
-    // factor2ChildrenMap[factor2.levelAt(i)].add(i);
   }
 
   const sortedUniqueLevels = Array.from(dirtyUniqueLevels).sort(diff);
@@ -81,13 +73,6 @@ export function product<T extends Variables, U extends Variables>(
   for (let i = 0; i < levels.length; i++) {
     levels[i] = sortedUniqueLevels.indexOf(levels[i]);
   }
-
-  const f1Cols = factor1.data.columns as any;
-  const f2Cols = factor2.data.columns as any;
-
-  // TODO
-  // f1Cols[CHILDREN] = newReference(Object.values(factor1ChildrenMap));
-  // f2Cols[CHILDREN] = newReference(Object.values(factor2ChildrenMap));
 
   const factor1ParentLevels = Object.values(factor1Map);
   const factor2ParentLevels = Object.values(factor2Map);
