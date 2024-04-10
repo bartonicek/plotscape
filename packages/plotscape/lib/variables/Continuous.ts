@@ -3,6 +3,7 @@ import { mix } from "../funs";
 import { Indexable, indexable } from "../mixins/Indexable";
 import { Named, named } from "../mixins/Named";
 import { Proxyable, proxyable } from "../mixins/Proxyable";
+import { Queryable, queryable } from "../mixins/Queryable";
 import { Reduced, reduced } from "../mixins/Reduced";
 import {
   ExpanseContinuous,
@@ -13,6 +14,7 @@ import { Variable } from "./Variable";
 /** Returns numeric values by index. */
 export interface Continuous
   extends Named,
+    Queryable,
     Variable<number>,
     Indexable<number>,
     Proxyable<number>,
@@ -35,7 +37,12 @@ export function newContinuous(
   const methods = { range, min, max, clone };
   const self = { ...props, ...methods };
 
-  return mix(self).with(named).with(indexable).with(proxyable).with(reduced);
+  return mix(self)
+    .with(named)
+    .with(queryable)
+    .with(indexable)
+    .with(proxyable)
+    .with(reduced);
 }
 
 function clone(this: Continuous) {

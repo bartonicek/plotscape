@@ -8,7 +8,7 @@ import { Plot, newPlot } from "../plot/Plot";
 import { newPartition } from "../reducers/Partition";
 import { sumReducer } from "../reducers/Reducer";
 import { newReducerHandler } from "../reducers/ReducerHandler";
-import { RectanglesWH, newRectanglesWH } from "../representations/RectanglesWH";
+import { RectanglesXY, newRectanglesXY } from "../representations/RectanglesXY";
 import { Scene } from "../scene/Scene";
 import { BoundaryCols, RenderCols, Type, Variables } from "../types";
 import { Continuous } from "../variables/Continuous";
@@ -19,6 +19,10 @@ type DataBindings = {
 };
 
 type ReducedBindings = {
+  binStart: Continuous;
+  binEnd: Continuous;
+  binStart$: Continuous;
+  binEnd$: Continuous;
   binMid: Continuous;
   binMid$: Continuous;
   stat1: Continuous;
@@ -28,7 +32,7 @@ export interface Histogram2D extends Plot {
   type: Type;
   partition1Data: Dataframe<ReducedBindings & BoundaryCols>;
   partition2Data: Dataframe<ReducedBindings & RenderCols>;
-  squares: RectanglesWH;
+  squares: RectanglesXY;
 }
 
 /**
@@ -64,17 +68,16 @@ export function newHistogram2D<T extends Variables>(
   const partition2Data = partition2.data();
 
   const type = Type.Absolute;
-  const squares = newRectanglesWH(plot).noGap();
-  squares.mapEncodingToScale(`width`, `area`);
-  squares.mapEncodingToScale(`height`, `area`);
+  const squares = newRectanglesXY(plot);
 
   const self = { ...plot, type, squares, partition1Data, partition2Data };
   encodeAbs(self);
 
   self.addGraphicObject(squares);
-
-  const nMax = Math.max(factor1.cardinality, factor2.cardinality) + 1;
-  self.scales.area.codomain.setScale(1 / nMax).setTransform(square, squareRoot);
+  self.scales.area.codomain
+    .setDefaultMinMax(0, 1)
+    .setTransform(square, squareRoot)
+    .freeze();
 
   self.addKeyAction(`KeyN`, () =>
     self.type === Type.Absolute ? encodePct(self) : encodeAbs(self)
@@ -99,10 +102,16 @@ export function newHistogram2D<T extends Variables>(
   self.addWidgetSource(width2);
 
   partition1Data.listen(() => {
-    self.trainScales(squares.boundaryData!, identity);
-    const nMax = Math.max(factor1.cardinality, factor2.cardinality);
-    self.trainScales(squares.boundaryData!, identity);
-    self.scales.area.codomain.setScale(1 / nMax);
+    self.trainScales(squares.boundaryData!, (d) => ({
+      x: d.x0,
+      y: d.y0,
+      area: d.area!,
+    }));
+    self.scales.x.setName(partition1Data.col(`binMid`).name());
+    self.scales.area.codomain
+      .setDefaultMinMax(0, 1)
+      .setTransform(square, squareRoot)
+      .freeze();
     self.render();
   });
 
@@ -121,7 +130,12 @@ function encodeAbs(self: Histogram2D) {
   squares.setRenderData(renderData);
 
   self.type = Type.Absolute;
-  self.trainScales(boundaryData, identity);
+  self.trainScales(boundaryData, (d) => ({
+    x: d.x0,
+    y: d.y1,
+    area: d.area,
+  }));
+  self.scales.x.setName(partition1Data.col(`binMid`).name());
 
   self.render();
 }
@@ -135,6 +149,14 @@ function encodePct(self: Histogram2D) {
   squares.setBoundaryData(boundaryData);
   squares.setRenderData(renderData);
 
+  self.type = Type.Absolute;
+  self.trainScales(boundaryData, (d) => ({
+    x: d.x0,
+    y: d.y1,
+    area: d.area,
+  }));
+  self.scales.x.setName(partition1Data.col(`binMid`).name());
+
   self.type = Type.Proportion;
   self.trainScales(boundaryData, identity);
   self.render();
@@ -142,38 +164,40 @@ function encodePct(self: Histogram2D) {
 
 const encodeBoundaryAbs = (d: ReducedBindings) => {
   return {
-    x: d.binMid,
-    y: d.binMid$,
-    width: d.stat1,
-    height: d.stat1,
+    x0: d.binStart,
+    x1: d.binEnd,
+    y0: d.binStart$,
+    y1: d.binEnd$,
     area: d.stat1,
   };
 };
 
 const encodeRenderAbs = (d: ReducedBindings) => {
   return {
-    x: d.binMid,
-    y: d.binMid$,
-    width: d.stat1.stack(),
-    height: d.stat1.stack(),
+    x0: d.binStart,
+    x1: d.binEnd,
+    y0: d.binStart$,
+    y1: d.binEnd$,
+    area: d.stat1.stack(),
   };
 };
 
 const encodeBoundaryPct = (d: ReducedBindings) => {
   return {
-    x: d.binMid,
-    y: d.binMid$,
-    width: one,
-    height: one,
+    x0: d.binStart,
+    x1: d.binEnd,
+    y0: d.binStart$,
+    y1: d.binEnd$,
     area: one,
   };
 };
 
 const encodeRenderPct = (d: ReducedBindings) => {
   return {
-    x: d.binMid,
-    y: d.binMid$,
-    width: d.stat1.stack().normalizeByParent(),
-    height: d.stat1.stack().normalizeByParent(),
+    x0: d.binStart,
+    x1: d.binEnd,
+    y0: d.binStart$,
+    y1: d.binEnd$,
+    area: d.stat1.stack().normalizeByParent(),
   };
 };

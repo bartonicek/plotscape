@@ -1,12 +1,10 @@
 import { exp10, fetchJSON, log10 } from "utils";
 import { col } from "../lib/dataframe/ColumnParser.ts";
 import { parseColumns } from "../lib/dataframe/parseColumns.ts";
+import { newHistogram2D, newNoteplot, newPCoordsplot } from "../lib/main.ts";
 import { newBarplot } from "../lib/plots/Barplot.ts";
 import { newFluctplot } from "../lib/plots/Fluctplot.ts";
 import { newHistogram } from "../lib/plots/Histogram.ts";
-import { newHistogram2D } from "../lib/plots/Histogram2D.ts";
-import { newNoteplot } from "../lib/plots/Noteplot.ts";
-import { newPCoordsplot } from "../lib/plots/PCoordsplot.ts";
 import { newScatter } from "../lib/plots/Scatterplot.ts";
 import { newScene } from "../lib/scene/Scene.ts";
 import "../lib/style.css";

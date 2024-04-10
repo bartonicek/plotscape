@@ -2,6 +2,7 @@ import { mix } from "../funs";
 import { Indexable, indexable } from "../mixins/Indexable";
 import { Named, named } from "../mixins/Named";
 import { Proxyable, proxyable } from "../mixins/Proxyable";
+import { Queryable, queryable } from "../mixins/Queryable";
 import { Expanse } from "../scales/Expanse";
 import { newExpanseContinuous } from "../scales/ExpanseContinuous";
 import { Variable } from "./Variable";
@@ -9,6 +10,7 @@ import { Variable } from "./Variable";
 /** Returns any kind of value by index. */
 export interface Reference<T = unknown>
   extends Named,
+    Queryable,
     Variable<T>,
     Indexable<T>,
     Proxyable<T> {
@@ -22,7 +24,7 @@ export function newReference<T>(values: T[]): Reference<T> {
   const methods = { clone };
   const self = { ...props, ...methods };
 
-  return mix(self).with(named).with(indexable).with(proxyable);
+  return mix(self).with(named).with(queryable).with(indexable).with(proxyable);
 }
 
 function clone<T>(this: Reference<T>) {

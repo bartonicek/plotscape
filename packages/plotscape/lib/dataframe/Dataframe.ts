@@ -39,12 +39,8 @@ export function newDataframe<T extends Variables>(columns: T): Dataframe<T> {
 }
 
 function n(this: Dataframe): number {
-  if (this.cachedN) return this.cachedN();
   for (const col of values(this.columns)) {
-    if (col.n()) {
-      this.cachedN = col.n.bind(col) as () => number;
-      return this.cachedN!();
-    }
+    if (col.n() != -1) return col.n();
   }
   throw new Error(`No fixed-length variables present in the data`);
 }

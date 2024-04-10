@@ -16,6 +16,7 @@ type Encodings = {
   y0: Variable;
   x1: Variable;
   y1: Variable;
+  area?: Variable;
 };
 
 export interface RectanglesXY extends Representation<Encodings> {}
@@ -47,10 +48,19 @@ function render(this: RectanglesXY, contexts: Contexts) {
   for (let i = 0; i < n; i++) {
     const layer = data.col(LAYER).valueAt(i) as ContextId;
 
-    const x0 = data.col(`x0`).scaledAt(i, scales.x);
-    const y0 = data.col(`y0`).scaledAt(i, scales.y);
-    const x1 = data.col(`x1`).scaledAt(i, scales.x);
-    const y1 = data.col(`y1`).scaledAt(i, scales.y);
+    let x0 = data.col(`x0`).scaledAt(i, scales.x);
+    let y0 = data.col(`y0`).scaledAt(i, scales.y);
+    let x1 = data.col(`x1`).scaledAt(i, scales.x);
+    let y1 = data.col(`y1`).scaledAt(i, scales.y);
+
+    if (data.col(`area`)) {
+      const a = data.col(`area`)!.scaledAt(i, scales.area);
+
+      x0 = x0 + ((1 - a) / 2) * (x1 - x0);
+      x1 = x1 - ((1 - a) / 2) * (x1 - x0);
+      y0 = y0 + ((1 - a) / 2) * (y1 - y0);
+      y1 = y1 - ((1 - a) / 2) * (y1 - y0);
+    }
 
     contexts[layer].rectangleXY(x0, y0, x1, y1);
   }
@@ -64,10 +74,19 @@ function check(this: RectanglesXY, coords: Rect) {
   const selected = new Set<number>();
 
   for (let i = 0; i < n; i++) {
-    const x0 = data.col(`x0`).scaledAt(i, scales.x);
-    const y0 = data.col(`y0`).scaledAt(i, scales.y);
-    const x1 = data.col(`x1`).scaledAt(i, scales.x);
-    const y1 = data.col(`y1`).scaledAt(i, scales.y);
+    let x0 = data.col(`x0`).scaledAt(i, scales.x);
+    let y0 = data.col(`y0`).scaledAt(i, scales.y);
+    let x1 = data.col(`x1`).scaledAt(i, scales.x);
+    let y1 = data.col(`y1`).scaledAt(i, scales.y);
+
+    if (data.col(`area`)) {
+      const a = data.col(`area`)!.scaledAt(i, scales.area);
+
+      x0 = x0 + ((1 - a) / 2) * (x1 - x0);
+      x1 = x1 - ((1 - a) / 2) * (x1 - x0);
+      y0 = y0 + ((1 - a) / 2) * (y1 - y0);
+      y1 = y1 - ((1 - a) / 2) * (y1 - y0);
+    }
 
     const selfCoords = [x0, y0, x1, y1] as Rect;
 
@@ -86,11 +105,19 @@ function query(this: RectanglesXY, point: Point) {
   const n = data.n();
 
   for (let i = 0; i < n; i++) {
-    const x0 = data.col(`x0`).scaledAt(i, scales.x);
-    const y0 = data.col(`y0`).scaledAt(i, scales.y);
-    const x1 = data.col(`x1`).scaledAt(i, scales.x);
-    const y1 = data.col(`y1`).scaledAt(i, scales.y);
+    let x0 = data.col(`x0`).scaledAt(i, scales.x);
+    let y0 = data.col(`y0`).scaledAt(i, scales.y);
+    let x1 = data.col(`x1`).scaledAt(i, scales.x);
+    let y1 = data.col(`y1`).scaledAt(i, scales.y);
 
+    if (data.col(`area`)) {
+      const a = data.col(`area`)!.scaledAt(i, scales.area);
+
+      x0 = x0 + ((1 - a) / 2) * (x1 - x0);
+      x1 = x1 - ((1 - a) / 2) * (x1 - x0);
+      y0 = y0 + ((1 - a) / 2) * (y1 - y0);
+      y1 = y1 - ((1 - a) / 2) * (y1 - y0);
+    }
     const selfCoords = [x0, y0, x1, y1] as Rect;
 
     if (pointInRect(point, selfCoords)) {

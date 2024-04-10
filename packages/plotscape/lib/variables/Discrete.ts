@@ -3,6 +3,7 @@ import { mix } from "../funs";
 import { Indexable, indexable } from "../mixins/Indexable";
 import { Named, named } from "../mixins/Named";
 import { Proxyable, proxyable } from "../mixins/Proxyable";
+import { Queryable, queryable } from "../mixins/Queryable";
 import { Reduced, reduced } from "../mixins/Reduced";
 import {
   ExpanseDiscreteWeighted,
@@ -13,6 +14,7 @@ import { Variable } from "./Variable";
 /** Returns string values by index. */
 export interface Discrete
   extends Named,
+    Queryable,
     Variable<string>,
     Indexable<string>,
     Proxyable<string>,
@@ -34,7 +36,12 @@ export function newDiscrete(
   const methods = { width, clone };
   const self = { ...props, ...methods };
 
-  return mix(self).with(named).with(indexable).with(proxyable).with(reduced);
+  return mix(self)
+    .with(named)
+    .with(queryable)
+    .with(indexable)
+    .with(proxyable)
+    .with(reduced);
 }
 
 function clone(this: Discrete) {

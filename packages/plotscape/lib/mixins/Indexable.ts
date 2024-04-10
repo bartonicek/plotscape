@@ -36,8 +36,9 @@ function valueAt<T>(this: Indexable<T>, index: number, offset = 0) {
   return this.array[index + offset];
 }
 
-function scaledAt<T>(this: Indexable<T>, index: number, scale: Scale<T>) {
-  return scale.pushforward(this.valueAt(index));
+function scaledAt<T>(this: Indexable<T>, index: number, scale?: Scale<T>) {
+  if (scale) return scale.pushforward(this.valueAt(index));
+  return this.domain.normalize(this.valueAt(index));
 }
 
 function retrain<T>(this: Indexable<T>, array: T[]) {

@@ -1,5 +1,7 @@
 import { seq } from "utils";
+import { mix } from "../funs";
 import { Named, named } from "../mixins/Named";
+import { Queryable, queryable } from "../mixins/Queryable";
 import { Expanse } from "../scales/Expanse";
 import { newExpanseContinuous } from "../scales/ExpanseContinuous";
 import { Scale } from "../scales/Scale";
@@ -10,7 +12,9 @@ type VariableTuple<T extends unknown[]> = {
 };
 
 /** Returns an array of values by index. */
-export interface Tuple<T extends unknown[] = unknown[]> extends Named {
+export interface Tuple<T extends unknown[] = unknown[]>
+  extends Named,
+    Queryable {
   order: number[];
   variables: VariableTuple<T>;
   commonDomain: boolean;
@@ -45,7 +49,7 @@ export function newTuple<T extends any[]>(
   };
   const self = { ...props, ...methods };
 
-  return named(self);
+  return mix(self).with(named).with(queryable);
 }
 
 function clone<T extends unknown[]>(this: Tuple<T>) {
@@ -55,7 +59,7 @@ function clone<T extends unknown[]>(this: Tuple<T>) {
 
 function n<T extends unknown[]>(this: Tuple<T>) {
   for (const v of this.variables) {
-    if (v.n) return v.n();
+    if (v.n() != -1) return v.n();
   }
   throw new Error(`No fixed length variables present`);
 }

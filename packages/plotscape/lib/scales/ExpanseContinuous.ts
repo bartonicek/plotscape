@@ -1,4 +1,11 @@
-import { MapFn, identity, invertRange, minMax, prettyBreaks } from "utils";
+import {
+  MapFn,
+  identity,
+  invertRange,
+  minMax,
+  noopThis,
+  prettyBreaks,
+} from "utils";
 import { Observable, observable, untrack } from "../mixins/Observable";
 import { RangeWidget, newRangeWidget } from "../widgets/RangeWidget";
 import { Expanse } from "./Expanse";
@@ -12,6 +19,8 @@ export interface ExpanseContinuous extends Expanse<number>, Observable {
   scale: number;
   defaultMin: number;
   defaultMax: number;
+  defaultScale: number;
+
   trans: MapFn<number, number>;
   inv: MapFn<number, number>;
 
@@ -27,7 +36,14 @@ export interface ExpanseContinuous extends Expanse<number>, Observable {
   setScale(value: number): this;
   setDefaultMin(value: number): this;
   setDefaultMax(value: number): this;
+  setDefaultMinMax(min: number, max: number): this;
+  setDefaultScale(value: number): this;
   setTransform(trans: MapFn<number, number>, inv: MapFn<number, number>): this;
+
+  freezeMin(): this;
+  freezeMax(): this;
+  freezeScale(): this;
+  freeze(): this;
   expand(value: number): this;
 
   defaultize(): this;
@@ -40,7 +56,7 @@ export interface ExpanseContinuous extends Expanse<number>, Observable {
 
 export function newExpanseContinuous(min = 0, max = 1): ExpanseContinuous {
   const tag = `ExpanseContinuous`;
-  const [defaultMin, defaultMax, scale] = [min, max, 1];
+  const [defaultMin, defaultMax, scale, defaultScale] = [min, max, 1, 1];
   const [trans, inv] = [identity, identity];
   const props = {
     [Symbol.toStringTag]: tag,
@@ -49,6 +65,7 @@ export function newExpanseContinuous(min = 0, max = 1): ExpanseContinuous {
     scale,
     defaultMin,
     defaultMax,
+    defaultScale,
   };
 
   const methods = {
@@ -59,13 +76,19 @@ export function newExpanseContinuous(min = 0, max = 1): ExpanseContinuous {
     unnormalize,
     setMin,
     setMax,
+    setScale,
     setMinMax,
     setDefaultMin,
     setDefaultMax,
-    setScale,
+    setDefaultMinMax,
+    setDefaultScale,
     trans,
     inv,
     setTransform,
+    freezeMin,
+    freezeMax,
+    freezeScale,
+    freeze,
     expand,
     defaultize,
     retrain,
@@ -127,8 +150,21 @@ function setDefaultMax(this: ExpanseContinuous, value: number) {
   return this;
 }
 
+function setDefaultMinMax(this: ExpanseContinuous, min: number, max: number) {
+  untrack(this, () => this.setDefaultMin(min).setDefaultMax(max));
+  this.emit();
+  return this;
+}
+
 function setScale(this: ExpanseContinuous, value: number) {
   this.scale = value;
+  this.emit();
+  return this;
+}
+
+function setDefaultScale(this: ExpanseContinuous, value: number) {
+  this.defaultScale = value;
+  this.setScale(value);
   return this;
 }
 
@@ -142,6 +178,28 @@ function setTransform(
   return this;
 }
 
+function freezeMin(this: ExpanseContinuous) {
+  this.setMin = noopThis;
+  this.setDefaultMin = noopThis;
+  return this;
+}
+
+function freezeMax(this: ExpanseContinuous) {
+  this.setMax = noopThis;
+  this.setDefaultMax = noopThis;
+  return this;
+}
+
+function freezeScale(this: ExpanseContinuous) {
+  this.setScale = noopThis;
+  this.setDefaultScale = noopThis;
+  return this;
+}
+
+function freeze(this: ExpanseContinuous) {
+  return this.freezeMin().freezeMax().freezeScale();
+}
+
 function expand(this: ExpanseContinuous, value: number) {
   const { min, max } = this;
   const range = this.range();
@@ -153,13 +211,15 @@ function expand(this: ExpanseContinuous, value: number) {
 function defaultize(this: ExpanseContinuous) {
   this.min = this.defaultMin;
   this.max = this.defaultMax;
+  this.scale = this.defaultScale;
   this.emit();
   return this;
 }
 
 function retrain(this: ExpanseContinuous, array: number[]) {
   const [min, max] = minMax(array);
-  this.setDefaultMin(min).setDefaultMax(max);
+  untrack(this, () => this.setDefaultMin(min).setDefaultMax(max));
+  this.emit();
   return this;
 }
 
