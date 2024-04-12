@@ -128,7 +128,12 @@ function encodePct(self: Histogram) {
 }
 
 const encodeBoundaryAbs = (d: ReducedBindings) => {
-  return { x0: d.binStart, y0: zero, x1: d.binEnd, y1: d.stat1 };
+  return {
+    x0: d.binStart.setQueryable(true),
+    y0: zero,
+    x1: d.binEnd.setQueryable(true),
+    y1: d.stat1.setQueryable(true),
+  };
 };
 
 const encodeRenderAbs = (d: ReducedBindings) => {
@@ -137,13 +142,13 @@ const encodeRenderAbs = (d: ReducedBindings) => {
 
 const encodeBoundaryPct = (d: ReducedBindings) => {
   return {
-    aux1: d.binStart, // For query purposes only
-    aux2: d.binEnd, // Ditto
-    aux3: d.stat1, // Ditto
     x0: d.stat1.stack().shiftLeft(),
     x1: d.stat1.stack(),
     y0: zero,
     y1: one,
+    query1: d.binStart.setQueryable(true), // For query purposes only
+    query2: d.binEnd.setQueryable(true), // Ditto
+    query3: d.stat1.setQueryable(true), // Ditto
   };
 };
 

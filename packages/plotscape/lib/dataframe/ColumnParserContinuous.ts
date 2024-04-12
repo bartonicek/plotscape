@@ -1,7 +1,8 @@
 import { Named, named } from "../mixins/Named";
+import { Queryable, queryable } from "../mixins/Queryable";
 import { Continuous, newContinuous } from "../variables/Continuous";
 
-export interface ColumnParserContinuous extends Named {
+export interface ColumnParserContinuous extends Named, Queryable {
   options: { center: boolean; scale: boolean };
   parse(array: unknown[]): Continuous;
   center(): this;
@@ -10,12 +11,14 @@ export interface ColumnParserContinuous extends Named {
 
 export function newColumnParserContinuous(): ColumnParserContinuous {
   const options = { center: false, scale: false };
-  return named({
-    options,
-    parse,
-    center,
-    scale,
-  });
+  return queryable(
+    named({
+      options,
+      parse,
+      center,
+      scale,
+    })
+  );
 }
 
 function parse(this: ColumnParserContinuous, array: unknown[]) {
@@ -23,7 +26,7 @@ function parse(this: ColumnParserContinuous, array: unknown[]) {
 
   if (!(center || scale)) return newContinuous(array as number[]);
 
-  const result = [] as number[];
+  const resultArray = [] as number[];
   const summaries = { mean: 0, sumSquares: 0, sd: 0 };
 
   for (let i = 0; i < array.length; i++) {
@@ -43,10 +46,13 @@ function parse(this: ColumnParserContinuous, array: unknown[]) {
   for (let i = 0; i < array.length; i++) {
     const mean = center ? summaries.mean : 0;
     const sd = scale ? summaries.sd : 1;
-    result[i] = ((array[i] as number) - mean) / sd;
+    resultArray[i] = ((array[i] as number) - mean) / sd;
   }
 
-  return newContinuous(result);
+  const result = newContinuous(resultArray);
+  result.setQueryable(this.isQueryable());
+
+  return result;
 }
 
 function center(this: ColumnParserContinuous) {

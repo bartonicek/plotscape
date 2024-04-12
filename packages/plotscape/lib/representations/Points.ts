@@ -1,7 +1,7 @@
 import { mergeInto, values } from "utils";
 import { ObservableValue, newObservableValue } from "../ObservableValue";
 import { Dataframe } from "../dataframe/Dataframe";
-import { pointInRect, rectsIntersect } from "../funs";
+import { getQueryInformation, pointInRect, rectsIntersect } from "../funs";
 import graphicParameters from "../graphicParameters.json";
 import { ContextId, Contexts, Plot, Scales, layers } from "../plot/Plot";
 import { LAYER, POSITIONS } from "../symbols";
@@ -115,15 +115,7 @@ function query(this: Points, point: Point) {
     const c = radius / Math.sqrt(2);
 
     if (pointInRect(point, [x - c, y - c, x + c, y + c])) {
-      const result = {} as Record<string, any>;
-
-      for (const v of values(data.cols())) {
-        if (v && v.hasName() && !(v.name() in result)) {
-          result[v.name()] = v.valueAt(i);
-        }
-      }
-
-      return result;
+      return getQueryInformation(i, values(data.cols()));
     }
   }
 

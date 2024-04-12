@@ -5,7 +5,7 @@ import {
   GapType,
   newGapHandler,
 } from "../GapHandler";
-import { pointInRect, rectsIntersect } from "../funs";
+import { getQueryInformation, pointInRect, rectsIntersect } from "../funs";
 import { ContextId, Plot, layers } from "../plot/Plot";
 import { LAYER, POSITIONS } from "../symbols";
 import {
@@ -151,15 +151,7 @@ function query(this: RectanglesWH, point: Point) {
     ] as Rect;
 
     if (pointInRect(point, selfCoords)) {
-      const result = {} as Record<string, any>;
-
-      for (const v of values(data.cols())) {
-        if (v && v.hasName() && !(v.name() in result)) {
-          result[v.name()] = v.valueAt(i);
-        }
-      }
-
-      return result;
+      return getQueryInformation(i, values(data.cols()));
     }
   }
 }

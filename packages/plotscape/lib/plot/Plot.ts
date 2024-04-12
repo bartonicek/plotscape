@@ -284,7 +284,10 @@ export function newPlot(scene: Scene) {
   self.addKeyAction(`KeyP`, showWidgetDisplay.bind(self));
   self.addKeyAction(`KeyZ`, zoom.bind(self));
   self.addKeyAction(`KeyX`, unzoom.bind(self));
-  self.addKeyAction(`KeyS`, () => (container.style.resize = `both`));
+  self.addKeyAction(`KeyS`, () => {
+    container.style.resize = `both`;
+    container.style.overflow = `hidden`;
+  });
   self.addKeyAction(`KeyQ`, () => {
     for (const p of scene.plots) p.pars.mode = Mode.Query;
   });
@@ -681,6 +684,7 @@ function onKeydown(this: Plot, event: KeyboardEvent) {
 
 function onKeyup(this: Plot) {
   this.container.style.resize = `none`;
+  this.container.style.overflow = `visible`;
   this.pars.mode = Mode.Select;
   this.pars.lastKey = "";
   this.queryDisplay.clear();

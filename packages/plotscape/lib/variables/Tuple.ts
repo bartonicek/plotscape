@@ -1,7 +1,8 @@
-import { seq } from "utils";
+import { Dict, seq } from "utils";
 import { mix } from "../funs";
 import { Named, named } from "../mixins/Named";
 import { Queryable, queryable } from "../mixins/Queryable";
+import { ShallowCloneable, shallowCloneable } from "../mixins/ShallowClonable";
 import { Expanse } from "../scales/Expanse";
 import { newExpanseContinuous } from "../scales/ExpanseContinuous";
 import { Scale } from "../scales/Scale";
@@ -14,12 +15,14 @@ type VariableTuple<T extends unknown[]> = {
 /** Returns an array of values by index. */
 export interface Tuple<T extends unknown[] = unknown[]>
   extends Named,
-    Queryable {
+    Queryable,
+    ShallowCloneable {
   order: number[];
   variables: VariableTuple<T>;
-  commonDomain: boolean;
 
-  domain: Expanse;
+  commonDomain: boolean;
+  domain: Expanse<T>;
+
   n(): number;
   valueAt(index: number, offset?: number): T;
   scaledAt(index: number, scale: Scale): number[];
@@ -28,6 +31,8 @@ export interface Tuple<T extends unknown[] = unknown[]>
   setOrder(indices: number[]): this;
   setCommonDomain(): this;
   unsetCommonDomain(): this;
+
+  injectQueryInfo(index: number, infoDict: Dict): void;
 }
 
 export function newTuple<T extends any[]>(
@@ -46,10 +51,11 @@ export function newTuple<T extends any[]>(
     setOrder,
     setCommonDomain,
     unsetCommonDomain,
+    injectQueryInfo,
   };
   const self = { ...props, ...methods };
 
-  return mix(self).with(named).with(queryable);
+  return mix(self).with(named).with(queryable).with(shallowCloneable);
 }
 
 function clone<T extends unknown[]>(this: Tuple<T>) {
@@ -127,4 +133,15 @@ function unsetCommonDomain<T extends unknown[]>(this: Tuple<T>) {
   this.domain.setMin!(0).setMax!(1);
   this.commonDomain = false;
   return this;
+}
+
+function injectQueryInfo<T extends unknown[]>(
+  this: Tuple<T>,
+  index: number,
+  infoDict: Dict
+) {
+  for (const v of this.variables) {
+    if (!v.hasName()) continue;
+    v.injectQueryInfo(index, infoDict);
+  }
 }

@@ -3,14 +3,16 @@ import { Indexable, indexable } from "../mixins/Indexable";
 import { Named, named } from "../mixins/Named";
 import { Proxyable, proxyable } from "../mixins/Proxyable";
 import { Queryable, queryable } from "../mixins/Queryable";
+import { ShallowCloneable, shallowCloneable } from "../mixins/ShallowClonable";
 import { Expanse } from "../scales/Expanse";
 import { newExpanseContinuous } from "../scales/ExpanseContinuous";
-import { Variable } from "./Variable";
+import { Variable, injectQueryInfo } from "./Variable";
 
 /** Returns any kind of value by index. */
 export interface Reference<T = unknown>
   extends Named,
     Queryable,
+    ShallowCloneable,
     Variable<T>,
     Indexable<T>,
     Proxyable<T> {
@@ -21,10 +23,15 @@ export function newReference<T>(values: T[]): Reference<T> {
   const tag = `Reference`;
   const domain = newExpanseContinuous() as unknown as Expanse<T>;
   const props = { array: values, domain, [Symbol.toStringTag]: tag };
-  const methods = { clone };
+  const methods = { clone, injectQueryInfo };
   const self = { ...props, ...methods };
 
-  return mix(self).with(named).with(queryable).with(indexable).with(proxyable);
+  return mix(self)
+    .with(named)
+    .with(queryable)
+    .with(shallowCloneable)
+    .with(indexable)
+    .with(proxyable);
 }
 
 function clone<T>(this: Reference<T>) {

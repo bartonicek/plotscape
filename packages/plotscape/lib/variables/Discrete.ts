@@ -5,16 +5,18 @@ import { Named, named } from "../mixins/Named";
 import { Proxyable, proxyable } from "../mixins/Proxyable";
 import { Queryable, queryable } from "../mixins/Queryable";
 import { Reduced, reduced } from "../mixins/Reduced";
+import { ShallowCloneable, shallowCloneable } from "../mixins/ShallowClonable";
 import {
   ExpanseDiscreteWeighted,
   newExpanseDiscreteWeighted,
 } from "../scales/ExpanseDiscreteWeighted";
-import { Variable } from "./Variable";
+import { Variable, injectQueryInfo } from "./Variable";
 
 /** Returns string values by index. */
 export interface Discrete
   extends Named,
     Queryable,
+    ShallowCloneable,
     Variable<string>,
     Indexable<string>,
     Proxyable<string>,
@@ -33,12 +35,13 @@ export function newDiscrete(
   domain = domain ?? newExpanseDiscreteWeighted(unique);
 
   const props = { array, domain, [Symbol.toStringTag]: tag };
-  const methods = { width, clone };
+  const methods = { width, clone, injectQueryInfo };
   const self = { ...props, ...methods };
 
   return mix(self)
     .with(named)
     .with(queryable)
+    .with(shallowCloneable)
     .with(indexable)
     .with(proxyable)
     .with(reduced);

@@ -1,6 +1,7 @@
 import * as utils from "utils";
 import { MapFn, compose, identity } from "utils";
 import { Named, named } from "../mixins/Named";
+import { Queryable, queryable } from "../mixins/Queryable";
 import { Discrete, newDiscrete } from "../variables/Discrete";
 
 enum Case {
@@ -9,7 +10,7 @@ enum Case {
   Upper,
 }
 
-export interface ColumnParserDiscrete extends Named {
+export interface ColumnParserDiscrete extends Named, Queryable {
   options: { case: Case; capitalize: boolean; stripWS: boolean };
   parse(array: unknown[]): Discrete;
   toLowerCase(): this;
@@ -20,14 +21,16 @@ export interface ColumnParserDiscrete extends Named {
 
 export function newColumnParserDiscrete(): ColumnParserDiscrete {
   const options = { case: Case.None, capitalize: false, stripWS: false };
-  return named({
-    options,
-    parse,
-    toLowerCase,
-    toUpperCase,
-    capitalize,
-    stripWhitespace,
-  });
+  return queryable(
+    named({
+      options,
+      parse,
+      toLowerCase,
+      toUpperCase,
+      capitalize,
+      stripWhitespace,
+    })
+  );
 }
 
 function parse(this: ColumnParserDiscrete, array: unknown[]): Discrete {
@@ -37,7 +40,7 @@ function parse(this: ColumnParserDiscrete, array: unknown[]): Discrete {
     return newDiscrete(array.map(String));
   }
 
-  const result = Array(array.length) as string[];
+  const resultArray = Array(array.length) as string[];
   let mapfn: MapFn<string, string> = identity;
 
   if (wordCase === Case.Lower) mapfn = compose(mapfn, utils.toLowerCase);
@@ -46,10 +49,13 @@ function parse(this: ColumnParserDiscrete, array: unknown[]): Discrete {
   if (capitalize) mapfn = compose(mapfn, utils.capitalize);
 
   for (let i = 0; i < array.length; i++) {
-    result[i] = mapfn(String(array[i]));
+    resultArray[i] = mapfn(String(array[i]));
   }
 
-  return newDiscrete(result);
+  const result = newDiscrete(resultArray);
+  result.setQueryable(this.isQueryable());
+
+  return result;
 }
 
 function toLowerCase(this: ColumnParserDiscrete) {

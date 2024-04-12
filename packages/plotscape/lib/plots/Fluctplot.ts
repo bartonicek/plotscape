@@ -116,27 +116,38 @@ function encodePct(self: Fluctplot) {
 }
 
 const encodeBoundaryAbs = (d: ReducedBindings) => {
-  return { x: d.label, y: d.label$, width: d.stat1, height: d.stat1 };
+  return {
+    x: d.label.setQueryable(true),
+    y: d.label$.setQueryable(true),
+    width: d.stat1.setQueryable(true),
+    height: d.stat1,
+  };
 };
 
 const encodeRenderAbs = (d: ReducedBindings) => {
   return {
     x: d.label,
     y: d.label$,
-    width: d.stat1.stack!(),
-    height: d.stat1.stack!(),
+    width: d.stat1.stack(),
+    height: d.stat1.stack(),
   };
 };
 
 const encodeBoundaryPct = (d: ReducedBindings) => {
-  return { x: d.label, y: d.label$, width: one, height: one };
+  return {
+    x: d.label.setQueryable(true),
+    y: d.label$.setQueryable(true),
+    width: one,
+    height: one,
+    query1: d.stat1.setQueryable(true),
+  };
 };
 
 const encodeRenderPct = (d: ReducedBindings) => {
   return {
     x: d.label,
     y: d.label$,
-    width: d.stat1.stack!().normalizeByParent!(),
-    height: d.stat1.stack!().normalizeByParent!(),
+    width: d.stat1.stack().normalizeByParent!(),
+    height: d.stat1.stack().normalizeByParent!(),
   };
 };

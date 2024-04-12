@@ -2,10 +2,11 @@ import { mix } from "../funs";
 import { Named, named } from "../mixins/Named";
 import { Proxyable, proxyable } from "../mixins/Proxyable";
 import { Queryable, queryable } from "../mixins/Queryable";
+import { ShallowCloneable, shallowCloneable } from "../mixins/ShallowClonable";
 import { Expanse } from "../scales/Expanse";
 import { newExpanseContinuous } from "../scales/ExpanseContinuous";
 import { Scale } from "../scales/Scale";
-import { Variable } from "./Variable";
+import { Variable, injectQueryInfo } from "./Variable";
 
 /** Returns values by index based on a function which may or
  * may not refer to another variable.
@@ -13,6 +14,7 @@ import { Variable } from "./Variable";
 export interface Derived<T>
   extends Named,
     Queryable,
+    ShallowCloneable,
     Variable<T>,
     Proxyable<T> {
   variable?: Variable;
@@ -30,10 +32,22 @@ export function newDerived<T, U>(
   const tag = `Derived`;
   const domain = newExpanseContinuous() as unknown as Expanse<T>;
   const props = { [Symbol.toStringTag]: tag, variable, domain };
-  const methods = { clone, n, derivefn, valueAt, scaledAt, setDomain };
+  const methods = {
+    clone,
+    n,
+    derivefn,
+    valueAt,
+    scaledAt,
+    setDomain,
+    injectQueryInfo,
+  };
   const self = { ...props, ...methods };
 
-  return mix(self).with(named).with(queryable).with(proxyable) as Derived<T>;
+  return mix(self)
+    .with(named)
+    .with(queryable)
+    .with(shallowCloneable)
+    .with(proxyable) as Derived<T>;
 }
 
 function clone<T>(this: Derived<T>) {

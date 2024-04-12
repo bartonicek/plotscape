@@ -1,5 +1,12 @@
 import tinycolor from "tinycolor2";
-import { diff, exponentialToSuperscript, minMax, round, times } from "utils";
+import {
+  Dict,
+  diff,
+  exponentialToSuperscript,
+  minMax,
+  round,
+  times,
+} from "utils";
 import graphicParameters from "./graphicParameters.json";
 import { HexColour, Margins, Point, Rect } from "./types";
 
@@ -172,4 +179,15 @@ export function orderByIndices<T>(
 export function processBaseColor(hex: HexColour) {
   const col = tinycolor(hex);
   return col.saturate(30).lighten(30).toHexString() as HexColour;
+}
+
+type WithQueryInfo = { injectQueryInfo(index: number, infoDict: Dict): void };
+
+export function getQueryInformation(
+  index: number,
+  variables: (WithQueryInfo | undefined)[]
+) {
+  const result = {} as Record<string, any>;
+  for (const v of variables) v?.injectQueryInfo(index, result);
+  return result;
 }

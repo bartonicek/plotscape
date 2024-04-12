@@ -1,6 +1,10 @@
 import { dec, inc, mapParallel, mergeInto } from "utils";
 import { Dataframe } from "../dataframe/Dataframe";
-import { orderByIndices, rectSegmentIntersect } from "../funs";
+import {
+  getQueryInformation,
+  orderByIndices,
+  rectSegmentIntersect,
+} from "../funs";
 import { ContextId, Contexts, Plot, Scales, layers } from "../plot/Plot";
 import { LAYER, POSITIONS } from "../symbols";
 import { BoundaryCols, Point, Rect, RenderCols } from "../types";
@@ -106,16 +110,7 @@ function query(this: Lines, point: Point) {
 
     for (let j = 1; j < x.length; j++) {
       if (rectSegmentIntersect(coords, [x[j - 1], y[j - 1], x[j], y[j]])) {
-        const result = {} as Record<string, any>;
-
-        const xVals = data.col(`x`).valueAt(i) as string[];
-        const yVals = data.col(`y`).valueAt(i);
-
-        for (let i = 0; i < xVals.length; i++) {
-          result[xVals[i]] = yVals[i];
-        }
-
-        return result;
+        return getQueryInformation(i, [data.col(`y`)]);
       }
     }
   }

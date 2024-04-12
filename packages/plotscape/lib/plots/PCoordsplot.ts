@@ -56,12 +56,12 @@ export function newPCoordsplot<T extends Variables>(
   self.addKeyAction(`KeyN`, switchEncoding.bind(self));
   self.addKeyAction(`KeyR`, () => self.scales.x.setDefaultOrder());
 
-  boundaryData.listen(plot.render.bind(plot));
+  renderData.listen(plot.render.bind(plot));
   return self;
 }
 
 const reducefn = (d: DataBindings) => {
-  const vals = newTuple(values(d));
+  const vals = newTuple(values(d).map((x) => x.setQueryable(true)));
   const names = newTuple(
     values(d).map((x) => {
       const variable = newDerived((_, y) => y!.name(), x);

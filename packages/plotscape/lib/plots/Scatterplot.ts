@@ -34,10 +34,13 @@ export function newScatter<T extends Variables>(
   plot.addGraphicObject(points);
   plot.trainScales(boundaryData, (d) => ({ x: d.x, y: d.y }));
 
-  boundaryData.listen(plot.render.bind(plot));
   renderData.listen(plot.render.bind(plot));
 
   return { ...plot, ...{ data, points, renderData, boundaryData } };
 }
 
-const encodefn = (d: DataBindings) => ({ x: d.v1, y: d.v2, size: d.v3 });
+const encodefn = (d: DataBindings) => ({
+  x: d.v1.setQueryable(true),
+  y: d.v2.setQueryable(true),
+  size: d.v3?.setQueryable(true),
+});

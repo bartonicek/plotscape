@@ -1,5 +1,5 @@
 import { mergeInto, values } from "utils";
-import { pointInRect, rectsIntersect } from "../funs";
+import { getQueryInformation, pointInRect, rectsIntersect } from "../funs";
 import { ContextId, Contexts, Plot, layers } from "../plot/Plot";
 import { LAYER, POSITIONS } from "../symbols";
 import { Point, Rect } from "../types";
@@ -121,15 +121,7 @@ function query(this: RectanglesXY, point: Point) {
     const selfCoords = [x0, y0, x1, y1] as Rect;
 
     if (pointInRect(point, selfCoords)) {
-      const result = {} as Record<string, any>;
-
-      for (const v of values(data.cols())) {
-        if (v && v.hasName() && !(v.name() in result)) {
-          result[v.name()] = v.valueAt(i);
-        }
-      }
-
-      return result;
+      return getQueryInformation(i, values(data.cols()));
     }
   }
   return undefined;

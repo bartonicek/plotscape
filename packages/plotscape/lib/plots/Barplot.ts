@@ -155,7 +155,12 @@ function encodePct(self: Barplot) {
 }
 
 const encodeBoundaryAbs = (d: ReducedBindings) => {
-  return { x: d.label, y: zero, width: d.label, height: d.stat1 };
+  return {
+    x: d.label.setQueryable(true),
+    y: zero,
+    width: d.label,
+    height: d.stat1.setQueryable(true),
+  };
 };
 
 const encodeRenderAbs = (d: ReducedBindings) => {
@@ -163,7 +168,13 @@ const encodeRenderAbs = (d: ReducedBindings) => {
 };
 
 const encodeBoundaryPct = (d: ReducedBindings) => {
-  return { x: d.label, y: zero, width: d.label, height: one, aux1: d.stat1 };
+  return {
+    x: d.label.setQueryable(true),
+    y: zero,
+    width: d.label,
+    height: one,
+    aux1: d.stat1.setQueryable(true),
+  };
 };
 
 const encodeRenderPct = (d: ReducedBindings) => {

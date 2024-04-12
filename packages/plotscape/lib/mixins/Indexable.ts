@@ -11,12 +11,21 @@ export interface Indexable<T> {
   valueAt(index: number, offset?: number): T;
   scaledAt(index: number, scale: Scale<T>): number;
   retrain(array: T[]): this;
+
+  name(): string;
+  hasName(): boolean;
 }
 
-export function indexable<T extends { array: unknown[]; domain: Expanse }>(
-  object: T
-): T & Indexable<T["array"][number]> {
-  return { ...object, n, values, valueAt, scaledAt, retrain };
+export function indexable<
+  T extends {
+    array: unknown[];
+    domain: Expanse;
+    hasName(): boolean;
+    name(): string;
+  }
+>(object: T): T & Indexable<T["array"][number]> {
+  const methods = { n, values, valueAt, scaledAt, retrain };
+  return { ...object, ...methods };
 }
 
 function n<T>(this: Indexable<T>) {

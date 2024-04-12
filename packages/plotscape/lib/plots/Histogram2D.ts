@@ -164,11 +164,11 @@ function encodePct(self: Histogram2D) {
 
 const encodeBoundaryAbs = (d: ReducedBindings) => {
   return {
-    x0: d.binStart,
-    x1: d.binEnd,
-    y0: d.binStart$,
-    y1: d.binEnd$,
-    area: d.stat1,
+    x0: d.binStart.setQueryable(true),
+    x1: d.binEnd.setQueryable(true),
+    y0: d.binStart$.setQueryable(true),
+    y1: d.binEnd$.setQueryable(true),
+    area: d.stat1.setQueryable(true),
   };
 };
 
@@ -184,10 +184,10 @@ const encodeRenderAbs = (d: ReducedBindings) => {
 
 const encodeBoundaryPct = (d: ReducedBindings) => {
   return {
-    x0: d.binStart,
-    x1: d.binEnd,
-    y0: d.binStart$,
-    y1: d.binEnd$,
+    x0: d.binStart.setQueryable(true),
+    x1: d.binEnd.setQueryable(true),
+    y0: d.binStart$.setQueryable(true),
+    y1: d.binEnd$.setQueryable(true),
     area: one,
   };
 };

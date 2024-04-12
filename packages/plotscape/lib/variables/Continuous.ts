@@ -5,16 +5,18 @@ import { Named, named } from "../mixins/Named";
 import { Proxyable, proxyable } from "../mixins/Proxyable";
 import { Queryable, queryable } from "../mixins/Queryable";
 import { Reduced, reduced } from "../mixins/Reduced";
+import { ShallowCloneable, shallowCloneable } from "../mixins/ShallowClonable";
 import {
   ExpanseContinuous,
   newExpanseContinuous,
 } from "../scales/ExpanseContinuous";
-import { Variable } from "./Variable";
+import { Variable, injectQueryInfo } from "./Variable";
 
 /** Returns numeric values by index. */
 export interface Continuous
   extends Named,
     Queryable,
+    ShallowCloneable,
     Variable<number>,
     Indexable<number>,
     Proxyable<number>,
@@ -34,12 +36,13 @@ export function newContinuous(
   domain = domain ?? newExpanseContinuous(...minMax(array));
 
   const props = { array, domain, [Symbol.toStringTag]: tag };
-  const methods = { range, min, max, clone };
+  const methods = { range, min, max, clone, injectQueryInfo };
   const self = { ...props, ...methods };
 
   return mix(self)
     .with(named)
     .with(queryable)
+    .with(shallowCloneable)
     .with(indexable)
     .with(proxyable)
     .with(reduced);
