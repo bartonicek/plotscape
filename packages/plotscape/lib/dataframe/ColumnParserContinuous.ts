@@ -49,10 +49,7 @@ function parse(this: ColumnParserContinuous, array: unknown[]) {
     resultArray[i] = ((array[i] as number) - mean) / sd;
   }
 
-  const result = newContinuous(resultArray);
-  result.setQueryable(this.isQueryable());
-
-  return result;
+  return newContinuous(resultArray);
 }
 
 function center(this: ColumnParserContinuous) {

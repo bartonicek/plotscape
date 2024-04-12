@@ -93,11 +93,10 @@ function scaledAt<T extends unknown[]>(
   const result = Array(variables.length) as number[];
 
   const originalDomain = scale.domain;
-  if (commonDomain) scale.domain = domain; // Swap the scale domain for the common domain
 
   for (let j = 0; j < variables.length; j++) {
     const variable = variables[j];
-    if (!commonDomain) scale.domain = variable.domain;
+    scale.domain = commonDomain ? domain : variable.domain;
     result[order[j]] = variable.scaledAt(index, scale);
   }
 

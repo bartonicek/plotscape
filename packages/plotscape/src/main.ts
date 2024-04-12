@@ -59,7 +59,7 @@ async function sacrametoScene() {
   const spec = {
     city: col(`discrete`).toLowerCase().capitalize(),
     beds: col(`discrete`),
-    baths: col(`discrete`),
+    baths: col(`discrete`).setQueryable(true),
     sqft: col(`continuous`),
     price: col(`continuous`),
     latitude: col(`continuous`),

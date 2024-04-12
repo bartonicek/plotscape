@@ -1,6 +1,7 @@
-import { Normalize, allEntries, cleanProps, values } from "utils";
+import { Normalize, allEntries, allValues, cleanProps, values } from "utils";
 import { Observable, observable } from "../mixins/Observable";
 import { RowOf, SymbolProps, VariableValue, Variables } from "../types";
+import { Variable } from "../variables/Variable";
 
 /** Stores and provides access to variables. */
 export interface Dataframe<T extends Variables = Variables> extends Observable {
@@ -9,10 +10,12 @@ export interface Dataframe<T extends Variables = Variables> extends Observable {
   keys(): string[];
   col<K extends keyof T>(key: K): T[K];
   cols(): T;
+  colsArray(): Variable[];
   row(index: number, row?: RowOf<T>): RowOf<T>;
   rows(): RowOf<T>[];
   select<U extends Partial<Variables>>(
-    selectfn: (cols: T) => U
+    selectfn: (cols: T) => U,
+    options?: { keepSymbols?: boolean; keepQueryables?: boolean }
   ): Dataframe<SymbolProps<T> & U>;
   cachedN?(): number;
   join<U extends Variables>(other: Dataframe<U>): Dataframe<Normalize<T & U>>;
@@ -27,6 +30,7 @@ export function newDataframe<T extends Variables>(columns: T): Dataframe<T> {
     keys,
     col,
     cols,
+    colsArray,
     row,
     rows,
     select,
@@ -60,6 +64,10 @@ function cols<T extends Variables>(this: Dataframe<T>) {
   return this.columns;
 }
 
+function colsArray<T extends Variables>(this: Dataframe<T>) {
+  return allValues(this.columns) as Variable[];
+}
+
 function row<T extends Variables>(
   this: Dataframe<T>,
   index: number,
@@ -80,15 +88,23 @@ function rows<T extends Variables>(this: Dataframe<T>) {
   return result;
 }
 
+const defaultOpts = { keepSymbols: true, keepQueryables: true };
+
 function select<T extends Variables, U extends Partial<Variables>>(
   this: Dataframe<T>,
-  selectfn: (cols: T) => U
+  selectfn: (cols: T) => U,
+  options?: { keepSymbols?: boolean; keepQueryables?: boolean }
 ): Dataframe<SymbolProps<T> & U> {
   const { columns } = this;
   const cols = cleanProps(selectfn(columns)) as any;
+  const opts = Object.assign(defaultOpts, options);
 
   for (const [k, v] of allEntries(columns)) {
-    if (typeof k === "symbol") cols[k] = v;
+    if (
+      (opts.keepSymbols && typeof k === "symbol") ||
+      (opts.keepQueryables && v.isQueryable())
+    )
+      cols[k] = v;
   }
 
   const result = newDataframe(cols);

@@ -41,6 +41,7 @@ export function parseColumns<T extends Record<string, ColumnParser>>(
 
     const variable = v.parse(array);
     variable.setName(v.name());
+    variable.setQueryable(v.isQueryable());
 
     columns[k] = variable;
   }

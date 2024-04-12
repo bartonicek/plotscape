@@ -52,10 +52,7 @@ function parse(this: ColumnParserDiscrete, array: unknown[]): Discrete {
     resultArray[i] = mapfn(String(array[i]));
   }
 
-  const result = newDiscrete(resultArray);
-  result.setQueryable(this.isQueryable());
-
-  return result;
+  return newDiscrete(resultArray);
 }
 
 function toLowerCase(this: ColumnParserDiscrete) {

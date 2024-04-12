@@ -1,4 +1,4 @@
-import { TODO, values } from "utils";
+import { TODO } from "utils";
 import { oneRowOneCase } from "../constants";
 import { Dataframe } from "../dataframe/Dataframe";
 import { Plot, newPlot } from "../plot/Plot";
@@ -61,13 +61,14 @@ export function newPCoordsplot<T extends Variables>(
 }
 
 const reducefn = (d: DataBindings) => {
-  const vals = newTuple(values(d).map((x) => x.setQueryable(true)));
+  const vars = [] as Variable[];
+  for (const [k, v] of Object.entries(d)) {
+    if (/^v\d+$/g.test(k)) vars.push(v.setQueryable(true));
+  }
+
+  const vals = newTuple(vars);
   const names = newTuple(
-    values(d).map((x) => {
-      const variable = newDerived((_, y) => y!.name(), x);
-      variable.setName(x.name());
-      return variable;
-    })
+    vars.map((x) => newDerived((_, y) => y!.name(), x).setName(x.name()))
   );
 
   const domain = newExpanseDiscreteAbsolute(names.valueAt(0));
