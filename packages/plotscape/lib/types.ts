@@ -96,3 +96,7 @@ export enum HorizontalAnchor {
   Left = 1,
   Right = 0,
 }
+export enum Direction {
+  Forward,
+  Backward,
+}

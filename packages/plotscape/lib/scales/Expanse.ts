@@ -13,6 +13,7 @@ export interface Expanse<T = unknown> extends Observable {
   retrain(array: T[]): void;
   breaks(norm: ExpanseContinuous): T[];
 
+  // Continuous methods
   range?(): number;
   setMin?(value: number): this;
   setMax?(value: number): this;
@@ -20,7 +21,9 @@ export interface Expanse<T = unknown> extends Observable {
   setDefaultMax?(value: number): this;
   setTransform?(trans: MapFn<number, number>, inv: MapFn<number, number>): this;
   expand?(value: number): this;
+  flip?(): this;
 
+  // Discrete methods
   order?: number[];
   setWeights?(weights: number[]): this;
   setOrder?(indices: number[]): this;

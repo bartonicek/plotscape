@@ -1,4 +1,4 @@
-import { MapFn, noopThis } from "utils";
+import { MapFn } from "utils";
 import { Named, named } from "../mixins/Named";
 import { Observable, observable } from "../mixins/Observable";
 import { Widget } from "../widgets/Widget";
@@ -34,9 +34,16 @@ export interface Scale<T = unknown> extends Named, Observable {
   setDomain<V extends string | number>(domain: Expanse<V>): Scale<V>;
   setCodomain(codomain: ExpanseContinuous): this;
 
+  pushforward(value: T): number;
+  pullback(value: number): T;
+
   setMin(value: number): this;
   setMax(value: number): this;
   setTransform(trans: MapFn<number, number>, inv: MapFn<number, number>): this;
+  move(amount: number): this;
+  freezeMin(): this;
+  freezeMax(): this;
+  flip(): this;
 
   setWeights(weights: number[]): this;
   setOrder(indices: number[]): this;
@@ -44,17 +51,9 @@ export interface Scale<T = unknown> extends Named, Observable {
   setDefaultWeights(): this;
   getOrder(): number[] | undefined;
 
-  pushforward(value: T): number;
-  pullback(value: number): T;
-
-  move(amount: number): this;
-  freezeMin(): this;
-  freezeMax(): this;
-
   link(other: Scale<T>): this;
   breaks(): T[];
   ratio(): number;
-
   widget(): Widget | undefined;
 }
 
@@ -94,6 +93,7 @@ export function newScale<T = number>(
     move,
     freezeMin,
     freezeMax,
+    flip,
     link,
     breaks,
     ratio,
@@ -213,12 +213,17 @@ function breaks<T>(this: Scale<T>) {
 }
 
 function freezeMin<T>(this: Scale<T>) {
-  this.norm.setMin = noopThis;
+  this.norm.freezeMin();
   return this;
 }
 
 function freezeMax<T>(this: Scale<T>) {
-  this.norm.setMax = noopThis;
+  this.norm.freezeMax();
+  return this;
+}
+
+function flip<T>(this: Scale<T>) {
+  this.domain.flip?.();
   return this;
 }
 

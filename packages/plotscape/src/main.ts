@@ -6,6 +6,7 @@ import { newBarplot } from "../lib/plots/Barplot.ts";
 import { newFluctplot } from "../lib/plots/Fluctplot.ts";
 import { newHistogram } from "../lib/plots/Histogram.ts";
 import { newScatter } from "../lib/plots/Scatterplot.ts";
+import { newExpanseContinuous } from "../lib/scales/ExpanseContinuous.ts";
 import { newScene } from "../lib/scene/Scene.ts";
 import "../lib/style.css";
 
@@ -53,7 +54,7 @@ async function diamondsScene() {
 }
 
 async function sacrametoScene() {
-  const URL = `https://raw.githubusercontent.com/bartonicek/plotscape/master/packages/plotscape/datasets/sacramento.json`;
+  const URL = `../datasets/sacramento.json`;
   const sacramentoJSON = await fetchJSON(URL);
 
   const spec = {
@@ -93,3 +94,5 @@ async function sacrametoScene() {
 // diamondsScene();
 sacrametoScene();
 // mpgScene();
+
+const foo = newExpanseContinuous(25, 100).flip();

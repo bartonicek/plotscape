@@ -161,9 +161,16 @@ html, body {
   padding-right: 3vmin;
 }
 
+.ps-widget button {
+  background-color: #deded9;
+  position: relative;
+  top: auto;
+  right: auto;
+  margin-left: 1vmin;
+}
+
 .ps-widget input {
   text-align: right;
-  float: right;
 }
 
 .ps-widget-draglist ul {

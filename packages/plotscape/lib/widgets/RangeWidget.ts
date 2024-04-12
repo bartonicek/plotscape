@@ -1,7 +1,8 @@
-import { clearChildren, element } from "utils";
+import { clearChildren, element, flipEnum } from "utils";
 import { formatLabel } from "../funs";
 import { named } from "../mixins/Named";
 import { Observable, observable } from "../mixins/Observable";
+import { Direction } from "../types";
 import { Widget } from "./Widget";
 
 type Source = { min: number; max: number } & Observable;
@@ -10,6 +11,7 @@ export interface RangeWidget extends Widget {
   source: Source;
   min: number;
   max: number;
+  direction: Direction;
 }
 
 export function newRangeWidget(source: Source): RangeWidget {
@@ -19,7 +21,10 @@ export function newRangeWidget(source: Source): RangeWidget {
     .get();
 
   const { min, max } = source;
-  const self = observable(named({ container, source, min, max, render }));
+  const direction = Direction.Forward;
+  const self = observable(
+    named({ container, source, min, max, direction, render })
+  );
 
   source.listen(self.render.bind(self));
   return self;
@@ -30,9 +35,11 @@ function render(this: RangeWidget) {
 
   clearChildren(container);
 
-  const name = element(`span`).appendTo(container).get();
-  const inputMin = element(`input`).appendTo(container).get();
-  const inputMax = element(`input`).appendTo(container).get();
+  const wrapper = element(`span`).appendTo(container).get();
+  const name = element(`span`).appendTo(wrapper).get();
+  const inputMin = element(`input`).appendTo(wrapper).get();
+  const inputMax = element(`input`).appendTo(wrapper).get();
+  const flipButton = element(`button`).text(`⇆`).appendTo(wrapper).get();
 
   name.innerText = `Range of ${this.name()}: `;
   inputMin.size = 6;
@@ -44,14 +51,19 @@ function render(this: RangeWidget) {
   inputMin.value = formatLabel(source.min);
   inputMax.value = formatLabel(source.max);
 
-  const update = (event: KeyboardEvent) => {
+  const updateValue = (event: KeyboardEvent) => {
     if (!(event.code === `Enter`)) return;
     this.min = parseFloat(inputMin.value);
     this.max = parseFloat(inputMax.value);
     this.emit();
   };
 
-  inputMin.addEventListener(`keydown`, update);
-  inputMax.addEventListener(`keydown`, update);
+  inputMin.addEventListener(`keydown`, updateValue);
+  inputMax.addEventListener(`keydown`, updateValue);
+  flipButton.addEventListener(`mousedown`, () => {
+    this.direction = flipEnum(this.direction);
+    this.emit();
+  });
+
   return this;
 }

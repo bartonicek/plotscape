@@ -144,6 +144,15 @@ export function noopThis<T>(this: T) {
 }
 
 /**
+ * Flips a binary TypeScript enum.
+ * @param enumValue A value of the enum
+ * @returns The other enum value
+ */
+export function flipEnum<T extends 0 | 1>(enumValue: T) {
+  return [1, 0][enumValue] as T;
+}
+
+/**
  * Increments a number by 1.
  *
  * @param x A number

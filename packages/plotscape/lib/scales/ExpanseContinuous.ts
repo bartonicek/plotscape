@@ -1,5 +1,7 @@
 import {
   MapFn,
+  diff,
+  flipEnum,
   identity,
   invertRange,
   minMax,
@@ -7,6 +9,7 @@ import {
   prettyBreaks,
 } from "utils";
 import { Observable, observable, untrack } from "../mixins/Observable";
+import { Direction } from "../types";
 import { RangeWidget, newRangeWidget } from "../widgets/RangeWidget";
 import { Expanse } from "./Expanse";
 
@@ -17,6 +20,7 @@ export interface ExpanseContinuous extends Expanse<number>, Observable {
   min: number;
   max: number;
   scale: number;
+  direction: Direction;
   defaultMin: number;
   defaultMax: number;
   defaultScale: number;
@@ -44,6 +48,7 @@ export interface ExpanseContinuous extends Expanse<number>, Observable {
   freezeMax(): this;
   freezeScale(): this;
   freeze(): this;
+  flip(): this;
   expand(value: number): this;
 
   defaultize(): this;
@@ -57,12 +62,14 @@ export interface ExpanseContinuous extends Expanse<number>, Observable {
 export function newExpanseContinuous(min = 0, max = 1): ExpanseContinuous {
   const tag = `ExpanseContinuous`;
   const [defaultMin, defaultMax, scale, defaultScale] = [min, max, 1, 1];
+  const direction = Direction.Forward;
   const [trans, inv] = [identity, identity];
   const props = {
     [Symbol.toStringTag]: tag,
     min,
     max,
     scale,
+    direction,
     defaultMin,
     defaultMax,
     defaultScale,
@@ -89,6 +96,7 @@ export function newExpanseContinuous(min = 0, max = 1): ExpanseContinuous {
     freezeMax,
     freezeScale,
     freeze,
+    flip,
     expand,
     defaultize,
     retrain,
@@ -111,13 +119,15 @@ function transRange(this: ExpanseContinuous) {
 }
 
 function normalize(this: ExpanseContinuous, value: number) {
-  const { min, scale, trans } = this;
-  return (trans(value) - trans(min)) / this.transRange() / scale;
+  const { min, scale, direction: dir, trans } = this;
+  const normalized = (trans(value) - trans(min)) / this.transRange() / scale;
+  return dir + (-2 * dir + 1) * normalized;
 }
 
 function unnormalize(this: ExpanseContinuous, value: number) {
-  const { min, scale, trans, inv } = this;
-  return inv(trans(min) + value * this.transRange()) * scale;
+  const { min, max, scale, direction: dir, trans, inv } = this;
+  const unnormalized = inv(trans(min) + value * this.transRange()) * scale;
+  return max * dir + (-2 * dir + 1) * unnormalized + dir * min;
 }
 
 function setMin(this: ExpanseContinuous, value: number) {
@@ -200,6 +210,11 @@ function freeze(this: ExpanseContinuous) {
   return this.freezeMin().freezeMax().freezeScale();
 }
 
+function flip(this: ExpanseContinuous) {
+  this.direction = flipEnum(this.direction);
+  return this;
+}
+
 function expand(this: ExpanseContinuous, value: number) {
   const { min, max } = this;
   const range = this.range();
@@ -232,9 +247,7 @@ function clone(this: ExpanseContinuous) {
 
 function breaks(this: ExpanseContinuous, norm: ExpanseContinuous) {
   let [min, max] = [norm.normalize(0), norm.normalize(1)];
-
-  min = this.unnormalize(min);
-  max = this.unnormalize(max);
+  [min, max] = [min, max].map((x) => this.unnormalize(x)).sort(diff);
   return prettyBreaks(min, max);
 }
 
@@ -255,15 +268,22 @@ function widget(this: ExpanseContinuous, norm: ExpanseContinuous) {
   norm.listen(update);
 
   widget.listen(() => {
-    let { min, max } = widget;
+    let { min, max, direction } = widget;
+
+    // TODO
+    if (direction != norm.direction) {
+      norm.flip();
+      this.emit();
+      return;
+    }
 
     source.min = min;
     source.max = max;
 
-    [min, max] = [min, max].map(this.normalize.bind(this));
+    [min, max] = [min, max].sort(diff).map(this.normalize.bind(this));
     [min, max] = invertRange(min, max);
 
-    norm.setMin(min).setMax(max);
+    norm.setMinMax(min, max);
   });
 
   return widget;
