@@ -1,4 +1,4 @@
-import { identity, square, squareRoot } from "utils";
+import { identity, square, squareRoot, times } from "utils";
 import { newObservableValue } from "../ObservableValue";
 import { one } from "../constants";
 import { Dataframe } from "../dataframe/Dataframe";
@@ -50,15 +50,16 @@ export function newHistogram2D<T extends Variables>(
 
   const [v1, v2] = [data.col(`v1`), data.col(`v2`)];
   const [range1, range2] = [v1.range(), v2.range()];
-
-  const binName = (name: string) => `Binwidth of ${name}: `;
+  const [min1, min2] = [v1.min(), v2.min()];
 
   const width1 = newObservableValue(range1 / 30).setName(binName(v1.name()));
   const width2 = newObservableValue(range2 / 30).setName(binName(v1.name()));
+  const anchor1 = newObservableValue(min1).setName(anchorName(v1.name()));
+  const anchor2 = newObservableValue(min2).setName(anchorName(v2.name()));
 
   const reducers = { stat1: newReducerHandler(one, sumReducer) };
-  const factor1 = factorBin(v1, width1, data.col(`v1`).min());
-  const factor2 = factorBin(v2, width2, data.col(`v2`).min());
+  const factor1 = factorBin(v1, width1, anchor1);
+  const factor2 = factorBin(v2, width2, anchor2);
   const factor3 = factorProduct(factor1, factor2);
 
   const partition1 = newPartition(reducers).refine(factor3);
@@ -84,13 +85,13 @@ export function newHistogram2D<T extends Variables>(
   );
 
   self.addKeyAction(`Minus`, () => {
-    width1.set(width1.value * (9 / 10));
-    width2.set(width2.value * (9 / 10));
+    width1.set(times(9 / 10));
+    width2.set(times(9 / 10));
   });
 
   self.addKeyAction(`Equal`, () => {
-    width1.set(width1.value * (10 / 9));
-    width2.set(width2.value * (10 / 9));
+    width1.set(times(10 / 9));
+    width2.set(times(10 / 9));
   });
 
   self.addKeyAction(`KeyR`, () => {
@@ -100,6 +101,8 @@ export function newHistogram2D<T extends Variables>(
 
   self.addWidgetSource(width1);
   self.addWidgetSource(width2);
+  self.addWidgetSource(anchor1);
+  self.addWidgetSource(anchor2);
 
   partition1Data.listen(() => {
     self.trainScales(squares.boundaryData!, (d) => ({
@@ -136,6 +139,7 @@ function encodeAbs(self: Histogram2D) {
     area: d.area,
   }));
   self.scales.x.setName(partition1Data.col(`binMid`).name());
+  self.scales.y.setName(partition1Data.col(`binMid$`).name());
 
   self.render();
 }
@@ -156,6 +160,7 @@ function encodePct(self: Histogram2D) {
     area: d.area,
   }));
   self.scales.x.setName(partition1Data.col(`binMid`).name());
+  self.scales.y.setName(partition1Data.col(`binMid$`).name());
 
   self.type = Type.Proportion;
   self.trainScales(boundaryData, identity);
@@ -201,3 +206,11 @@ const encodeRenderPct = (d: ReducedBindings) => {
     area: d.stat1.stack().normalizeByParent(),
   };
 };
+
+function binName(name: string) {
+  return `Binwidth of ${name}: `;
+}
+
+function anchorName(name: string) {
+  return `Anchor of ${name}: `;
+}
