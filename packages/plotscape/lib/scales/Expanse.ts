@@ -15,8 +15,8 @@ export interface Expanse<T = unknown> extends Observable {
 
   // Continuous methods
   range?(): number;
-  setMin?(value: number): this;
-  setMax?(value: number): this;
+  setMin?(value: number, options?: { default?: boolean }): this;
+  setMax?(value: number, options?: { default?: boolean }): this;
   setDefaultMin?(value: number): this;
   setDefaultMax?(value: number): this;
   setTransform?(trans: MapFn<number, number>, inv: MapFn<number, number>): this;

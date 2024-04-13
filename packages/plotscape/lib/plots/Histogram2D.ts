@@ -76,7 +76,7 @@ export function newHistogram2D<T extends Variables>(
 
   self.addGraphicObject(squares);
   self.scales.area.codomain
-    .setDefaultMinMax(0, 1)
+    .setMinMax(0, 1, { default: true })
     .setTransform(square, squareRoot)
     .freeze();
 
@@ -112,7 +112,7 @@ export function newHistogram2D<T extends Variables>(
     }));
     self.scales.x.setName(partition1Data.col(`binMid`).name());
     self.scales.area.codomain
-      .setDefaultMinMax(0, 1)
+      .setMinMax(0, 1, { default: true })
       .setTransform(square, squareRoot)
       .freeze();
     self.render();

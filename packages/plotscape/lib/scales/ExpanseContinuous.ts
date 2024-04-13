@@ -34,14 +34,10 @@ export interface ExpanseContinuous extends Expanse<number>, Observable {
   normalize(value: number): number;
   unnormalize(value: number): number;
 
-  setMin(value: number): this;
-  setMax(value: number): this;
-  setMinMax(min: number, max: number): this;
-  setScale(value: number): this;
-  setDefaultMin(value: number): this;
-  setDefaultMax(value: number): this;
-  setDefaultMinMax(min: number, max: number): this;
-  setDefaultScale(value: number): this;
+  setMin(value: number, options?: { default?: boolean }): this;
+  setMax(value: number, options?: { default?: boolean }): this;
+  setMinMax(min: number, max: number, options?: { default?: boolean }): this;
+  setScale(value: number, options?: { default?: boolean }): this;
   setTransform(trans: MapFn<number, number>, inv: MapFn<number, number>): this;
 
   freezeMin(): this;
@@ -50,6 +46,7 @@ export interface ExpanseContinuous extends Expanse<number>, Observable {
   freeze(): this;
   flip(): this;
   expand(value: number): this;
+  expand2(zero: number, one: number, options?: { default: boolean }): this;
 
   defaultize(): this;
   retrain(array: number[]): this;
@@ -69,10 +66,10 @@ export function newExpanseContinuous(min = 0, max = 1): ExpanseContinuous {
     min,
     max,
     scale,
-    direction,
     defaultMin,
     defaultMax,
     defaultScale,
+    direction,
   };
 
   const methods = {
@@ -81,16 +78,13 @@ export function newExpanseContinuous(min = 0, max = 1): ExpanseContinuous {
     transRange,
     normalize,
     unnormalize,
+    defaultize,
+    trans,
+    inv,
     setMin,
     setMax,
     setScale,
     setMinMax,
-    setDefaultMin,
-    setDefaultMax,
-    setDefaultMinMax,
-    setDefaultScale,
-    trans,
-    inv,
     setTransform,
     freezeMin,
     freezeMax,
@@ -98,7 +92,7 @@ export function newExpanseContinuous(min = 0, max = 1): ExpanseContinuous {
     freeze,
     flip,
     expand,
-    defaultize,
+    expand2,
     retrain,
     breaks,
     widget,
@@ -130,51 +124,47 @@ function unnormalize(this: ExpanseContinuous, value: number) {
   return max * dir + (-2 * dir + 1) * unnormalized + dir * min;
 }
 
-function setMin(this: ExpanseContinuous, value: number) {
+function setMin(
+  this: ExpanseContinuous,
+  value: number,
+  options?: { default?: boolean }
+) {
   this.min = value;
+  if (options?.default) this.defaultMin = value;
   this.emit();
   return this;
 }
 
-function setMax(this: ExpanseContinuous, value: number) {
+function setMax(
+  this: ExpanseContinuous,
+  value: number,
+  options?: { default?: boolean }
+) {
   this.max = value;
+  if (options?.default) this.defaultMax = value;
   this.emit();
   return this;
 }
 
-function setMinMax(this: ExpanseContinuous, min: number, max: number) {
-  untrack(this, () => this.setMin(min).setMax(max));
+function setMinMax(
+  this: ExpanseContinuous,
+  min: number,
+  max: number,
+  options?: { default: boolean }
+) {
+  untrack(this, () => this.setMin(min, options).setMax(max, options));
   this.emit();
   return this;
 }
 
-function setDefaultMin(this: ExpanseContinuous, value: number) {
-  this.defaultMin = value;
-  this.setMin(value);
-  return this;
-}
-
-function setDefaultMax(this: ExpanseContinuous, value: number) {
-  this.defaultMax = value;
-  this.setMax(value);
-  return this;
-}
-
-function setDefaultMinMax(this: ExpanseContinuous, min: number, max: number) {
-  untrack(this, () => this.setDefaultMin(min).setDefaultMax(max));
-  this.emit();
-  return this;
-}
-
-function setScale(this: ExpanseContinuous, value: number) {
+function setScale(
+  this: ExpanseContinuous,
+  value: number,
+  options?: { default?: boolean }
+) {
   this.scale = value;
+  if (options?.default) this.defaultScale = value;
   this.emit();
-  return this;
-}
-
-function setDefaultScale(this: ExpanseContinuous, value: number) {
-  this.defaultScale = value;
-  this.setScale(value);
   return this;
 }
 
@@ -190,19 +180,16 @@ function setTransform(
 
 function freezeMin(this: ExpanseContinuous) {
   this.setMin = noopThis;
-  this.setDefaultMin = noopThis;
   return this;
 }
 
 function freezeMax(this: ExpanseContinuous) {
   this.setMax = noopThis;
-  this.setDefaultMax = noopThis;
   return this;
 }
 
 function freezeScale(this: ExpanseContinuous) {
   this.setScale = noopThis;
-  this.setDefaultScale = noopThis;
   return this;
 }
 
@@ -219,7 +206,20 @@ function expand(this: ExpanseContinuous, value: number) {
   const { min, max } = this;
   const range = this.range();
   const inc = ((value - 1) * range) / 2;
-  this.setDefaultMin(min - inc).setDefaultMax(max + inc);
+  this.setMinMax(min - inc, max + inc, { default: true });
+  return this;
+}
+
+function expand2(
+  this: ExpanseContinuous,
+  zero: number,
+  one: number,
+  options?: { default?: boolean }
+) {
+  const { min, max } = this;
+  const range = this.range();
+
+  this.setMinMax(min + zero * range, max - (1 - one) * range, options);
   return this;
 }
 
@@ -233,15 +233,18 @@ function defaultize(this: ExpanseContinuous) {
 
 function retrain(this: ExpanseContinuous, array: number[]) {
   const [min, max] = minMax(array);
-  untrack(this, () => this.setDefaultMin(min).setDefaultMax(max));
+  const def = { default: true };
+  untrack(this, () => this.setMin(min, def).setMax(max, def));
   this.emit();
   return this;
 }
 
 function clone(this: ExpanseContinuous) {
+  const { defaultMin, defaultMax, trans, inv } = this;
   const result = newExpanseContinuous();
-  result.setDefaultMin(this.defaultMin).setDefaultMax(this.defaultMax);
-  result.setTransform(this.trans, this.inv);
+  const def = { default: true };
+  result.setMin(defaultMin, def).setMax(defaultMax, def);
+  result.setTransform(trans, inv);
   return result;
 }
 

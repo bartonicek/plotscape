@@ -148,12 +148,12 @@ function setCodomain<T>(this: Scale<T>, codomain: ExpanseContinuous) {
 }
 
 function setMin<T>(this: Scale<T>, value: number) {
-  this.domain.setDefaultMin?.(value);
+  this.domain.setMin?.(value, { default: true });
   return this;
 }
 
 function setMax<T>(this: Scale<T>, value: number) {
-  this.domain.setDefaultMax?.(value);
+  this.domain.setMax?.(value, { default: true });
   return this;
 }
 

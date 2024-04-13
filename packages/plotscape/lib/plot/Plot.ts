@@ -187,17 +187,19 @@ export function newPlot(scene: Scene) {
 
   const { defaultNormX: dnx, defaultNormY: dny } = graphicParameters;
 
+  const def = { default: true };
+
   scales.x.setOther(scales.y).setAes(`x`);
-  scales.x.norm.setDefaultMin(dnx).setDefaultMax(1 - dnx);
+  scales.x.norm.setMin(dnx, def).setMax(1 - dnx, def);
   scales.x.norm.defaultize();
 
   scales.y.setOther(scales.x).setAes(`y`);
-  scales.y.norm.setDefaultMin(dny).setDefaultMax(1 - dny);
+  scales.y.norm.setMin(dny, def).setMax(1 - dny, def);
   scales.y.norm.defaultize();
 
-  scales.size.codomain.setDefaultMin(1).setDefaultMax(10).defaultize();
-  scales.width.norm.setDefaultMax(1 - 2 * dnx).defaultize();
-  scales.height.norm.setDefaultMax(1 - 2 * dny).defaultize();
+  scales.size.codomain.setMin(1, def).setMax(10, def).defaultize();
+  scales.width.norm.setMax(1 - 2 * dnx, def).defaultize();
+  scales.height.norm.setMax(1 - 2 * dny, def).defaultize();
 
   scales.width.freezeMin();
   scales.height.freezeMin();

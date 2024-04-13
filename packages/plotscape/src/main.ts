@@ -95,4 +95,8 @@ async function sacrametoScene() {
 sacrametoScene();
 // mpgScene();
 
-const foo = newExpanseContinuous(25, 100).flip();
+const foo = newExpanseContinuous(25, 100);
+
+foo.expand2(0.05, 0.95, { default: true });
+
+console.log(foo.range());
