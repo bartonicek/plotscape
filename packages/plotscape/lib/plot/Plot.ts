@@ -195,8 +195,8 @@ export function newPlot(scene: Scene) {
   scales.y.setOther(scales.x).setAes(`y`);
 
   scales.size.codomain.setMin(1, def).setMax(10, def).defaultize();
-  scales.width.setMax(1 - 2 * dnx, def);
-  scales.height.setMax(1 - 2 * dny, def);
+  scales.width.setMax(1 - 2 * dnx, def).defaultize();
+  scales.height.setMax(1 - 2 * dny, def).defaultize();
 
   scales.width.freezeZero();
   scales.height.freezeZero();
@@ -390,8 +390,6 @@ function trainScales<T extends Variables>(
 
   scales.width.setZeroOne(0, 1 - 2 * dnx).freezeZero();
   scales.height.setZeroOne(0, 1 - 2 * dny).freezeZero();
-
-  this.render();
   return this;
 }
 

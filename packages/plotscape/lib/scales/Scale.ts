@@ -253,8 +253,6 @@ function expand<T>(
 }
 
 function link<T>(this: Scale<T>, other: Scale) {
-  console.log(this.domain, other.domain);
-
   this.domain.link(other.domain);
   return this;
 }

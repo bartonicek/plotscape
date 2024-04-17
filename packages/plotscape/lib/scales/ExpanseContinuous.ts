@@ -63,6 +63,8 @@ export interface ExpanseContinuous extends Expanse<number>, Observable {
   ): this;
   setTransform(trans: MapFn<number, number>, inv: MapFn<number, number>): this;
 
+  freezeMin(): this;
+  freezeMax(): this;
   freezeScale(): this;
   link(other: ExpanseContinuous): this;
   flip(): this;
@@ -117,6 +119,8 @@ export function newExpanseContinuous(min = 0, max = 1): ExpanseContinuous {
     freezeZero,
     freezeOne,
     freeze,
+    freezeMin,
+    freezeMax,
     freezeScale,
     flip,
     expand,
@@ -210,6 +214,16 @@ function setTransform(
   return this;
 }
 
+function freezeMin(this: ExpanseContinuous) {
+  this.setMin = noopThis;
+  return this;
+}
+
+function freezeMax(this: ExpanseContinuous) {
+  this.setMax = noopThis;
+  return this;
+}
+
 function freezeScale(this: ExpanseContinuous) {
   this.setScale = noopThis;
   return this;
@@ -270,7 +284,7 @@ function breaks(this: ExpanseContinuous) {
 }
 
 function widget(this: ExpanseContinuous) {
-  const { min, max } = this;
+  const [min, max] = [0, 1].map((x) => this.unnormalize(x));
 
   const source = observable({ min, max });
   const widget = newRangeWidget(source);
@@ -296,8 +310,11 @@ function widget(this: ExpanseContinuous) {
     source.min = min;
     source.max = max;
 
-    [min, max] = [min, max].sort(diff);
-    this.setMinMax(min, max);
+    const [nZero, nOne] = [min, max].map((x) => this.normalize(x));
+
+    console.log(nZero, nOne);
+
+    this.setZeroOne(min, max);
   });
 
   return widget;

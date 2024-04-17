@@ -75,10 +75,6 @@ export function newHistogram2D<T extends Variables>(
   encodeAbs(self);
 
   self.addGraphicObject(squares);
-  self.scales.area.codomain
-    .setMinMax(0, 1, { default: true })
-    .setTransform(square, squareRoot)
-    .freeze();
 
   self.addKeyAction(`KeyN`, () =>
     self.type === Type.Absolute ? encodePct(self) : encodeAbs(self)
@@ -115,12 +111,13 @@ export function newHistogram2D<T extends Variables>(
     self.scales.area.codomain
       .setMinMax(0, 1, { default: true })
       .setTransform(square, squareRoot)
-      .freeze();
+      .freezeMax()
+      .freezeScale();
+
     self.render();
   });
 
   partition2Data.listen(self.render.bind(self));
-
   self.render();
 }
 
@@ -134,8 +131,15 @@ function encodeAbs(self: Histogram2D) {
   squares.setRenderData(renderData);
 
   self.trainScales(boundaryData, (d) => ({ x: d.x0, y: d.y1, area: d.area }));
-  self.scales.x.setName(partition1Data.col(`binMid`).name());
-  self.scales.y.setName(partition1Data.col(`binMid$`).name());
+
+  const { scales } = self;
+  scales.x.setName(partition1Data.col(`binMid`).name());
+  scales.y.setName(partition1Data.col(`binMid$`).name());
+  scales.area.codomain
+    .setMinMax(0, 1, { default: true })
+    .setTransform(square, squareRoot)
+    .freezeMax()
+    .freezeScale();
 
   self.type = Type.Absolute;
   self.render();
@@ -150,10 +154,15 @@ function encodePct(self: Histogram2D) {
   squares.setBoundaryData(boundaryData);
   squares.setRenderData(renderData);
 
-  self.type = Type.Absolute;
   self.trainScales(boundaryData, (d) => ({ x: d.x0, y: d.y1, area: d.area }));
-  self.scales.x.setName(partition1Data.col(`binMid`).name());
-  self.scales.y.setName(partition1Data.col(`binMid$`).name());
+  const { scales } = self;
+  scales.x.setName(partition1Data.col(`binMid`).name());
+  scales.y.setName(partition1Data.col(`binMid$`).name());
+  scales.area.codomain
+    .setMinMax(0, 1, { default: true })
+    .setTransform(square, squareRoot)
+    .freezeMax()
+    .freezeScale();
 
   self.type = Type.Proportion;
   self.render();
