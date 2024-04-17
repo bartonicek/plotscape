@@ -6,6 +6,9 @@ import {
   Expanse,
   ExpanseType,
   expand,
+  freeze,
+  freezeOne,
+  freezeZero,
   move,
   setOne,
   setZero,
@@ -97,6 +100,9 @@ export function newExpanseDiscreteWeighted(
     setValues,
     setWeights,
     setOrder,
+    freezeZero,
+    freezeOne,
+    freeze,
     link,
     expand,
     move,
@@ -151,15 +157,16 @@ function defaultize<T extends ExpanseDiscreteWeighted>(
   }
 
   if (opts.weights || opts.order) {
+    updateCumWeights(this);
     // const cumWeights = cumsum(orderByIndices(this.weights, this.order));
     // for (let i = 0; i < cumWeights.length; i++) {
     //   this.cumWeights[i] = cumWeights[i];
     // }
-    this.cumWeights[this.order[0]] = this.weights[0];
-    for (let i = 1; i < this.order.length; i++) {
-      const idx = this.order[i];
-      this.cumWeights[idx] = this.cumWeights[idx - 1] + this.cumWeights[idx];
-    }
+    // this.cumWeights[this.order[0]] = this.weights[0];
+    // for (let i = 1; i < this.order.length; i++) {
+    //   const idx = this.order[i];
+    //   this.cumWeights[idx] = this.cumWeights[idx - 1] + this.cumWeights[idx];
+    // }
   }
 
   this.emit();
