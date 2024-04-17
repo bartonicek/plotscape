@@ -5,6 +5,7 @@ import {
   entries,
   flipEnum,
   identity,
+  invertRange,
   minMax,
   noopThis,
   prettyBreaks,
@@ -290,7 +291,7 @@ function widget(this: ExpanseContinuous) {
   const widget = newRangeWidget(source);
 
   const update = () => {
-    const { min, max } = this;
+    const [min, max] = [0, 1].map((x) => this.unnormalize(x));
     source.min = min;
     source.max = max;
     source.emit();
@@ -310,9 +311,8 @@ function widget(this: ExpanseContinuous) {
     source.min = min;
     source.max = max;
 
-    const [nZero, nOne] = [min, max].map((x) => this.normalize(x));
-
-    console.log(nZero, nOne);
+    [min, max] = [min, max].sort(diff).map(this.normalize.bind(this));
+    [min, max] = invertRange(min, max);
 
     this.setZeroOne(min, max);
   });
