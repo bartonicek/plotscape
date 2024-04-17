@@ -156,26 +156,16 @@ function defaultize<T extends ExpanseDiscreteWeighted>(
     for (let i = 0; i < this.order.length; i++) this.order[i] = i;
   }
 
-  if (opts.weights || opts.order) {
-    updateCumWeights(this);
-    // const cumWeights = cumsum(orderByIndices(this.weights, this.order));
-    // for (let i = 0; i < cumWeights.length; i++) {
-    //   this.cumWeights[i] = cumWeights[i];
-    // }
-    // this.cumWeights[this.order[0]] = this.weights[0];
-    // for (let i = 1; i < this.order.length; i++) {
-    //   const idx = this.order[i];
-    //   this.cumWeights[idx] = this.cumWeights[idx - 1] + this.cumWeights[idx];
-    // }
-  }
+  if (opts.weights || opts.order) updateCumWeights(this);
 
   this.emit();
   return this;
 }
 
 function width(this: ExpanseDiscreteWeighted, value: string) {
+  const { zero, one } = this;
   const [lower, upper, max] = getBounds(this, value);
-  return (upper - lower) / max;
+  return ((upper - lower) / max) * (one - zero);
 }
 
 function getWidthExpanse(this: ExpanseDiscreteWeighted) {
