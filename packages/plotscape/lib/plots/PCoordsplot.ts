@@ -1,9 +1,9 @@
 import { TODO } from "utils";
 import { oneRowOneCase } from "../constants";
 import { Dataframe } from "../dataframe/Dataframe";
+import graphicParameters from "../graphicParameters.json";
 import { Plot, newPlot } from "../plot/Plot";
 import { Lines, newLines } from "../representations/Lines";
-import { newExpanseContinuous } from "../scales/ExpanseContinuous";
 import { newExpanseDiscreteAbsolute } from "../scales/ExpanseDiscreteAbsolute";
 import { Scene } from "../scene/Scene";
 import { BoundaryCols, RenderCols, Type, Variables } from "../types";
@@ -50,7 +50,15 @@ export function newPCoordsplot<T extends Variables>(
   const lines = newLines(plot, boundaryData, renderData);
 
   plot.addGraphicObject(lines);
-  plot.trainScales(boundaryData, (d) => ({ x: d.x, y: d.y }));
+  plot.trainScales(boundaryData, (d) => {
+    return { x: d.x, y: d.y };
+  });
+
+  plot.scales.x.domain.link(boundaryData.col(`x`).domain);
+  plot.scales.y.domain.link(boundaryData.col(`y`).domain);
+  for (const v of boundaryData.col(`y`).variables) {
+    plot.scales.y.domain.link(v.domain);
+  }
 
   const self = { ...plot, type, lines, partition1Data, partition2Data };
   self.addKeyAction(`KeyN`, switchEncoding.bind(self));
@@ -61,9 +69,14 @@ export function newPCoordsplot<T extends Variables>(
 }
 
 const reducefn = (d: DataBindings) => {
+  const { defaultNormX: dnx, defaultNormY: dny } = graphicParameters;
+
   const vars = [] as Variable[];
   for (const [k, v] of Object.entries(d)) {
-    if (/^v\d+$/g.test(k)) vars.push(v.setQueryable(true));
+    if (/^v\d+$/g.test(k)) {
+      vars.push(v.setQueryable(true));
+      v.domain.expand(-dnx, 1 + dnx, { default: true });
+    }
   }
 
   const vals = newTuple(vars);
@@ -71,10 +84,12 @@ const reducefn = (d: DataBindings) => {
     vars.map((x) => newDerived((_, y) => y!.name(), x).setName(x.name()))
   );
 
-  const domain = newExpanseDiscreteAbsolute(names.valueAt(0));
+  const namesDomain = newExpanseDiscreteAbsolute(names.valueAt(0));
+  namesDomain.expand(-dny, 1 + dny, { default: true });
 
-  for (const k of names.variables) (k as TODO).setDomain(domain);
-  names.domain = domain as TODO;
+  for (const k of names.variables) (k as TODO).setDomain(namesDomain);
+
+  names.domain = namesDomain as TODO;
   names.n = () => vals.n();
 
   names.setName(`variable`);
@@ -89,15 +104,18 @@ const encodefn = (d: ReducedBindings) => {
 
 function switchEncoding(this: PCoordsplot) {
   if (this.type === Type.Proportion) {
-    this.partition1Data.col(`values`).setCommonDomain();
-    this.scales.y.setDomain(this.partition1Data.col(`values`).domain as TODO);
+    const { defaultNormY: dny } = graphicParameters;
+    const domain = this.partition1Data.col(`values`).setCommonDomain();
+    const { min, max } = domain.expand(-dny, 1 + dny);
+
+    this.scales.y.setMinMax(min, max);
     this.scales.y.setName(`value`);
     this.type = Type.Absolute;
     this.render();
   } else {
+    const { defaultNormY: dny } = graphicParameters;
     this.partition1Data.col(`values`).unsetCommonDomain();
-    this.scales.y.setDomain(newExpanseContinuous());
-    this.scales.y.setName(`scaled value`);
+    this.scales.y.setMinMax(-dny, 1 + dny).setName(`scaled value`);
     this.type = Type.Proportion;
     this.render();
   }

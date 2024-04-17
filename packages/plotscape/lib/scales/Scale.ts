@@ -2,7 +2,12 @@ import { MapFn } from "utils";
 import { Named, named } from "../mixins/Named";
 import { Observable, observable } from "../mixins/Observable";
 import { Widget } from "../widgets/Widget";
-import { Expanse, isExpanseContinuous } from "./Expanse";
+import {
+  Expanse,
+  isExpanseContinuous,
+  isExpanseDiscrete,
+  isExpanseDiscreteWeighted,
+} from "./Expanse";
 import { ExpanseContinuous, newExpanseContinuous } from "./ExpanseContinuous";
 
 type Aesthetic = `x` | `y`;
@@ -23,7 +28,6 @@ export interface Scale<T = unknown> extends Named, Observable {
   aes?: Aesthetic;
 
   domain: Expanse<T>;
-  norm: ExpanseContinuous;
   codomain: ExpanseContinuous;
 
   _widget?: Widget;
@@ -37,12 +41,17 @@ export interface Scale<T = unknown> extends Named, Observable {
   pushforward(value: T): number;
   pullback(value: number): T;
 
-  setMin(value: number): this;
-  setMax(value: number): this;
+  defaultize(options?: Record<string, any>): this;
+  setMin(value: number, options?: { default?: boolean }): this;
+  setMax(value: number, options?: { default?: boolean }): this;
+  setMinMax(min: number, max: number, options?: { default?: boolean }): this;
+  setZeroOne(zero: number, one: number, options?: { default?: boolean }): this;
   setTransform(trans: MapFn<number, number>, inv: MapFn<number, number>): this;
+
+  expand(zero: number, one: number, options?: { default?: boolean }): this;
   move(amount: number): this;
-  freezeMin(): this;
-  freezeMax(): this;
+  freezeZero(): this;
+  freezeOne(): this;
   flip(): this;
 
   setWeights(weights: number[]): this;
@@ -65,34 +74,36 @@ export interface ScaleContinuous extends Scale<number> {
 
 export function newScale<T = number>(
   domain?: Expanse<T>,
-  norm?: ExpanseContinuous,
   codomain?: ExpanseContinuous
 ): Scale<T> {
   const tag = `Scale`;
   domain = domain ?? (newExpanseContinuous() as unknown as Expanse<T>);
-  norm = norm ?? newExpanseContinuous();
   codomain = codomain ?? newExpanseContinuous();
 
-  const props = { [Symbol.toStringTag]: tag, domain, norm, codomain };
+  const props = { [Symbol.toStringTag]: tag, domain, codomain };
   const methods = {
     clone,
+    pushforward,
+    pullback,
     setAes,
     setDomain,
     setCodomain,
     setOther,
+    defaultize,
     setMin,
     setMax,
+    setMinMax,
+    setZeroOne,
     setTransform,
     setOrder,
     setWeights,
     setDefaultOrder,
     setDefaultWeights,
     getOrder,
-    pushforward,
-    pullback,
     move,
-    freezeMin,
-    freezeMax,
+    expand,
+    freezeZero,
+    freezeOne,
     flip,
     link,
     breaks,
@@ -101,19 +112,13 @@ export function newScale<T = number>(
   };
 
   const self = observable(named({ ...props, ...methods }));
-  self.norm.listen(() => self.emit());
-
   return self;
 }
 
 /* --------------------------------- Methods -------------------------------- */
 
 function clone<T>(this: Scale<T>) {
-  return newScale(
-    this.domain.clone(),
-    this.norm.clone(),
-    this.codomain.clone()
-  );
+  return newScale(this.domain.clone(), this.codomain.clone());
 }
 
 function setAes<T>(this: Scale<T>, aes: Aesthetic) {
@@ -127,13 +132,13 @@ function setOther<T>(this: Scale<T>, other: Scale) {
 }
 
 function pushforward<T>(this: Scale<T>, value: T) {
-  const { domain, norm, codomain } = this;
-  return codomain.unnormalize(norm.unnormalize(domain.normalize(value)));
+  const { domain, codomain } = this;
+  return codomain.unnormalize(domain.normalize(value));
 }
 
 function pullback<T>(this: Scale<T>, value: number) {
-  const { domain, norm, codomain } = this;
-  return domain.unnormalize(norm.normalize(codomain.normalize(value)));
+  const { domain, codomain } = this;
+  return domain.unnormalize(codomain.normalize(value));
 }
 
 function setDomain<T>(this: Scale<T>, domain: Expanse<T>) {
@@ -147,13 +152,49 @@ function setCodomain<T>(this: Scale<T>, codomain: ExpanseContinuous) {
   return this;
 }
 
-function setMin<T>(this: Scale<T>, value: number) {
-  this.domain.setMin?.(value, { default: true });
+function defaultize<T>(this: Scale<T>, options?: Record<string, any>) {
+  // this.domain.defaultize(options);
   return this;
 }
 
-function setMax<T>(this: Scale<T>, value: number) {
-  this.domain.setMax?.(value, { default: true });
+function setMin<T>(
+  this: Scale<T>,
+  value: number,
+  options?: { default: boolean }
+) {
+  if (!isExpanseContinuous(this.domain)) return this;
+  this.domain.setMin(value, options);
+  return this;
+}
+
+function setMax<T>(
+  this: Scale<T>,
+  value: number,
+  options?: { default: boolean }
+) {
+  if (!isExpanseContinuous(this.domain)) return this;
+  this.domain.setMax(value, options);
+  return this;
+}
+
+function setMinMax<T>(
+  this: Scale<T>,
+  min: number,
+  max: number,
+  options?: { default: boolean }
+) {
+  if (!isExpanseContinuous(this.domain)) return this;
+  this.domain.setMinMax(min, max, options);
+  return this;
+}
+
+function setZeroOne<T>(
+  this: Scale<T>,
+  zero: number,
+  one: number,
+  options?: { default?: boolean }
+) {
+  this.domain.setZeroOne(zero, one, options);
   return this;
 }
 
@@ -167,74 +208,87 @@ function setTransform<T>(
   return this;
 }
 
-function setWeights<T>(this: Scale<T>, weights: number[]) {
-  this.domain.setWeights?.(weights);
-  return this;
-}
-
 function getOrder<T>(this: Scale<T>) {
+  if (!isExpanseDiscrete(this.domain)) return [];
   return this.domain.order;
 }
 
 function setOrder<T>(this: Scale<T>, indices: number[]) {
-  this.domain.setOrder?.(indices);
+  if (!isExpanseDiscrete(this.domain)) return this;
+  this.domain.setOrder(indices);
   return this;
 }
 
 function setDefaultOrder<T>(this: Scale<T>) {
-  this.domain.setDefaultOrder?.();
+  if (!isExpanseDiscrete(this.domain)) return this;
+  this.domain.setDefaultOrder();
+  return this;
+}
+
+function setWeights<T>(this: Scale<T>, weights: number[]) {
+  if (!isExpanseDiscreteWeighted(this.domain)) return this;
+  this.domain.setWeights(weights);
   return this;
 }
 
 function setDefaultWeights<T>(this: Scale<T>) {
-  this.domain.setDefaultWeights?.();
+  if (!isExpanseDiscreteWeighted(this.domain)) return this;
+  this.domain.setDefaultWeights();
   return this;
 }
 
 function move<T>(this: Scale<T>, amount: number) {
-  const { min, max } = this.norm;
-  this.norm.setMinMax(min + amount, max + amount);
+  this.domain.move(amount);
+  return this;
+}
+
+function expand<T>(
+  this: Scale<T>,
+  zero: number,
+  one: number,
+  options?: { default?: boolean }
+) {
+  this.domain.expand(zero, one, options);
   return this;
 }
 
 function link<T>(this: Scale<T>, other: Scale) {
-  const move = this.move.bind(this);
+  console.log(this.domain, other.domain);
 
-  this.move = (amount: number) => {
-    move(amount);
-    other.move(amount);
-    return this;
-  };
+  this.domain.link(other.domain);
   return this;
 }
 
 function breaks<T>(this: Scale<T>) {
-  return this.domain.breaks(this.norm);
+  return this.domain.breaks();
 }
 
-function freezeMin<T>(this: Scale<T>) {
-  this.norm.freezeMin();
+function freezeZero<T>(this: Scale<T>) {
+  if (!isExpanseContinuous(this.domain)) return this;
+  this.domain.freezeZero();
   return this;
 }
 
-function freezeMax<T>(this: Scale<T>) {
-  this.norm.freezeMax();
+function freezeOne<T>(this: Scale<T>) {
+  if (!isExpanseContinuous(this.domain)) return this;
+  this.domain.freezeOne();
   return this;
 }
 
 function flip<T>(this: Scale<T>) {
-  this.domain.flip?.();
+  if (!isExpanseContinuous(this.domain)) return this;
+  this.domain.flip();
   return this;
 }
 
 function ratio<T>(this: Scale<T>) {
   if (!isScaleContinuous(this)) return -1;
-  const { domain, norm, codomain } = this;
-  return domain.range() / norm.range() / codomain.range();
+  const { domain, codomain } = this;
+  return domain.range() / codomain.range();
 }
 
 function widget<T>(this: Scale<T>) {
-  const widget = this.domain.widget(this.norm);
+  const widget = this.domain.widget();
   if (!widget) return undefined;
   widget.setName(this.name());
   return widget;

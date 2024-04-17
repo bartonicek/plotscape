@@ -3,7 +3,9 @@ import {
   element,
   entries,
   inOrder,
+  invertRange,
   mergeInto,
+  rangeInverse,
   throttle,
   trunc0to1,
   values,
@@ -190,19 +192,14 @@ export function newPlot(scene: Scene) {
   const def = { default: true };
 
   scales.x.setOther(scales.y).setAes(`x`);
-  scales.x.norm.setMin(dnx, def).setMax(1 - dnx, def);
-  scales.x.norm.defaultize();
-
   scales.y.setOther(scales.x).setAes(`y`);
-  scales.y.norm.setMin(dny, def).setMax(1 - dny, def);
-  scales.y.norm.defaultize();
 
   scales.size.codomain.setMin(1, def).setMax(10, def).defaultize();
-  scales.width.norm.setMax(1 - 2 * dnx, def).defaultize();
-  scales.height.norm.setMax(1 - 2 * dny, def).defaultize();
+  scales.width.setMax(1 - 2 * dnx, def);
+  scales.height.setMax(1 - 2 * dny, def);
 
-  scales.width.freezeMin();
-  scales.height.freezeMin();
+  scales.width.freezeZero();
+  scales.height.freezeZero();
 
   const graphicObjects = [] as GraphicObject[];
 
@@ -328,23 +325,25 @@ function resize(this: Plot) {
   scales.height.codomain.setMax(innerHeight);
   scales.area.codomain.setMax(Math.min(innerWidth, innerHeight));
 
-  if (pars.aspectRatio != undefined) {
-    const { x, y } = scales;
-    const [xRatio, yRatio] = [x, y].map((x) => x.ratio());
+  // if (pars.aspectRatio != undefined) {
+  //   const { x, y } = scales;
+  //   const [xRatio, yRatio] = [x, y].map((x) => x.ratio());
 
-    const currentRatio = xRatio / yRatio;
-    if (currentRatio === 0 || isNaN(currentRatio) || !isFinite(currentRatio)) {
-      return this;
-    }
+  //   const currentRatio = xRatio / yRatio;
+  //   if (currentRatio === 0 || isNaN(currentRatio) || !isFinite(currentRatio)) {
+  //     return this;
+  //   }
 
-    const [width, height] = [x, y].map(
-      (x) => x.codomain.range() / x.norm.range()
-    );
+  //   const [width, height] = [x, y].map(
+  //     (x) => x.codomain.range() / x.norm.range()
+  //   );
 
-    if (width > height) scales.x.norm.expand!(currentRatio);
-    else scales.y.norm.expand!(1 / currentRatio);
-  }
+  //   // if (width > height) scales.x.norm.expand(-currentRatio);
+  //   // else scales.y.norm.expand(1 / currentRatio);
+  // }
 
+  this.scene.marker.clearTransient();
+  this.selectionRect.clear();
   this.render();
   return this;
 }
@@ -369,8 +368,10 @@ function trainScales<T extends Variables>(
 ) {
   const trainers = selectfn(data.columns);
   const { scales, widgetDisplay } = this;
+  const { defaultNormX: dnx, defaultNormY: dny } = graphicParameters;
 
   widgetDisplay.setInitialized(false);
+  const def = { default: true };
 
   for (const [k, v] of entries(trainers) as [keyof Scales, any][]) {
     const scale = scales[k];
@@ -380,9 +381,15 @@ function trainScales<T extends Variables>(
     if (v.hasName()) scale.setName(v.name());
   }
 
-  for (const v of [`height`, `width`, `area`] as (keyof Scales)[]) {
+  for (const v of [`height`, `width`, `area`] as const) {
     scales[v].setMin(0);
   }
+
+  scales.x.setZeroOne(dnx, 1 - dnx, def);
+  scales.y.setZeroOne(dny, 1 - dny, def);
+
+  scales.width.setZeroOne(0, 1 - 2 * dnx).freezeZero();
+  scales.height.setZeroOne(0, 1 - 2 * dny).freezeZero();
 
   this.render();
   return this;
@@ -402,12 +409,15 @@ function reset(this: Plot) {
   const innerWidth = width - left - right;
   const innerHeight = height - top - bottom;
 
-  for (const v of values(scales)) v.norm.defaultize();
+  for (const v of values(scales)) v.domain.defaultize();
 
-  scales.size.codomain.defaultize();
-  scales.width.codomain.defaultize().setMax(innerWidth);
-  scales.height.codomain.defaultize().setMax(innerHeight);
-  scales.area.codomain.defaultize().setMax(Math.min(innerWidth, innerHeight));
+  const def = { default: true };
+
+  scales.width.codomain.setMax(innerWidth, def).defaultize();
+  scales.height.codomain.setMax(innerHeight, def).defaultize();
+  scales.area.codomain
+    .setMax(Math.min(innerWidth, innerHeight), def)
+    .defaultize();
 
   selectionRect.clear();
   zoomStack.clear();
@@ -520,48 +530,50 @@ function zoom(this: Plot) {
   const { scales, selectionRect, zoomStack } = this;
   let [x0, y0, x1, y1] = selectionRect.coords;
 
+  // If zoom area is too small, do nothing
   if (Math.abs(x1 - x0) < 10 || Math.abs(y1 - y0) < 10) return;
 
   const { x, y } = scales;
 
-  x0 = x.norm.normalize(trunc0to1(x.codomain.normalize(x0)));
-  x1 = x.norm.normalize(trunc0to1(x.codomain.normalize(x1)));
-  y0 = y.norm.normalize(trunc0to1(y.codomain.normalize(y0)));
-  y1 = y.norm.normalize(trunc0to1(y.codomain.normalize(y1)));
+  [x0, x1] = [x0, x1].map((e) => trunc0to1(x.codomain.normalize(e))).sort(diff);
+  [y0, y1] = [y0, y1].map((e) => trunc0to1(y.codomain.normalize(e))).sort(diff);
+  const xStretch = rangeInverse(x0, x1);
+  const yStretch = rangeInverse(y0, y1);
 
-  [x0, x1] = [x0, x1].sort(diff);
-  [y0, y1] = [y0, y1].sort(diff);
+  scales.x.expand(x0, x1);
+  scales.y.expand(y0, y1);
+
+  scales.width.codomain.setScale((s) => s * xStretch);
+  scales.height.codomain.setScale((s) => s * yStretch);
+  scales.area.codomain.setScale((s) => s * Math.max(xStretch, yStretch));
 
   zoomStack.push([x0, y0, x1, y1]);
-  const [ix0, iy0, ix1, iy1] = zoomStack.current();
-  const [widthStretch, heightStretch, areaStretch] = zoomStack.currentStretch();
-
-  scales.x.norm.setMin(ix0).setMax(ix1);
-  scales.y.norm.setMin(iy0).setMax(iy1);
-  scales.width.codomain.setScale(widthStretch);
-  scales.height.codomain.setScale(heightStretch);
-  scales.area.codomain.setScale(areaStretch);
-
   selectionRect.clear();
   this.render();
   return this;
 }
 
 function unzoom(this: Plot) {
-  const { zoomStack, scales } = this;
+  const { zoomStack, scales, selectionRect } = this;
 
   if (zoomStack.isEmpty()) return;
 
+  const [x0, y0, x1, y1] = zoomStack.current();
+
+  const [ix0, ix1] = invertRange(x0, x1);
+  const [iy0, iy1] = invertRange(y0, y1);
+  const xStretch = rangeInverse(ix0, ix1);
+  const yStretch = rangeInverse(iy0, iy1);
+
+  scales.x.expand(ix0, ix1);
+  scales.y.expand(iy0, iy1);
+
+  scales.width.codomain.setScale((s) => s * xStretch);
+  scales.height.codomain.setScale((s) => s * yStretch);
+  scales.area.codomain.setScale((s) => s * Math.max(xStretch, yStretch));
+
   zoomStack.pop();
-  const [ix0, iy0, ix1, iy1] = zoomStack.current();
-  const [widthStretch, heightStretch, areaStretch] = zoomStack.currentStretch();
-
-  scales.x.norm.defaultize().setMin(ix0).setMax(ix1);
-  scales.y.norm.defaultize().setMin(iy0).setMax(iy1);
-  scales.width.codomain.setScale(widthStretch);
-  scales.height.codomain.setScale(heightStretch);
-  scales.area.codomain.setScale(areaStretch);
-
+  selectionRect.clear();
   this.render();
   return this;
 }

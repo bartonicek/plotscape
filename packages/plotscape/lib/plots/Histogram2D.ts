@@ -1,4 +1,4 @@
-import { identity, square, squareRoot, times } from "utils";
+import { square, squareRoot, times } from "utils";
 import { newObservableValue } from "../ObservableValue";
 import { one } from "../constants";
 import { Dataframe } from "../dataframe/Dataframe";
@@ -111,6 +111,7 @@ export function newHistogram2D<T extends Variables>(
       area: d.area!,
     }));
     self.scales.x.setName(partition1Data.col(`binMid`).name());
+    self.scales.y.setName(partition1Data.col(`binMid$`).name());
     self.scales.area.codomain
       .setMinMax(0, 1, { default: true })
       .setTransform(square, squareRoot)
@@ -132,15 +133,11 @@ function encodeAbs(self: Histogram2D) {
   squares.setBoundaryData(boundaryData);
   squares.setRenderData(renderData);
 
-  self.type = Type.Absolute;
-  self.trainScales(boundaryData, (d) => ({
-    x: d.x0,
-    y: d.y1,
-    area: d.area,
-  }));
+  self.trainScales(boundaryData, (d) => ({ x: d.x0, y: d.y1, area: d.area }));
   self.scales.x.setName(partition1Data.col(`binMid`).name());
   self.scales.y.setName(partition1Data.col(`binMid$`).name());
 
+  self.type = Type.Absolute;
   self.render();
 }
 
@@ -154,16 +151,11 @@ function encodePct(self: Histogram2D) {
   squares.setRenderData(renderData);
 
   self.type = Type.Absolute;
-  self.trainScales(boundaryData, (d) => ({
-    x: d.x0,
-    y: d.y1,
-    area: d.area,
-  }));
+  self.trainScales(boundaryData, (d) => ({ x: d.x0, y: d.y1, area: d.area }));
   self.scales.x.setName(partition1Data.col(`binMid`).name());
   self.scales.y.setName(partition1Data.col(`binMid$`).name());
 
   self.type = Type.Proportion;
-  self.trainScales(boundaryData, identity);
   self.render();
 }
 

@@ -65,7 +65,6 @@ export function newHistogram<T extends Variables>(
   encodeAbs(self);
 
   self.addGraphicObject(bars);
-  self.scales.y.freezeMin();
 
   self.addKeyAction(`KeyN`, () =>
     self.type === Type.Absolute ? encodePct(self) : encodeAbs(self)
@@ -86,7 +85,7 @@ export function newHistogram<T extends Variables>(
   partition1Data.listen(() => {
     self.trainScales(bars.boundaryData!, (d) => ({ x: d.x0, y: d.y1 }));
     self.scales.x.setName(partition1Data.col(`binMid`).name());
-    self.scales.y.setMin(0);
+    self.scales.y.freezeZero();
   });
 
   partition2Data.listen(self.render.bind(self));
@@ -104,7 +103,8 @@ function encodeAbs(self: Histogram) {
   self.type = Type.Absolute;
   self.trainScales(boundaryData, (d) => ({ x: d.x0, y: d.y1 }));
   self.scales.x.setName(partition1Data.col(`binMid`).name());
-  self.scales.y.setMin(0).setName(`count`);
+  self.scales.y.freezeZero().setName(`count`);
+
   self.render();
 }
 
@@ -123,7 +123,7 @@ function encodePct(self: Histogram) {
   self.type = Type.Proportion;
   self.trainScales(boundaryData, (d) => ({ x: d.x0, y: d.y1 }));
   self.scales.x.setName(`cumulative count`);
-  self.scales.y.setMin(0).setName(`proportion`);
+  self.scales.y.freezeZero().setName(`proportion`);
   self.render();
 }
 

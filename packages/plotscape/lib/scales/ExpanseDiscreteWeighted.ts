@@ -1,16 +1,18 @@
-import {
-  compareAlphaNumeric,
-  cumsum,
-  last,
-  noopThis,
-  rep,
-  seq,
-  subsetOnIndices,
-} from "utils";
+import { compareAlphaNumeric, cumsum, last, noopThis, rep, seq } from "utils";
 import { orderByIndices } from "../funs";
-import { Observable, observable } from "../mixins/Observable";
-import { DragListWidget, newDragListWidget } from "../widgets/DragListWidget";
-import { Expanse } from "./Expanse";
+import { observable } from "../mixins/Observable";
+import { DragListWidget } from "../widgets/DragListWidget";
+import {
+  Expanse,
+  ExpanseType,
+  expand,
+  move,
+  setOne,
+  setZero,
+  setZeroOne,
+} from "./Expanse";
+import { ExpanseDiscreteAbsolute } from "./ExpanseDiscreteAbsolute";
+import { breaks, link, setValues, widget } from "./discreteMethods";
 
 /* -------------------------------- Interface ------------------------------- */
 
@@ -25,22 +27,40 @@ import { Expanse } from "./Expanse";
  * Example with weights `[1, 1, 1, 5]`: `[a, b, c, d] -> [0.0625, 0.1875, 0.3125, 0.6875]`
  *
  *  */
-export interface ExpanseDiscreteWeighted extends Expanse<string>, Observable {
+export interface ExpanseDiscreteWeighted extends ExpanseDiscreteAbsolute {
+  zero: number;
+  one: number;
+  defaultZero: number;
+  defaultOne: number;
+
   order: number[];
   values: string[];
   weights: number[];
   cumWeights: number[];
+
+  clone(): this;
+  normalize(value: string): number;
+  unnormalize(value: number): string;
   width(value: string): number;
-  setOrder(indices: number[]): this;
+  defaultize(options?: {
+    zero?: boolean;
+    one?: boolean;
+    order?: boolean;
+  }): this;
+
   setValues(values: string[]): this;
+  setOrder(indices: number[]): this;
   setWeights(weights: number[]): this;
   setDefaultWeights(): this;
   setDefaultOrder(): this;
-  getWidthExpanse(): ExpanseDiscreteWeighted;
-  retrain(array: string[]): this;
-  clone(): ExpanseDiscreteWeighted;
 
+  link(other: Expanse): this;
+  retrain(array: string[]): this;
+  retrain(array: string[]): this;
+  breaks(): string[];
   widget(): DragListWidget;
+  getWidthExpanse(): ExpanseDiscreteWeighted;
+  [Symbol.toStringTag]: string;
 }
 
 /* ------------------------------- Constructor ------------------------------ */
@@ -48,26 +68,38 @@ export interface ExpanseDiscreteWeighted extends Expanse<string>, Observable {
 export function newExpanseDiscreteWeighted(
   values: string[]
 ): ExpanseDiscreteWeighted {
-  const tag = `ExpanseDiscreteWeighted`;
   const order = seq(0, values.length - 1);
   const weights = rep(1, values.length);
+  const [zero, one, defaultZero, defaultOne] = [0, 1, 0, 1];
   const cumWeights = cumsum(weights);
 
   const props = {
-    [Symbol.toStringTag]: tag,
     order,
     values,
     weights,
+    zero,
+    one,
+    defaultZero,
+    defaultOne,
     cumWeights,
+    [Symbol.toStringTag]: ExpanseType.DiscreteWeighted,
   };
+
   const methods = {
     clone,
     normalize,
     unnormalize,
+    defaultize,
     width,
+    setZero,
+    setOne,
+    setZeroOne,
     setValues,
     setWeights,
     setOrder,
+    link,
+    expand,
+    move,
     setDefaultWeights,
     setDefaultOrder,
     getWidthExpanse,
@@ -84,9 +116,11 @@ export function newExpanseDiscreteWeighted(
 /* --------------------------------- Methods -------------------------------- */
 
 function normalize(this: ExpanseDiscreteWeighted, value: string) {
-  const [lower, upper, max] = getBoundsInternal(this, value);
+  const { zero, one } = this;
+  const [lower, upper, max] = getBounds(this, value);
   const midpoint = lower + (upper - lower) / 2;
-  return midpoint / max;
+  const normalized = midpoint / max;
+  return zero + normalized * (one - zero);
 }
 
 function unnormalize(this: ExpanseDiscreteWeighted, _: number) {
@@ -94,8 +128,46 @@ function unnormalize(this: ExpanseDiscreteWeighted, _: number) {
   return this.values[0];
 }
 
+function defaultize<T extends ExpanseDiscreteWeighted>(
+  this: T,
+  options?: {
+    zero?: boolean;
+    one?: boolean;
+    order?: boolean;
+    weights?: boolean;
+  }
+) {
+  const opts = Object.assign(
+    { zero: true, one: true, order: true, weights: true },
+    options
+  );
+
+  if (opts.zero) this.zero = this.defaultZero;
+  if (opts.one) this.one = this.defaultOne;
+
+  if (opts.weights) this.weights.fill(1);
+  if (opts.order) {
+    for (let i = 0; i < this.order.length; i++) this.order[i] = i;
+  }
+
+  if (opts.weights || opts.order) {
+    // const cumWeights = cumsum(orderByIndices(this.weights, this.order));
+    // for (let i = 0; i < cumWeights.length; i++) {
+    //   this.cumWeights[i] = cumWeights[i];
+    // }
+    this.cumWeights[this.order[0]] = this.weights[0];
+    for (let i = 1; i < this.order.length; i++) {
+      const idx = this.order[i];
+      this.cumWeights[idx] = this.cumWeights[idx - 1] + this.cumWeights[idx];
+    }
+  }
+
+  this.emit();
+  return this;
+}
+
 function width(this: ExpanseDiscreteWeighted, value: string) {
-  const [lower, upper, max] = getBoundsInternal(this, value);
+  const [lower, upper, max] = getBounds(this, value);
   return (upper - lower) / max;
 }
 
@@ -106,51 +178,30 @@ function getWidthExpanse(this: ExpanseDiscreteWeighted) {
   return copy;
 }
 
-function setValues(this: ExpanseDiscreteWeighted, values: string[]) {
-  for (let i = 0; i < values.length; i++) this.values[i] = values[i];
-  this.emit();
-  return this;
-}
-
 function setWeights(this: ExpanseDiscreteWeighted, weights: number[]) {
-  const cumWeights = cumsum(subsetOnIndices(weights, this.order));
-
   for (let i = 0; i < weights.length; i++) this.weights[i] = weights[i];
-  for (let i = 0; i < cumWeights.length; i++) {
-    this.cumWeights[i] = cumWeights[i];
-  }
-
+  updateCumWeights(this);
   this.emit();
   return this;
 }
 
 function setOrder(this: ExpanseDiscreteWeighted, indices: number[]) {
   for (let i = 0; i < indices.length; i++) this.order[i] = indices[i];
-
-  const cumWeights = cumsum(orderByIndices(this.weights, this.order));
-  for (let i = 0; i < cumWeights.length; i++) {
-    this.cumWeights[i] = cumWeights[i];
-  }
-
+  updateCumWeights(this);
   this.emit();
   return this;
 }
 
 function setDefaultWeights(this: ExpanseDiscreteWeighted) {
   this.weights.fill(1);
-  for (let i = 0; i < this.cumWeights.length; i++) this.cumWeights[i] = i + 1;
+  updateCumWeights(this);
   this.emit();
   return this;
 }
 
 function setDefaultOrder(this: ExpanseDiscreteWeighted) {
   for (let i = 0; i < this.order.length; i++) this.order[i] = i;
-
-  const cumWeights = cumsum(orderByIndices(this.weights, this.order));
-  for (let i = 0; i < cumWeights.length; i++) {
-    this.cumWeights[i] = cumWeights[i];
-  }
-
+  updateCumWeights(this);
   this.emit();
   return this;
 }
@@ -177,36 +228,22 @@ function clone(this: ExpanseDiscreteWeighted) {
   return copy;
 }
 
-function breaks(this: ExpanseDiscreteWeighted) {
-  return orderByIndices(this.values, this.order);
-}
-
-function getBoundsInternal(self: ExpanseDiscreteWeighted, value: string) {
+function getBounds(self: ExpanseDiscreteWeighted, value: string) {
   const { order, values, cumWeights } = self;
   const index = order[values.indexOf(value)];
   return [cumWeights[index - 1] ?? 0, cumWeights[index], last(cumWeights)];
 }
 
-function widget(this: ExpanseDiscreteWeighted) {
-  const { values } = this;
+function updateCumWeights(self: ExpanseDiscreteWeighted) {
+  // const { weights, cumWeights, order } = self;
 
-  const source = observable({ values: [...values] });
-  const widget = newDragListWidget(source);
+  // cumWeights[0] = weights[order[0]];
+  // for (let i = 1; i < order.length; i++) {
+  //   cumWeights[i] = cumWeights[i - 1] + weights[order[i]];
+  // }
 
-  this.listen(() => {
-    source.values = orderByIndices(values, this.order);
-    source.emit();
-  });
-
-  widget.listen(() => {
-    const indices = Array(values.length);
-
-    for (let i = 0; i < values.length; i++) {
-      indices[i] = source.values.indexOf(values[i]);
-    }
-
-    this.setOrder(indices);
-  });
-
-  return widget;
+  const cumWeights = cumsum(orderByIndices(self.weights, self.order));
+  for (let i = 0; i < cumWeights.length; i++) {
+    self.cumWeights[i] = cumWeights[i];
+  }
 }

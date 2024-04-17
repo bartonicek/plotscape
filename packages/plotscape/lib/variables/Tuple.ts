@@ -1,10 +1,13 @@
-import { Dict, seq } from "utils";
+import { Dict, minMax, seq } from "utils";
 import { mix } from "../funs";
 import { Named, named } from "../mixins/Named";
 import { Queryable, queryable } from "../mixins/Queryable";
 import { ShallowCloneable, shallowCloneable } from "../mixins/ShallowClonable";
-import { Expanse } from "../scales/Expanse";
-import { newExpanseContinuous } from "../scales/ExpanseContinuous";
+import { Expanse, isExpanseContinuous } from "../scales/Expanse";
+import {
+  ExpanseContinuous,
+  newExpanseContinuous,
+} from "../scales/ExpanseContinuous";
 import { Scale } from "../scales/Scale";
 import { Variable, isContinuous } from "./Variable";
 
@@ -29,8 +32,8 @@ export interface Tuple<T extends unknown[] = unknown[]>
   clone(): Tuple<T>;
 
   setOrder(indices: number[]): this;
-  setCommonDomain(): this;
-  unsetCommonDomain(): this;
+  setCommonDomain(): ExpanseContinuous;
+  unsetCommonDomain(): ExpanseContinuous;
 
   injectQueryInfo(index: number, infoDict: Dict): void;
 }
@@ -110,28 +113,36 @@ function setOrder<T extends unknown[]>(this: Tuple<T>, indices: number[]) {
 }
 
 function setCommonDomain<T extends unknown[]>(this: Tuple<T>) {
+  if (!isExpanseContinuous(this.domain)) {
+    throw new Error(`Only continuous domain can be shared.`);
+  }
+
   let [min, max] = [Infinity, -Infinity];
 
   for (const v of this.variables) {
     if (!isContinuous(v)) {
-      const message = `All variables must be continuous to set a common domain.`;
-      throw new Error(message);
+      throw new Error(`All variables must be continuous for common domain.`);
     }
-
-    min = Math.min(min, v.domain.min);
-    max = Math.max(max, v.domain.max);
+    const [newMin, newMax] = minMax(v.array);
+    min = Math.min(min, newMin);
+    max = Math.max(max, newMax);
   }
 
-  this.domain.setMin!(min).setMax!(max);
+  this.domain.setMinMax(min, max);
   this.commonDomain = true;
 
-  return this;
+  return this.domain;
 }
 
 function unsetCommonDomain<T extends unknown[]>(this: Tuple<T>) {
-  this.domain.setMin!(0).setMax!(1);
+  if (!isExpanseContinuous(this.domain)) {
+    throw new Error(`Only continuous domain can be shared.`);
+  }
+
+  this.domain.setMinMax(0, 1);
   this.commonDomain = false;
-  return this;
+
+  return this.domain;
 }
 
 function injectQueryInfo<T extends unknown[]>(

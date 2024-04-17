@@ -72,7 +72,6 @@ export function newBarplot<T extends Variables>(
   encodeAbs(self);
 
   self.addGraphicObject(self.bars);
-  self.scales.y.freezeMin().link(self.scales.height);
 
   self.addKeyAction(`KeyR`, defaultize.bind(self));
   self.addKeyAction(`KeyO`, switchOrder.bind(self));
@@ -120,11 +119,12 @@ function encodeAbs(self: Barplot) {
     width: d.x.width(),
   }));
 
-  const order = self.scales.x.getOrder();
+  const { scales } = self;
+  const order = scales.x.getOrder();
 
-  self.scales.x.setDefaultWeights();
-  if (order) self.scales.x.setOrder(order);
-  self.scales.y.setMin(0);
+  scales.x.setDefaultWeights();
+  if (order) scales.x.setOrder(order);
+  scales.y.setMin(0).link(scales.height).freezeZero();
   self.render();
 }
 
@@ -144,13 +144,14 @@ function encodePct(self: Barplot) {
     width: d.x.width(),
   }));
 
-  const order = self.scales.x.getOrder();
+  const { scales } = self;
+  const order = scales.x.getOrder();
   const weights = partition1Data.col(`stat1`).values();
 
-  self.scales.x.setWeights(weights);
-  if (order) self.scales.x.setOrder(order);
-  self.scales.width.setMax(weights.reduce(sum));
-  self.scales.y.setMin(0);
+  scales.x.setWeights(weights);
+  if (order) scales.x.setOrder(order);
+  scales.y.setMin(0).link(scales.height).freezeZero();
+  scales.width.setMax(weights.reduce(sum));
   self.render();
 }
 

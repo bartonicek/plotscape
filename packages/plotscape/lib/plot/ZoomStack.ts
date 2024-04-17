@@ -1,4 +1,4 @@
-import { invertRange, last } from "utils";
+import { last } from "utils";
 import graphicParameters from "../graphicParameters.json";
 import { Rect } from "../types";
 
@@ -28,10 +28,7 @@ export function newZoomStack(): ZoomStack {
 }
 
 function push(this: ZoomStack, coords: Rect) {
-  const [ix0, ix1] = invertRange(coords[0], coords[2]);
-  const [iy0, iy1] = invertRange(coords[1], coords[3]);
-  this.coords.push([ix0, iy0, ix1, iy1]);
-
+  this.coords.push(coords);
   return this;
 }
 

@@ -6,6 +6,7 @@ import {
   rectSegmentIntersect,
 } from "../funs";
 import { ContextId, Contexts, Plot, Scales, layers } from "../plot/Plot";
+import { isExpanseDiscrete } from "../scales/Expanse";
 import { LAYER, POSITIONS } from "../symbols";
 import { BoundaryCols, Point, Rect, RenderCols } from "../types";
 import { Tuple } from "../variables/Tuple";
@@ -50,10 +51,11 @@ export function newLines(
 
 function render(this: Lines) {
   const { renderData: data, scales, contexts } = this;
-  const n = data.n();
-  const order = scales.x.domain.order!;
 
-  if (!order) return;
+  if (!isExpanseDiscrete(scales.x.domain)) return;
+
+  const n = data.n();
+  const order = scales.x.domain.order;
 
   for (const id of layers) contexts[id].clear();
 
@@ -71,12 +73,12 @@ function render(this: Lines) {
 
 function check(this: Lines, coords: Rect) {
   const { boundaryData: data, scales } = this;
+  const selected = new Set<number>();
+
+  if (!isExpanseDiscrete(scales.x.domain)) return selected;
 
   const n = data.n();
-  const selected = new Set<number>();
-  const order = scales.x.domain.order!;
-
-  if (!order) return selected;
+  const order = scales.x.domain.order;
 
   for (let i = 0; i < n; i++) {
     let x = data.col(`x`).scaledAt(i, scales.x);
@@ -96,11 +98,12 @@ function check(this: Lines, coords: Rect) {
 
 function query(this: Lines, point: Point) {
   const { boundaryData: data, scales } = this;
+
+  if (!isExpanseDiscrete(scales.x.domain)) return {};
+
   const n = data.n();
   const coords = mapParallel(point, dec, inc) as Rect;
-  const order = scales.x.domain.order!;
-
-  if (!order) return {};
+  const order = scales.x.domain.order;
 
   for (let i = 0; i < n; i++) {
     let x = data.col(`x`).scaledAt(i, scales.x);

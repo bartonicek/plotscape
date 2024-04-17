@@ -3,9 +3,9 @@ import { Dict, noopThis } from "utils";
 /** Can be observed for changes. */
 export interface Observable {
   observers: Set<() => void>;
-  emit(): this;
-  listen(callback: () => void): this;
-  remove(callback: () => void): this;
+  emit<T extends this>(): T;
+  listen<T extends this>(callback: () => void): T;
+  remove<T extends this>(callback: () => void): T;
 }
 
 export function observable<T extends Dict>(object: T): T & Observable {
@@ -13,17 +13,17 @@ export function observable<T extends Dict>(object: T): T & Observable {
   return { ...object, observers, listen, emit, remove };
 }
 
-function emit(this: Observable) {
+function emit<T extends Observable>(this: T) {
   for (const cb of this.observers) cb();
   return this;
 }
 
-function listen(this: Observable, callback: () => void) {
+function listen<T extends Observable>(this: T, callback: () => void) {
   this.observers.add(callback);
   return this;
 }
 
-function remove(this: Observable, callback: () => void) {
+function remove<T extends Observable>(this: T, callback: () => void) {
   this.observers.delete(callback);
   return this;
 }
