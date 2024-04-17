@@ -21,7 +21,6 @@ import {
   freezeOne,
   freezeZero,
   link,
-  move,
   setOne,
   setZero,
   setZeroOne,
@@ -153,11 +152,11 @@ function normalize(this: ExpanseContinuous, value: number) {
   return dir + (-2 * dir + 1) * normalized;
 }
 
+// Unnormalize doesn't use direction since [0, 1] already encodes direction
 function unnormalize(this: ExpanseContinuous, value: number) {
-  const { min, max, one, zero, scale, direction: dir, trans, inv } = this;
+  const { min, one, zero, scale, trans, inv } = this;
   const pct = (value - zero) / (one - zero);
-  let unnormalized = inv(trans(min) + pct * this.transRange()) * scale;
-  return max * dir + (-2 * dir + 1) * unnormalized + dir * min;
+  return inv(trans(min) + pct * this.transRange()) * scale;
 }
 
 function setMin(
@@ -235,6 +234,21 @@ function flip(this: ExpanseContinuous) {
   return this;
 }
 
+// Override move with direction
+function move<T extends ExpanseContinuous>(
+  this: T,
+  amount: number,
+  options?: { default?: boolean }
+) {
+  const dir = 1 - 2 * this.direction;
+  const zero = this.zero + dir * amount;
+  const one = this.one + dir * amount;
+  untrack(this, () => this.setZeroOne(zero, one, options));
+
+  this.emit();
+  return this;
+}
+
 const defaultOptions = {
   min: true,
   max: true,
@@ -259,6 +273,7 @@ function defaultize(
     if (v) this[k] = this[`default${capitalize(k)}`];
   }
 
+  this.direction = Direction.Forward;
   this.emit();
   return this;
 }
@@ -281,6 +296,7 @@ function clone(this: ExpanseContinuous) {
 
 function breaks(this: ExpanseContinuous) {
   const [min, max] = [0, 1].map((x) => this.unnormalize(x)).sort(diff);
+
   return prettyBreaks(min, max);
 }
 
@@ -311,6 +327,8 @@ function widget(this: ExpanseContinuous) {
     source.min = min;
     source.max = max;
 
+    this.zero = 0;
+    this.one = 1;
     [min, max] = [min, max].sort(diff).map(this.normalize.bind(this));
     [min, max] = invertRange(min, max);
 

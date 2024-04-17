@@ -95,6 +95,7 @@ async function sacrametoScene() {
 sacrametoScene();
 // mpgScene();
 
-const foo = newExpanseContinuous(1, 10).setZeroOne(0.05, 0.95);
+const foo = newExpanseContinuous(1, 10).flip();
 
-foo.expand(0, 0.5);
+foo.move(0.5);
+console.log(foo.unnormalize(0.5));
