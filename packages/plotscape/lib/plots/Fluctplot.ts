@@ -59,19 +59,19 @@ export function newFluctplot<T extends Variables>(
 
   const type = Type.Absolute;
   const squares = newRectanglesWH(plot).setDefaultGap(1, 0);
-  squares.mapEncodingToScale(`width`, `area`);
-  squares.mapEncodingToScale(`height`, `area`);
+  squares.remap(`width`, `area`);
+  squares.remap(`height`, `area`);
 
   const self = { ...plot, squares, type, partition1Data, partition2Data };
   encodeAbs(self);
 
   plot.addGraphicObject(squares);
   const nMax = Math.max(factor1.cardinality, factor2.cardinality) + 1;
-  plot.scales.area.codomain.setScale(1 / nMax, { default: true });
-  plot.scales.area.codomain.setTransform(square, squareRoot);
+  self.scales.area.codomain.setScale(1 / nMax, { default: true });
+  self.scales.area.codomain.setTransform(square, squareRoot);
 
-  self.partition1Data.listen(plot.render.bind(plot));
-  self.partition2Data.listen(plot.render.bind(plot));
+  self.partition1Data.listen(self.render.bind(self));
+  self.partition2Data.listen(self.render.bind(self));
 
   self.addKeyAction(`KeyR`, () => {
     self.scales.x.setDefaultOrder();

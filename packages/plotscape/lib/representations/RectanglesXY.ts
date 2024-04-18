@@ -6,7 +6,7 @@ import { Point, Rect } from "../types";
 import { Variable } from "../variables/Variable";
 import {
   Representation,
-  mapEncodingToScale,
+  remap,
   setBoundaryData,
   setRenderData,
 } from "./Representation";
@@ -30,7 +30,7 @@ export function newRectanglesXY(plot: Plot): RectanglesXY {
     render,
     check,
     query,
-    mapEncodingToScale,
+    remap,
   };
   const self = { ...props, ...methods };
 

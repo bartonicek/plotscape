@@ -9,7 +9,7 @@ import { BoundaryCols, KeyActions, Point, Rect, RenderCols } from "../types";
 import { Variable } from "../variables/Variable";
 import {
   Representation,
-  mapEncodingToScale,
+  remap,
   setBoundaryData,
   setRenderData,
 } from "./Representation";
@@ -55,7 +55,7 @@ export function newPoints(
     query,
     setBoundaryData,
     setRenderData,
-    mapEncodingToScale,
+    remap,
   };
   const self = { ...props, ...methods };
   sizePct.listen(self.render.bind(self));

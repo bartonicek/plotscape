@@ -18,7 +18,7 @@ import {
 import { Variable } from "../variables/Variable";
 import {
   Representation,
-  mapEncodingToScale,
+  remap,
   setBoundaryData,
   setRenderData,
 } from "./Representation";
@@ -73,7 +73,7 @@ export function newRectanglesWH(plot: Plot): RectanglesWH {
     setGapDimension,
     setDefaultGap,
     noGap,
-    mapEncodingToScale,
+    remap,
   };
 
   const self = { ...props, ...methods };

@@ -541,9 +541,19 @@ function zoom(this: Plot) {
   scales.x.expand(x0, x1);
   scales.y.expand(y0, y1);
 
-  scales.width.codomain.setScale((s) => s * xStretch);
-  scales.height.codomain.setScale((s) => s * yStretch);
-  scales.area.codomain.setScale((s) => s * Math.min(xStretch, yStretch));
+  // TODO: Properly implement scale delegation
+  if (scales.width != scales.area) {
+    scales.width.codomain.setScale((s) => s * xStretch);
+  }
+
+  if (scales.height != scales.area) {
+    scales.height.codomain.setScale((s) => s * yStretch);
+  }
+
+  scales.area.codomain.setScale((s) => {
+    const c = Math.sqrt(Math.max(xStretch, yStretch));
+    return s * c;
+  });
 
   zoomStack.push([x0, y0, x1, y1]);
   selectionRect.clear();
@@ -566,9 +576,18 @@ function unzoom(this: Plot) {
   scales.x.expand(ix0, ix1);
   scales.y.expand(iy0, iy1);
 
-  scales.width.codomain.setScale((s) => s * xStretch);
-  scales.height.codomain.setScale((s) => s * yStretch);
-  scales.area.codomain.setScale((s) => s * Math.max(xStretch, yStretch));
+  if (scales.width != scales.area) {
+    scales.width.codomain.setScale((s) => s * xStretch);
+  }
+
+  if (scales.height != scales.area) {
+    scales.height.codomain.setScale((s) => s * yStretch);
+  }
+
+  scales.area.codomain.setScale((s) => {
+    const c = Math.sqrt(Math.max(1 / xStretch, 1 / yStretch));
+    return s / c;
+  });
 
   zoomStack.pop();
   selectionRect.clear();

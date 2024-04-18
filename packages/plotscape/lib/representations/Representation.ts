@@ -24,7 +24,7 @@ export interface Representation<T extends Variables = Variables> {
   check(coords: Rect): Set<number>;
   query(point: Point): Dict | undefined;
 
-  mapEncodingToScale(from: keyof Scales, to: keyof Scales): void;
+  remap(from: keyof Scales, to: keyof Scales): void;
 }
 
 export function setBoundaryData<T extends Variables>(
@@ -41,7 +41,7 @@ export function setRenderData<T extends Variables>(
   this.renderData = data;
 }
 
-export function mapEncodingToScale(
+export function remap(
   this: Representation,
   target: keyof Scales,
   source: keyof Scales

@@ -12,7 +12,7 @@ import { BoundaryCols, Point, Rect, RenderCols } from "../types";
 import { Tuple } from "../variables/Tuple";
 import {
   Representation,
-  mapEncodingToScale,
+  remap,
   setBoundaryData,
   setRenderData,
 } from "./Representation";
@@ -42,7 +42,7 @@ export function newLines(
     query,
     setBoundaryData,
     setRenderData,
-    mapEncodingToScale,
+    remap,
   };
   const self = { ...props, ...methods };
 

@@ -33,6 +33,7 @@ export interface Scale<T = unknown> extends Named, Observable {
   _widget?: Widget;
 
   clone(): Scale<T>;
+
   setAes(aesthetic: Aesthetic): this;
   setOther(other: Scale): this;
   setDomain<V extends string | number>(domain: Expanse<V>): Scale<V>;
@@ -111,7 +112,7 @@ export function newScale<T = number>(
     widget,
   };
 
-  const self = observable(named({ ...props, ...methods }));
+  const self = observable(named({ ...props, ...methods })) satisfies Scale;
   return self;
 }
 
