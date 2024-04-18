@@ -1,11 +1,17 @@
 {
   "name": "@abartonicek/plotscape",
-  "version": "0.0.0",
+  "version": "0.0.3",
   "type": "module",
   "main": "./dist/main.js",
   "types": "./dist/main.d.ts",
-  "files": ["dist"],
-  "sideEffects": ["**/*.css"],
+  "files": [
+    "dist/main.js",
+    "dist/main.css",
+    "dist/main.d.ts"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc --p ./tsconfig-build.json && vite build && cp ./dist/main.iife.js ../plotscaper/inst/htmlwidgets/plotscape",

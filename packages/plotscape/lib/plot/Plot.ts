@@ -195,8 +195,8 @@ export function newPlot(scene: Scene) {
   scales.y.setOther(scales.x).setAes(`y`);
 
   scales.size.codomain.setMin(1, def).setMax(10, def).defaultize();
-  scales.width.setMax(1 - 2 * dnx, def).defaultize();
-  scales.height.setMax(1 - 2 * dny, def).defaultize();
+  scales.width.setMax(1 - 2 * dnx, def);
+  scales.height.setMax(1 - 2 * dny, def);
 
   scales.width.freezeZero();
   scales.height.freezeZero();
@@ -310,7 +310,7 @@ export function newPlot(scene: Scene) {
 /* --------------------------------- Methods -------------------------------- */
 
 function resize(this: Plot) {
-  const { contexts, scales, container, pars } = this;
+  const { contexts, scales, container } = this;
 
   for (const context of Object.values(contexts)) context.resize();
   const { clientWidth: width, clientHeight: height } = container;

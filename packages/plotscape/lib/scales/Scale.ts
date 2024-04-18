@@ -42,7 +42,6 @@ export interface Scale<T = unknown> extends Named, Observable {
   pushforward(value: T): number;
   pullback(value: number): T;
 
-  defaultize(options?: Record<string, any>): this;
   setMin(value: number, options?: { default?: boolean }): this;
   setMax(value: number, options?: { default?: boolean }): this;
   setMinMax(min: number, max: number, options?: { default?: boolean }): this;
@@ -90,7 +89,6 @@ export function newScale<T = number>(
     setDomain,
     setCodomain,
     setOther,
-    defaultize,
     setMin,
     setMax,
     setMinMax,
@@ -153,10 +151,10 @@ function setCodomain<T>(this: Scale<T>, codomain: ExpanseContinuous) {
   return this;
 }
 
-function defaultize<T>(this: Scale<T>, options?: Record<string, any>) {
-  // this.domain.defaultize(options);
-  return this;
-}
+// function defaultize<T>(this: Scale<T>, options?: Record<string, any>) {
+//   // this.domain.defaultize(options);
+//   return this;
+// }
 
 function setMin<T>(
   this: Scale<T>,
