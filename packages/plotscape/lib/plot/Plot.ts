@@ -543,7 +543,7 @@ function zoom(this: Plot) {
 
   scales.width.codomain.setScale((s) => s * xStretch);
   scales.height.codomain.setScale((s) => s * yStretch);
-  scales.area.codomain.setScale((s) => s * Math.max(xStretch, yStretch));
+  scales.area.codomain.setScale((s) => s * Math.min(xStretch, yStretch));
 
   zoomStack.push([x0, y0, x1, y1]);
   selectionRect.clear();

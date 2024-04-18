@@ -133,6 +133,15 @@ export function link<T extends Expanse>(this: T, other: Expanse) {
     return this;
   };
 
+  if (isExpanseContinuous(this) && isExpanseContinuous(other)) {
+    const flip = this.flip.bind(this);
+    this.flip = () => {
+      flip();
+      other.flip();
+      return this;
+    };
+  }
+
   return this;
 }
 

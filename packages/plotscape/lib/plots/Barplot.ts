@@ -125,6 +125,7 @@ function encodeAbs(self: Barplot) {
   scales.x.setDefaultWeights();
   if (order) scales.x.setOrder(order);
   scales.y.setMin(0).link(scales.height).freezeZero();
+  scales.height.codomain.freezeScale();
   self.render();
 }
 
@@ -151,6 +152,7 @@ function encodePct(self: Barplot) {
   scales.x.setWeights(weights);
   if (order) scales.x.setOrder(order);
   scales.y.setMin(0).link(scales.height).freezeZero();
+  scales.height.codomain.freezeScale();
   scales.width.setMax(weights.reduce(sum));
   self.render();
 }
