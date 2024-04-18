@@ -1,4 +1,4 @@
-import { element, rep } from "utils";
+import { Dict, element, rep } from "utils";
 import { Dataframe } from "../dataframe/Dataframe";
 import { getMargins } from "../funs";
 // @ts-ignore
@@ -26,7 +26,8 @@ export interface Scene<T extends Variables = any> {
   addPlot(plot: Plot): this;
   addPlotByKey<K extends PlotKey>(
     key: K,
-    selectfn: Parameters<PlotMap[K]>[1]
+    selectfn: Parameters<PlotMap[K]>[1],
+    options: Dict
   ): this;
 
   setDimensions(rows: number, cols: number): this;
@@ -159,10 +160,11 @@ function addPlot(this: Scene, plot: Plot) {
 function addPlotByKey<K extends PlotKey>(
   this: Scene,
   key: K,
-  selectfn: Parameters<PlotMap[K]>[1]
+  selectfn: Parameters<PlotMap[K]>[1],
+  options: Dict
 ) {
   const constructor = plotMap[key];
-  constructor(this, selectfn as any);
+  constructor(this, selectfn as any, options);
   return this;
 }
 

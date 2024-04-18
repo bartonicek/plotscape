@@ -1,7 +1,12 @@
 import { exp10, fetchJSON, log10 } from "utils";
 import { col } from "../lib/dataframe/ColumnParser.ts";
 import { parseColumns } from "../lib/dataframe/parseColumns.ts";
-import { newHistogram2D, newNoteplot, newPCoordsplot } from "../lib/main.ts";
+import {
+  maxReducer,
+  newHistogram2D,
+  newNoteplot,
+  newPCoordsplot,
+} from "../lib/main.ts";
 import { newBarplot } from "../lib/plots/Barplot.ts";
 import { newFluctplot } from "../lib/plots/Fluctplot.ts";
 import { newHistogram } from "../lib/plots/Histogram.ts";
@@ -73,8 +78,11 @@ async function sacrametoScene() {
 
   const plot1 = newScatter(scene, (d) => ({ v1: d.longitude, v2: d.latitude }));
   const plot2 = newFluctplot(scene, (d) => ({ v1: d.beds, v2: d.baths }));
+
+  const opts = { reducer: maxReducer };
+
   const plot3 = newBarplot(scene, (d) => ({ v1: d.city }));
-  const plot4 = newHistogram(scene, (d) => ({ v1: d.sqft }));
+  const plot4 = newHistogram(scene, (d) => ({ v1: d.price, v2: d.sqft }), opts);
   const plot5 = newHistogram2D(scene, (d) => ({ v1: d.sqft, v2: d.price }));
   const plot6 = newNoteplot(scene);
 

@@ -151,7 +151,12 @@ function encodePct(self: Barplot) {
 
   scales.x.setWeights(weights);
   if (order) scales.x.setOrder(order);
-  scales.y.setMin(0).link(scales.height).freezeZero();
+
+  const reducerName = self.scales.y.name();
+  let yName = `proportion`;
+  if (reducerName != `count`) yName += `of ${reducerName}`;
+
+  scales.y.setMin(0).link(scales.height).freezeZero().setName(yName);
   scales.height.codomain.freezeScale();
   scales.width.setMax(weights.reduce(sum));
   self.render();

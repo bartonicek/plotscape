@@ -85,7 +85,7 @@ export function newHistogram<T extends Variables>(
   partition1Data.listen(() => {
     self.trainScales(bars.boundaryData!, (d) => ({ x: d.x0, y: d.y1 }));
     self.scales.x.setName(partition1Data.col(`binMid`).name());
-    self.scales.y.freezeZero();
+    self.scales.y.setMin(0).freezeZero();
   });
 
   partition2Data.listen(self.render.bind(self));
@@ -103,7 +103,7 @@ function encodeAbs(self: Histogram) {
   self.type = Type.Absolute;
   self.trainScales(boundaryData, (d) => ({ x: d.x0, y: d.y1 }));
   self.scales.x.setName(partition1Data.col(`binMid`).name());
-  self.scales.y.freezeZero().setName(`count`);
+  self.scales.y.setMin(0).freezeZero();
 
   self.render();
 }
@@ -123,7 +123,13 @@ function encodePct(self: Histogram) {
   self.type = Type.Proportion;
   self.trainScales(boundaryData, (d) => ({ x: d.x0, y: d.y1 }));
   self.scales.x.setName(`cumulative count`);
-  self.scales.y.freezeZero().setName(`proportion`);
+
+  const reducerName = self.scales.y.name();
+  let yName = `proportion`;
+  if (reducerName != `count`) yName += `of ${reducerName}`;
+
+  self.scales.y.setMin(0).freezeZero().setName(yName);
+
   self.render();
 }
 
