@@ -18,13 +18,16 @@
   ],
   "scripts": {
     "dev": "vite",
-    "build": "tsc --p ./tsconfig-build.json && vite build && cp ./dist/main.iife.js ../plotscaper/inst/htmlwidgets/plotscape",
-    "preview": "vite preview"
+    "build": "bun run test && bun run compile && vite build && bun run pushR",
+    "compile": "tsc --p ./tsconfig-build.json",
+    "test": "bun test lib/tests",
+    "pushR": "cp ./dist/main.iife.js ../plotscaper/inst/htmlwidgets/plotscape"
   },
   "devDependencies": {
+    "@types/bun": "^1.1.0",
     "typescript": "^5.2.2",
-    "vite": "^5.1.6",
-    "utils": "workspace:*"
+    "utils": "workspace:*",
+    "vite": "^5.1.6"
   },
   "publishConfig": {
     "access": "public"

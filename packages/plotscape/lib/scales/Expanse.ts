@@ -1,5 +1,6 @@
 import { invertRange, noopThis } from "utils";
 import { Observable, untrack } from "../mixins/Observable";
+import { Direction } from "../types";
 import { Widget } from "../widgets/Widget";
 import { ExpanseContinuous } from "./ExpanseContinuous";
 import { ExpanseDiscreteAbsolute } from "./ExpanseDiscreteAbsolute";
@@ -167,12 +168,22 @@ export function expand<T extends Expanse>(
   // First, get current zero and current range
   const { zero: cZero, one: cOne } = this;
   const cRange = cOne - cZero;
+  let direction = 0;
+
+  if (isExpanseContinuous(this)) direction = this.direction;
+  if (direction === Direction.Backward) {
+    [zero, one] = [1 - zero, 1 - one];
+  }
 
   // Normalize the zoom values within current range
   let [nZero, nOne] = [zero, one].map((x) => (x - cZero) / cRange);
 
   // Finally, invert
   [nZero, nOne] = invertRange(nZero, nOne);
+
+  if (direction === Direction.Backward) {
+    [nZero, nOne] = [1 - nZero, 1 - nOne];
+  }
 
   untrack(this, () => this.setZeroOne(nZero, nOne, options));
   this.emit();

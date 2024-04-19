@@ -11,7 +11,6 @@ import { newBarplot } from "../lib/plots/Barplot.ts";
 import { newFluctplot } from "../lib/plots/Fluctplot.ts";
 import { newHistogram } from "../lib/plots/Histogram.ts";
 import { newScatter } from "../lib/plots/Scatterplot.ts";
-import { newExpanseContinuous } from "../lib/scales/ExpanseContinuous.ts";
 import { newScene } from "../lib/scene/Scene.ts";
 import "../lib/style.css";
 
@@ -102,8 +101,3 @@ async function sacrametoScene() {
 // diamondsScene();
 sacrametoScene();
 // mpgScene();
-
-const foo = newExpanseContinuous(1, 10).flip();
-
-foo.move(0.5);
-console.log(foo.unnormalize(0.5));
