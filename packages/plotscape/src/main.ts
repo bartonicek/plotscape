@@ -13,6 +13,7 @@ import { newHistogram } from "../lib/plots/Histogram.ts";
 import { newScatter } from "../lib/plots/Scatterplot.ts";
 import { newScene } from "../lib/scene/Scene.ts";
 import "../lib/style.css";
+import { newContinuous } from "../lib/variables/Continuous.ts";
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
 
@@ -101,3 +102,6 @@ async function sacrametoScene() {
 // diamondsScene();
 sacrametoScene();
 // mpgScene();
+
+const foo = newContinuous([1, 2, 3]);
+foo.setName(`bar`);

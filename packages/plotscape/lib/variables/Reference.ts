@@ -24,14 +24,14 @@ export function newReference<T>(values: T[]): Reference<T> {
   const domain = newExpanseContinuous() as unknown as Expanse<T>;
   const props = { array: values, domain, [Symbol.toStringTag]: tag };
   const methods = { clone, injectQueryInfo };
-  const self = { ...props, ...methods };
-
-  return mix(self)
+  const self = mix({ ...props, ...methods })
     .with(named)
     .with(queryable)
     .with(shallowCloneable)
     .with(indexable)
     .with(proxyable);
+
+  return self;
 }
 
 function clone<T>(this: Reference<T>) {

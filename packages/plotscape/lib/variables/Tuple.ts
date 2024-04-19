@@ -56,9 +56,12 @@ export function newTuple<T extends any[]>(
     unsetCommonDomain,
     injectQueryInfo,
   };
-  const self = { ...props, ...methods };
+  const self = mix({ ...props, ...methods })
+    .with(named)
+    .with(queryable)
+    .with(shallowCloneable);
 
-  return mix(self).with(named).with(queryable).with(shallowCloneable);
+  return self;
 }
 
 function clone<T extends unknown[]>(this: Tuple<T>) {

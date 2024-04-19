@@ -1,6 +1,8 @@
 import { compareAlphaNumeric, cumsum, last, noopThis, rep, seq } from "utils";
-import { orderByIndices } from "../funs";
+import { mix, orderByIndices } from "../funs";
+import { named } from "../mixins/Named";
 import { observable } from "../mixins/Observable";
+import { Direction } from "../types";
 import { DragListWidget } from "../widgets/DragListWidget";
 import {
   Expanse,
@@ -31,11 +33,6 @@ import { breaks, link, setValues, widget } from "./discreteMethods";
  *
  *  */
 export interface ExpanseDiscreteWeighted extends ExpanseDiscreteAbsolute {
-  zero: number;
-  one: number;
-  defaultZero: number;
-  defaultOne: number;
-
   order: number[];
   values: string[];
   weights: number[];
@@ -73,8 +70,9 @@ export function newExpanseDiscreteWeighted(
 ): ExpanseDiscreteWeighted {
   const order = seq(0, values.length - 1);
   const weights = rep(1, values.length);
-  const [zero, one, defaultZero, defaultOne] = [0, 1, 0, 1];
   const cumWeights = cumsum(weights);
+  const [zero, one, defaultZero, defaultOne] = [0, 1, 0, 1];
+  const direction = Direction.Forward;
 
   const props = {
     order,
@@ -84,6 +82,7 @@ export function newExpanseDiscreteWeighted(
     one,
     defaultZero,
     defaultOne,
+    direction,
     cumWeights,
     [Symbol.toStringTag]: ExpanseType.DiscreteWeighted,
   };
@@ -115,8 +114,7 @@ export function newExpanseDiscreteWeighted(
   };
 
   const self = { ...props, ...methods };
-
-  return observable(self);
+  return mix(self).with(named).with(observable);
 }
 
 /* --------------------------------- Methods -------------------------------- */

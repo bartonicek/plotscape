@@ -1,10 +1,14 @@
 export type TODO = any;
+export type SideEffect = (...args: any[]) => void;
 export type Lazy<T> = () => T;
 export type ReduceFn<T, U> = (prev: U, next: T) => U;
 export type MapFn<T, U> = (next: T) => U;
 
 export type Dict = Record<PropertyKey, any>;
 export type Normalize<T> = { [key in keyof T]: T[key] } & {};
+export type Match<T, U> = {
+  [key in keyof T as T[key] extends U ? key : never]: T[key];
+};
 
 export type Equal<A, B> = (<T>() => T extends A ? 1 : 2) extends <
   T

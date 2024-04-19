@@ -1,4 +1,4 @@
-import { MapFn, Normalize } from "./types";
+import { MapFn, Match, Normalize, SideEffect } from "./types";
 
 /**
  * Throws a new error.
@@ -50,6 +50,26 @@ export function call<T extends () => any>(fn: T) {
 export function callMethod<K extends string, U>(key: K) {
   return function (object: { [key in K]: () => U }) {
     return object[key]();
+  };
+}
+
+/**
+ * Forwards calls from a side-effect method to another side-effect method,
+ * such that both get called when the first does.
+ *
+ * @param source The source object
+ * @param target The target object
+ * @param key A key identifying a shared method that runs a side-effect
+ */
+export function forwardCalls<T, U, K extends keyof Match<T & U, SideEffect>>(
+  source: T,
+  target: U,
+  key: K
+) {
+  const method = (source[key] as SideEffect).bind(source);
+  (source[key] as SideEffect) = (...args: unknown[]) => {
+    (target[key] as SideEffect)(...args);
+    method(...args);
   };
 }
 

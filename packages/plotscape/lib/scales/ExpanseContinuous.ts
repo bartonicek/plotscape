@@ -10,6 +10,8 @@ import {
   noopThis,
   prettyBreaks,
 } from "utils";
+import { mix } from "../funs";
+import { named } from "../mixins/Named";
 import { Observable, observable, untrack } from "../mixins/Observable";
 import { Direction } from "../types";
 import { RangeWidget, newRangeWidget } from "../widgets/RangeWidget";
@@ -131,7 +133,7 @@ export function newExpanseContinuous(min = 0, max = 1): ExpanseContinuous {
   };
   const self = { ...props, ...methods };
 
-  return observable(self);
+  return mix(self).with(named).with(observable);
 }
 
 /* --------------------------------- Methods -------------------------------- */

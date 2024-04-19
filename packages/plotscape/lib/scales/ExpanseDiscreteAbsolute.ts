@@ -1,5 +1,8 @@
 import { compareAlphaNumeric, seq } from "utils";
+import { mix } from "../funs";
+import { named } from "../mixins/Named";
 import { Observable, observable } from "../mixins/Observable";
+import { Direction } from "../types";
 import { DragListWidget } from "../widgets/DragListWidget";
 import {
   Expanse,
@@ -21,11 +24,6 @@ import { breaks, link, setValues, widget } from "./discreteMethods";
  * Example: `[a, b, c, d] -> [0, 0.333, 0.666, 1].`
  *  */
 export interface ExpanseDiscreteAbsolute extends Expanse<string>, Observable {
-  zero: number;
-  one: number;
-  defaultZero: number;
-  defaultOne: number;
-
   order: number[];
   values: string[];
 
@@ -54,6 +52,7 @@ export function newExpanseDiscreteAbsolute(
 ): ExpanseDiscreteAbsolute {
   const order = seq(0, values.length - 1);
   const [zero, one, defaultZero, defaultOne] = [0, 1, 0, 1];
+  const direction = Direction.Forward;
 
   const props = {
     order,
@@ -62,6 +61,7 @@ export function newExpanseDiscreteAbsolute(
     one,
     defaultZero,
     defaultOne,
+    direction,
     [Symbol.toStringTag]: ExpanseType.DiscreteAbsolute,
   };
 
@@ -87,9 +87,8 @@ export function newExpanseDiscreteAbsolute(
     widget,
   };
 
-  const self = observable({ ...props, ...methods });
-
-  return self;
+  const self = { ...props, ...methods };
+  return mix(self).with(named).with(observable);
 }
 
 function clone(this: ExpanseDiscreteAbsolute) {

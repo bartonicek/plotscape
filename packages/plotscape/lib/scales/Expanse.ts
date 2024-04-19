@@ -1,4 +1,5 @@
 import { invertRange, noopThis } from "utils";
+import { Named } from "../mixins/Named";
 import { Observable, untrack } from "../mixins/Observable";
 import { Direction } from "../types";
 import { Widget } from "../widgets/Widget";
@@ -14,11 +15,12 @@ export enum ExpanseType {
 
 /** Can normalize values from type `T` to `[0, 1]`
  * and unnormalize values from `[0, 1]`to `T`.  */
-export interface Expanse<T = unknown> extends Observable {
+export interface Expanse<T = unknown> extends Named, Observable {
   zero: number;
   one: number;
   defaultZero: number;
   defaultOne: number;
+  direction: Direction;
 
   normalize(value: T): number;
   unnormalize(value: number): T;
@@ -166,21 +168,21 @@ export function expand<T extends Expanse>(
   options?: { default?: boolean }
 ) {
   // First, get current zero and current range
-  const { zero: cZero, one: cOne } = this;
+  const { zero: cZero, one: cOne, direction } = this;
   const cRange = cOne - cZero;
-  let direction = 0;
 
-  if (isExpanseContinuous(this)) direction = this.direction;
+  // Reflect if direction is backwards
   if (direction === Direction.Backward) {
     [zero, one] = [1 - zero, 1 - one];
   }
 
-  // Normalize the zoom values within current range
+  // Normalize the zoom values within the current range
   let [nZero, nOne] = [zero, one].map((x) => (x - cZero) / cRange);
 
-  // Finally, invert
+  // Invert
   [nZero, nOne] = invertRange(nZero, nOne);
 
+  // Finally, reflect again
   if (direction === Direction.Backward) {
     [nZero, nOne] = [1 - nZero, 1 - nOne];
   }
