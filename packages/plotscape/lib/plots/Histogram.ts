@@ -1,7 +1,7 @@
-import { newObservableValue } from "../ObservableValue";
 import { one, zero } from "../constants";
 import { Dataframe } from "../dataframe/Dataframe";
 import { factorBin } from "../factors/factorBin";
+import { newObservableValue } from "../mixins/ObservableValue";
 import { Plot, newPlot } from "../plot/Plot";
 import { newPartition } from "../reducers/Partition";
 import { Reducer, sumReducer } from "../reducers/Reducer";

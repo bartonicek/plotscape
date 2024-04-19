@@ -1,9 +1,9 @@
 import { square, squareRoot, times } from "utils";
-import { newObservableValue } from "../ObservableValue";
 import { one } from "../constants";
 import { Dataframe } from "../dataframe/Dataframe";
 import { factorBin } from "../factors/factorBin";
 import { factorProduct } from "../factors/factorProduct";
+import { newObservableValue } from "../mixins/ObservableValue";
 import { Plot, newPlot } from "../plot/Plot";
 import { newPartition } from "../reducers/Partition";
 import { sumReducer } from "../reducers/Reducer";

@@ -1,8 +1,8 @@
 import { mergeInto, values } from "utils";
-import { ObservableValue, newObservableValue } from "../ObservableValue";
 import { Dataframe } from "../dataframe/Dataframe";
 import { getQueryInformation, pointInRect, rectsIntersect } from "../funs";
 import graphicParameters from "../graphicParameters.json";
+import { ObservableValue, newObservableValue } from "../mixins/ObservableValue";
 import { ContextId, Contexts, Plot, Scales, layers } from "../plot/Plot";
 import { LAYER, POSITIONS } from "../symbols";
 import { BoundaryCols, KeyActions, Point, Rect, RenderCols } from "../types";

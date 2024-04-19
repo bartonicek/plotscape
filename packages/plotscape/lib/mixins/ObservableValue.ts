@@ -1,8 +1,8 @@
-import { Named, named } from "./mixins/Named";
-import { Observable, observable } from "./mixins/Observable";
-import { Primitive } from "./types";
-import { newValueWidget } from "./widgets/ValueWidget";
-import { Widget } from "./widgets/Widget";
+import { Primitive } from "../types";
+import { newValueWidget } from "../widgets/ValueWidget";
+import { Widget } from "../widgets/Widget";
+import { Named, named } from "./Named";
+import { Observable, observable } from "./Observable";
 
 export interface ObservableValue<T> extends Named, Observable {
   value: T;

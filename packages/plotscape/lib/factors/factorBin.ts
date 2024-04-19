@@ -1,7 +1,11 @@
 import { allEntries, asInt, diff, inc, last, subsetOnIndices } from "utils";
-import { ObservableValue, getter, isObservable } from "../ObservableValue";
 import { newDataframe } from "../dataframe/Dataframe";
 import { bimap, midpoint } from "../funs";
+import {
+  ObservableValue,
+  getter,
+  isObservable,
+} from "../mixins/ObservableValue";
 import { newExpanseContinuous } from "../scales/ExpanseContinuous";
 import { POSITIONS } from "../symbols";
 import { Continuous, newContinuous } from "../variables/Continuous";
