@@ -32,7 +32,7 @@ export function newScatter<T extends Variables>(
   const points = newPoints(plot, boundaryData, renderData);
 
   plot.addGraphicObject(points);
-  plot.trainScales(boundaryData, (d) => ({ x: d.x, y: d.y }));
+  plot.trainScales(boundaryData, (d) => ({ x: d.x, y: d.y, size: d.size }));
 
   renderData.listen(plot.render.bind(plot));
 

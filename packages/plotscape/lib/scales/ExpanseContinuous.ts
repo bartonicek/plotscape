@@ -102,6 +102,8 @@ export function newExpanseContinuous(min = 0, max = 1): ExpanseContinuous {
 
   const methods = {
     clone,
+    copyFrom,
+    matches,
     range,
     transRange,
     normalize,
@@ -137,6 +139,24 @@ export function newExpanseContinuous(min = 0, max = 1): ExpanseContinuous {
 }
 
 /* --------------------------------- Methods -------------------------------- */
+
+function clone(this: ExpanseContinuous) {
+  const { defaultMin, defaultMax, trans, inv } = this;
+  const result = newExpanseContinuous();
+  const def = { default: true };
+  result.setMin(defaultMin, def).setMax(defaultMax, def);
+  result.setTransform(trans, inv);
+  return result;
+}
+
+function copyFrom(this: ExpanseContinuous, other: ExpanseContinuous) {
+  this.setMinMax(other.min, other.max);
+  return this;
+}
+
+function matches(this: ExpanseContinuous, other: Expanse) {
+  return isExpanseContinuous(other);
+}
 
 function range(this: ExpanseContinuous) {
   return this.max - this.min;
@@ -287,15 +307,6 @@ function retrain(this: ExpanseContinuous, array: number[]) {
   return this;
 }
 
-function clone(this: ExpanseContinuous) {
-  const { defaultMin, defaultMax, trans, inv } = this;
-  const result = newExpanseContinuous();
-  const def = { default: true };
-  result.setMin(defaultMin, def).setMax(defaultMax, def);
-  result.setTransform(trans, inv);
-  return result;
-}
-
 function breaks(this: ExpanseContinuous) {
   const [min, max] = [0, 1].map((x) => this.unnormalize(x)).sort(diff);
 
@@ -338,4 +349,10 @@ function widget(this: ExpanseContinuous) {
   });
 
   return widget;
+}
+
+export function isExpanseContinuous(
+  expanse: Expanse
+): expanse is ExpanseContinuous {
+  return expanse[Symbol.toStringTag] === ExpanseType.Continuous;
 }

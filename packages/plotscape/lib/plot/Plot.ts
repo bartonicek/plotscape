@@ -6,6 +6,8 @@ import {
   invertRange,
   mergeInto,
   rangeInverse,
+  square,
+  squareRoot,
   throttle,
   trunc0to1,
   values,
@@ -194,7 +196,11 @@ export function newPlot(scene: Scene) {
   scales.x.setOther(scales.y).setAes(`x`);
   scales.y.setOther(scales.x).setAes(`y`);
 
-  scales.size.codomain.setMin(1, def).setMax(10, def).defaultize();
+  scales.size.codomain
+    .setMinMax(Math.sqrt(10), 10, def)
+    .setTransform(square, squareRoot);
+
+  scales.area.codomain.setMin(1, def).setTransform(square, squareRoot);
   scales.width.setMax(1 - 2 * dnx, def);
   scales.height.setMax(1 - 2 * dny, def);
 
@@ -377,7 +383,11 @@ function trainScales<T extends Variables>(
     const scale = scales[k];
 
     if (!scale) continue;
-    if (v.domain) scale.setDomain(v.domain.clone());
+    if (v.domain) {
+      if (scale.domain.matches(v.domain)) scale.domain.copyFrom(v.domain);
+      else scale.setDomain(v.domain.clone());
+    }
+
     if (v.hasName()) scale.setName(v.name());
   }
 

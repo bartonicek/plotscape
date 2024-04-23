@@ -89,6 +89,8 @@ export function newExpanseDiscreteWeighted(
 
   const methods = {
     clone,
+    copyFrom,
+    matches,
     normalize,
     unnormalize,
     defaultize,
@@ -118,6 +120,31 @@ export function newExpanseDiscreteWeighted(
 }
 
 /* --------------------------------- Methods -------------------------------- */
+
+function clone(this: ExpanseDiscreteWeighted) {
+  const copy = newExpanseDiscreteWeighted(this.values);
+  copy.order = this.order;
+  copy.weights = this.weights;
+  copy.cumWeights = this.cumWeights;
+  copy.normalize = this.normalize;
+  return copy;
+}
+
+function copyFrom(
+  this: ExpanseDiscreteWeighted,
+  other: ExpanseDiscreteWeighted
+) {
+  for (let i = 0; i < other.values.length; i++) {
+    this.values[i] = other.values[i];
+    this.order[i] = other.order[i];
+    this.weights[i] = other.weights[i];
+  }
+  return this;
+}
+
+function matches(this: ExpanseDiscreteWeighted, other: Expanse) {
+  return isExpanseDiscreteWeighted(other);
+}
 
 function normalize(this: ExpanseDiscreteWeighted, value: string) {
   const { zero, one } = this;
@@ -214,15 +241,6 @@ function retrain(this: ExpanseDiscreteWeighted, array: string[]) {
   return this;
 }
 
-function clone(this: ExpanseDiscreteWeighted) {
-  const copy = newExpanseDiscreteWeighted(this.values);
-  copy.order = this.order;
-  copy.weights = this.weights;
-  copy.cumWeights = this.cumWeights;
-  copy.normalize = this.normalize;
-  return copy;
-}
-
 function getBounds(self: ExpanseDiscreteWeighted, value: string) {
   const { order, values, cumWeights } = self;
   const index = order[values.indexOf(value)];
@@ -241,4 +259,9 @@ function updateCumWeights(self: ExpanseDiscreteWeighted) {
   for (let i = 0; i < cumWeights.length; i++) {
     self.cumWeights[i] = cumWeights[i];
   }
+}
+export function isExpanseDiscreteWeighted(
+  expanse: Expanse
+): expanse is ExpanseDiscreteWeighted {
+  return expanse[Symbol.toStringTag] === ExpanseType.DiscreteWeighted;
 }

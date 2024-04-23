@@ -2,7 +2,8 @@ import { Dict } from "utils";
 import { Named } from "../mixins/Named";
 import { Queryable } from "../mixins/Queryable";
 import { ShallowCloneable } from "../mixins/ShallowClonable";
-import { Expanse, isExpanseContinuous } from "../scales/Expanse";
+import { Expanse } from "../scales/Expanse";
+import { isExpanseContinuous } from "../scales/ExpanseContinuous";
 import { Scale } from "../scales/Scale";
 import { Continuous } from "./Continuous";
 

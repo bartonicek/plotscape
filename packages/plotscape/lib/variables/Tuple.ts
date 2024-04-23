@@ -3,9 +3,10 @@ import { mix } from "../funs";
 import { Named, named } from "../mixins/Named";
 import { Queryable, queryable } from "../mixins/Queryable";
 import { ShallowCloneable, shallowCloneable } from "../mixins/ShallowClonable";
-import { Expanse, isExpanseContinuous } from "../scales/Expanse";
+import { Expanse } from "../scales/Expanse";
 import {
   ExpanseContinuous,
+  isExpanseContinuous,
   newExpanseContinuous,
 } from "../scales/ExpanseContinuous";
 import { Scale } from "../scales/Scale";

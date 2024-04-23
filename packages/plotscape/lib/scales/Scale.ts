@@ -2,13 +2,13 @@ import { MapFn } from "utils";
 import { Named, named } from "../mixins/Named";
 import { Observable, observable } from "../mixins/Observable";
 import { Widget } from "../widgets/Widget";
+import { Expanse, isExpanseDiscrete } from "./Expanse";
 import {
-  Expanse,
+  ExpanseContinuous,
   isExpanseContinuous,
-  isExpanseDiscrete,
-  isExpanseDiscreteWeighted,
-} from "./Expanse";
-import { ExpanseContinuous, newExpanseContinuous } from "./ExpanseContinuous";
+  newExpanseContinuous,
+} from "./ExpanseContinuous";
+import { isExpanseDiscreteWeighted } from "./ExpanseDiscreteWeighted";
 
 type Aesthetic = `x` | `y`;
 
@@ -16,12 +16,6 @@ type Aesthetic = `x` | `y`;
 
 /**
  * Maps values from one expanse (domain) to another (codomain) and back.
- * Also has an intermediate expanse norm which can be used for e.g. panning,
- * zooming etc...
- *
- * Example: with a `[0.05, 0.95]` norm, a minimum value in the domain will get
- * mapped to the 5% value in the codomain, and the maximum value in the domain
- * will get mapped to the 95% value in the codomain.
  * */
 export interface Scale<T = unknown> extends Named, Observable {
   other?: Scale;
@@ -30,10 +24,7 @@ export interface Scale<T = unknown> extends Named, Observable {
   domain: Expanse<T>;
   codomain: ExpanseContinuous;
 
-  _widget?: Widget;
-
   clone(): Scale<T>;
-
   setAes(aesthetic: Aesthetic): this;
   setOther(other: Scale): this;
   setDomain<V extends string | number>(domain: Expanse<V>): Scale<V>;
@@ -42,25 +33,27 @@ export interface Scale<T = unknown> extends Named, Observable {
   pushforward(value: T): number;
   pullback(value: number): T;
 
-  setMin(value: number, options?: { default?: boolean }): this;
-  setMax(value: number, options?: { default?: boolean }): this;
-  setMinMax(min: number, max: number, options?: { default?: boolean }): this;
-  setZeroOne(zero: number, one: number, options?: { default?: boolean }): this;
-  setTransform(trans: MapFn<number, number>, inv: MapFn<number, number>): this;
-
+  link(other: Scale<T>): this;
   expand(zero: number, one: number, options?: { default?: boolean }): this;
   move(amount: number): this;
   freezeZero(): this;
   freezeOne(): this;
   flip(): this;
 
+  // Continuous domain methods
+  setMin(value: number, options?: { default?: boolean }): this;
+  setMax(value: number, options?: { default?: boolean }): this;
+  setMinMax(min: number, max: number, options?: { default?: boolean }): this;
+  setZeroOne(zero: number, one: number, options?: { default?: boolean }): this;
+  setTransform(trans: MapFn<number, number>, inv: MapFn<number, number>): this;
+
+  // Discrete domain methods
   setWeights(weights: number[]): this;
   setOrder(indices: number[]): this;
   setDefaultOrder(): this;
   setDefaultWeights(): this;
   getOrder(): number[] | undefined;
 
-  link(other: Scale<T>): this;
   breaks(): T[];
   ratio(): number;
   widget(): Widget | undefined;
@@ -111,6 +104,10 @@ export function newScale<T = number>(
   };
 
   const self = observable(named({ ...props, ...methods })) satisfies Scale;
+
+  domain.listen(() => self.emit());
+  codomain.listen(() => self.emit());
+
   return self;
 }
 
@@ -150,11 +147,6 @@ function setCodomain<T>(this: Scale<T>, codomain: ExpanseContinuous) {
   this.codomain = codomain;
   return this;
 }
-
-// function defaultize<T>(this: Scale<T>, options?: Record<string, any>) {
-//   // this.domain.defaultize(options);
-//   return this;
-// }
 
 function setMin<T>(
   this: Scale<T>,

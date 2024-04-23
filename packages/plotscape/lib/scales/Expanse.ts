@@ -3,7 +3,7 @@ import { Named } from "../mixins/Named";
 import { Observable, untrack } from "../mixins/Observable";
 import { Direction } from "../types";
 import { Widget } from "../widgets/Widget";
-import { ExpanseContinuous } from "./ExpanseContinuous";
+import { isExpanseContinuous } from "./ExpanseContinuous";
 import { ExpanseDiscreteAbsolute } from "./ExpanseDiscreteAbsolute";
 import { ExpanseDiscreteWeighted } from "./ExpanseDiscreteWeighted";
 
@@ -26,6 +26,8 @@ export interface Expanse<T = unknown> extends Named, Observable {
   unnormalize(value: number): T;
 
   clone(): Expanse<T>;
+  copyFrom(other: Expanse<T>): this;
+  matches(expanse: Expanse): boolean;
   defaultize(options?: Record<string, any>): this;
 
   setZero(zero: number, options?: { default?: boolean }): this;
@@ -45,12 +47,6 @@ export interface Expanse<T = unknown> extends Named, Observable {
   [Symbol.toStringTag]: string;
 }
 
-export function isExpanseContinuous(
-  expanse: Expanse
-): expanse is ExpanseContinuous {
-  return expanse[Symbol.toStringTag] === ExpanseType.Continuous;
-}
-
 export function isExpanseDiscrete(
   expanse: Expanse
 ): expanse is ExpanseDiscreteAbsolute | ExpanseDiscreteWeighted {
@@ -58,12 +54,6 @@ export function isExpanseDiscrete(
     expanse[Symbol.toStringTag] === ExpanseType.DiscreteAbsolute ||
     expanse[Symbol.toStringTag] === ExpanseType.DiscreteWeighted
   );
-}
-
-export function isExpanseDiscreteWeighted(
-  expanse: Expanse
-): expanse is ExpanseDiscreteWeighted {
-  return expanse[Symbol.toStringTag] === ExpanseType.DiscreteWeighted;
 }
 
 export function setZero<T extends Expanse>(

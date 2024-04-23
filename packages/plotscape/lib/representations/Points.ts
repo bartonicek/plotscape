@@ -74,7 +74,7 @@ function render(this: Points) {
     const x = data.col(`x`).scaledAt(i, scales.x);
     const y = data.col(`y`).scaledAt(i, scales.y);
     let radius = data.col(`size`)?.scaledAt(i, scales.size);
-    radius = radius ? Math.sqrt(radius) : graphicParameters.defaultRadius;
+    radius = radius ?? graphicParameters.defaultRadius;
     radius = radius * sizePct.value;
 
     contexts[layer].point(x, y, { radius });
@@ -82,7 +82,7 @@ function render(this: Points) {
 }
 
 function check(this: Points, coords: Rect) {
-  const { boundaryData: data, scales } = this;
+  const { boundaryData: data, scales, sizePct } = this;
 
   const n = data.n();
   const selected = new Set<number>();
@@ -91,7 +91,8 @@ function check(this: Points, coords: Rect) {
     const x = data.col(`x`).scaledAt(i, scales.x);
     const y = data.col(`y`).scaledAt(i, scales.y);
     let radius = data.col(`size`)?.scaledAt(i, scales.size);
-    radius = radius ? Math.sqrt(radius) : graphicParameters.defaultRadius;
+    radius = radius ?? graphicParameters.defaultRadius;
+    radius = radius * sizePct.value;
     const c = radius / Math.sqrt(2);
 
     if (rectsIntersect(coords, [x - c, y - c, x + c, y + c])) {
@@ -103,7 +104,7 @@ function check(this: Points, coords: Rect) {
 }
 
 function query(this: Points, point: Point) {
-  const { boundaryData: data, scales } = this;
+  const { boundaryData: data, scales, sizePct } = this;
 
   const n = data.n();
 
@@ -111,7 +112,8 @@ function query(this: Points, point: Point) {
     const x = data.col(`x`).scaledAt(i, scales.x);
     const y = data.col(`y`).scaledAt(i, scales.y);
     let radius = data.col(`size`)?.scaledAt(i, scales.size);
-    radius = radius ? Math.sqrt(radius) : graphicParameters.defaultRadius;
+    radius = radius ?? graphicParameters.defaultRadius;
+    radius = radius * sizePct.value;
     const c = radius / Math.sqrt(2);
 
     if (pointInRect(point, [x - c, y - c, x + c, y + c])) {

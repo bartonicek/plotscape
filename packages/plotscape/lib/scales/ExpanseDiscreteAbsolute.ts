@@ -67,6 +67,8 @@ export function newExpanseDiscreteAbsolute(
 
   const methods = {
     clone,
+    copyFrom,
+    matches,
     normalize,
     unnormalize,
     defaultize,
@@ -96,6 +98,21 @@ function clone(this: ExpanseDiscreteAbsolute) {
   copy.order = this.order;
   copy.normalize = this.normalize;
   return copy;
+}
+
+function copyFrom(
+  this: ExpanseDiscreteAbsolute,
+  other: ExpanseDiscreteAbsolute
+) {
+  for (let i = 0; i < other.values.length; i++) {
+    this.values[i] = other.values[i];
+    this.order[i] = other.order[i];
+  }
+  return this;
+}
+
+function matches(this: ExpanseDiscreteAbsolute, other: Expanse) {
+  return isExpanseDiscreteAbsolute(other);
 }
 
 function normalize(this: ExpanseDiscreteAbsolute, value: string) {
@@ -146,4 +163,8 @@ function retrain<T extends ExpanseDiscreteAbsolute>(this: T, array: string[]) {
   this.values = values;
   this.emit();
   return this;
+}
+
+function isExpanseDiscreteAbsolute(expanse: Expanse) {
+  return expanse[Symbol.toStringTag] === ExpanseType.DiscreteWeighted;
 }
