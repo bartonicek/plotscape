@@ -17,7 +17,7 @@ import { newAxisLabels } from "../decorations/AxisLabels";
 import { newAxisTitle } from "../decorations/AxisTitle";
 import { getMargins, processBaseColor } from "../funs";
 import graphicParameters from "../graphicParameters.json";
-import { Scale, isScaleContinuous, newScale } from "../scales/Scale";
+import { Scale, Type, isScaleContinuous, newScale } from "../scales/Scale";
 import { Scene } from "../scene/Scene";
 import {
   ActionKey,
@@ -196,11 +196,12 @@ export function newPlot(scene: Scene) {
   scales.x.setOther(scales.y).setAes(`x`);
   scales.y.setOther(scales.x).setAes(`y`);
 
-  scales.size.codomain
-    .setMinMax(Math.sqrt(10), 10, def)
-    .setTransform(square, squareRoot);
+  scales.size.codomain.setMax(10, def).setTransform(square, squareRoot);
+  scales.size.setType(Type.Ratio);
 
-  scales.area.codomain.setMin(1, def).setTransform(square, squareRoot);
+  scales.area.codomain.setTransform(square, squareRoot);
+  scales.area.setType(Type.Ratio);
+
   scales.width.setMax(1 - 2 * dnx, def);
   scales.height.setMax(1 - 2 * dny, def);
 

@@ -8,9 +8,8 @@ import {
   invertRange,
   minMax,
   noopThis,
-  prettyBreaks,
 } from "utils";
-import { mix } from "../funs";
+import { mix, prettyBreaks } from "../funs";
 import { named } from "../mixins/Named";
 import { Observable, observable, untrack } from "../mixins/Observable";
 import { Direction } from "../types";
@@ -150,7 +149,7 @@ function clone(this: ExpanseContinuous) {
 }
 
 function copyFrom(this: ExpanseContinuous, other: ExpanseContinuous) {
-  this.setMinMax(other.min, other.max);
+  this.setMinMax(other.min, other.max, { default: true });
   return this;
 }
 

@@ -44,7 +44,7 @@ export interface Histogram2D extends Plot {
 export function newHistogram2D<T extends Variables>(
   scene: Scene<T>,
   selectfn: (cols: T) => DataBindings
-) {
+): Histogram2D {
   const plot = newPlot(scene);
   const data = scene.data.select(selectfn);
 
@@ -119,6 +119,8 @@ export function newHistogram2D<T extends Variables>(
 
   partition2Data.listen(self.render.bind(self));
   self.render();
+
+  return self;
 }
 
 function encodeAbs(self: Histogram2D) {
