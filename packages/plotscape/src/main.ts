@@ -3,6 +3,7 @@ import { parseColumns } from "../lib/dataframe/parseColumns.ts";
 import {
   continuous,
   discrete,
+  maxReducer,
   newFluctplot,
   newHistogram,
   newNoteplot,
@@ -87,7 +88,10 @@ async function sacrametoScene() {
 
   const plot2 = newFluctplot(scene, (d) => ({ v1: d.beds, v2: d.baths }));
   const plot3 = newBarplot(scene, (d) => ({ v1: d.city }));
-  const plot4 = newHistogram(scene, (d) => ({ v1: d.price, v2: d.sqft }));
+
+  const opts = { reducer: maxReducer };
+
+  const plot4 = newHistogram(scene, (d) => ({ v1: d.price, v2: d.sqft }), opts);
   const plot5 = newScatter(scene, (d) => ({ v1: d.sqft, v2: d.price }));
   const plot6 = newNoteplot(scene);
 

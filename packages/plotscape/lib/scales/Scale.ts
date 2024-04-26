@@ -12,7 +12,7 @@ import { isExpanseDiscreteWeighted } from "./ExpanseDiscreteWeighted";
 
 type Aesthetic = `x` | `y`;
 
-export enum Type {
+export enum ScaleType {
   Nominal,
   Ordinal,
   Interval,
@@ -27,14 +27,14 @@ export enum Type {
 export interface Scale<T = unknown> extends Named, Observable {
   other?: Scale;
   aes?: Aesthetic;
-  type: Type;
+  type: ScaleType;
 
   domain: Expanse<T>;
   codomain: ExpanseContinuous;
 
   clone(): Scale<T>;
   setAes(aesthetic: Aesthetic): this;
-  setType(type: Type): this;
+  setType(type: ScaleType): this;
   setOther(other: Scale): this;
   setDomain<V extends string | number>(domain: Expanse<V>): Scale<V>;
   setCodomain(codomain: ExpanseContinuous): this;
@@ -79,7 +79,7 @@ export function newScale<T = number>(
   codomain?: ExpanseContinuous
 ): Scale<T> {
   const tag = `Scale`;
-  const type = Type.Interval; // Default type
+  const type = ScaleType.Interval; // Default type
   domain = domain ?? (newExpanseContinuous() as unknown as Expanse<T>);
   codomain = codomain ?? newExpanseContinuous();
 
@@ -138,10 +138,10 @@ function setOther<T>(this: Scale<T>, other: Scale) {
   return this;
 }
 
-function setType<T>(this: Scale<T>, type: Type) {
+function setType<T>(this: Scale<T>, type: ScaleType) {
   this.type = type;
 
-  if (type === Type.Ratio) {
+  if (type === ScaleType.Ratio) {
     const { domain, codomain } = this;
     if (!isExpanseContinuous(domain) || !isExpanseContinuous(codomain)) {
       throw new Error(
@@ -166,7 +166,7 @@ function pullback<T>(this: Scale<T>, value: number) {
 }
 
 function setDomain<T>(this: Scale<T>, domain: Expanse<T>) {
-  if (this.type === Type.Ratio) {
+  if (this.type === ScaleType.Ratio) {
     if (!isExpanseContinuous(domain)) {
       throw new Error(`Ratio scale must have continuous domain.`);
     }
