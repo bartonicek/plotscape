@@ -1,5 +1,5 @@
 import { compareAlphaNumeric, cumsum, last, noopThis, rep, seq } from "utils";
-import { mix } from "../funs";
+import { mix, orderByIndices } from "../funs";
 import { named } from "../mixins/Named";
 import { observable } from "../mixins/Observable";
 import { Direction } from "../types";
@@ -254,15 +254,15 @@ function getBounds(self: ExpanseDiscreteWeighted, value: string) {
 function updateCumWeights(self: ExpanseDiscreteWeighted) {
   const { weights, cumWeights, order } = self;
 
-  // This is naive but less efficient version:
-  // const newCumWeights = cumsum(orderByIndices(weights, order));
-  // for (let i = 0; i < cumWeights.length; i++) cumWeights[i] = newCumWeights[i];
-
-  // This does the same as above in one pass:
-  cumWeights[0] = weights[order[0]];
+  // Requires two pases through the data, unfortunately.
+  // Would need to refactor order otherwise.
+  const ordered = orderByIndices(weights, order);
+  cumWeights[0] = ordered[0];
   for (let i = 1; i < order.length; i++) {
-    cumWeights[i] = cumWeights[i - 1] + weights[order[i]];
+    cumWeights[i] = cumWeights[i - 1] + ordered[i];
   }
+
+  console.log(weights, order, orderByIndices(weights, order));
 }
 export function isExpanseDiscreteWeighted(
   expanse: Expanse

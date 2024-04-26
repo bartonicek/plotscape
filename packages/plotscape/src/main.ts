@@ -37,9 +37,9 @@ async function mpgScene() {
     v2: d.hwy,
     v3: d.cty,
   }));
-  // const plot2 = newBarplot(scene, (d) => ({ v1: d.manufacturer }));
-  // const plot3 = newHistogram(scene, (d) => ({ v1: d.displ }));
-  // const plot4 = newFluctplot(scene, (d) => ({ v1: d.year, v2: d.drv }));
+  const plot2 = newBarplot(scene, (d) => ({ v1: d.manufacturer }));
+  const plot3 = newHistogram(scene, (d) => ({ v1: d.displ }));
+  const plot4 = newFluctplot(scene, (d) => ({ v1: d.year, v2: d.drv }));
 }
 
 async function diamondsScene() {
@@ -110,5 +110,5 @@ async function sacrametoScene() {
 }
 
 // diamondsScene();
-sacrametoScene();
-// mpgScene();
+// sacrametoScene();
+mpgScene();
