@@ -29,8 +29,8 @@ export function newReducedDataframe<T extends Variables, U extends Reducers>(
     reducersCopy[k] = v.clone().setFactor(factor) as any;
   }
 
-  const columns = {} as any;
-  for (const [k, v] of allEntries(factor.data.cols())) columns[k] = v;
+  const columns = factor.data.cols() as any;
+  // for (const [k, v] of allEntries(factor.data.cols())) columns[k] = v;
   for (const [k, v] of allEntries(reducersCopy)) {
     v.setFactor(factor);
     columns[k] = v.result;

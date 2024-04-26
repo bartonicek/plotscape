@@ -110,5 +110,5 @@ async function sacrametoScene() {
 }
 
 // diamondsScene();
-// sacrametoScene();
-mpgScene();
+sacrametoScene();
+// mpgScene();

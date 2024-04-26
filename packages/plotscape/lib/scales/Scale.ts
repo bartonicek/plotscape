@@ -148,8 +148,8 @@ function setType<T>(this: Scale<T>, type: ScaleType) {
         `A ratio scale must have a continuous domain and codomain.`
       );
     }
-    domain.setMin(0, { default: true });
-    codomain.setMin(0, { default: true });
+    domain.setMin(0, { default: true }).freezeMin();
+    codomain.setMin(0, { default: true }).freezeMin();
   }
 
   return this;

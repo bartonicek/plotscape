@@ -51,7 +51,6 @@ export function product<T extends Variables, U extends Variables>(
   const factor2Map = {} as Record<number, number>;
 
   const positionsMap = {} as Record<number, Set<number>>;
-  const childPositionsMap = {} as Record<number, Set<number>>;
 
   for (let i = 0; i < factor1.levels.length; i++) {
     const [f1level, f2level] = [factor1.levelAt(i), factor2.levelAt(i)];
@@ -62,18 +61,16 @@ export function product<T extends Variables, U extends Variables>(
       factor1Map[level] = f1level;
       factor2Map[level] = f2level;
       positionsMap[level] = new Set();
-      childPositionsMap[f1level] = new Set();
     }
 
     dirtyLevels.push(level);
     dirtyUniqueLevels.add(level);
-
     positionsMap[level].add(i);
-    childPositionsMap[f1level].add(i);
   }
 
-  const sortedUniqueLevels = Array.from(dirtyUniqueLevels).sort(diff);
   const levels = dirtyLevels;
+  const sortedUniqueLevels = Array.from(dirtyUniqueLevels).sort(diff);
+  const childPositionsMap = {} as Record<number, Set<number>>;
 
   // Need to clean up levels by removing unused ones,
   // e.g. [0, 2, 3, 2, 5] -> [0, 1, 2, 1, 3]
