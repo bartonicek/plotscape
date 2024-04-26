@@ -3,6 +3,9 @@
   "workspaces": ["packages/*"],
   "module": "index.ts",
   "type": "module",
+  "scripts": {
+    "dev": "vite packages/plotscape"
+  },
   "devDependencies": {
     "bun-types": "^1.1.4"
   },

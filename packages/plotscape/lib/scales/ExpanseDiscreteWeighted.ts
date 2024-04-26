@@ -254,12 +254,14 @@ function getBounds(self: ExpanseDiscreteWeighted, value: string) {
 function updateCumWeights(self: ExpanseDiscreteWeighted) {
   const { weights, cumWeights, order } = self;
 
-  // Below is a more efficient version of the following:
+  // This is naive but less efficient version:
   // const newCumWeights = cumsum(orderByIndices(weights, order));
+  // for (let i = 0; i < cumWeights.length; i++) cumWeights[i] = newCumWeights[i];
 
-  cumWeights[order[0]] = weights[0];
+  // This does the same as above in one pass:
+  cumWeights[0] = weights[order[0]];
   for (let i = 1; i < order.length; i++) {
-    cumWeights[order[i]] = cumWeights[order[i - 1]] + weights[i];
+    cumWeights[i] = cumWeights[i - 1] + weights[order[i]];
   }
 }
 export function isExpanseDiscreteWeighted(
