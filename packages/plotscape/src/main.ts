@@ -1,7 +1,13 @@
 import { exp10, fetchJSON, log10 } from "utils";
 import { col } from "../lib/dataframe/ColumnParser.ts";
 import { parseColumns } from "../lib/dataframe/parseColumns.ts";
-import { newHistogram } from "../lib/main.ts";
+import {
+  newFluctplot,
+  newHistogram,
+  newHistogram2D,
+  newNoteplot,
+  newPCoordsplot,
+} from "../lib/main.ts";
 import { newBarplot } from "../lib/plots/Barplot.ts";
 import { newScatter } from "../lib/plots/Scatterplot.ts";
 import { newExpanseContinuous } from "../lib/scales/ExpanseContinuous.ts";
@@ -74,29 +80,29 @@ async function sacrametoScene() {
   const sacramentoData = parseColumns(sacramentoJSON, spec);
   const scene = newScene(app, sacramentoData);
 
-  // const plot1 = newScatter(scene, (d) => ({
-  //   v1: d.longitude,
-  //   v2: d.latitude,
-  //   v3: d.price,
-  // }));
+  const plot1 = newScatter(scene, (d) => ({
+    v1: d.longitude,
+    v2: d.latitude,
+    v3: d.price,
+  }));
 
-  // const plot2 = newFluctplot(scene, (d) => ({ v1: d.beds, v2: d.baths }));
-  // const plot3 = newBarplot(scene, (d) => ({ v1: d.city }));
+  const plot2 = newFluctplot(scene, (d) => ({ v1: d.beds, v2: d.baths }));
+  const plot3 = newBarplot(scene, (d) => ({ v1: d.city }));
   const plot4 = newHistogram(scene, (d) => ({ v1: d.price, v2: d.sqft }));
-  // const plot5 = newHistogram2D(scene, (d) => ({ v1: d.sqft, v2: d.price }));
-  // const plot6 = newNoteplot(scene);
+  const plot5 = newHistogram2D(scene, (d) => ({ v1: d.sqft, v2: d.price }));
+  const plot6 = newNoteplot(scene);
 
-  // const plot7 = newPCoordsplot(scene, (d) => ({
-  //   v1: d.latitude,
-  //   v2: d.longitude,
-  //   v3: d.price,
-  // }));
+  const plot7 = newPCoordsplot(scene, (d) => ({
+    v1: d.latitude,
+    v2: d.longitude,
+    v3: d.price,
+  }));
 
-  // scene.setLayout([
-  //   [1, 1, 2, 3],
-  //   [1, 1, 4, 5],
-  //   [6, 7, 7, 7],
-  // ]);
+  scene.setLayout([
+    [1, 1, 2, 3],
+    [1, 1, 4, 5],
+    [6, 7, 7, 7],
+  ]);
 }
 
 // diamondsScene();
