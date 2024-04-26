@@ -36,7 +36,8 @@ export function newScatter<T extends Variables>(
 
   renderData.listen(plot.render.bind(plot));
 
-  return { ...plot, ...{ data, points, renderData, boundaryData } };
+  const self = { ...plot, ...{ data, points, renderData, boundaryData } };
+  return self;
 }
 
 const encodefn = (d: DataBindings) => ({

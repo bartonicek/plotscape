@@ -8,16 +8,18 @@ import {
   Expanse,
   ExpanseType,
   expand,
+  flip,
   freeze,
   freezeOne,
   freezeZero,
+  link,
   move,
   setOne,
   setZero,
   setZeroOne,
 } from "./Expanse";
+import { breaks, setValues, widget } from "./ExpanseDiscrete";
 import { ExpanseDiscreteAbsolute } from "./ExpanseDiscreteAbsolute";
-import { breaks, link, setValues, widget } from "./discreteMethods";
 
 /* -------------------------------- Interface ------------------------------- */
 
@@ -107,6 +109,7 @@ export function newExpanseDiscreteWeighted(
     link,
     expand,
     move,
+    flip,
     setDefaultWeights,
     setDefaultOrder,
     getWidthExpanse,
@@ -147,11 +150,12 @@ function matches(this: ExpanseDiscreteWeighted, other: Expanse) {
 }
 
 function normalize(this: ExpanseDiscreteWeighted, value: string) {
-  const { zero, one } = this;
+  const { zero, one, direction: dir } = this;
   const [lower, upper, max] = getBounds(this, value);
   const midpoint = lower + (upper - lower) / 2;
-  const normalized = midpoint / max;
-  return zero + normalized * (one - zero);
+  let normalized = midpoint / max;
+  normalized = zero + normalized * (one - zero);
+  return dir + (-2 * dir + 1) * normalized;
 }
 
 function unnormalize(this: ExpanseDiscreteWeighted, _: number) {

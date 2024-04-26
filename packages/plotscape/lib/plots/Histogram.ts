@@ -40,7 +40,7 @@ export function newHistogram<T extends Variables>(
   scene: Scene<T>,
   selectfn: (cols: T) => DataBindings,
   options?: { reducer?: Reducer<number, number> }
-) {
+): Histogram {
   const plot = newPlot(scene);
   const data = scene.data.select(selectfn);
 
@@ -89,6 +89,9 @@ export function newHistogram<T extends Variables>(
   });
 
   partition2Data.listen(self.render.bind(self));
+  self.render();
+
+  return self;
 }
 
 function encodeAbs(self: Histogram) {

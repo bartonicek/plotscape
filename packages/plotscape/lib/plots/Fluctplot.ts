@@ -42,7 +42,7 @@ export interface Fluctplot extends Plot {
 export function newFluctplot<T extends Variables>(
   scene: Scene<T>,
   selectfn: (cols: T) => DataBindings
-) {
+): Fluctplot {
   const plot = newPlot(scene);
   const data = scene.data.select(selectfn);
 
@@ -83,6 +83,7 @@ export function newFluctplot<T extends Variables>(
   );
 
   self.render();
+  return self;
 }
 
 function encodeAbs(self: Fluctplot) {

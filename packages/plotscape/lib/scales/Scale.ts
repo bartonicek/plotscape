@@ -301,7 +301,6 @@ function freezeOne<T>(this: Scale<T>) {
 }
 
 function flip<T>(this: Scale<T>) {
-  if (!isExpanseContinuous(this.domain)) return this;
   this.domain.flip();
   return this;
 }

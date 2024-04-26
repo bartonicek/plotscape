@@ -8,22 +8,27 @@ import {
   Expanse,
   ExpanseType,
   expand,
+  flip,
   freeze,
   freezeOne,
   freezeZero,
+  link,
   move,
   setOne,
   setZero,
   setZeroOne,
 } from "./Expanse";
-import { breaks, link, setValues, widget } from "./discreteMethods";
+import { ExpanseDiscrete, breaks, setValues, widget } from "./ExpanseDiscrete";
 
 /** Can normalize values from `string[]` to `[0, 1]` and vice versa.
  * Values are placed at equidistant place covering the whole of `[0, 1]`.
  *
  * Example: `[a, b, c, d] -> [0, 0.333, 0.666, 1].`
  *  */
-export interface ExpanseDiscreteAbsolute extends Expanse<string>, Observable {
+export interface ExpanseDiscreteAbsolute
+  extends Expanse<string>,
+    ExpanseDiscrete,
+    Observable {
   order: number[];
   values: string[];
 
@@ -84,6 +89,7 @@ export function newExpanseDiscreteAbsolute(
     freeze,
     expand,
     move,
+    flip,
     retrain,
     breaks,
     widget,
@@ -116,10 +122,10 @@ function matches(this: ExpanseDiscreteAbsolute, other: Expanse) {
 }
 
 function normalize(this: ExpanseDiscreteAbsolute, value: string) {
-  const { order, values, zero, one } = this;
-  const normalized = order[values.indexOf(value)] / (values.length - 1);
-
-  return zero + normalized * (one - zero);
+  const { order, values, zero, one, direction: dir } = this;
+  let normalized = order[values.indexOf(value)] / (values.length - 1);
+  normalized = zero + normalized * (one - zero);
+  return dir + (-2 * dir + 1) * normalized;
 }
 
 function unnormalize(this: ExpanseDiscreteAbsolute, _: number) {

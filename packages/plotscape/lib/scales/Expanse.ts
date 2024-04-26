@@ -1,4 +1,4 @@
-import { invertRange, noopThis } from "utils";
+import { flipEnum, invertRange, noopThis } from "utils";
 import { Named } from "../mixins/Named";
 import { Observable, untrack } from "../mixins/Observable";
 import { Direction } from "../types";
@@ -39,6 +39,7 @@ export interface Expanse<T = unknown> extends Named, Observable {
 
   expand(zero: number, one: number, options?: { default?: boolean }): this;
   move(amount: number, options?: { default?: boolean }): this;
+  flip(): this;
   link(other: Expanse): this;
   retrain(array: T[]): void;
   breaks(): T[];
@@ -135,6 +136,11 @@ export function link<T extends Expanse>(this: T, other: Expanse) {
     };
   }
 
+  return this;
+}
+
+export function flip<T extends Expanse>(this: T) {
+  this.direction = flipEnum(this.direction);
   return this;
 }
 

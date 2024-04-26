@@ -66,6 +66,7 @@ export function newPCoordsplot<T extends Variables>(
   self.addKeyAction(`KeyR`, () => self.scales.x.setDefaultOrder());
 
   renderData.listen(plot.render.bind(plot));
+
   return self;
 }
 

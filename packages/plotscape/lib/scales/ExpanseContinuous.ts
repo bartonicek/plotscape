@@ -3,7 +3,6 @@ import {
   capitalize,
   diff,
   entries,
-  flipEnum,
   identity,
   invertRange,
   minMax,
@@ -18,6 +17,7 @@ import {
   Expanse,
   ExpanseType,
   expand,
+  flip,
   freeze,
   freezeOne,
   freezeZero,
@@ -247,11 +247,6 @@ function freezeMax(this: ExpanseContinuous) {
 
 function freezeScale(this: ExpanseContinuous) {
   this.setScale = noopThis;
-  return this;
-}
-
-function flip(this: ExpanseContinuous) {
-  this.direction = flipEnum(this.direction);
   return this;
 }
 
