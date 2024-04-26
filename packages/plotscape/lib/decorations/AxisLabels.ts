@@ -32,9 +32,8 @@ function render(this: AxisLabels, contexts: Contexts) {
       const x = scale.pushforward(breaks[i]);
       const w = context.textWidth(label) + 1;
 
-      if (x < left || x > width - right || checkOverlap(lastX, x, lastW, w)) {
-        continue;
-      }
+      if (outside(x, left, width - right)) continue;
+      if (overlap(lastX, x, lastW, w)) continue;
       [lastX, lastW] = [x, w];
 
       context.text(x, base, label);
@@ -45,11 +44,10 @@ function render(this: AxisLabels, contexts: Contexts) {
     for (let i = 0; i < labels.length; i++) {
       const label = labels[i];
       const y = scale.pushforward(breaks[i]);
-      const h = context.textHeight(label) + 5;
+      const h = context.textHeight(label) + 1;
 
-      if (y < bottom || y > height - top || checkOverlap(lastY, y, lastH, h)) {
-        continue;
-      }
+      if (outside(y, bottom, height - top)) continue;
+      if (overlap(lastY, y, lastH, h)) continue;
       [lastY, lastH] = [y, h];
 
       context.text(base, y, label);
@@ -57,7 +55,11 @@ function render(this: AxisLabels, contexts: Contexts) {
   }
 }
 
-function checkOverlap(pos1: number, pos2: number, dim1: number, dim2: number) {
+function outside(pos: number, lim1: number, lim2: number) {
+  return pos < lim1 || pos > lim2;
+}
+
+function overlap(pos1: number, pos2: number, dim1: number, dim2: number) {
   const [l1, u1] = [pos1 - dim1 / 2, pos1 + dim1 / 2];
   const [l2, u2] = [pos2 - dim2 / 2, pos2 + dim2 / 2];
 
