@@ -1,6 +1,6 @@
 import { DisjointUnion, allEntries, diff } from "utils";
 import { newDataframe } from "../dataframe/Dataframe";
-import { PARENT, POSITIONS } from "../symbols";
+import { CHILDPOSITIONS, PARENT, POSITIONS } from "../symbols";
 import { Variables } from "../types";
 import { newReference } from "../variables/Reference";
 import { Factor } from "./Factor";
@@ -49,20 +49,27 @@ export function product<T extends Variables, U extends Variables>(
 
   const factor1Map = {} as Record<number, number>;
   const factor2Map = {} as Record<number, number>;
+
   const positionsMap = {} as Record<number, Set<number>>;
+  const childPositionsMap = {} as Record<number, Set<number>>;
 
   for (let i = 0; i < factor1.levels.length; i++) {
-    const level = k * factor1.levelAt(i) + factor2.levelAt(i);
+    const [f1level, f2level] = [factor1.levelAt(i), factor2.levelAt(i)];
+    const level = k * f1level + f2level;
 
+    // We have not seen this combination of factor levels before
     if (!(level in factor1Map)) {
-      factor1Map[level] = factor1.levelAt(i);
-      factor2Map[level] = factor2.levelAt(i);
+      factor1Map[level] = f1level;
+      factor2Map[level] = f2level;
       positionsMap[level] = new Set();
+      childPositionsMap[f1level] = new Set();
     }
 
     dirtyLevels.push(level);
     dirtyUniqueLevels.add(level);
+
     positionsMap[level].add(i);
+    childPositionsMap[f1level].add(i);
   }
 
   const sortedUniqueLevels = Array.from(dirtyUniqueLevels).sort(diff);
@@ -79,6 +86,7 @@ export function product<T extends Variables, U extends Variables>(
   const columns = {} as Variables;
 
   for (const [k, v] of allEntries(factor1.data.cols())) {
+    if (k === CHILDPOSITIONS) continue;
     // @ts-ignore
     columns[k] = v.proxy(() => factor1ParentLevels);
     columns[k].setName(v.name());
@@ -93,6 +101,11 @@ export function product<T extends Variables, U extends Variables>(
 
   columns[POSITIONS] = newReference(Object.values(positionsMap));
   columns[PARENT] = newReference(Object.values(factor1Map));
+
+  // @ts-ignore
+  factor1.data.columns[CHILDPOSITIONS] = newReference(
+    Object.values(childPositionsMap)
+  );
 
   const parentFactor = newFactorComputed(
     factor1.cardinality,

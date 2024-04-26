@@ -261,8 +261,6 @@ function updateCumWeights(self: ExpanseDiscreteWeighted) {
   for (let i = 1; i < order.length; i++) {
     cumWeights[i] = cumWeights[i - 1] + ordered[i];
   }
-
-  console.log(weights, order, orderByIndices(weights, order));
 }
 export function isExpanseDiscreteWeighted(
   expanse: Expanse
