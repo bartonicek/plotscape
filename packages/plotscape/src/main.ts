@@ -1,7 +1,8 @@
-import { exp10, fetchJSON, log10 } from "utils";
-import { col } from "../lib/dataframe/ColumnParser.ts";
+import { fetchJSON } from "utils";
 import { parseColumns } from "../lib/dataframe/parseColumns.ts";
 import {
+  continuous,
+  discrete,
   newFluctplot,
   newHistogram,
   newHistogram2D,
@@ -10,7 +11,6 @@ import {
 } from "../lib/main.ts";
 import { newBarplot } from "../lib/plots/Barplot.ts";
 import { newScatter } from "../lib/plots/Scatterplot.ts";
-import { newExpanseContinuous } from "../lib/scales/ExpanseContinuous.ts";
 import { newScene } from "../lib/scene/Scene.ts";
 import "../lib/style.css";
 
@@ -20,13 +20,13 @@ async function mpgScene() {
   const mpgJSON = await fetchJSON("../datasets/mpg.json");
 
   const spec = {
-    year: col(`discrete`),
-    manufacturer: col(`discrete`),
-    displ: col(`continuous`),
-    hwy: col(`continuous`),
-    cty: col(`continuous`),
-    fl: col(`discrete`),
-    drv: col(`discrete`),
+    year: discrete(),
+    manufacturer: discrete(),
+    displ: continuous(),
+    hwy: continuous(),
+    cty: continuous(),
+    fl: discrete(),
+    drv: discrete(),
   };
 
   const mpgData = parseColumns(mpgJSON, spec);
@@ -46,10 +46,10 @@ async function diamondsScene() {
   const diamondsJSON = await fetchJSON(`../datasets/diamonds.json`);
 
   const spec = {
-    carat: col(`continuous`),
-    price: col(`continuous`),
-    color: col(`discrete`),
-    cut: col(`discrete`),
+    carat: continuous(),
+    price: continuous(),
+    color: discrete(),
+    cut: discrete(),
   };
 
   const diamondsData = parseColumns(diamondsJSON, spec);
@@ -58,8 +58,8 @@ async function diamondsScene() {
   const plot1 = newScatter(scene, (d) => ({ v1: d.carat, v2: d.price }));
   const plot2 = newBarplot(scene, (d) => ({ v1: d.color }));
 
-  plot1.scales.x.setTransform(log10, exp10);
-  plot1.scales.y.setTransform(log10, exp10);
+  // plot1.scales.x.setTransform(log10, exp10);
+  // plot1.scales.y.setTransform(log10, exp10);
 }
 
 async function sacrametoScene() {
@@ -67,14 +67,14 @@ async function sacrametoScene() {
   const sacramentoJSON = await fetchJSON(URL);
 
   const spec = {
-    city: col(`discrete`).toLowerCase().capitalize(),
-    beds: col(`discrete`),
-    baths: col(`discrete`).setQueryable(true),
-    sqft: col(`continuous`),
-    price: col(`continuous`),
-    latitude: col(`continuous`),
-    longitude: col(`continuous`),
-    type: col(`discrete`),
+    city: discrete().toLowerCase().capitalize(),
+    beds: discrete(),
+    baths: discrete().setQueryable(true),
+    sqft: continuous(),
+    price: continuous(),
+    latitude: continuous(),
+    longitude: continuous(),
+    type: discrete(),
   };
 
   const sacramentoData = parseColumns(sacramentoJSON, spec);
@@ -92,11 +92,9 @@ async function sacrametoScene() {
   const plot5 = newHistogram2D(scene, (d) => ({ v1: d.sqft, v2: d.price }));
   const plot6 = newNoteplot(scene);
 
-  const plot7 = newPCoordsplot(scene, (d) => ({
-    v1: d.latitude,
-    v2: d.longitude,
-    v3: d.price,
-  }));
+  const plot7 = newPCoordsplot(scene, (d) =>
+    Object.fromEntries(Object.entries(d).map(([k, v], i) => [`v${i}`, v]))
+  );
 
   scene.setLayout([
     [1, 1, 2, 3],
@@ -105,10 +103,6 @@ async function sacrametoScene() {
   ]);
 }
 
-// diamondsScene();
-sacrametoScene();
+diamondsScene();
+// sacrametoScene();
 // mpgScene();
-
-const foo = newExpanseContinuous();
-
-foo.expand(0.25, 0.75);

@@ -382,7 +382,7 @@ function trainScales<T extends Variables>(
   for (const [k, v] of entries(trainers) as [keyof Scales, any][]) {
     const scale = scales[k];
 
-    if (!scale) continue;
+    if (!scale || !v) continue;
     if (v.domain) {
       if (scale.domain.matches(v.domain)) scale.domain.copyFrom(v.domain);
       else scale.setDomain(v.domain.clone());

@@ -17,6 +17,14 @@ export type ParsedColumns<T extends Record<string, ColumnParser>> = Normalize<{
     : Discrete;
 }>;
 
+export function continuous() {
+  return newColumnParserContinuous();
+}
+
+export function discrete() {
+  return newColumnParserDiscrete();
+}
+
 export function col(type: `continuous`): ColumnParserContinuous;
 export function col(type: `discrete`): ColumnParserDiscrete;
 /**
