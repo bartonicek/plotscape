@@ -103,16 +103,10 @@ export function product<T extends Variables, U extends Variables>(
 
   columns[POSITIONS] = newReference(Object.values(positionsMap));
   columns[PARENT] = newReference(Object.values(factor1Map));
+  columns[CHILDPOSITIONS] = newReference([]);
 
-  // TODO: clean up the updates to child positions
-  const childPositions = Object.values(childPositionsMap);
-  if (!factor1.data.columns[CHILDPOSITIONS]) {
-    // @ts-ignore
-    factor1.data.columns[CHILDPOSITIONS] = newReference(childPositions);
-  } else {
-    // @ts-ignore
-    factor1.data.columns[CHILDPOSITIONS].array = childPositions;
-  }
+  // @ts-ignore TODO
+  factor1.data.columns[CHILDPOSITIONS].array = Object.values(childPositionsMap);
 
   const parentFactor = newFactorComputed(
     factor1.cardinality,

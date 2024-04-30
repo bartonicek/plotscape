@@ -139,8 +139,8 @@ function encodePct(self: Histogram) {
 const encodeBoundaryAbs = (d: ReducedBindings) => {
   return {
     x0: d.binStart.setQueryable(true),
-    y0: zero,
     x1: d.binEnd.setQueryable(true),
+    y0: zero,
     y1: d.stat1,
   };
 };
@@ -148,8 +148,8 @@ const encodeBoundaryAbs = (d: ReducedBindings) => {
 const encodeRenderAbs = (d: ReducedBindings) => {
   return {
     x0: d.binStart,
-    y0: zero,
     x1: d.binEnd,
+    y0: zero,
     y1: d.stat1.stack(),
     q1: d.stat1.setQueryable(true),
   };

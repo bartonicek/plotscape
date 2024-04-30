@@ -17,7 +17,7 @@ export interface ReducedDataframe<
     Observable {
   factor: Factor<T>;
   reducers: U;
-  recompute(): void;
+  update(): void;
 }
 
 export function newReducedDataframe<T extends Variables, U extends Reducers>(
@@ -29,27 +29,27 @@ export function newReducedDataframe<T extends Variables, U extends Reducers>(
     reducersCopy[k] = v.clone().setFactor(factor) as any;
   }
 
-  const columns = factor.data.cols() as any;
-  // for (const [k, v] of allEntries(factor.data.cols())) columns[k] = v;
+  const columns = {} as Variables;
+  for (const [k, v] of allEntries(factor.data.cols())) columns[k] = v;
   for (const [k, v] of allEntries(reducersCopy)) {
     v.setFactor(factor);
     columns[k] = v.result;
   }
 
   const data = newDataframe(columns as Normalize<T & Results<U>>);
-  const props = { factor, reducers: reducersCopy, recompute };
+  const props = { factor, reducers: reducersCopy, update };
 
   const self = observable({ ...data, ...props }) as ReducedDataframe<T, U>;
-  self.recompute();
+  self.update();
 
-  factor.listen(self.recompute.bind(self));
+  factor.listen(self.update.bind(self));
   return self;
 }
 
-function recompute<T extends Variables, U extends Reducers>(
+function update<T extends Variables, U extends Reducers>(
   this: ReducedDataframe<T, U>
 ) {
-  const { reducers } = this;
+  const { reducers, factor } = this;
 
   for (const v of values(reducers)) {
     const reducer = v as ReducerHandler;

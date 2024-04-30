@@ -120,7 +120,7 @@ const encodeBoundaryAbs = (d: ReducedBindings) => {
   return {
     x: d.label.setQueryable(true),
     y: d.label$.setQueryable(true),
-    width: d.stat1.setQueryable(true),
+    width: d.stat1,
     height: d.stat1,
   };
 };
@@ -131,6 +131,7 @@ const encodeRenderAbs = (d: ReducedBindings) => {
     y: d.label$,
     width: d.stat1.stack(),
     height: d.stat1.stack(),
+    q1: d.stat1.setQueryable(true),
   };
 };
 
@@ -140,7 +141,6 @@ const encodeBoundaryPct = (d: ReducedBindings) => {
     y: d.label$.setQueryable(true),
     width: one,
     height: one,
-    query1: d.stat1.setQueryable(true),
   };
 };
 
@@ -150,5 +150,6 @@ const encodeRenderPct = (d: ReducedBindings) => {
     y: d.label$,
     width: d.stat1.stack().normalizeByParent!(),
     height: d.stat1.stack().normalizeByParent!(),
+    q1: d.stat1.setQueryable(true),
   };
 };

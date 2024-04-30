@@ -1,6 +1,6 @@
 import { newDataframe } from "../dataframe/Dataframe";
 import { newExpanseDiscreteWeighted } from "../scales/ExpanseDiscreteWeighted";
-import { POSITIONS } from "../symbols";
+import { CHILDPOSITIONS, POSITIONS } from "../symbols";
 import { Discrete, newDiscrete } from "../variables/Discrete";
 import { Reference, newReference } from "../variables/Reference";
 import { Factor } from "./Factor";
@@ -9,7 +9,11 @@ import { newFactorComputed } from "./FactorComputed";
 export function factorFrom(
   variable: Discrete,
   labels?: string[]
-): Factor<{ label: Discrete; [POSITIONS]: Reference<Set<number>> }> {
+): Factor<{
+  label: Discrete;
+  [POSITIONS]: Reference<Set<number>>;
+  [CHILDPOSITIONS]: Reference<Set<number>>;
+}> {
   const array = variable.values();
   labels = labels ?? variable.domain.values;
 
@@ -27,6 +31,7 @@ export function factorFrom(
   const columns = {
     label: newDiscrete(labels, domain),
     [POSITIONS]: newReference(Object.values(positions)),
+    [CHILDPOSITIONS]: newReference([]),
   };
 
   columns.label.setName(variable.name());

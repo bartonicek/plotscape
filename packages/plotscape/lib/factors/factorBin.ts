@@ -7,7 +7,7 @@ import {
   isObservable,
 } from "../mixins/ObservableValue";
 import { newExpanseContinuous } from "../scales/ExpanseContinuous";
-import { POSITIONS } from "../symbols";
+import { CHILDPOSITIONS, POSITIONS } from "../symbols";
 import { Continuous, newContinuous } from "../variables/Continuous";
 import { Reference, newReference } from "../variables/Reference";
 import { Factor } from "./Factor";
@@ -22,6 +22,7 @@ export function factorBin(
   binMid: Continuous;
   binEnd: Continuous;
   [POSITIONS]: Reference<Set<number>>;
+  [CHILDPOSITIONS]: Reference<Set<number>>;
 }> {
   const _width = getter(width);
   const _anchor = getter(anchor);
@@ -121,6 +122,7 @@ function bin(variable: Continuous, width?: number, anchor?: number) {
     binMid,
     binEnd,
     [POSITIONS]: newReference(Object.values(positions)),
+    [CHILDPOSITIONS]: newReference([]),
   };
 
   const data = newDataframe(columns);

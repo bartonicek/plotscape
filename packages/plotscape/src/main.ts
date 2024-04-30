@@ -6,6 +6,7 @@ import {
   maxReducer,
   newFluctplot,
   newHistogram,
+  newHistogram2D,
   newNoteplot,
   newPCoordsplot,
 } from "../lib/main.ts";
@@ -90,13 +91,9 @@ async function sacrametoScene() {
   const plot3 = newBarplot(scene, (d) => ({ v1: d.city }));
 
   const opts = { reducer: maxReducer };
-
   const plot4 = newHistogram(scene, (d) => ({ v1: d.price, v2: d.sqft }), opts);
-  const plot5 = newScatter(scene, (d) => ({ v1: d.sqft, v2: d.price }));
+  const plot5 = newHistogram2D(scene, (d) => ({ v1: d.sqft, v2: d.price }));
   const plot6 = newNoteplot(scene);
-
-  plot5.scales.x.setTransform(log10, exp10);
-  plot5.scales.y.setTransform(log10, exp10);
 
   const plot7 = newPCoordsplot(scene, (d) =>
     Object.fromEntries(Object.entries(d).map(([_, v], i) => [`v${i}`, v]))

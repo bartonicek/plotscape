@@ -176,7 +176,7 @@ const encodeBoundaryAbs = (d: ReducedBindings) => {
     x1: d.binEnd.setQueryable(true),
     y0: d.binStart$.setQueryable(true),
     y1: d.binEnd$.setQueryable(true),
-    area: d.stat1.setQueryable(true),
+    area: d.stat1,
   };
 };
 
@@ -187,6 +187,7 @@ const encodeRenderAbs = (d: ReducedBindings) => {
     y0: d.binStart$,
     y1: d.binEnd$,
     area: d.stat1.stack(),
+    q1: d.stat1.setQueryable(true),
   };
 };
 
@@ -207,6 +208,7 @@ const encodeRenderPct = (d: ReducedBindings) => {
     y0: d.binStart$,
     y1: d.binEnd$,
     area: d.stat1.stack().normalizeByParent(),
+    q1: d.stat1.setQueryable(true),
   };
 };
 

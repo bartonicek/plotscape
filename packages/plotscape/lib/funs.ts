@@ -229,7 +229,9 @@ export function getQueryInformation(
 
   if (!childPositions || !renderData) return result;
 
-  for (const j of childPositions.values()) {
+  const sorted = [...childPositions.values()].sort((a, b) => b - a);
+
+  for (const j of sorted) {
     const groupIndex = renderData.col(LAYER).valueAt(j);
     const label = groupLabels[groupIndex];
     const postfix = childPositions.size === 1 ? `` : label;
