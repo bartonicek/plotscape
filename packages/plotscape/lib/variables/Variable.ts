@@ -17,14 +17,20 @@ export interface Variable<T = unknown>
   clone(): Variable<T>;
   valueAt(index: number, offset?: number): T;
   scaledAt(index: number, scale: Scale<T>): number;
-  injectQueryInfo(index: number, infoDict: Dict): void;
+  injectQueryInfo(index: number, infoDict: Dict, prefix?: string): void;
 }
 
 export function isContinuous(variable: Variable): variable is Continuous {
   return isExpanseContinuous(variable.domain);
 }
 
-export function injectQueryInfo(this: Variable, index: number, infoDict: Dict) {
+export function injectQueryInfo(
+  this: Variable,
+  index: number,
+  infoDict: Dict,
+  postfix?: string
+) {
   if (!this.hasName() || !this.isQueryable()) return;
-  infoDict[this.name()] = this.valueAt(index);
+  postfix = postfix ? `[${postfix}]` : ``;
+  infoDict[`${this.name()} ${postfix}`] = this.valueAt(index);
 }

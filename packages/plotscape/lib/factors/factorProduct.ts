@@ -51,6 +51,7 @@ export function product<T extends Variables, U extends Variables>(
   const factor2Map = {} as Record<number, number>;
 
   const positionsMap = {} as Record<number, Set<number>>;
+  const childPositionsMap = {} as Record<number, Set<number>>;
 
   for (let i = 0; i < factor1.levels.length; i++) {
     const [f1level, f2level] = [factor1.levelAt(i), factor2.levelAt(i)];
@@ -70,12 +71,16 @@ export function product<T extends Variables, U extends Variables>(
 
   const levels = dirtyLevels;
   const sortedUniqueLevels = Array.from(dirtyUniqueLevels).sort(diff);
-  const childPositionsMap = {} as Record<number, Set<number>>;
 
   // Need to clean up levels by removing unused ones,
   // e.g. [0, 2, 3, 2, 5] -> [0, 1, 2, 1, 3]
   for (let i = 0; i < levels.length; i++) {
     levels[i] = sortedUniqueLevels.indexOf(levels[i]);
+
+    // Also add child-level positions
+    const f1level = factor1.levelAt(i);
+    if (!childPositionsMap[f1level]) childPositionsMap[f1level] = new Set();
+    childPositionsMap[f1level].add(levels[i]);
   }
 
   const factor1ParentLevels = Object.values(factor1Map);
@@ -99,10 +104,15 @@ export function product<T extends Variables, U extends Variables>(
   columns[POSITIONS] = newReference(Object.values(positionsMap));
   columns[PARENT] = newReference(Object.values(factor1Map));
 
-  // @ts-ignore
-  factor1.data.columns[CHILDPOSITIONS] = newReference(
-    Object.values(childPositionsMap)
-  );
+  // TODO: clean up the updates to child positions
+  const childPositions = Object.values(childPositionsMap);
+  if (!factor1.data.columns[CHILDPOSITIONS]) {
+    // @ts-ignore
+    factor1.data.columns[CHILDPOSITIONS] = newReference(childPositions);
+  } else {
+    // @ts-ignore
+    factor1.data.columns[CHILDPOSITIONS].array = childPositions;
+  }
 
   const parentFactor = newFactorComputed(
     factor1.cardinality,

@@ -113,7 +113,10 @@ function query(this: Lines, point: Point) {
 
     for (let j = 1; j < x.length; j++) {
       if (rectSegmentIntersect(coords, [x[j - 1], y[j - 1], x[j], y[j]])) {
-        return getQueryInformation(i, [data.col(`y`)]);
+        return getQueryInformation(
+          i,
+          data.select((d) => ({ y: d.y }))
+        );
       }
     }
   }

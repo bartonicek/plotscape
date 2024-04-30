@@ -1,4 +1,4 @@
-import { mergeInto, values } from "utils";
+import { mergeInto } from "utils";
 import { Dataframe } from "../dataframe/Dataframe";
 import { getQueryInformation, pointInRect, rectsIntersect } from "../funs";
 import graphicParameters from "../graphicParameters.json";
@@ -104,20 +104,20 @@ function check(this: Points, coords: Rect) {
 }
 
 function query(this: Points, point: Point) {
-  const { boundaryData: data, scales, sizePct } = this;
+  const { boundaryData, renderData, scales, sizePct } = this;
 
-  const n = data.n();
+  const n = boundaryData.n();
 
   for (let i = 0; i < n; i++) {
-    const x = data.col(`x`).scaledAt(i, scales.x);
-    const y = data.col(`y`).scaledAt(i, scales.y);
-    let radius = data.col(`size`)?.scaledAt(i, scales.size);
+    const x = boundaryData.col(`x`).scaledAt(i, scales.x);
+    const y = boundaryData.col(`y`).scaledAt(i, scales.y);
+    let radius = boundaryData.col(`size`)?.scaledAt(i, scales.size);
     radius = radius ?? graphicParameters.defaultRadius;
     radius = radius * sizePct.value;
     const c = radius / Math.sqrt(2);
 
     if (pointInRect(point, [x - c, y - c, x + c, y + c])) {
-      return getQueryInformation(i, values(data.cols()));
+      return getQueryInformation(i, boundaryData, renderData);
     }
   }
 

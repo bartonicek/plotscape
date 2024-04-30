@@ -141,12 +141,18 @@ const encodeBoundaryAbs = (d: ReducedBindings) => {
     x0: d.binStart.setQueryable(true),
     y0: zero,
     x1: d.binEnd.setQueryable(true),
-    y1: d.stat1.setQueryable(true),
+    y1: d.stat1,
   };
 };
 
 const encodeRenderAbs = (d: ReducedBindings) => {
-  return { x0: d.binStart, y0: zero, x1: d.binEnd, y1: d.stat1.stack() };
+  return {
+    x0: d.binStart,
+    y0: zero,
+    x1: d.binEnd,
+    y1: d.stat1.stack(),
+    q1: d.stat1.setQueryable(true),
+  };
 };
 
 const encodeBoundaryPct = (d: ReducedBindings) => {
@@ -155,9 +161,8 @@ const encodeBoundaryPct = (d: ReducedBindings) => {
     x1: d.stat1.stack(),
     y0: zero,
     y1: one,
-    query1: d.binStart.setQueryable(true), // For query purposes only
-    query2: d.binEnd.setQueryable(true), // Ditto
-    query3: d.stat1.setQueryable(true), // Ditto
+    q1: d.binStart.setQueryable(true), // For query purposes only
+    q2: d.binEnd.setQueryable(true), // Ditto
   };
 };
 
@@ -167,5 +172,6 @@ const encodeRenderPct = (d: ReducedBindings) => {
     x1: d.stat1.parent().stack(),
     y0: zero,
     y1: d.stat1.stack!().normalizeByParent(),
+    q1: d.stat1.setQueryable(true),
   };
 };

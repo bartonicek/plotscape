@@ -1,4 +1,4 @@
-import { mergeInto, values } from "utils";
+import { mergeInto } from "utils";
 import { getQueryInformation, pointInRect, rectsIntersect } from "../funs";
 import { ContextId, Contexts, Plot, layers } from "../plot/Plot";
 import { LAYER, POSITIONS } from "../symbols";
@@ -101,17 +101,17 @@ function check(this: RectanglesXY, coords: Rect) {
 function query(this: RectanglesXY, point: Point) {
   if (!this.boundaryData) return;
 
-  const { boundaryData: data, scales } = this;
-  const n = data.n();
+  const { boundaryData, renderData, scales } = this;
+  const n = boundaryData.n();
 
   for (let i = 0; i < n; i++) {
-    let x0 = data.col(`x0`).scaledAt(i, scales.x);
-    let y0 = data.col(`y0`).scaledAt(i, scales.y);
-    let x1 = data.col(`x1`).scaledAt(i, scales.x);
-    let y1 = data.col(`y1`).scaledAt(i, scales.y);
+    let x0 = boundaryData.col(`x0`).scaledAt(i, scales.x);
+    let y0 = boundaryData.col(`y0`).scaledAt(i, scales.y);
+    let x1 = boundaryData.col(`x1`).scaledAt(i, scales.x);
+    let y1 = boundaryData.col(`y1`).scaledAt(i, scales.y);
 
-    if (data.col(`area`)) {
-      const a = data.col(`area`)!.scaledAt(i, scales.area);
+    if (boundaryData.col(`area`)) {
+      const a = boundaryData.col(`area`)!.scaledAt(i, scales.area);
 
       x0 = x0 + ((1 - a) / 2) * (x1 - x0);
       x1 = x1 - ((1 - a) / 2) * (x1 - x0);
@@ -121,7 +121,7 @@ function query(this: RectanglesXY, point: Point) {
     const selfCoords = [x0, y0, x1, y1] as Rect;
 
     if (pointInRect(point, selfCoords)) {
-      return getQueryInformation(i, values(data.cols()));
+      return getQueryInformation(i, boundaryData, renderData);
     }
   }
   return undefined;

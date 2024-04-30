@@ -1,4 +1,4 @@
-import { mergeInto, values } from "utils";
+import { mergeInto } from "utils";
 import {
   GapDimension,
   GapHandler,
@@ -134,14 +134,14 @@ function check(this: RectanglesWH, coords: Rect) {
 function query(this: RectanglesWH, point: Point) {
   if (!this.boundaryData) return;
 
-  const { boundaryData: data, scales, vAnchor, hAnchor } = this;
-  const n = data.n();
+  const { boundaryData, renderData, scales, vAnchor, hAnchor } = this;
+  const n = boundaryData.n();
 
   for (let i = 0; i < n; i++) {
-    const x = data.col(`x`).scaledAt(i, scales.x);
-    const y = data.col(`y`).scaledAt(i, scales.y);
-    let w = data.col(`width`).scaledAt(i, scales.width);
-    let h = data.col(`height`).scaledAt(i, scales.height);
+    const x = boundaryData.col(`x`).scaledAt(i, scales.x);
+    const y = boundaryData.col(`y`).scaledAt(i, scales.y);
+    let w = boundaryData.col(`width`).scaledAt(i, scales.width);
+    let h = boundaryData.col(`height`).scaledAt(i, scales.height);
 
     const selfCoords = [
       x - w * hAnchor,
@@ -151,7 +151,7 @@ function query(this: RectanglesWH, point: Point) {
     ] as Rect;
 
     if (pointInRect(point, selfCoords)) {
-      return getQueryInformation(i, values(data.cols()));
+      return getQueryInformation(i, boundaryData, renderData);
     }
   }
 }

@@ -58,7 +58,7 @@ export function newPCoordsplot<T extends Variables>(
   plot.scales.y.domain.link(boundaryData.col(`y`).domain);
   for (const v of boundaryData.col(`y`).variables) {
     plot.scales.y.domain.link(v.domain);
-    plot.addWidgetSource(v.domain);
+    // plot.addWidgetSource(v.domain);
   }
 
   const self = { ...plot, type, lines, partition1Data, partition2Data };

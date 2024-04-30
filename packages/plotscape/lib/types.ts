@@ -64,7 +64,9 @@ export interface GraphicObject extends Partial<Representation> {}
 export type HexColour = `#${string}`;
 export type RGB = [red: number, green: number, blue: number];
 
-export type BoundaryCols = { [POSITIONS]: Variable<Set<number>> };
+export type BoundaryCols = {
+  [POSITIONS]: Variable<Set<number>>;
+};
 export type RenderCols = { [LAYER]: Variable<ContextId> };
 
 export enum Group {

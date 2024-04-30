@@ -1,14 +1,17 @@
 import tinycolor from "tinycolor2";
-import {
-  Dict,
-  diff,
-  exponentialToSuperscript,
-  minMax,
-  round,
-  times,
-} from "utils";
+import { diff, exponentialToSuperscript, minMax, round, times } from "utils";
 import graphicParameters from "./graphicParameters.json";
-import { HexColour, Margins, Point, Rect } from "./types";
+import { Dataframe } from "./main";
+import { groupLabels } from "./scene/Marker";
+import { CHILDPOSITIONS, LAYER } from "./symbols";
+import {
+  BoundaryCols,
+  HexColour,
+  Margins,
+  Point,
+  Rect,
+  RenderCols,
+} from "./types";
 
 export function mix<T>(base: T) {
   return {
@@ -210,13 +213,30 @@ export function processBaseColor(hex: HexColour) {
   return col.saturate(30).lighten(30).toHexString() as HexColour;
 }
 
-type WithQueryInfo = { injectQueryInfo(index: number, infoDict: Dict): void };
+// type WithQueryInfo = { injectQueryInfo(index: number, infoDict: Dict): void };
 
 export function getQueryInformation(
   index: number,
-  variables: (WithQueryInfo | undefined)[]
+  boundaryData: Dataframe<BoundaryCols>,
+  renderData?: Dataframe<RenderCols>
 ) {
   const result = {} as Record<string, any>;
-  for (const v of variables) v?.injectQueryInfo(index, result);
+  for (const v of boundaryData.colsArray()) v?.injectQueryInfo(index, result);
+
+  const childPositions = boundaryData
+    .col(CHILDPOSITIONS as any)
+    ?.valueAt(index) as Set<number>;
+
+  if (!childPositions || !renderData) return result;
+
+  for (const j of childPositions.values()) {
+    const groupIndex = renderData.col(LAYER).valueAt(j);
+    const label = groupLabels[groupIndex];
+    const postfix = childPositions.size === 1 ? `` : label;
+    for (const v of renderData?.colsArray()) {
+      v.injectQueryInfo(j, result, postfix);
+    }
+  }
+
   return result;
 }
