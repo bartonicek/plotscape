@@ -37,7 +37,7 @@ export function newPCoordsplot<T extends Variables>(
   scene: Scene<T>,
   selecfn: (cols: T) => DataBindings
 ): PCoordsplot {
-  const data = scene.data.select(selecfn);
+  const data = scene.data.select(selecfn).clone();
   const plot = newPlot(scene);
 
   const partition1Data = data.select(reducefn).join(scene.marker.data());

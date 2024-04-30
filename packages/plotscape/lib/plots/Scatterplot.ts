@@ -25,7 +25,7 @@ export function newScatter<T extends Variables>(
   selectfn: (cols: T) => DataBindings
 ): Scatterplot {
   const plot = newPlot(scene);
-  const data = scene.data.select(selectfn);
+  const data = scene.data.select(selectfn).clone();
 
   const boundaryData = data.select(encodefn).join(oneRowOneCase);
   const renderData = data.select(encodefn).join(scene.marker.data());

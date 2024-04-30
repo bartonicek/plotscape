@@ -6,6 +6,7 @@ import { Variable } from "../variables/Variable";
 /** Stores and provides access to variables. */
 export interface Dataframe<T extends Variables = Variables> extends Observable {
   columns: T;
+  clone(): Dataframe<T>;
   n(): number;
   keys(): string[];
   col<K extends keyof T>(key: K): T[K];
@@ -26,6 +27,7 @@ export function newDataframe<T extends Variables>(columns: T): Dataframe<T> {
   const tag = `Dataframe`;
   const props = { [Symbol.toStringTag]: tag, columns };
   const methods = {
+    clone,
     n,
     keys,
     col,
@@ -40,6 +42,12 @@ export function newDataframe<T extends Variables>(columns: T): Dataframe<T> {
   const self = { ...props, ...methods };
 
   return observable(self);
+}
+
+function clone<T extends Variables>(this: Dataframe<T>) {
+  const cols = {} as any;
+  for (const [k, v] of allEntries(this.columns)) cols[k] = v.clone();
+  return newDataframe<T>(cols);
 }
 
 function n(this: Dataframe): number {

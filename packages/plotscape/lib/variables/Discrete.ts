@@ -52,6 +52,8 @@ function clone(this: Discrete) {
   const array = [...this.array];
   const copy = newDiscrete(array) as Discrete;
   copy.domain = this.domain.clone();
+  if (this.hasName()) copy.setName(this.name());
+  copy.setQueryable(this.isQueryable());
   return copy;
 }
 

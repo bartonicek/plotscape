@@ -52,6 +52,9 @@ export function newContinuous(
 function clone(this: Continuous) {
   const array = [...this.array];
   const copy = newContinuous(array);
+  copy.domain = this.domain.clone();
+  if (this.hasName()) copy.setName(this.name());
+  copy.setQueryable(this.isQueryable());
   return copy;
 }
 

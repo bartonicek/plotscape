@@ -37,5 +37,7 @@ export function newReference<T>(values: T[]): Reference<T> {
 function clone<T>(this: Reference<T>) {
   const array = [...this.array];
   const copy = newReference(array);
+  if (this.hasName()) copy.setName(this.name());
+  copy.setQueryable(this.isQueryable());
   return copy;
 }
