@@ -99,11 +99,11 @@ async function sacrametoScene() {
     Object.fromEntries(Object.entries(d).map(([_, v], i) => [`v${i}`, v]))
   );
 
-  scene.setLayout([
-    [1, 1, 2, 3],
-    [1, 1, 4, 5],
-    [6, 7, 7, 7],
-  ]);
+  // scene.setLayout([
+  //   [1, 1, 2, 3],
+  //   [1, 1, 4, 5],
+  //   [6, 7, 7, 7],
+  // ]);
 }
 
 // diamondsScene();

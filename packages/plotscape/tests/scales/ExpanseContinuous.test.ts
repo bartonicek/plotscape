@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { newExpanseContinuous } from "../../scales/ExpanseContinuous";
-import { Direction } from "../../types";
+import { newExpanseContinuous } from "../../lib/scales/ExpanseContinuous";
+import { Direction } from "../../lib/types";
 
 describe(`Expanse continuous`, () => {
   const expanse1 = newExpanseContinuous(1, 10);

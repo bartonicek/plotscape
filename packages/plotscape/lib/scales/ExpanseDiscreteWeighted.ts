@@ -12,7 +12,7 @@ import {
   freeze,
   freezeOne,
   freezeZero,
-  link,
+  linkTo,
   move,
   setOne,
   setZero,
@@ -56,7 +56,7 @@ export interface ExpanseDiscreteWeighted extends ExpanseDiscreteAbsolute {
   setDefaultWeights(): this;
   setDefaultOrder(): this;
 
-  link(other: Expanse): this;
+  linkTo(other: Expanse): this;
   retrain(array: string[]): this;
   retrain(array: string[]): this;
   breaks(): string[];
@@ -106,7 +106,7 @@ export function newExpanseDiscreteWeighted(
     freezeZero,
     freezeOne,
     freeze,
-    link,
+    linkTo,
     expand,
     move,
     flip,

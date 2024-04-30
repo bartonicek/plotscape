@@ -54,10 +54,10 @@ export function newPCoordsplot<T extends Variables>(
     return { x: d.x, y: d.y };
   });
 
-  plot.scales.x.domain.link(boundaryData.col(`x`).domain);
-  plot.scales.y.domain.link(boundaryData.col(`y`).domain);
+  plot.scales.x.domain.linkTo(boundaryData.col(`x`).domain);
+  plot.scales.y.domain.linkTo(boundaryData.col(`y`).domain);
   for (const v of boundaryData.col(`y`).variables) {
-    plot.scales.y.domain.link(v.domain);
+    plot.scales.y.domain.linkTo(v.domain);
     // plot.addWidgetSource(v.domain);
   }
 

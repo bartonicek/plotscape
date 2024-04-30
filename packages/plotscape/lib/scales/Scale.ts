@@ -42,7 +42,7 @@ export interface Scale<T = unknown> extends Named, Observable {
   pushforward(value: T): number;
   pullback(value: number): T;
 
-  link(other: Scale<T>): this;
+  linkTo(other: Scale<T>): this;
   expand(zero: number, one: number, options?: { default?: boolean }): this;
   move(amount: number): this;
   freezeZero(): this;
@@ -108,7 +108,7 @@ export function newScale<T = number>(
     freezeZero,
     freezeOne,
     flip,
-    link,
+    linkTo,
     breaks,
     ratio,
     widget,
@@ -279,8 +279,8 @@ function expand<T>(
   return this;
 }
 
-function link<T>(this: Scale<T>, other: Scale) {
-  this.domain.link(other.domain);
+function linkTo<T>(this: Scale<T>, other: Scale) {
+  this.domain.linkTo(other.domain);
   return this;
 }
 

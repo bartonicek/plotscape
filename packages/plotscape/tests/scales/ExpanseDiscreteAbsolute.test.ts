@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { newExpanseDiscreteAbsolute } from "../../scales/ExpanseDiscreteAbsolute";
+import { newExpanseDiscreteAbsolute } from "../../lib/scales/ExpanseDiscreteAbsolute";
 
 describe(`Expanse discrete absolute`, () => {
   const arr = ["a", "b", "c", "d"];

@@ -21,7 +21,7 @@ import {
   freeze,
   freezeOne,
   freezeZero,
-  link,
+  linkTo,
   setOne,
   setZero,
   setZeroOne,
@@ -67,7 +67,7 @@ export interface ExpanseContinuous extends Expanse<number>, Observable {
   freezeMin(): this;
   freezeMax(): this;
   freezeScale(): this;
-  link(other: ExpanseContinuous): this;
+  linkTo(other: ExpanseContinuous): this;
   flip(): this;
 
   retrain(array: number[]): this;
@@ -118,7 +118,7 @@ export function newExpanseContinuous(min = 0, max = 1): ExpanseContinuous {
     setOne,
     setZeroOne,
     setTransform,
-    link,
+    linkTo,
     freezeZero,
     freezeOne,
     freeze,

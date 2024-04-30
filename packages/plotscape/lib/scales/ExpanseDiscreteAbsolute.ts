@@ -12,7 +12,7 @@ import {
   freeze,
   freezeOne,
   freezeZero,
-  link,
+  linkTo,
   move,
   setOne,
   setZero,
@@ -45,7 +45,7 @@ export interface ExpanseDiscreteAbsolute
   setOrder(indices: number[]): this;
   setDefaultOrder(): this;
 
-  link(other: Expanse): this;
+  linkTo(other: Expanse): this;
   retrain(array: string[]): this;
   breaks(): string[];
   widget(): DragListWidget;
@@ -83,7 +83,7 @@ export function newExpanseDiscreteAbsolute(
     setValues,
     setOrder,
     setDefaultOrder,
-    link,
+    linkTo,
     freezeZero,
     freezeOne,
     freeze,

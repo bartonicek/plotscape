@@ -40,7 +40,7 @@ export interface Expanse<T = unknown> extends Named, Observable {
   expand(zero: number, one: number, options?: { default?: boolean }): this;
   move(amount: number, options?: { default?: boolean }): this;
   flip(): this;
-  link(other: Expanse): this;
+  linkTo(other: Expanse): this;
   retrain(array: T[]): void;
   breaks(): T[];
   widget(): Widget | undefined;
@@ -104,7 +104,7 @@ export function freeze<T extends Expanse>(this: T) {
   return this.freezeZero().freezeOne();
 }
 
-export function link<T extends Expanse>(this: T, other: Expanse) {
+export function linkTo<T extends Expanse>(this: T, other: Expanse) {
   const expand = this.expand.bind(this);
   const move = this.move.bind(this);
   const defaultize = this.defaultize.bind(this);

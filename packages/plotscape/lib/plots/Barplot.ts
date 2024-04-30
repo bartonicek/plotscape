@@ -124,7 +124,7 @@ function encodeAbs(self: Barplot) {
 
   scales.x.setDefaultWeights();
   if (order) scales.x.setOrder(order);
-  scales.y.setMin(0).link(scales.height).freezeZero();
+  scales.y.setMin(0).linkTo(scales.height).freezeZero();
   scales.height.codomain.freezeScale();
   self.render();
 }
@@ -156,7 +156,7 @@ function encodePct(self: Barplot) {
   let yName = `proportion`;
   if (reducerName != `count`) yName += `of ${reducerName}`;
 
-  scales.y.setMin(0).link(scales.height).freezeZero().setName(yName);
+  scales.y.setMin(0).linkTo(scales.height).freezeZero().setName(yName);
   scales.height.codomain.freezeScale();
   scales.width.setMax(weights.reduce(sum));
   self.render();
