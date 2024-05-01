@@ -1,5 +1,5 @@
 import { ElementWrapper, StyleDict, element, entries } from "utils";
-import graphicParameters from "../graphicParameters.json";
+import { graphicParameters } from "../graphicParameters";
 import { Observable, observable } from "../mixins/Observable";
 import { HorizontalAnchor, Margins, VerticalAnchor } from "../types";
 

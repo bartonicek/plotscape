@@ -1,7 +1,7 @@
 import { TODO } from "utils";
 import { oneRowOneCase } from "../constants";
 import { Dataframe } from "../dataframe/Dataframe";
-import graphicParameters from "../graphicParameters.json";
+import { graphicParameters } from "../graphicParameters";
 import { Plot, newPlot } from "../plot/Plot";
 import { Lines, newLines } from "../representations/Lines";
 import { newExpanseDiscreteAbsolute } from "../scales/ExpanseDiscreteAbsolute";

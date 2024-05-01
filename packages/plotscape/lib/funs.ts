@@ -1,8 +1,7 @@
 import tinycolor from "tinycolor2";
 import { diff, exponentialToSuperscript, minMax, round, times } from "utils";
-import graphicParameters from "./graphicParameters.json";
+import { graphicParameters } from "./graphicParameters";
 import { Dataframe } from "./main";
-import { groupLabels } from "./scene/Marker";
 import { CHILDPOSITIONS, LAYER } from "./symbols";
 import {
   BoundaryCols,
@@ -228,15 +227,12 @@ export function getQueryInformation(
     ?.valueAt(index) as Set<number>;
 
   if (!childPositions || !renderData) return result;
-
   const sorted = [...childPositions.values()].sort((a, b) => b - a);
 
   for (const j of sorted) {
-    const groupIndex = renderData.col(LAYER).valueAt(j);
-    const label = groupLabels[groupIndex];
-    const postfix = childPositions.size === 1 ? `` : label;
+    const opts = { colour: renderData.col(LAYER).valueAt(j) };
     for (const v of renderData?.colsArray()) {
-      v.injectQueryInfo(j, result, postfix);
+      v.injectQueryInfo(j, result, opts);
     }
   }
 

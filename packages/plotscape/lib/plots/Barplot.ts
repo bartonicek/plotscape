@@ -167,7 +167,7 @@ const encodeBoundaryAbs = (d: ReducedBindings) => {
     x: d.label.setQueryable(true),
     y: zero,
     width: d.label,
-    height: d.stat1.setQueryable(true),
+    height: d.stat1,
   };
 };
 

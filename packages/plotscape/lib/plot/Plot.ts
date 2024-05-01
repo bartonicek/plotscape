@@ -15,17 +15,11 @@ import {
 import { Dataframe } from "../dataframe/Dataframe";
 import { newAxisLabels } from "../decorations/AxisLabels";
 import { newAxisTitle } from "../decorations/AxisTitle";
-import { getMargins, processBaseColor } from "../funs";
-import graphicParameters from "../graphicParameters.json";
+import { getMargins } from "../funs";
+import { graphicParameters } from "../graphicParameters";
 import { Scale, ScaleType, isScaleContinuous, newScale } from "../scales/Scale";
-import { Scene } from "../scene/Scene";
-import {
-  ActionKey,
-  GraphicObject,
-  HexColour,
-  KeyActions,
-  Variables,
-} from "../types";
+import { Scene, colors } from "../scene/Scene";
+import { ActionKey, GraphicObject, KeyActions, Variables } from "../types";
 import { WidgetSource } from "../widgets/WidgetSource";
 import { Context, newContext } from "./Context";
 import { QueryDisplay, newQueryDisplay } from "./QueryDisplay";
@@ -119,13 +113,7 @@ export function newPlot(scene: Scene) {
   const container = element(`div`).addClass(`ps-plot-container`).get();
   const contexts = {} as Contexts;
 
-  const { groupColors, axisTitleFontsize, axisLabelFontsize } =
-    graphicParameters;
-
-  const colors = groupColors.slice() as HexColour[];
-  const n = colors.length;
-  for (let i = 0; i < n; i++) colors.push(processBaseColor(colors[i]));
-
+  const { axisTitleFontsize, axisLabelFontsize } = graphicParameters;
   const margins = getMargins();
 
   for (const id of layers) {

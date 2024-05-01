@@ -1,4 +1,5 @@
 import { Dict } from "utils";
+import { colors } from "../main";
 import { Named } from "../mixins/Named";
 import { Queryable } from "../mixins/Queryable";
 import { ShallowCloneable } from "../mixins/ShallowClonable";
@@ -17,7 +18,11 @@ export interface Variable<T = unknown>
   clone(): Variable<T>;
   valueAt(index: number, offset?: number): T;
   scaledAt(index: number, scale: Scale<T>): number;
-  injectQueryInfo(index: number, infoDict: Dict, prefix?: string): void;
+  injectQueryInfo(
+    index: number,
+    infoDict: Dict,
+    options?: Record<string, any>
+  ): void;
 }
 
 export function isContinuous(variable: Variable): variable is Continuous {
@@ -28,9 +33,16 @@ export function injectQueryInfo(
   this: Variable,
   index: number,
   infoDict: Dict,
-  postfix?: string
+  options?: Record<string, any>
 ) {
   if (!this.hasName() || !this.isQueryable()) return;
-  postfix = postfix ? `[${postfix}]` : ``;
-  infoDict[`${this.name()} ${postfix}`] = this.valueAt(index);
+  let [key, value] = [this.name(), this.valueAt(index)];
+
+  if (options?.colour) {
+    const col = colors[options.colour];
+    const fontCol = options.colour < 4 ? `white` : `black`;
+    key = `<span style="color:${fontCol};background-color:${col}">${key}</span>`;
+  }
+
+  infoDict[key] = value;
 }

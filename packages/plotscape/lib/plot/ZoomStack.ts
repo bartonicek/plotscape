@@ -1,5 +1,5 @@
 import { last } from "utils";
-import graphicParameters from "../graphicParameters.json";
+import { graphicParameters } from "../graphicParameters";
 import { Rect } from "../types";
 
 type StretchTuple = [height: number, width: number, area: number];

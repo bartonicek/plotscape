@@ -1,11 +1,12 @@
 import { Dict, element, rep } from "utils";
 import { Dataframe } from "../dataframe/Dataframe";
-import { getMargins } from "../funs";
+import { getMargins, processBaseColor } from "../funs";
 // @ts-ignore
+import { graphicParameters } from "../graphicParameters";
 import helpHTMLString from "../help.html?raw";
 import { Plot } from "../plot/Plot";
 import { PlotKey, PlotMap, plotMap } from "../plots/plotMap";
-import { Group, KeyActions, Variables } from "../types";
+import { Group, HexColour, KeyActions, Variables } from "../types";
 import { Marker, newMarker } from "./Marker";
 
 /* -------------------------------- Interface ------------------------------- */
@@ -65,11 +66,10 @@ export function newScene<T extends Variables>(
   const plots = [] as Plot[];
 
   const margins = getMargins();
-  const documentElement = document.documentElement;
-  documentElement.style.setProperty("--bmargin", `${margins[0]}px`);
-  documentElement.style.setProperty("--lmargin", `${margins[1]}px`);
-  documentElement.style.setProperty("--tmargin", `${margins[2]}px`);
-  documentElement.style.setProperty("--rmargin", `${margins[3]}px`);
+  const docStyle = document.documentElement.style;
+  for (const [i, e] of [`b`, `l`, `t`, `r`].entries()) {
+    docStyle.setProperty(`--${e}margin`, `${margins[i]}px`);
+  }
 
   const marker = newMarker(data.n());
   const keyActions: KeyActions = {};
@@ -198,3 +198,8 @@ function onKeydown(this: Scene, event: KeyboardEvent) {
 function onKeyup(this: Scene) {
   this.setGroup(Group.Transient);
 }
+
+const { groupColors } = graphicParameters;
+export const colors = groupColors.slice() as HexColour[];
+const n = colors.length;
+for (let i = 0; i < n; i++) colors.push(processBaseColor(colors[i]));
