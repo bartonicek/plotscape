@@ -91,7 +91,7 @@ async function sacrametoScene() {
   const plot3 = newBarplot(scene, (d) => ({ v1: d.city }));
 
   const opts = { reducer: maxReducer };
-  const plot4 = newHistogram(scene, (d) => ({ v1: d.price, v2: d.sqft }), opts);
+  const plot4 = newHistogram(scene, (d) => ({ v1: d.sqft, v2: d.price }), opts);
   const plot5 = newHistogram2D(scene, (d) => ({ v1: d.sqft, v2: d.price }));
   const plot6 = newNoteplot(scene);
 

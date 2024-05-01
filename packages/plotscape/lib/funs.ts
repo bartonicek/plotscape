@@ -230,8 +230,13 @@ export function getQueryInformation(
   const sorted = [...childPositions.values()].sort((a, b) => b - a);
 
   for (const j of sorted) {
-    const opts = { colour: renderData.col(LAYER).valueAt(j) };
-    for (const v of renderData?.colsArray()) {
+    const opts = {} as any;
+    const groupIndex = renderData.col(LAYER).valueAt(j);
+    if (childPositions.size > 1 || groupIndex != 7) {
+      opts.colour = renderData.col(LAYER).valueAt(j);
+    }
+
+    for (const v of renderData.colsArray()) {
       v.injectQueryInfo(j, result, opts);
     }
   }
