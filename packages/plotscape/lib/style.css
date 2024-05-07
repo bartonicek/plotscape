@@ -116,6 +116,13 @@ html, body {
   pointer-events: none;
 }
 
+.ps-query-display > * {
+  padding-left: 3px;
+  padding-right: 3px;
+  
+}
+
+
 .ps-widget-modal {
   margin: 0;
   left: 10vmin;

@@ -1,0 +1,28 @@
+export const helpHTMLString = `
+<div>
+    <br>
+    <h1>Available Interactions</h1>
+    <hr>
+    <ul>
+        <li> <b>Click/click and drag</b> to select objects transiently </li>
+        <li>Hold <b>1/2/3</b> while dragging for permanent selection</li>
+        <li><b>Right click and drag</b> to pan</li>
+        <li>Hold <b>Q</b> and mouse-over objects to query them</li>
+        <br>
+        <li>Press <b>Z</b> to zoom into current selection</li>
+        <li>Press <b>X</b> to pop one level of zoom</li>
+        <li>Press <b>O</b> to order by statistic (barplot)</li> 
+        <li>Press <b>N</b> to normalize representation</li>
+        <li>Press <b>P</b> to bring up parameter menu</li>
+        <li>Press and hold <b>S</b> for plot resize mode
+           <br>(you can then click and drag bottom right to resize plot)</li>
+        <br>
+        <li><b>Double-click</b> to reset any selection</li>
+        <li>Press <b>R</b> to reset any graphical changes</li>
+        <br>
+        <li>Press <b>+/-</b> to change object size/width</li>
+        <li>Press <b>[/]</b> to change opacity (unselected only)</li>
+        <li>Press <b>;/'</b> to change histogram anchor</li>
+    </ul>
+</div>
+`;

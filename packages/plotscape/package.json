@@ -20,7 +20,7 @@
     "dev": "vite",
     "build": "bun run test && bun run compile && vite build && bun run pushR",
     "compile": "tsc --p ./tsconfig-build.json",
-    "test": "bun test lib/tests",
+    "test": "bun test",
     "pushR": "cp ./dist/main.iife.js ../plotscaper/inst/htmlwidgets/plotscape"
   },
   "devDependencies": {

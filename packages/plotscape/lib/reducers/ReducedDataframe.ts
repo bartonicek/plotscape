@@ -49,7 +49,7 @@ export function newReducedDataframe<T extends Variables, U extends Reducers>(
 function update<T extends Variables, U extends Reducers>(
   this: ReducedDataframe<T, U>
 ) {
-  const { reducers, factor } = this;
+  const { reducers } = this;
 
   for (const v of values(reducers)) {
     const reducer = v as ReducerHandler;

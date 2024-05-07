@@ -3,7 +3,7 @@ import { Dataframe } from "../dataframe/Dataframe";
 import { getMargins, processBaseColor } from "../funs";
 // @ts-ignore
 import { graphicParameters } from "../graphicParameters";
-import helpHTMLString from "../help.html?raw";
+import { helpHTMLString } from "../helpHTMLString";
 import { Plot } from "../plot/Plot";
 import { PlotKey, PlotMap, plotMap } from "../plots/plotMap";
 import { Group, HexColour, KeyActions, Variables } from "../types";

@@ -23,17 +23,6 @@ function stripTransient(group: number) {
 
 const transientGroups = [0, 1, 2, 3] as const;
 
-export const groupLabels = {
-  0: `group 4 transient`,
-  1: `group 3 transient`,
-  2: `group 2 transient`,
-  3: `group 1 transient`,
-  4: `group 4`,
-  5: `group 3`,
-  6: `group 2`,
-  7: `group 1`,
-};
-
 /* -------------------------------- Interface ------------------------------- */
 
 export interface Marker extends Observable {
