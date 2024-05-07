@@ -69,14 +69,6 @@ export type BoundaryCols = {
 };
 export type RenderCols = { [LAYER]: Variable<ContextId> };
 
-export enum Group {
-  Transient = 255,
-  Group1 = 7,
-  Group2 = 6,
-  Group3 = 5,
-  Group4 = 4,
-}
-
 export enum Type {
   Absolute,
   Proportion,

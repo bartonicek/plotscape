@@ -35,6 +35,7 @@ export interface Context extends Observable {
   getProp<K extends keyof CanvasRenderingContext2D>(
     key: K
   ): CanvasRenderingContext2D[K];
+  getStyle(style: keyof StyleDict): string;
   setAttribute<K extends keyof HTMLCanvasElement>(
     key: K,
     value: HTMLCanvasElement[K]
@@ -107,6 +108,7 @@ export function newContext(container: HTMLDivElement): Context {
     setMargins,
     addClass,
     getProp,
+    getStyle,
     setAttribute,
     setStyles,
     setProps,
@@ -180,6 +182,10 @@ function setAttribute<K extends keyof HTMLCanvasElement>(
 ) {
   this.canvasWrapper.setAttribute(key, value);
   return this;
+}
+
+function getStyle(this: Context, style: keyof StyleDict) {
+  return this.canvas.style[style as any];
 }
 
 function setStyles(this: Context, styles: StyleDict) {

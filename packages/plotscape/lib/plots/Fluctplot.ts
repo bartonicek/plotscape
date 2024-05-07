@@ -1,5 +1,4 @@
 import { Dataframe } from "@abartonicek/plotscape5";
-import { square, squareRoot } from "utils";
 import { GapType } from "../GapHandler";
 import { one } from "../constants";
 import { factorFrom } from "../factors/factorFrom";
@@ -68,7 +67,6 @@ export function newFluctplot<T extends Variables>(
   plot.addGraphicObject(squares);
   const nMax = Math.max(factor1.cardinality, factor2.cardinality) + 1;
   self.scales.area.codomain.setScale(1 / nMax, { default: true });
-  self.scales.area.codomain.setTransform(square, squareRoot);
 
   self.partition1Data.listen(self.render.bind(self));
   self.partition2Data.listen(self.render.bind(self));
@@ -98,6 +96,7 @@ function encodeAbs(self: Fluctplot) {
 
   self.type = Type.Absolute;
   self.trainScales(boundaryData, (d) => ({ x: d.x, y: d.y, area: d.width }));
+
   self.render();
 }
 

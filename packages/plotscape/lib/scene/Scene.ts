@@ -6,7 +6,8 @@ import { graphicParameters } from "../graphicParameters";
 import { helpHTMLString } from "../helpHTMLString";
 import { Plot } from "../plot/Plot";
 import { PlotKey, PlotMap, plotMap } from "../plots/plotMap";
-import { Group, HexColour, KeyActions, Variables } from "../types";
+import { HexColour, KeyActions, Variables } from "../types";
+import { Group, GroupOrder, Transient, newGroupOrderer } from "./GroupOrder";
 import { Marker, newMarker } from "./Marker";
 
 /* -------------------------------- Interface ------------------------------- */
@@ -18,6 +19,7 @@ export interface Scene<T extends Variables = any> {
   data: Dataframe<T>;
   container: HTMLDivElement;
 
+  groupOrder: GroupOrder;
   marker: Marker;
   plots: Plot[];
 
@@ -71,11 +73,21 @@ export function newScene<T extends Variables>(
     docStyle.setProperty(`--${e}margin`, `${margins[i]}px`);
   }
 
-  const marker = newMarker(data.n());
+  const groupOrder = newGroupOrderer();
+  const marker = newMarker(data.n(), groupOrder);
   const keyActions: KeyActions = {};
   const hasLayout = false;
 
-  const props = { container, data, marker, hasLayout, plots, keyActions };
+  const props = {
+    container,
+    data,
+    groupOrder,
+    marker,
+    hasLayout,
+    plots,
+    keyActions,
+  };
+
   const methods = {
     addPlot,
     addPlotByKey,
@@ -91,6 +103,11 @@ export function newScene<T extends Variables>(
   keyActions[`Digit1`] = () => self.setGroup(Group.Group2);
   keyActions[`Digit2`] = () => self.setGroup(Group.Group3);
   keyActions[`Digit3`] = () => self.setGroup(Group.Group4);
+  keyActions[`KeyC`] = () => {
+    self.groupOrder.cycle();
+    self.marker.cycleGroups();
+    for (const p of self.plots) p.cycleGroups();
+  };
 
   container.addEventListener("mousedown", onMousedown.bind(self));
   window.addEventListener("keydown", onKeydown.bind(self));
@@ -196,7 +213,7 @@ function onKeydown(this: Scene, event: KeyboardEvent) {
 }
 
 function onKeyup(this: Scene) {
-  this.setGroup(Group.Transient);
+  this.setGroup(Transient);
 }
 
 const { groupColors } = graphicParameters;

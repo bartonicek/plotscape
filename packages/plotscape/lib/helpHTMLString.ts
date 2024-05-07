@@ -6,6 +6,7 @@ export const helpHTMLString = `
     <ul>
         <li> <b>Click/click and drag</b> to select objects transiently </li>
         <li>Hold <b>1/2/3</b> while dragging for permanent selection</li>
+        <li>Press <b>C</b> to cycle permanent selection order</li>
         <li><b>Right click and drag</b> to pan</li>
         <li>Hold <b>Q</b> and mouse-over objects to query them</li>
         <br>

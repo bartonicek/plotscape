@@ -1,4 +1,4 @@
-import { exp10, fetchJSON, log10 } from "utils";
+import { exp10, fetchJSON, log10, seq } from "utils";
 import { parseColumns } from "../lib/dataframe/parseColumns.ts";
 import {
   continuous,
@@ -12,6 +12,7 @@ import {
 } from "../lib/main.ts";
 import { newBarplot } from "../lib/plots/Barplot.ts";
 import { newScatter } from "../lib/plots/Scatterplot.ts";
+import { Group } from "../lib/scene/GroupOrder.ts";
 import { newScene } from "../lib/scene/Scene.ts";
 import "../lib/style.css";
 
@@ -41,6 +42,11 @@ async function mpgScene() {
   const plot2 = newBarplot(scene, (d) => ({ v1: d.manufacturer }));
   const plot3 = newHistogram(scene, (d) => ({ v1: d.displ }));
   const plot4 = newFluctplot(scene, (d) => ({ v1: d.year, v2: d.drv }));
+
+  scene.marker.setGroup(Group.Group2);
+  scene.marker.update(new Set(seq(0, 50)));
+  scene.marker.setGroup(Group.Group3);
+  scene.marker.update(new Set(seq(51, 100)));
 }
 
 async function diamondsScene() {
@@ -107,5 +113,5 @@ async function sacrametoScene() {
 }
 
 // diamondsScene();
-sacrametoScene();
-// mpgScene();
+// sacrametoScene();
+mpgScene();

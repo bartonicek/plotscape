@@ -90,6 +90,7 @@ export interface Plot {
 
   deactivate(): void;
   activate(): void;
+  cycleGroups(): void;
 
   trainScales<T extends Variables>(
     data: Dataframe<T>,
@@ -245,6 +246,7 @@ export function newPlot(scene: Scene) {
   const methods = {
     activate,
     deactivate,
+    cycleGroups,
     render,
     resize,
     reset,
@@ -320,6 +322,7 @@ function resize(this: Plot) {
   scales.height.codomain.setMax(innerHeight);
   scales.area.codomain.setMax(Math.min(innerWidth, innerHeight));
 
+  // TODO: Fixed aspect ratio
   // if (pars.aspectRatio != undefined) {
   //   const { x, y } = scales;
   //   const [xRatio, yRatio] = [x, y].map((x) => x.ratio());
@@ -354,6 +357,19 @@ function deactivate(this: Plot) {
   this.container.classList.remove(`active`);
   this.selectionRect.clear();
   return this;
+}
+
+function cycleGroups(this: Plot) {
+  const { contexts } = this;
+  const toCycle = [0, 1, 2, 4, 5, 6] as ContextId[];
+  const zs = toCycle.map((x) => contexts[x].getStyle(`zIndex`));
+
+  contexts[0].setStyles({ zIndex: zs[1] });
+  contexts[1].setStyles({ zIndex: zs[2] });
+  contexts[2].setStyles({ zIndex: zs[0] });
+  contexts[4].setStyles({ zIndex: zs[4] });
+  contexts[5].setStyles({ zIndex: zs[5] });
+  contexts[6].setStyles({ zIndex: zs[3] });
 }
 
 function trainScales<T extends Variables>(
