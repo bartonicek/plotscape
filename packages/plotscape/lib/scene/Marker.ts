@@ -13,6 +13,8 @@ export type MarkerCols = {
   [POSITIONS]: Reference<Set<number>>;
 };
 
+const transientGroups = [0, 1, 2, 3];
+
 function addTransient(group: number) {
   return group & ~4;
 }
@@ -20,8 +22,6 @@ function addTransient(group: number) {
 function stripTransient(group: number) {
   return group | 4;
 }
-
-const transientGroups = [0, 1, 2, 3] as const;
 
 /* -------------------------------- Interface ------------------------------- */
 

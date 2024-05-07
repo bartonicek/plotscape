@@ -4,8 +4,8 @@
   "module": "index.ts",
   "type": "module",
   "scripts": {
-    "dev": "vite packages/plotscape",
-    "test": "bun test packages/plotscape/tests"
+    "dev": "bun run --cwd ./packages/plotscape dev",
+    "test": "bun run --cwd ./packages/plotscape build"
 
   },
   "devDependencies": {
