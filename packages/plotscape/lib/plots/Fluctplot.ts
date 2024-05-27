@@ -32,6 +32,10 @@ export interface Fluctplot extends Plot {
   squares: RectanglesWH;
 }
 
+export namespace Fluctplot {
+  export const from = newFluctplot;
+}
+
 /**
  * Creates a new fluctuation diagram and embeds it in a scene.
  * @param scene A scene object

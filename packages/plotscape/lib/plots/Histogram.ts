@@ -30,6 +30,10 @@ export interface Histogram extends Plot {
   bars: RectanglesXY;
 }
 
+export namespace Histogram {
+  export const from = newHistogram;
+}
+
 /**
  * Creates a new histogram and embeds it in a scene. Can switch representation into a spinogram.
  * @param scene A scene object

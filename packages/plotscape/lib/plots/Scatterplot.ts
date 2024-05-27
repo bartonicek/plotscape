@@ -14,6 +14,10 @@ type DataBindings = {
 
 export interface Scatterplot extends Plot {}
 
+export namespace Scatterplot {
+  export const from = newScatter;
+}
+
 /**
  * Creates a new scatterplot and embeds it in a scene.
  * @param scene A scene object

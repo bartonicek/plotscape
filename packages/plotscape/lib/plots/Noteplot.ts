@@ -2,6 +2,10 @@ import { element, noop, values } from "utils";
 import { newPlot } from "../plot/Plot";
 import { Scene } from "../scene/Scene";
 
+export namespace Noteplot {
+  export const from = newNoteplot;
+}
+
 /**
  * Creates a "noteplot" (which is not a plot) and embeds it in a scene.
  * @param scene A scene object

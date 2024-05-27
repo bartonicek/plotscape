@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "bun run --cwd ./packages/plotscape dev",
-    "test": "bun run --cwd ./packages/plotscape build"
+    "build": "bun run --cwd ./packages/plotscape build",
+    "test": "bun run --cwd ./packages/plotscape test"
 
   },
   "devDependencies": {

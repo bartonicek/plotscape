@@ -27,6 +27,10 @@ export interface PCoordsplot extends Plot {
   lines: Lines;
 }
 
+export namespace PCoordsplot {
+  export const from = newPCoordsplot;
+}
+
 /**
  * Creates a new parallel coordinates plot and embeds it in a scene.
  * @param scene A scene object

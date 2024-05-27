@@ -39,6 +39,10 @@ export interface Barplot extends Plot {
   bars: RectanglesWH;
 }
 
+export namespace Barplot {
+  export const from = newBarplot;
+}
+
 /**
  * Creates a new barplot and embeds it in a scene. Can switch representation into a spineplot.
  * @param scene A scene object

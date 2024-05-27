@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { identity, square, squareRoot } from "utils";
 import { newExpanseContinuous } from "../../lib/scales/ExpanseContinuous";
 import { Direction } from "../../lib/types";
 
@@ -49,5 +50,11 @@ describe(`Expanse continuous`, () => {
     expanse2.flip();
     expect(expanse1.normalize(3)).toBe(expanse2.normalize(8));
     expanse2.flip();
+  });
+
+  test(`On a square-root (0, 10) expanse, 2.5 is the midpoint`, () => {
+    expanse1.setTransform(squareRoot, square).setMin(0);
+    expect(expanse1.normalize(2.5)).toBe(0.5);
+    expanse1.setTransform(identity, identity).setMin(1);
   });
 });

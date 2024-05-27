@@ -35,6 +35,10 @@ export interface Histogram2D extends Plot {
   squares: RectanglesXY;
 }
 
+export namespace Histogram2D {
+  export const from = newHistogram2D;
+}
+
 /**
  * Creates a new 2D histogram and embeds it in a scene.
  * @param scene A scene object

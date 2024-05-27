@@ -29,36 +29,39 @@ const URL = `https://raw.githubusercontent.com/bartonicek/plotscape/master/packa
 const sacramentoJSON = await fetchJSON(URL);
 
 const spec = {
-  city: col(`discrete`).toLowerCase().capitalize(),
-  beds: col(`discrete`),
-  baths: col(`discrete`),
-  sqft: col(`continuous`),
-  price: col(`continuous`),
-  latitude: col(`continuous`),
-  longitude: col(`continuous`),
-  type: col(`discrete`),
+  city: discrete().toLowerCase().capitalize(),
+  beds: discrete(),
+  baths: discrete().setQueryable(true),
+  sqft: continuous(),
+  price: continuous(),
+  latitude: continuous(),
+  longitude: continuous(),
+  type: discrete(),
 };
 
-// Parse data and set up a scene object
 const sacramentoData = parseColumns(sacramentoJSON, spec);
 const scene = newScene(app, sacramentoData);
 
-// Add a some plots
-const plot1 = newScatter(scene, (d) => ({ v1: d.longitude, v2: d.latitude }));
-const plot2 = newFluctplot(scene, (d) => ({ v1: d.beds, v2: d.baths }));
-const plot3 = newBarplot(scene, (d) => ({ v1: d.city }));
-const plot4 = newHistogram(scene, (d) => ({ v1: d.sqft }));
-const plot5 = newHistogram2D(scene, (d) => ({ v1: d.sqft, v2: d.price }));
-const plot6 = newNoteplot(scene);
-const plot7 = newPCoordsplot(scene, (d) => ({
-  v1: d.latitude,
-  v2: d.longitude,
+const plot1 = Scatterplot.from(scene, (d) => ({
+  v1: d.longitude,
+  v2: d.latitude,
   v3: d.price,
 }));
 
-// Set a grid layout for the figure
+const plot2 = Fluctplot.from(scene, (d) => ({ v1: d.beds, v2: d.baths }));
+const plot3 = Barplot.from(scene, (d) => ({ v1: d.city }));
+
+const opts = { reducer: maxReducer };
+const plot4 = Histogram.from(scene, (d) => ({ v1: d.sqft, v2: d.price }), opts);
+const plot5 = Histogram2D.from(scene, (d) => ({ v1: d.sqft, v2: d.price }));
+const plot6 = Noteplot.from(scene);
+
+const plot7 = PCoordsplot.from(scene, (d) =>
+  Object.fromEntries(Object.entries(d).map(([_, v], i) => [`v${i}`, v]))
+);
+
 scene.setLayout([
-  [1, 1, 3, 3],
+  [1, 1, 2, 3],
   [1, 1, 4, 5],
   [6, 7, 7, 7],
 ]);

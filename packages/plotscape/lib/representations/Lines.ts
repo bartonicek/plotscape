@@ -51,11 +51,7 @@ export function newLines(
 
 function render(this: Lines) {
   const { renderData: data, scales, contexts } = this;
-
-  if (!isExpanseDiscrete(scales.x.domain)) return;
-
   const n = data.n();
-  const order = scales.x.domain.order;
 
   for (const id of layers) contexts[id].clear();
 
@@ -64,8 +60,12 @@ function render(this: Lines) {
 
     let x = data.col(`x`).scaledAt(i, scales.x);
     let y = data.col(`y`).scaledAt(i, scales.y);
-    x = orderByIndices(x, order);
-    y = orderByIndices(y, order);
+
+    if (isExpanseDiscrete(scales.x.domain)) {
+      const order = scales.x.domain.order;
+      x = orderByIndices(x, order);
+      y = orderByIndices(y, order);
+    }
 
     contexts[layer].line(x, y);
   }
