@@ -49,11 +49,9 @@ const plot1 = Scatterplot.from(scene, (d) => ({
 }));
 
 const plot2 = Fluctplot.from(scene, (d) => ({ v1: d.beds, v2: d.baths }));
-m;
 const plot3 = Barplot.from(scene, (d) => ({ v1: d.city }));
 
-const opts = { reducer: maxReducer };
-const plot4 = Histogram.from(scene, (d) => ({ v1: d.sqft, v2: d.price }), opts);
+const plot4 = Histogram.from(scene, (d) => ({ v1: d.sqft });
 const plot5 = Histogram2D.from(scene, (d) => ({ v1: d.sqft, v2: d.price }));
 const plot6 = Noteplot.from(scene);
 
@@ -74,7 +72,7 @@ Finally, launch a development server:
 bun run dev    # Or "npm run dev"
 ```
 
-![A static image of a plotscape figure](./images/plotscape.png)
+![A static image of a plotscape figure](https://github.com/bartonicek/plotscape/blob/master/packages/plotscape/images/plotscape.png)
 
 You should now see your interactive figure! Try selecting some objects in one of the plots by clicking/clicking and dragging. To see a list of the available ways of interacting with the figure, click on the question mark in the top right.
 
