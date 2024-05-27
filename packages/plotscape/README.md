@@ -51,7 +51,8 @@ const plot1 = Scatterplot.from(scene, (d) => ({
 const plot2 = Fluctplot.from(scene, (d) => ({ v1: d.beds, v2: d.baths }));
 const plot3 = Barplot.from(scene, (d) => ({ v1: d.city }));
 
-const plot4 = Histogram.from(scene, (d) => ({ v1: d.sqft });
+const opts = { reducer: maxReducer };
+const plot4 = Histogram.from(scene, (d) => ({ v1: d.sqft, v2: d.price }), opts);
 const plot5 = Histogram2D.from(scene, (d) => ({ v1: d.sqft, v2: d.price }));
 const plot6 = Noteplot.from(scene);
 

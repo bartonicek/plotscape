@@ -111,5 +111,10 @@ async function sacrametoScene() {
 }
 
 // diamondsScene();
-sacrametoScene();
+await sacrametoScene();
 // mpgScene();
+
+// Take an image of the app
+// html2canvas(app).then((canvas) => {
+//   document.body.appendChild(canvas);
+// });
