@@ -5,7 +5,6 @@ import { Named, named } from "../mixins/Named";
 import { Proxyable, proxyable } from "../mixins/Proxyable";
 import { Queryable, queryable } from "../mixins/Queryable";
 import { Reduced, reduced } from "../mixins/Reduced";
-import { ShallowCloneable, shallowCloneable } from "../mixins/ShallowClonable";
 import {
   ExpanseContinuous,
   newExpanseContinuous,
@@ -16,7 +15,6 @@ import { Variable, injectQueryInfo } from "./Variable";
 export interface Continuous
   extends Named,
     Queryable,
-    ShallowCloneable,
     Variable<number>,
     Indexable<number>,
     Proxyable<number>,
@@ -43,8 +41,7 @@ export function newContinuous(
     .with(queryable)
     .with(indexable)
     .with(proxyable)
-    .with(reduced)
-    .with(shallowCloneable);
+    .with(reduced);
 
   return self;
 }

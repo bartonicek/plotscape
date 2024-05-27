@@ -2,7 +2,6 @@ import { mix } from "../funs";
 import { Named, named } from "../mixins/Named";
 import { Proxyable, proxyable } from "../mixins/Proxyable";
 import { Queryable, queryable } from "../mixins/Queryable";
-import { ShallowCloneable, shallowCloneable } from "../mixins/ShallowClonable";
 import { Expanse } from "../scales/Expanse";
 import { newExpanseContinuous } from "../scales/ExpanseContinuous";
 import { Scale } from "../scales/Scale";
@@ -14,7 +13,6 @@ import { Variable, injectQueryInfo } from "./Variable";
 export interface Derived<T>
   extends Named,
     Queryable,
-    ShallowCloneable,
     Variable<T>,
     Proxyable<T> {
   variable?: Variable;
@@ -45,8 +43,7 @@ export function newDerived<T, U>(
   const self = mix({ ...props, ...methods })
     .with(named)
     .with(queryable)
-    .with(proxyable)
-    .with(shallowCloneable) as Derived<T>;
+    .with(proxyable) as Derived<T>;
 
   return self;
 }

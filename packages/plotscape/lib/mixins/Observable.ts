@@ -9,8 +9,13 @@ export interface Observable {
 }
 
 export function observable<T extends Dict>(object: T): T & Observable {
-  const observers = new Set<() => void>();
-  return { ...object, observers, listen, emit, remove };
+  return {
+    ...object,
+    observers: new Set<() => void>(),
+    listen,
+    emit,
+    remove,
+  } satisfies T & Observable;
 }
 
 function emit<T extends Observable>(this: T) {

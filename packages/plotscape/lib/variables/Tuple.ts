@@ -2,7 +2,6 @@ import { Dict, minMax, seq } from "utils";
 import { mix } from "../funs";
 import { Named, named } from "../mixins/Named";
 import { Queryable, queryable } from "../mixins/Queryable";
-import { ShallowCloneable, shallowCloneable } from "../mixins/ShallowClonable";
 import { Expanse } from "../scales/Expanse";
 import {
   ExpanseContinuous,
@@ -19,8 +18,7 @@ type VariableTuple<T extends unknown[]> = {
 /** Returns an array of values by index. */
 export interface Tuple<T extends unknown[] = unknown[]>
   extends Named,
-    Queryable,
-    ShallowCloneable {
+    Queryable {
   order: number[];
   variables: VariableTuple<T>;
 
@@ -59,8 +57,7 @@ export function newTuple<T extends any[]>(
   };
   const self = mix({ ...props, ...methods })
     .with(named)
-    .with(queryable)
-    .with(shallowCloneable);
+    .with(queryable);
 
   return self;
 }

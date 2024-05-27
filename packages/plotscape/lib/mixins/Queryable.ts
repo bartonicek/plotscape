@@ -5,14 +5,12 @@ export interface Queryable {
 }
 
 export function queryable<T>(object: T): T & Queryable {
-  const _isQueryable = false;
-  const result = {
+  return {
     ...object,
-    _isQueryable,
+    _isQueryable: false,
     isQueryable,
     setQueryable,
-  };
-  return result;
+  } satisfies T & Queryable;
 }
 
 function isQueryable(this: Queryable) {

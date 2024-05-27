@@ -24,8 +24,8 @@ export function indexable<
     name(): string;
   }
 >(object: T): T & Indexable<T["array"][number]> {
-  const methods = { n, values, valueAt, scaledAt, retrain };
-  return { ...object, ...methods };
+  return { ...object, n, values, valueAt, scaledAt, retrain } satisfies T &
+    Indexable<T["array"][number]>;
 }
 
 function n<T>(this: Indexable<T>) {

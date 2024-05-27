@@ -2,17 +2,13 @@ import { Dict } from "utils";
 import { colors } from "../main";
 import { Named } from "../mixins/Named";
 import { Queryable } from "../mixins/Queryable";
-import { ShallowCloneable } from "../mixins/ShallowClonable";
 import { Expanse } from "../scales/Expanse";
 import { isExpanseContinuous } from "../scales/ExpanseContinuous";
 import { Scale } from "../scales/Scale";
 import { Continuous } from "./Continuous";
 
 /** Returns values by index. Can also scale that value when given a scale. */
-export interface Variable<T = unknown>
-  extends Named,
-    Queryable,
-    ShallowCloneable {
+export interface Variable<T = unknown> extends Named, Queryable {
   domain: Expanse<T>;
   n(): number;
   clone(): Variable<T>;

@@ -3,7 +3,6 @@ import { Indexable, indexable } from "../mixins/Indexable";
 import { Named, named } from "../mixins/Named";
 import { Proxyable, proxyable } from "../mixins/Proxyable";
 import { Queryable, queryable } from "../mixins/Queryable";
-import { ShallowCloneable, shallowCloneable } from "../mixins/ShallowClonable";
 import { Expanse } from "../scales/Expanse";
 import { newExpanseContinuous } from "../scales/ExpanseContinuous";
 import { Variable, injectQueryInfo } from "./Variable";
@@ -12,7 +11,6 @@ import { Variable, injectQueryInfo } from "./Variable";
 export interface Reference<T = unknown>
   extends Named,
     Queryable,
-    ShallowCloneable,
     Variable<T>,
     Indexable<T>,
     Proxyable<T> {
@@ -27,7 +25,6 @@ export function newReference<T>(values: T[]): Reference<T> {
   const self = mix({ ...props, ...methods })
     .with(named)
     .with(queryable)
-    .with(shallowCloneable)
     .with(indexable)
     .with(proxyable);
 

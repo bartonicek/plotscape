@@ -7,9 +7,8 @@ export interface Named {
 }
 
 export function named<T>(object: T): T & Named {
-  const _name = undefined as string | undefined;
-  const result = { ...object, _name, name, hasName, setName };
-  return result;
+  return { ...object, _name: undefined, name, hasName, setName } satisfies T &
+    Named;
 }
 
 function name(this: Named, fallback = `[name missing]`) {

@@ -25,8 +25,14 @@ export function reduced<
     valueAt(index: number, offset?: number): any;
   }
 >(variable: T): T & Reduced<ReturnType<T["valueAt"]>> {
-  const methods = { setReducer, stack, normalizeByParent, shiftLeft, parent };
-  return { ...variable, ...methods } as T & Reduced<ReturnType<T["valueAt"]>>;
+  return {
+    ...variable,
+    setReducer,
+    stack,
+    normalizeByParent,
+    shiftLeft,
+    parent,
+  } as T & Reduced<ReturnType<T["valueAt"]>>;
 }
 
 function setReducer<T>(this: Reduced<T>, reducer: ReducerHandler) {

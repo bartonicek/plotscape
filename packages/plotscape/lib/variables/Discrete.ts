@@ -5,7 +5,6 @@ import { Named, named } from "../mixins/Named";
 import { Proxyable, proxyable } from "../mixins/Proxyable";
 import { Queryable, queryable } from "../mixins/Queryable";
 import { Reduced, reduced } from "../mixins/Reduced";
-import { ShallowCloneable, shallowCloneable } from "../mixins/ShallowClonable";
 import {
   ExpanseDiscreteWeighted,
   newExpanseDiscreteWeighted,
@@ -16,7 +15,6 @@ import { Variable, injectQueryInfo } from "./Variable";
 export interface Discrete
   extends Named,
     Queryable,
-    ShallowCloneable,
     Variable<string>,
     Indexable<string>,
     Proxyable<string>,
@@ -42,8 +40,7 @@ export function newDiscrete(
     .with(queryable)
     .with(indexable)
     .with(proxyable)
-    .with(reduced)
-    .with(shallowCloneable);
+    .with(reduced);
 
   return self;
 }

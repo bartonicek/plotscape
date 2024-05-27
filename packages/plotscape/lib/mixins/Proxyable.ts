@@ -18,7 +18,7 @@ export interface Proxyable<T = unknown> {
 export function proxyable<
   T extends { n(): number; valueAt(index: number, offset?: number): any }
 >(base: T): T & Proxyable<ReturnType<T["valueAt"]>> {
-  return { ...base, proxy };
+  return { ...base, proxy } satisfies T & Proxyable<ReturnType<T["valueAt"]>>;
 }
 
 function proxy<T>(this: Proxyable<T>, indexfn: () => number[]) {

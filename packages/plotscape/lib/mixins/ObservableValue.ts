@@ -14,11 +14,9 @@ export interface ObservableValue<T> extends Named, Observable {
 }
 
 export function newObservableValue<T>(value: T): ObservableValue<T> {
-  const props = { value, defaultValue: value };
-  const methods = { defaultize, set, widget };
-  const self = { ...props, ...methods };
+  const self = { value, defaultValue: value, defaultize, set, widget };
 
-  return observable(named(self));
+  return observable(named(self)) satisfies ObservableValue<T>;
 }
 
 function defaultize<T>(this: ObservableValue<T>) {
