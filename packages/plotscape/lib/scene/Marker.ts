@@ -23,8 +23,6 @@ function stripTransient(group: Group) {
   return (group | 4) as Group;
 }
 
-const layers = seq(0, 7) as ContextId[];
-
 /* -------------------------------- Interface ------------------------------- */
 
 export interface Marker extends Observable {

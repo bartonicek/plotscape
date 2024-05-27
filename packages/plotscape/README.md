@@ -49,6 +49,7 @@ const plot1 = Scatterplot.from(scene, (d) => ({
 }));
 
 const plot2 = Fluctplot.from(scene, (d) => ({ v1: d.beds, v2: d.baths }));
+m;
 const plot3 = Barplot.from(scene, (d) => ({ v1: d.city }));
 
 const opts = { reducer: maxReducer };
