@@ -139,6 +139,12 @@ async function imdbScene() {
     v1: d.runtime,
     v2: d.votes,
   }));
+  const plot5 = Barplot.from(scene, (d) => ({ v1: d.certificate }));
+  const plot6 = PCoordsplot.from(scene, (d) => ({
+    v1: d.votes,
+    v2: d.runtime,
+    v3: d.rating,
+  }));
 }
 
 // await diamondsScene();

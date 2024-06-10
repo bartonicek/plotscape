@@ -1,9 +1,10 @@
-import { ReduceFn, just, sum, zero } from "utils";
+import { MapFn, ReduceFn, just, sum, zero } from "utils";
 
-export interface Reducer<T, U> {
+export interface Reducer<T, U, V = U> {
   name: string;
   initialfn: () => U;
   reducefn: ReduceFn<T, U>;
+  aftefn?: MapFn<U, V>;
 }
 
 export const sumReducer: Reducer<number, number> = {

@@ -94,6 +94,7 @@ function recompute<T, U>(this: ReducerHandler<T, U>) {
   if (factor === undefined) throw new Error(`Factor has not been registered`);
 
   const { cardinality } = factor;
+
   const array = result.array as U[];
   array.length = cardinality;
 
