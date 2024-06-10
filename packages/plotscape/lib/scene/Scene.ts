@@ -48,6 +48,10 @@ const helpHTML = parser.parseFromString(
   "text/html"
 ).body;
 
+export namespace Scene {
+  export const from = newScene;
+}
+
 /**
  * Creates a new scene object that provides a graphical/state context
  * into which plots get placed.
@@ -58,7 +62,8 @@ const helpHTML = parser.parseFromString(
  */
 export function newScene<T extends Variables>(
   app: HTMLDivElement,
-  data: Dataframe<T>
+  data: Dataframe<T>,
+  options?: { pointQueries?: keyof T | (keyof T)[] }
 ): Scene<T> {
   const container = element(`div`)
     .addClass(`ps-scene-container`)
@@ -71,6 +76,13 @@ export function newScene<T extends Variables>(
   const docStyle = document.documentElement.style;
   for (const [i, e] of [`b`, `l`, `t`, `r`].entries()) {
     docStyle.setProperty(`--${e}margin`, `${margins[i]}px`);
+  }
+
+  if (options?.pointQueries) {
+    if (!Array.isArray(options.pointQueries)) {
+      options.pointQueries = [options.pointQueries];
+    }
+    for (const q of options.pointQueries) data.col(q).setQueryable(true);
   }
 
   const groupOrder = newGroupOrderer();

@@ -112,7 +112,7 @@ html, body {
   width: fit-content;
   background-color: white;
   border: 1px solid #7a7a7a;
-  padding: 4%;
+  padding: 1vw;
   pointer-events: none;
 }
 

@@ -1,4 +1,4 @@
-import { exp10, fetchJSON, log10 } from "utils";
+import { exp10, fetchJSON, log10, seq } from "utils";
 import { parseColumns } from "../lib/dataframe/parseColumns.ts";
 import {
   Fluctplot,
@@ -12,8 +12,9 @@ import {
 } from "../lib/main.ts";
 import { Barplot } from "../lib/plots/Barplot.ts";
 import { Scatterplot, newScatter } from "../lib/plots/Scatterplot.ts";
-import { newScene } from "../lib/scene/Scene.ts";
+import { Scene, newScene } from "../lib/scene/Scene.ts";
 import "../lib/style.css";
+import { newContinuous } from "../lib/variables/Continuous.ts";
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
 
@@ -31,9 +32,11 @@ async function mpgScene() {
   };
 
   const mpgData = parseColumns(mpgJSON, spec);
-  const scene = newScene(app, mpgData);
+  const scene = Scene.from(app, mpgData, {
+    pointQueries: "manufacturer",
+  });
 
-  const plot1 = newScatter(scene, (d) => ({
+  const plot1 = Scatterplot.from(scene, (d) => ({
     v1: d.displ,
     v2: d.hwy,
     v3: d.cty,
@@ -54,7 +57,7 @@ async function diamondsScene() {
   };
 
   const diamondsData = parseColumns(diamondsJSON, spec);
-  const scene = newScene(app, diamondsData);
+  const scene = Scene.from(app, diamondsData);
 
   const plot1 = Scatterplot.from(scene, (d) => ({ v1: d.carat, v2: d.price }));
   const plot2 = Barplot.from(scene, (d) => ({ v1: d.color }));
@@ -79,7 +82,7 @@ async function sacrametoScene() {
   };
 
   const sacramentoData = parseColumns(sacramentoJSON, spec);
-  const scene = newScene(app, sacramentoData);
+  const scene = Scene.from(app, sacramentoData);
 
   const plot1 = Scatterplot.from(scene, (d) => ({
     v1: d.longitude,
@@ -110,9 +113,9 @@ async function sacrametoScene() {
   ]);
 }
 
-// diamondsScene();
-await sacrametoScene();
-// mpgScene();
+// await diamondsScene();
+// await sacrametoScene();
+await mpgScene();
 
 // Take an image of the app
 // html2canvas(app).then((canvas) => {
