@@ -107,7 +107,6 @@ html, body {
   position: absolute;
   z-index: 30;
   display: none;
-  overflow: scroll;
   white-space: nowrap;
   width: fit-content;
   max-width: 50%;
