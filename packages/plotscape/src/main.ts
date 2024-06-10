@@ -113,9 +113,38 @@ async function sacrametoScene() {
   ]);
 }
 
+async function imdbScene() {
+  const URL = `../datasets/imdb400.json`;
+  const imdbJSON = await fetchJSON(URL);
+
+  const spec = {
+    title: discrete(),
+    director: discrete(),
+    genre: discrete(),
+    lead: discrete(),
+    certificate: discrete(),
+    rating: continuous(),
+    runtime: continuous(),
+    votes: continuous(),
+    year: continuous(),
+  };
+
+  const sacramentoData = parseColumns(imdbJSON, spec);
+  const scene = Scene.from(app, sacramentoData, { pointQueries: "title" });
+
+  const plot1 = Scatterplot.from(scene, (d) => ({ v1: d.votes, v2: d.rating }));
+  const plot2 = Barplot.from(scene, (d) => ({ v1: d.director }));
+  const plot3 = Barplot.from(scene, (d) => ({ v1: d.genre }));
+  const plot4 = Scatterplot.from(scene, (d) => ({
+    v1: d.runtime,
+    v2: d.votes,
+  }));
+}
+
 // await diamondsScene();
 // await sacrametoScene();
-await mpgScene();
+// await mpgScene();
+await imdbScene();
 
 // Take an image of the app
 // html2canvas(app).then((canvas) => {

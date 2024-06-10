@@ -37,7 +37,7 @@ export function injectQueryInfo(
   if (options?.colour) {
     const col = colors[options.colour];
     const fontCol = options.colour < 4 ? `white` : `black`;
-    key = `<div style="color:${fontCol};background-color:${col}">${key}</div>`;
+    key = `<span style="color:${fontCol};background-color:${col}">${key}</span>`;
   }
 
   infoDict[key] = value;

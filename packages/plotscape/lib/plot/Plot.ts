@@ -271,6 +271,17 @@ export function newPlot(scene: Scene) {
   container.addEventListener(`dblclick`, onDoubleclick.bind(self));
   container.addEventListener(`contextmenu`, onContextmenu.bind(self));
 
+  container.addEventListener(
+    `wheel`,
+    (event) => {
+      if (self.pars.mode === Mode.Query) {
+        event.preventDefault();
+        self.queryDisplay.container.scrollBy({ left: event.deltaY });
+      }
+    },
+    { passive: false }
+  );
+
   const resizeObserver = new ResizeObserver(throttle(resize.bind(self), 10));
   resizeObserver.observe(container);
 
