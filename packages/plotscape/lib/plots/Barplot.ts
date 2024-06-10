@@ -19,10 +19,10 @@ import {
   VerticalAnchor,
 } from "../types";
 import { Continuous } from "../variables/Continuous";
-import { Discrete } from "../variables/Discrete";
+import { Discrete, Discretizable } from "../variables/Discrete";
 
 type DataBindings = {
-  v1: Discrete;
+  v1: Discretizable;
   v2?: Continuous;
 };
 

@@ -7,15 +7,16 @@ import { Factor } from "./Factor";
 import { newFactorComputed } from "./FactorComputed";
 
 export function factorFrom(
-  variable: Discrete,
+  variable: { toDiscrete(): Discrete },
   labels?: string[]
 ): Factor<{
   label: Discrete;
   [POSITIONS]: Reference<Set<number>>;
   [CHILDPOSITIONS]: Reference<Set<number>>;
 }> {
-  const array = variable.values();
-  labels = labels ?? variable.domain.values;
+  const v = variable.toDiscrete();
+  const array = v.values();
+  labels = labels ?? v.domain.values;
 
   const levels = [] as number[];
   const positions = {} as Record<number, Set<number>>;
@@ -34,7 +35,7 @@ export function factorFrom(
     [CHILDPOSITIONS]: newReference([]),
   };
 
-  columns.label.setName(variable.name());
+  columns.label.setName(v.name());
   const data = newDataframe(columns);
 
   const factor = newFactorComputed(labels!.length, levels, data);

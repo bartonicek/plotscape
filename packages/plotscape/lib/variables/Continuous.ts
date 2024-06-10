@@ -10,6 +10,7 @@ import {
   newExpanseContinuous,
 } from "../scales/ExpanseContinuous";
 import { Variable, injectQueryInfo } from "./Variable";
+import { Discrete, newDiscrete } from "./Discrete";
 
 /** Returns numeric values by index. */
 export interface Continuous
@@ -24,6 +25,7 @@ export interface Continuous
   range(): number;
   min(): number;
   max(): number;
+  toDiscrete(): Discrete;
 }
 
 export function newContinuous(
@@ -34,7 +36,7 @@ export function newContinuous(
   domain = domain ?? newExpanseContinuous(...minMax(array));
 
   const props = { array, domain, [Symbol.toStringTag]: tag };
-  const methods = { range, min, max, clone, injectQueryInfo };
+  const methods = { range, min, max, clone, injectQueryInfo, toDiscrete };
 
   const self = mix({ ...props, ...methods })
     .with(named)
@@ -65,4 +67,10 @@ function max(this: Continuous) {
 
 function range(this: Continuous) {
   return this.domain.range();
+}
+
+function toDiscrete(this: Continuous) {
+  return newDiscrete(this.array.map((x) => x.toString()))
+    .setName(this.name())
+    .setQueryable(this.isQueryable());
 }

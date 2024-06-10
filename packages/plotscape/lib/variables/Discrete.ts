@@ -11,6 +11,10 @@ import {
 } from "../scales/ExpanseDiscreteWeighted";
 import { Variable, injectQueryInfo } from "./Variable";
 
+export interface Discretizable extends Variable {
+  toDiscrete(): Discrete;
+}
+
 /** Returns string values by index. */
 export interface Discrete
   extends Named,
@@ -22,6 +26,7 @@ export interface Discrete
   domain: ExpanseDiscreteWeighted;
   clone(): this;
   width(): Discrete;
+  toDiscrete(): Discrete;
 }
 
 export function newDiscrete(
@@ -33,7 +38,7 @@ export function newDiscrete(
   domain = domain ?? newExpanseDiscreteWeighted(unique);
 
   const props = { array, domain, [Symbol.toStringTag]: tag };
-  const methods = { width, clone, injectQueryInfo };
+  const methods = { width, clone, injectQueryInfo, toDiscrete };
 
   const self = mix({ ...props, ...methods })
     .with(named)
@@ -58,4 +63,8 @@ function width(this: Discrete) {
   const copy = this.clone();
   copy.domain = this.domain.getWidthExpanse();
   return copy;
+}
+
+function toDiscrete(this: Discrete) {
+  return this;
 }
