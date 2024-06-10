@@ -9,12 +9,17 @@ import {
   continuous,
   discrete,
   maxReducer,
+  newDataframe,
 } from "../lib/main.ts";
 import { Barplot } from "../lib/plots/Barplot.ts";
 import { Scatterplot, newScatter } from "../lib/plots/Scatterplot.ts";
 import { Scene, newScene } from "../lib/scene/Scene.ts";
 import "../lib/style.css";
 import { newContinuous } from "../lib/variables/Continuous.ts";
+import { newReference } from "../lib/variables/Reference.ts";
+import { newReducerHandler } from "../lib/reducers/ReducerHandler.ts";
+import { newFactorMono } from "../lib/factors/FactorMono.ts";
+import { newFactorComputed } from "../lib/factors/FactorComputed.ts";
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
 

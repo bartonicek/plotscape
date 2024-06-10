@@ -4,7 +4,7 @@ export interface Reducer<T, U, V = U> {
   name: string;
   initialfn: () => U;
   reducefn: ReduceFn<T, U>;
-  aftefn?: MapFn<U, V>;
+  afterfn?: MapFn<U, V>;
 }
 
 export const sumReducer: Reducer<number, number> = {

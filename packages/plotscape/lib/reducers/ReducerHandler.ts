@@ -11,17 +11,17 @@ import { Reducer } from "./Reducer";
 /** Takes care of reducing a variable (`source`) into a set of summaries
  * (`result`), based on a partitioning of the data (`factor`). It may
  * have a reference to a parent, in which case it can be stacked or normalized.*/
-export interface ReducerHandler<T = any, U = any> extends Observable {
+export interface ReducerHandler<T = any, U = any, V = any> extends Observable {
   name: string;
   factor?: Factor;
-  parent?: ReducerHandler<T, U>;
-  reducer: Reducer<T, U>;
+  parent?: ReducerHandler<T, U, V>;
+  reducer: Reducer<T, U, V>;
 
   source: Variable<T>;
-  result: InferVariable<U> & Reduced;
+  result: InferVariable<V> & Reduced;
 
-  clone(): ReducerHandler<T, U>;
-  setParent(parent: ReducerHandler<T, U>): this;
+  clone(): ReducerHandler<T, U, V>;
+  setParent(parent: ReducerHandler<T, U, V>): this;
   setFactor(factor: Factor): this;
 
   stacked: boolean;
@@ -31,17 +31,17 @@ export interface ReducerHandler<T = any, U = any> extends Observable {
   normalizeByParent(): this;
 }
 
-export function newReducerHandler<T, U>(
+export function newReducerHandler<T, U, V>(
   source: Variable<T>,
-  reducer: Reducer<T, U>
-): ReducerHandler<T, U> {
+  reducer: Reducer<T, U, V>
+): ReducerHandler<T, U, V> {
   const constructor = parseVariable(reducer.initialfn());
 
   let name: string | undefined = undefined;
   if (source.hasName?.()) name = `${reducer.name} of ${source.name()}`;
   else name = `count`;
 
-  type Result = InferVariable<U> & Reduced;
+  type Result = InferVariable<V> & Reduced;
   const result = reduced(constructor([])) as unknown as Result;
   result.setName(name);
 
@@ -57,7 +57,7 @@ export function newReducerHandler<T, U>(
   };
 
   const self = observable({ ...props, ...methods });
-  self.result.setReducer(self as any);
+  self.result.setReducer(self as ReducerHandler);
   return self;
 }
 
@@ -104,8 +104,12 @@ function recompute<T, U>(this: ReducerHandler<T, U>) {
     array[level] = reducer.reducefn(array[level], source.valueAt(i) as any);
   }
 
-  if (stacked) stackInternal(this);
-  if (normalized) normalizeInternal(this);
+  if (reducer.afterfn) {
+    for (let i = 0; i < cardinality; i++) array[i] = reducer.afterfn(array[i]);
+  }
+
+  if (stacked) _stack(this);
+  if (normalized) _normalize(this);
 
   result.domain.retrain(array as any);
   this.emit();
@@ -130,7 +134,7 @@ function normalizeByParent<T, U>(this: ReducerHandler<T, U>) {
   return copy;
 }
 
-function stackInternal<T, U>(self: ReducerHandler<T, U>) {
+function _stack<T, U>(self: ReducerHandler<T, U>) {
   const { factor, reducer } = self;
   if (!factor || !factor.parent) return self;
 
@@ -149,7 +153,7 @@ function stackInternal<T, U>(self: ReducerHandler<T, U>) {
   }
 }
 
-function normalizeInternal<T, U>(self: ReducerHandler<T, U>) {
+function _normalize<T, U>(self: ReducerHandler<T, U>) {
   const { parent, factor } = self;
 
   if (!parent || !factor || !factor.parent) return self;
