@@ -1,7 +1,5 @@
 import { formatLabels, getMargins } from "../funs";
-import { graphicParameters } from "../graphicParameters";
 import { Contexts, Plot } from "../plot/Plot";
-import { Scale } from "../scales/Scale";
 
 export interface AxisLabels {
   axis: "x" | "y";
