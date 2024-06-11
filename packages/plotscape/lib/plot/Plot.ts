@@ -19,7 +19,13 @@ import { getMargins } from "../funs";
 import { graphicParameters } from "../graphicParameters";
 import { Scale, ScaleType, isScaleContinuous, newScale } from "../scales/Scale";
 import { Scene, colors } from "../scene/Scene";
-import { ActionKey, GraphicObject, KeyActions, Variables } from "../types";
+import {
+  ActionKey,
+  GraphicObject,
+  KeyActions,
+  Margins,
+  Variables,
+} from "../types";
 import { WidgetSource } from "../widgets/WidgetSource";
 import { Context, newContext } from "./Context";
 import { QueryDisplay, newQueryDisplay } from "./QueryDisplay";
@@ -62,6 +68,7 @@ export interface Plot {
   scene: Scene;
   container: HTMLDivElement;
   contexts: Contexts;
+  margins: Margins;
 
   scales: Scales;
   graphicObjects: GraphicObject[];
@@ -232,6 +239,7 @@ export function newPlot(scene: Scene) {
     scene,
     container,
     contexts,
+    margins,
     scales,
     graphicObjects,
     selectionRect,
@@ -301,10 +309,10 @@ export function newPlot(scene: Scene) {
 
   selectionRect.listen(throttle(checkSelection.bind(self), 20));
 
-  self.addGraphicObject(newAxisLabels(scales.x));
-  self.addGraphicObject(newAxisLabels(scales.y));
-  self.addGraphicObject(newAxisTitle(scales.x));
-  self.addGraphicObject(newAxisTitle(scales.y));
+  self.addGraphicObject(newAxisLabels(self, `x`));
+  self.addGraphicObject(newAxisLabels(self, `y`));
+  self.addGraphicObject(newAxisTitle(self, `x`));
+  self.addGraphicObject(newAxisTitle(self, `y`));
   self.addGraphicObject(selectionRect);
   scene.addPlot(self);
 
@@ -318,14 +326,17 @@ export function newPlot(scene: Scene) {
 /* --------------------------------- Methods -------------------------------- */
 
 function resize(this: Plot) {
-  const { contexts, scales, container } = this;
+  const { contexts, scales, container, margins } = this;
 
   for (const context of Object.values(contexts)) context.resize();
   const { clientWidth: width, clientHeight: height } = container;
-  const [bottom, left, top, right] = getMargins();
+  const [bottom, left, top, right] = margins;
 
   const innerWidth = width - left - right;
   const innerHeight = height - top - bottom;
+
+  contexts.under.canvas.style.width = `${innerWidth}px`;
+  contexts.under.canvas.style.height = `${innerHeight}px`;
 
   scales.x.codomain.setMin(left).setMax(Math.max(left, width - right));
   scales.y.codomain.setMin(bottom).setMax(Math.max(bottom, height - top));

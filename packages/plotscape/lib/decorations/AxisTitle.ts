@@ -1,29 +1,32 @@
 import { getMargins } from "../funs";
-import { Contexts } from "../plot/Plot";
+import { Contexts, Plot } from "../plot/Plot";
 import { Scale } from "../scales/Scale";
 import { GraphicObject } from "../types";
 
 export interface AxisTitle extends GraphicObject {
-  scale: Scale;
+  plot: Plot;
+  axis: `x` | `y`;
+  render(): void;
 }
 
-export function newAxisTitle(scale: Scale): AxisTitle {
-  return { scale, render };
+export function newAxisTitle(plot: Plot, axis: `x` | `y`): AxisTitle {
+  return { plot, axis, render };
 }
 
-function render(this: AxisTitle, contexts: Contexts) {
-  const along = this.scale.aes;
+function render(this: AxisTitle) {
+  const { plot, axis } = this;
 
-  if (!along) return;
+  if (!axis) return;
 
-  const context = contexts.base;
-  const name = this.scale.name();
-  const margins = getMargins();
-  const offset = along === `x` ? margins[0] : margins[1];
+  const scale = plot.scales[axis];
+  const context = this.plot.contexts.base;
+  const name = scale.name();
+  const margins = plot.margins;
+  const offset = axis === `x` ? margins[0] : margins[1];
 
-  const dim1 = this.scale.codomain.unnormalize(0.5);
-  const dim2 = this.scale.other!.codomain.unnormalize(0) - (offset * 2) / 3;
+  const dim1 = scale.codomain.unnormalize(0.5);
+  const dim2 = scale.other!.codomain.unnormalize(0) - (offset * 2) / 3;
 
-  if (along === `x`) context.text(dim1, dim2, name);
-  if (along === `y`) context.text(dim2, dim1, name, { vertical: true });
+  if (axis === `x`) context.text(dim1, dim2, name);
+  if (axis === `y`) context.text(dim2, dim1, name, { vertical: true });
 }

@@ -119,15 +119,15 @@ async function sacrametoScene() {
 }
 
 async function imdbScene() {
-  const URL = `../datasets/imdb400.json`;
+  const URL = `../datasets/imdb1000.json`;
   const imdbJSON = await fetchJSON(URL);
 
   const spec = {
     title: discrete(),
     director: discrete(),
     genre: discrete(),
-    lead: discrete(),
-    certificate: discrete(),
+    genre1: discrete(),
+    genre2: discrete(),
     rating: continuous(),
     runtime: continuous(),
     votes: continuous(),
@@ -145,10 +145,9 @@ async function imdbScene() {
     v2: d.votes,
   }));
   const plot5 = Barplot.from(scene, (d) => ({ v1: d.year }));
-  const plot6 = PCoordsplot.from(scene, (d) => ({
-    v1: d.votes,
-    v2: d.runtime,
-    v3: d.rating,
+  const plot6 = Fluctplot.from(scene, (d) => ({
+    v1: d.genre1,
+    v2: d.genre2,
   }));
 }
 

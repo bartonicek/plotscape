@@ -33,6 +33,7 @@ export interface Scene<T extends Variables = any> {
     options: Dict
   ): this;
 
+  updateMargins(): void;
   setDimensions(rows: number, cols: number): this;
   setLayout(layour: number[][]): this;
   setGroup(group: Group): this;
@@ -71,12 +72,7 @@ export function newScene<T extends Variables>(
     .get();
 
   const plots = [] as Plot[];
-
-  const margins = getMargins();
-  const docStyle = document.documentElement.style;
-  for (const [i, e] of [`b`, `l`, `t`, `r`].entries()) {
-    docStyle.setProperty(`--${e}margin`, `${margins[i]}px`);
-  }
+  updateMargins();
 
   if (options?.pointQueries) {
     if (!Array.isArray(options.pointQueries)) {
@@ -105,6 +101,7 @@ export function newScene<T extends Variables>(
     addPlotByKey,
     setGroup,
     setLayout,
+    updateMargins,
     setDimensions,
     deactivateAll,
     deactivateAllExcept,
@@ -144,6 +141,15 @@ export function newScene<T extends Variables>(
 }
 
 /* --------------------------------- Methods -------------------------------- */
+
+function updateMargins() {
+  const margins = getMargins();
+  const docStyle = document.documentElement.style;
+
+  for (const [i, e] of [`b`, `l`, `t`, `r`].entries()) {
+    docStyle.setProperty(`--${e}margin`, `${margins[i]}px`);
+  }
+}
 
 function setDimensions(this: Scene, rows: number, cols: number) {
   document.documentElement.style.setProperty("--ncols", cols.toString());

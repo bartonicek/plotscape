@@ -1,20 +1,22 @@
 import { formatLabels, getMargins } from "../funs";
-import { Contexts } from "../plot/Plot";
+import { graphicParameters } from "../graphicParameters";
+import { Contexts, Plot } from "../plot/Plot";
 import { Scale } from "../scales/Scale";
 
 export interface AxisLabels {
-  scale: Scale;
+  axis: "x" | "y";
+  plot: Plot;
   render(contexts: Contexts): void;
 }
 
-export function newAxisLabels(scale: Scale): AxisLabels {
-  return { scale, render };
+export function newAxisLabels(plot: Plot, axis: "x" | "y"): AxisLabels {
+  return { plot, axis, render };
 }
 
 function render(this: AxisLabels, contexts: Contexts) {
-  const { scale } = this;
-  const along = scale.aes!;
-  const context = contexts[`${along}Axis`];
+  const { plot, axis } = this;
+  const scale = plot.scales[axis];
+  const context = contexts[`${axis}Axis`];
 
   const breaks = scale.breaks() as string[] | number[];
   const labels = formatLabels(breaks);
@@ -24,7 +26,7 @@ function render(this: AxisLabels, contexts: Contexts) {
   const { width, height } = context;
   context.clear();
 
-  if (along === "x") {
+  if (axis === "x") {
     let [lastX, lastW] = [0, 0];
 
     for (let i = 0; i < labels.length; i++) {
@@ -38,13 +40,19 @@ function render(this: AxisLabels, contexts: Contexts) {
 
       context.text(x, base, label);
     }
-  } else if (along === "y") {
+  } else if (axis === "y") {
     let [lastY, lastH] = [0, 0];
 
     for (let i = 0; i < labels.length; i++) {
       const label = labels[i];
       const y = scale.pushforward(breaks[i]);
+      const w = context.textWidth(label) + 1;
       const h = context.textHeight(label) + 1;
+
+      if (plot.margins[1] / 2 < w) {
+        plot.margins[1] = 2 * w;
+        plot.resize();
+      }
 
       if (outside(y, bottom, height - top)) continue;
       if (overlap(lastY, y, lastH, h)) continue;
