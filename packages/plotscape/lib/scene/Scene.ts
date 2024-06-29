@@ -238,3 +238,5 @@ const { groupColors } = graphicParameters;
 export const colors = groupColors.slice() as HexColour[];
 const n = colors.length;
 for (let i = 0; i < n; i++) colors.push(processBaseColor(colors[i]));
+
+console.log(colors);
