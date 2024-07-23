@@ -78,10 +78,6 @@ export function newMarker(n: number, groupOrder: GroupOrder): Marker {
   };
 
   const self = observable({ ...props, ...methods });
-  self.factor.listen(() => {
-    localStorage.setItem("selectedLevels", JSON.stringify(factor.levels));
-  });
-
   return self;
 }
 

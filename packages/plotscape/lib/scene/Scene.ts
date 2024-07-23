@@ -1,4 +1,4 @@
-import { Dict, element, rep } from "utils";
+import { Dict, diff, element, rep } from "utils";
 import { Dataframe } from "../dataframe/Dataframe";
 import { getMargins, processBaseColor } from "../funs";
 // @ts-ignore
@@ -25,6 +25,8 @@ export interface Scene<T extends Variables = any> {
 
   hasLayout: boolean;
   keyActions: KeyActions;
+
+  socket?: WebSocket;
 
   addPlot(plot: Plot): this;
   addPlotByKey<K extends PlotKey>(
@@ -64,7 +66,7 @@ export namespace Scene {
 export function newScene<T extends Variables>(
   app: HTMLDivElement,
   data: Dataframe<T>,
-  options?: { pointQueries?: keyof T | (keyof T)[] }
+  options?: { websocketURL?: string; pointQueries?: keyof T | (keyof T)[] }
 ): Scene<T> {
   const container = element(`div`)
     .addClass(`ps-scene-container`)
@@ -136,6 +138,45 @@ export function newScene<T extends Variables>(
 
   helpButton.onclick = () => helpModal.showModal();
   helpModal.onclick = () => helpModal.close();
+
+  // Set up a websocket connection
+  if (options?.websocketURL) {
+    const socket = new WebSocket(options.websocketURL);
+
+    socket.addEventListener("open", () => {
+      socket.send(JSON.stringify({ sender: "figure", type: "connected" }));
+    });
+
+    socket.addEventListener("message", (message) => {
+      message = JSON.parse(message.data);
+
+      if (message?.type === "mark") {
+        let { indices, group } = message.data;
+        if (!Array.isArray(indices) && typeof group != "number") {
+          throw new Error(`Invalid data for message mark: ${message.data}`);
+        }
+
+        const currentGroup = self.marker.group;
+        indices = new Set(indices);
+
+        self.marker.setGroup(group).update(indices).setGroup(currentGroup);
+      } else if (message?.type === "selected") {
+        const group = message.data.group as number[];
+        const { positions } = marker;
+
+        const data = {} as Record<number, number[]>;
+        for (const g of group) {
+          if (positions[g].size) data[g] = Array.from(positions[g]).sort(diff);
+        }
+
+        socket.send(
+          JSON.stringify({ sender: "figure", type: "selected", data })
+        );
+      }
+    });
+
+    (self as Scene).socket = socket;
+  }
 
   return self;
 }
@@ -238,5 +279,3 @@ const { groupColors } = graphicParameters;
 export const colors = groupColors.slice() as HexColour[];
 const n = colors.length;
 for (let i = 0; i < n; i++) colors.push(processBaseColor(colors[i]));
-
-console.log(colors);

@@ -135,7 +135,10 @@ async function imdbScene() {
   };
 
   const sacramentoData = parseColumns(imdbJSON, spec);
-  const scene = Scene.from(app, sacramentoData, { pointQueries: "title" });
+  const scene = Scene.from(app, sacramentoData, {
+    pointQueries: "title",
+    websocketURL: "ws://127.0.0.1:3000/",
+  });
 
   const plot1 = Scatterplot.from(scene, (d) => ({ v1: d.votes, v2: d.rating }));
   const plot2 = Barplot.from(scene, (d) => ({ v1: d.director }));
