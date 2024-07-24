@@ -1,6 +1,6 @@
 # Plotscape
 
-Plotscape is a TypeScript library designed for making interactive figures geared towards data exploration. All plots in a `plotscaper` figures support linked highlighting by default, as well as a wide variety of other interactions, including switching representation, changing parameters, zooming, panning, and reordering.
+Plotscape is a TypeScript library designed for making interactive figures geared towards data exploration. All plots in a `plotscape` figures support linked highlighting by default, as well as a wide variety of other interactions, including switching representation, changing parameters, zooming, panning, and reordering.
 
 # Quick start
 
