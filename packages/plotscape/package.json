@@ -21,7 +21,7 @@
     "build": "bun run test && bun run compile && vite build && bun run pushR",
     "compile": "tsc --p ./tsconfig-build.json",
     "test": "bun test",
-    "pushR": "cp ./dist/main.iife.js ../plotscaper/inst/htmlwidgets/plotscape"
+    "pushR": "cp ./dist/main.iife.js ../../../plotscaper/inst/htmlwidgets/plotscape"
   },
   "devDependencies": {
     "html2canvas": "^1.4.1",
