@@ -74,7 +74,6 @@ export function newScene<T extends Variables>(
     .get();
 
   const plots = [] as Plot[];
-  updateMargins();
 
   if (options?.pointQueries) {
     if (!Array.isArray(options.pointQueries)) {
@@ -110,6 +109,7 @@ export function newScene<T extends Variables>(
   };
 
   const self = { ...props, ...methods };
+  self.updateMargins();
 
   keyActions[`Digit1`] = () => self.setGroup(Group.Group2);
   keyActions[`Digit2`] = () => self.setGroup(Group.Group3);
@@ -183,7 +183,7 @@ export function newScene<T extends Variables>(
 
 /* --------------------------------- Methods -------------------------------- */
 
-function updateMargins() {
+function updateMargins(this: Scene) {
   const margins = getMargins();
   const docStyle = document.documentElement.style;
 
@@ -193,8 +193,8 @@ function updateMargins() {
 }
 
 function setDimensions(this: Scene, rows: number, cols: number) {
-  document.documentElement.style.setProperty("--ncols", cols.toString());
-  document.documentElement.style.setProperty("--nrows", rows.toString());
+  this.container.style.gridTemplateColumns = Array(cols).fill(`1fr`).join(" ");
+  this.container.style.gridTemplateRows = Array(rows).fill(`1fr`).join(" ");
   for (const plot of this.plots) plot.resize();
   return this;
 }
