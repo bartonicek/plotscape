@@ -2,9 +2,9 @@ import { ExpanseContinuous } from "./ExpanseContinuous";
 import { ExpanseBand } from "./ExpanseBand";
 import { ExpansePoint } from "./ExpansePoint";
 import { Direction } from "../types";
-import { ExpanseTag } from "./ExpanseTag";
+import { ExpanseType } from "./ExpanseType";
 
-export interface Expanse<T = ExpanseTag> {
+export interface Expanse<T = ExpanseType> {
   type: T;
   zero: number;
   one: number;
@@ -16,37 +16,31 @@ export interface Expanse<T = ExpanseTag> {
   };
 }
 
-export type ExpanseValue = {
-  [ExpanseTag.Continuous]: number;
-  [ExpanseTag.Point]: string;
-  [ExpanseTag.Band]: string;
+export type ExpanseTypeMap = {
+  [ExpanseType.Continuous]: ExpanseContinuous;
+  [ExpanseType.Point]: ExpansePoint;
+  [ExpanseType.Band]: ExpanseBand;
 };
 
-export type ExpanseType = {
-  [ExpanseTag.Continuous]: ExpanseContinuous;
-  [ExpanseTag.Point]: ExpansePoint;
-  [ExpanseTag.Band]: ExpanseBand;
+export type ExpanseValueMap = {
+  [ExpanseType.Continuous]: number;
+  [ExpanseType.Point]: string;
+  [ExpanseType.Band]: string;
 };
 
 export module Expanse {
   export const namespaces: {
-    [key in ExpanseTag]: {
+    [key in ExpanseType]: {
       normalize(expanse: any, value: any): number;
-      unnormalize(expanse: any, value: any): ExpanseValue[key];
+      unnormalize(expanse: any, value: any): ExpanseValueMap[key];
+      breaks(expanse: any): ExpanseValueMap[key][];
     };
   } = {
-    [ExpanseTag.Continuous]: ExpanseContinuous,
-    [ExpanseTag.Point]: ExpansePoint,
-    [ExpanseTag.Band]: ExpanseBand,
+    [ExpanseType.Continuous]: ExpanseContinuous,
+    [ExpanseType.Point]: ExpansePoint,
+    [ExpanseType.Band]: ExpanseBand,
   };
-  export function move(expanse: Expanse, amount: number) {
-    const { zero, one, direction } = expanse;
-    expanse.zero = zero + direction * amount;
-    expanse.one = one + direction * amount;
-  }
-  export function flip(expanse: Expanse) {
-    expanse.direction *= -1;
-  }
+
   export function set<T extends Expanse>(
     expanse: T,
     setfn: (expanse: T) => Partial<T>
@@ -56,6 +50,7 @@ export module Expanse {
       expanse[k] = v;
     }
   }
+
   export function restoreDefaults<T extends Expanse>(expanse: T) {
     const { defaults } = expanse;
     for (const [k, v] of Object.entries(defaults) as [keyof T, T[keyof T]][]) {
@@ -64,16 +59,32 @@ export module Expanse {
       } else expanse[k] = v;
     }
   }
-  export function normalize<T extends ExpanseTag>(
+
+  export function normalize<T extends ExpanseType>(
     expanse: Expanse<T>,
-    value: ExpanseValue[T]
+    value: ExpanseValueMap[T]
   ) {
     return namespaces[expanse.type].normalize(expanse, value);
   }
-  export function unnormalize<T extends ExpanseTag>(
+
+  export function unnormalize<T extends ExpanseType>(
     expanse: Expanse<T>,
     value: number
-  ): ExpanseValue[T] {
+  ): ExpanseValueMap[T] {
     return namespaces[expanse.type].unnormalize(expanse, value);
+  }
+
+  export function breaks(expanse: Expanse) {
+    return namespaces[expanse.type].breaks(expanse);
+  }
+
+  export function move(expanse: Expanse, amount: number) {
+    const { direction } = expanse;
+    expanse.zero += direction * amount;
+    expanse.one += direction * amount;
+  }
+
+  export function flip(expanse: Expanse) {
+    expanse.direction *= -1;
   }
 }

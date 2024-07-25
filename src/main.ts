@@ -1,3 +1,4 @@
+import { ExpanseBand } from "./scales/ExpanseBand";
 import { ExpanseContinuous } from "./scales/ExpanseContinuous";
 import { ExpansePoint } from "./scales/ExpansePoint";
 import { Scale } from "./scales/Scale";
@@ -15,3 +16,5 @@ const expanse2 = ExpanseContinuous.of(1, 10);
 
 const foo = Scale.of(expanse1, expanse2);
 console.log(Scale.pushforward(foo, "b"));
+
+console.log(Scale.breaks(foo));

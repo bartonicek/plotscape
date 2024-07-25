@@ -1,10 +1,10 @@
 import { Direction } from "../types";
-import { identity } from "../utils";
-import { applyDirection } from "../utils";
+import { diff, identity, prettyBreaks } from "../funs";
+import { applyDirection } from "../funs";
 import { Expanse } from "./Expanse";
-import { ExpanseTag } from "./ExpanseTag";
+import { ExpanseType } from "./ExpanseType";
 
-export interface ExpanseContinuous extends Expanse<ExpanseTag.Continuous> {
+export interface ExpanseContinuous extends Expanse<ExpanseType.Continuous> {
   min: number;
   max: number;
   trans: (x: number) => number;
@@ -22,7 +22,7 @@ export interface ExpanseContinuous extends Expanse<ExpanseTag.Continuous> {
 
 export module ExpanseContinuous {
   export function of(min: number, max: number): ExpanseContinuous {
-    const type = ExpanseTag.Continuous;
+    const type = ExpanseType.Continuous;
     const [zero, one] = [0, 1];
     const direction = Direction.Forwards;
     const [trans, inv] = [identity, identity];
@@ -47,5 +47,13 @@ export module ExpanseContinuous {
     const range = trans(max) - trans(min);
 
     return inv(trans(min) + pct * range);
+  }
+
+  export function breaks(expanse: ExpanseContinuous, n = 4) {
+    const [min, max] = [0, 1]
+      .map((x) => ExpanseContinuous.normalize(expanse, x))
+      .sort(diff);
+    const labels = prettyBreaks(min, max, n);
+    return labels;
   }
 }

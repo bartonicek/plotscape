@@ -1,15 +1,15 @@
 import { Direction } from "../types";
 import { Expanse } from "./Expanse";
-import { applyDirection } from "../utils";
-import { ExpanseTag } from "./ExpanseTag";
+import { applyDirection } from "../funs";
+import { ExpanseType } from "./ExpanseType";
 
-export interface ExpansePoint extends Expanse<ExpanseTag.Point> {
+export interface ExpansePoint extends Expanse<ExpanseType.Point> {
   labels: string[];
 }
 
 export module ExpansePoint {
   export function of(labels: string[]): ExpansePoint {
-    const type = ExpanseTag.Point;
+    const type = ExpanseType.Point;
     const [zero, one] = [0, 1];
     const direction = Direction.Forwards;
     const defaults = { labels: [...labels], zero, one, direction };
@@ -38,5 +38,9 @@ export module ExpansePoint {
     const temp = Array(labels.length);
     for (let i = 0; i < indices.length; i++) temp[i] = labels[indices[i]];
     for (let i = 0; i < temp.length; i++) expanse.labels[i] = temp[i];
+  }
+
+  export function breaks(expanse: ExpansePoint) {
+    return expanse.labels;
   }
 }

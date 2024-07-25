@@ -1,16 +1,16 @@
 import { Direction } from "../types";
 import { Expanse } from "./Expanse";
-import { applyDirection } from "../utils";
+import { applyDirection } from "../funs";
 import { ExpansePoint } from "./ExpansePoint";
-import { ExpanseTag } from "./ExpanseTag";
+import { ExpanseType } from "./ExpanseType";
 
-export interface ExpanseBand extends Expanse<ExpanseTag.Band> {
+export interface ExpanseBand extends Expanse<ExpanseType.Band> {
   labels: string[];
 }
 
 export module ExpanseBand {
   export function of(labels: string[]): ExpanseBand {
-    const type = ExpanseTag.Band;
+    const type = ExpanseType.Band;
     const [zero, one] = [0, 1];
     const direction = Direction.Forwards;
     const defaults = { labels: [...labels], zero, one, direction };
@@ -36,4 +36,5 @@ export module ExpanseBand {
   }
 
   export const reorder = ExpansePoint.reorder;
+  export const breaks = ExpansePoint.breaks;
 }
