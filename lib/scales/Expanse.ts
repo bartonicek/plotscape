@@ -1,7 +1,7 @@
 import { ExpanseContinuous } from "./ExpanseContinuous";
 import { ExpanseBand } from "./ExpanseBand";
 import { ExpansePoint } from "./ExpansePoint";
-import { Direction } from "../types";
+import { Direction } from "../utils/types";
 import { ExpanseType } from "./ExpanseType";
 
 export interface Expanse<T = ExpanseType> {
@@ -28,7 +28,7 @@ export type ExpanseValueMap = {
   [ExpanseType.Band]: string;
 };
 
-export module Expanse {
+export namespace Expanse {
   export const namespaces: {
     [key in ExpanseType]: {
       normalize(expanse: any, value: any): number;
@@ -41,14 +41,15 @@ export module Expanse {
     [ExpanseType.Band]: ExpanseBand,
   };
 
+  export function continuous(min = 0, max = 1) {
+    return ExpanseContinuous.of(min, max);
+  }
+
   export function set<T extends Expanse>(
     expanse: T,
-    setfn: (expanse: T) => Partial<T>
+    setfn: (expanse: any) => void
   ) {
-    const diffs = setfn(expanse);
-    for (const [k, v] of Object.entries(diffs) as [keyof T, T[keyof T]][]) {
-      expanse[k] = v;
-    }
+    setfn(expanse);
   }
 
   export function restoreDefaults<T extends Expanse>(expanse: T) {
@@ -80,11 +81,15 @@ export module Expanse {
 
   export function move(expanse: Expanse, amount: number) {
     const { direction } = expanse;
-    expanse.zero += direction * amount;
-    expanse.one += direction * amount;
+    Expanse.set(expanse, () => {
+      expanse.zero += direction * amount;
+      expanse.one += direction * amount;
+    });
   }
 
   export function flip(expanse: Expanse) {
-    expanse.direction *= -1;
+    Expanse.set(expanse, () => {
+      expanse.direction *= -1;
+    });
   }
 }

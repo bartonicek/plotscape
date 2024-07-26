@@ -1,6 +1,6 @@
-import { Direction } from "../types";
-import { diff, identity, prettyBreaks } from "../funs";
-import { applyDirection } from "../funs";
+import { Direction } from "../utils/types";
+import { diff, identity, minmax, prettyBreaks } from "../utils/funs";
+import { applyDirection } from "../utils/funs";
 import { Expanse } from "./Expanse";
 import { ExpanseType } from "./ExpanseType";
 
@@ -20,7 +20,7 @@ export interface ExpanseContinuous extends Expanse<ExpanseType.Continuous> {
   };
 }
 
-export module ExpanseContinuous {
+export namespace ExpanseContinuous {
   export function of(min: number, max: number): ExpanseContinuous {
     const type = ExpanseType.Continuous;
     const [zero, one] = [0, 1];
@@ -47,6 +47,12 @@ export module ExpanseContinuous {
     const range = trans(max) - trans(min);
 
     return inv(trans(min) + pct * range);
+  }
+
+  export function train(expanse: ExpanseContinuous, array: number[]) {
+    const [min, max] = minmax(array);
+    expanse.min = min;
+    expanse.max = max;
   }
 
   export function breaks(expanse: ExpanseContinuous, n = 4) {

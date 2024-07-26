@@ -5,11 +5,12 @@ export interface Scale<
   T extends ExpanseType = any,
   U extends ExpanseType = any
 > {
+  other?: Scale;
   domain: Expanse<T>;
   codomain: Expanse<U>;
 }
 
-export module Scale {
+export namespace Scale {
   export function of<T extends ExpanseType, U extends ExpanseType>(
     domain: Expanse<T>,
     codomain: Expanse<U>

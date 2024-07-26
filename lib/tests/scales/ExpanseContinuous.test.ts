@@ -24,13 +24,19 @@ describe("Expanse continuous", () => {
   });
 
   test("Normalizing 5 in [1, 10] with [0.1, 0.9] margins returns 0.1 + 4/9 * 0.8", () => {
-    Expanse.set(expanse, () => ({ zero: 0.1, one: 0.9 }));
+    Expanse.set(expanse, () => {
+      expanse.zero = 0.1;
+      expanse.one = 0.9;
+    });
     expect(Expanse.normalize(expanse, 5)).toBe(0.1 + (4 / 9) * 0.8);
     Expanse.restoreDefaults(expanse);
   });
 
   test("Normalizing 4 in [1, 16] with square root transformation returns 1/3", () => {
-    Expanse.set(expanse, () => ({ max: 16, trans: Math.sqrt }));
+    Expanse.set(expanse, () => {
+      expanse.max = 16;
+      expanse.trans = Math.sqrt;
+    });
     expect(Expanse.normalize(expanse, 4)).toBe(1 / 3);
     Expanse.restoreDefaults(expanse);
   });

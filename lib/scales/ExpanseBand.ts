@@ -1,6 +1,6 @@
-import { Direction } from "../types";
+import { Direction } from "../utils/types";
 import { Expanse } from "./Expanse";
-import { applyDirection } from "../funs";
+import { applyDirection } from "../utils/funs";
 import { ExpansePoint } from "./ExpansePoint";
 import { ExpanseType } from "./ExpanseType";
 
@@ -8,7 +8,7 @@ export interface ExpanseBand extends Expanse<ExpanseType.Band> {
   labels: string[];
 }
 
-export module ExpanseBand {
+export namespace ExpanseBand {
   export function of(labels: string[]): ExpanseBand {
     const type = ExpanseType.Band;
     const [zero, one] = [0, 1];
@@ -35,6 +35,12 @@ export module ExpanseBand {
     return labels[index];
   }
 
-  export const reorder = ExpansePoint.reorder;
-  export const breaks = ExpansePoint.breaks;
+  // Have to coerce because of the type tag property
+  export function reorder(expanse: ExpanseBand, indices: number[]) {
+    ExpansePoint.reorder(expanse as unknown as ExpansePoint, indices);
+  }
+
+  export function breaks(expanse: ExpanseBand) {
+    return ExpansePoint.breaks(expanse as unknown as ExpansePoint);
+  }
 }

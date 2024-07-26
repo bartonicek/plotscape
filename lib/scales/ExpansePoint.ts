@@ -1,13 +1,13 @@
-import { Direction } from "../types";
+import { Direction } from "../utils/types";
 import { Expanse } from "./Expanse";
-import { applyDirection } from "../funs";
+import { applyDirection } from "../utils/funs";
 import { ExpanseType } from "./ExpanseType";
 
 export interface ExpansePoint extends Expanse<ExpanseType.Point> {
   labels: string[];
 }
 
-export module ExpansePoint {
+export namespace ExpansePoint {
   export function of(labels: string[]): ExpansePoint {
     const type = ExpanseType.Point;
     const [zero, one] = [0, 1];
