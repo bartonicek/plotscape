@@ -1,4 +1,3 @@
-import { Direction } from "../utils/types";
 import { Expanse } from "./Expanse";
 import { applyDirection } from "../utils/funs";
 import { ExpanseType } from "./ExpanseType";
@@ -10,10 +9,10 @@ export interface ExpansePoint extends Expanse<ExpanseType.Point> {
 export namespace ExpansePoint {
   export function of(labels: string[]): ExpansePoint {
     const type = ExpanseType.Point;
-    const [zero, one] = [0, 1];
-    const direction = Direction.Forwards;
+    const base = Expanse.base();
+    const { zero, one, direction } = base;
     const defaults = { labels: [...labels], zero, one, direction };
-    return { type, labels, zero, one, direction, defaults };
+    return { type, labels, ...base, defaults };
   }
 
   export function normalize(expanse: ExpansePoint, value: string) {

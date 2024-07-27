@@ -10,9 +10,9 @@ import {
   Plot,
   Expanse,
 } from "../lib/main";
-import { Points } from "../lib/Points";
+import { Points } from "../lib/geoms/Points";
 import { fetchJSON, minmax } from "../lib/utils/funs";
-import { PARENT } from "../lib/utils/symbols";
+import { LAYER, PARENT } from "../lib/utils/symbols";
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
 // Marker.update(m, [1, 2, 3], 4);
@@ -92,4 +92,32 @@ Expanse.set(plot.scales.y.domain, (e) => {
   e.one = 0.9;
 });
 
-Plot.addGeom(plot, Points.of({ x: mtcars.wt, y: mtcars.mpg }, plot.scales));
+Plot.addGeom(
+  plot,
+  Points.of(
+    { x: mtcars.wt, y: mtcars.mpg, [LAYER]: Array(mtcars.mpg.length).fill(7) },
+    plot.scales
+  )
+);
+// plot.frames[0].context.fillRect(
+//   0,
+//   0,
+//   plot.frames[0].width,
+//   plot.frames[0].height
+// );
+
+// plot.scales.x.dispatch.addEventListener(`changed`, () =>
+//   console.log(plot.scales.x)
+// );
+
+function makeDispatchFn<
+  T extends { dispatch: EventTarget },
+  E extends string
+>() {
+  return function (object: T, type: E, data?: Record<string, any>) {
+    object.dispatch.dispatchEvent(new CustomEvent(type, { detail: data }));
+  };
+}
+
+const dispatch = makeDispatchFn<Plot, `changed`>();
+dispatch(plot, `changed`);

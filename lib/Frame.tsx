@@ -33,7 +33,7 @@ export namespace Frame {
 
     const width = clientWidth - clientLeft;
     const height = clientHeight - clientTop;
-    const scalingFactor = Math.sqrt(2);
+    const scalingFactor = 2;
     const margins = [0, 0, 0, 0] as Margins;
 
     const contextProps = {};
@@ -86,11 +86,11 @@ export namespace Frame {
 
   export function clip(frame: Frame) {
     const { context } = frame;
-    let { width, height } = frame.canvas;
+    let { width, height } = frame;
     const [bottom, left, top, right] = frame.margins;
 
-    width = width - left - right;
-    height = height - top - bottom;
+    width = Math.max(width - left - right, 0);
+    height = Math.max(height - top - bottom, 0);
 
     context.beginPath();
     context.rect(left, top, width, height);

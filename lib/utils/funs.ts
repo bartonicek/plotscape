@@ -128,6 +128,43 @@ export function removeTailwind(element: HTMLElement, classList: string) {
   for (const c of classList.split(" ")) element.classList.remove(c);
 }
 
-export function event(type: string, data?: Record<string, any>) {
-  return new CustomEvent(type, { detail: data });
+/**
+ * Throttles a function such that it can only be called once within a specified time-window.
+ *
+ * @param fn A function
+ * @param period Time-window in ms
+ * @returns A version of the function that only fires once within each time-window
+ */
+export function throttle(fn: Function, period: number) {
+  let lastTime = 0;
+  return (...args: any[]) => {
+    const now = new Date().getTime();
+    if (now - lastTime < period) return;
+    lastTime = now;
+    fn(...args);
+  };
+}
+
+export function makeDispatchFn<
+  T extends { dispatch: EventTarget },
+  E extends string
+>() {
+  return function (object: T, type: E, data?: Record<string, any>) {
+    object.dispatch.dispatchEvent(new CustomEvent(type, { detail: data }));
+  };
+}
+
+export function makeListenFn<
+  T extends { dispatch: EventTarget },
+  E extends string
+>() {
+  return function (
+    object: T,
+    type: E,
+    eventfn: (event: Event) => void,
+    options?: { throttle?: number }
+  ) {
+    if (options?.throttle) eventfn = throttle(eventfn, options.throttle);
+    object.dispatch.addEventListener(type, eventfn);
+  };
 }

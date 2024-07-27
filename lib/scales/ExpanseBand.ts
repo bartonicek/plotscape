@@ -11,10 +11,10 @@ export interface ExpanseBand extends Expanse<ExpanseType.Band> {
 export namespace ExpanseBand {
   export function of(labels: string[]): ExpanseBand {
     const type = ExpanseType.Band;
-    const [zero, one] = [0, 1];
-    const direction = Direction.Forwards;
+    const base = Expanse.base();
+    const { zero, one, direction } = base;
     const defaults = { labels: [...labels], zero, one, direction };
-    return { type, labels, zero, one, direction, defaults };
+    return { type, labels, ...base, defaults };
   }
 
   export function normalize(expanse: ExpanseBand, value: string) {

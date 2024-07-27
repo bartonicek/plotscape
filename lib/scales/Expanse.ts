@@ -3,9 +3,11 @@ import { ExpanseBand } from "./ExpanseBand";
 import { ExpansePoint } from "./ExpansePoint";
 import { Direction } from "../utils/types";
 import { ExpanseType } from "./ExpanseType";
+import { makeDispatchFn, makeListenFn } from "../utils/funs";
 
 export interface Expanse<T = ExpanseType> {
   type: T;
+  dispatch: EventTarget;
   zero: number;
   one: number;
   direction: Direction;
@@ -28,6 +30,8 @@ export type ExpanseValueMap = {
   [ExpanseType.Band]: string;
 };
 
+type EventType = `changed`;
+
 export namespace Expanse {
   export const namespaces: {
     [key in ExpanseType]: {
@@ -45,11 +49,19 @@ export namespace Expanse {
     return ExpanseContinuous.of(min, max);
   }
 
+  export function base() {
+    const dispatch = new EventTarget();
+    const [zero, one] = [0, 1];
+    const direction = Direction.Forwards;
+    return { dispatch, zero, one, direction };
+  }
+
   export function set<T extends Expanse>(
     expanse: T,
     setfn: (expanse: any) => void
   ) {
     setfn(expanse);
+    Expanse.dispatch(expanse, `changed`);
   }
 
   export function restoreDefaults<T extends Expanse>(expanse: T) {
@@ -60,6 +72,9 @@ export namespace Expanse {
       } else expanse[k] = v;
     }
   }
+
+  export const dispatch = makeDispatchFn<Expanse, EventType>();
+  export const listen = makeListenFn<Expanse, EventType>();
 
   export function normalize<T extends ExpanseType>(
     expanse: Expanse<T>,

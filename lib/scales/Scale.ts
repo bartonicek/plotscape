@@ -1,3 +1,4 @@
+import { makeDispatchFn, makeListenFn } from "../utils/funs";
 import { Expanse, ExpanseValueMap } from "./Expanse";
 import { ExpanseType } from "./ExpanseType";
 
@@ -6,17 +7,29 @@ export interface Scale<
   U extends ExpanseType = any
 > {
   other?: Scale;
+  dispatch: EventTarget;
   domain: Expanse<T>;
   codomain: Expanse<U>;
 }
+
+type EventType = `changed`;
 
 export namespace Scale {
   export function of<T extends ExpanseType, U extends ExpanseType>(
     domain: Expanse<T>,
     codomain: Expanse<U>
   ): Scale<T, U> {
-    return { domain, codomain };
+    const dispatch = new EventTarget();
+    const scale = { domain, dispatch, codomain };
+
+    Expanse.listen(domain, `changed`, () => Scale.dispatch(scale, `changed`));
+    Expanse.listen(codomain, `changed`, () => Scale.dispatch(scale, `changed`));
+
+    return scale;
   }
+
+  export const dispatch = makeDispatchFn<Scale, EventType>();
+  export const listen = makeListenFn<Scale, EventType>();
 
   export function pushforward<T extends ExpanseType, U extends ExpanseType>(
     scale: Scale<T, U>,
@@ -39,5 +52,9 @@ export namespace Scale {
     const labels = Expanse.breaks(domain);
     const positions = labels.map((x) => Scale.pushforward(scale, x));
     return { labels, positions };
+  }
+
+  export function move(scale: Scale, amount: number) {
+    Expanse.move(scale.domain, amount);
   }
 }

@@ -1,5 +1,6 @@
 import { Frame } from "../Frame";
-import { Points } from "../Points";
+import { Layers } from "../utils/types";
+import { Points } from "./Points";
 
 export enum GeomType {
   Points,
@@ -11,14 +12,12 @@ export interface Geom {
 
 export namespace Geom {
   const namespaces: {
-    [key in GeomType]: {
-      render(geom: Geom, frame: Frame): void;
-    };
+    [key in GeomType]: { render(geom: Geom, layers: Layers): void };
   } = {
     [GeomType.Points]: Points,
   };
 
-  export function render<T extends Geom>(geom: T, frame: Frame) {
-    namespaces[geom.type].render(geom, frame);
+  export function render<T extends Geom>(geom: T, layers: Layers) {
+    namespaces[geom.type].render(geom, layers);
   }
 }

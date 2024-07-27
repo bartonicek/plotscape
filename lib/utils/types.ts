@@ -1,3 +1,5 @@
+import { Frame } from "../main";
+
 export type MapFn<T> = (next: T) => T;
 export type ReduceFn<T, U> = (prev: U, next: T) => U;
 
@@ -15,6 +17,8 @@ export enum Direction {
   Forwards = 1,
   Backwards = -1,
 }
+
+export type Rect = [x0: number, y0: number, x1: number, y1: number];
 
 export type Margins = [
   bottom: number,
@@ -39,3 +43,8 @@ export enum MouseButton {
   Left = 0,
   Right = 2,
 }
+export const dataLayers = [0, 1, 2, 3, 4, 5, 6, 7] as const;
+export type DataLayer = (typeof dataLayers)[number];
+export type Layers = {
+  [key in DataLayer]: Frame;
+};

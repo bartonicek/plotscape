@@ -23,11 +23,11 @@ export interface ExpanseContinuous extends Expanse<ExpanseType.Continuous> {
 export namespace ExpanseContinuous {
   export function of(min: number, max: number): ExpanseContinuous {
     const type = ExpanseType.Continuous;
-    const [zero, one] = [0, 1];
-    const direction = Direction.Forwards;
+    const base = Expanse.base();
+    const { zero, one, direction } = base;
     const [trans, inv] = [identity, identity];
     const defaults = { min, max, zero, one, direction, trans, inv };
-    return { type, min, max, zero, one, direction, trans, inv, defaults };
+    return { type, min, max, ...base, trans, inv, defaults };
   }
 
   export function normalize(expanse: ExpanseContinuous, value: number) {
