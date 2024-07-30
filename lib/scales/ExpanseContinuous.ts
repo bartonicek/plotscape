@@ -1,6 +1,11 @@
+import {
+  applyDirection,
+  diff,
+  identity,
+  minmax,
+  prettyBreaks,
+} from "../utils/funs";
 import { Direction } from "../utils/types";
-import { diff, identity, minmax, prettyBreaks } from "../utils/funs";
-import { applyDirection } from "../utils/funs";
 import { Expanse } from "./Expanse";
 import { ExpanseType } from "./ExpanseType";
 
@@ -62,8 +67,9 @@ export namespace ExpanseContinuous {
   }
 
   export function breaks(expanse: ExpanseContinuous, n = 4) {
-    let [min, max] = [0, 1].map((x) => ExpanseContinuous.normalize(expanse, x));
-    [min, max] = [min, max].sort(diff);
+    const [min, max] = [0, 1]
+      .map((x) => ExpanseContinuous.unnormalize(expanse, x))
+      .sort(diff);
 
     const labels = prettyBreaks(min, max, n);
     return labels;

@@ -1,11 +1,10 @@
-import { Frame } from "../Frame";
-import { Geom, GeomType } from "./Geom";
+import { Getter } from "../Getter";
 import { ExpanseContinuous, Scale } from "../main";
+import { Frame } from "../plot/Frame";
+import { makeGetter, rectsIntersect } from "../utils/funs";
 import { LAYER, POSITIONS } from "../utils/symbols";
 import { DataLayer, Indexable, Layers, Rect } from "../utils/types";
-import { defaultParameters } from "../utils/defaultParameters";
-import { Getter } from "../Getter";
-import { makeGetter, rectsIntersect } from "../utils/funs";
+import { Geom, GeomType } from "./Geom";
 
 type PointData = {
   x: number[];

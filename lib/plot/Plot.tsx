@@ -1,7 +1,6 @@
-import { React } from "./utils/JSX";
-import { Expanse, ExpanseContinuous, Scale } from "./main";
-import { Frame } from "./Frame";
-import { colors, defaultParameters } from "./utils/defaultParameters";
+import { Geom } from "../geoms/Geom";
+import { Expanse, ExpanseContinuous, Scale } from "../main";
+import { colors, defaultParameters } from "../utils/defaultParameters";
 import {
   addTailwind,
   getMargins,
@@ -11,10 +10,11 @@ import {
   sqrt,
   square,
   throttle,
-} from "./utils/funs";
-import { Geom } from "./geoms/Geom";
-import { Dataframe, Layers, Margins, Rect } from "./utils/types";
-import { Marker } from "./scene/Marker";
+} from "../utils/funs";
+import { React } from "../utils/JSX";
+import { dataLayers, Layers, Margins, Rect } from "../utils/types";
+import { renderAxisLabels } from "./axes";
+import { Frame } from "./Frame";
 
 enum Mode {
   Select = "select",
@@ -40,6 +40,7 @@ export type Frames = Layers & {
 type EventType =
   | `resize`
   | `render`
+  | `render-axes`
   | `mousedown`
   | `mouseup`
   | `activate`
@@ -47,7 +48,15 @@ type EventType =
   | `selected`
   | `clicked-active`;
 
+export enum PlotType {
+  unknown = `unknown`,
+  scatter = `scatter`,
+  bar = `bar`,
+}
+
 export interface Plot {
+  type: PlotType;
+
   container: HTMLElement;
   dispatch: EventTarget;
   frames: Frames;
@@ -67,11 +76,14 @@ export interface Plot {
 
 export namespace Plot {
   export function of(): Plot {
-    const dispatch = new EventTarget();
+    const type = PlotType.unknown;
     const container = <div class="relative w-full h-full z-12"></div>;
+    const dispatch = new EventTarget();
+
     const frames = {} as Frames;
     const scales = {} as Scales;
     const geoms = [] as Geom[];
+
     const parameters = {
       active: false,
       mousedown: false,
@@ -81,17 +93,16 @@ export namespace Plot {
     };
 
     const margins = getMargins();
-    const mousecoords = [0, 0, 0, 0] as Rect;
 
     const plot = {
+      type,
       container,
       dispatch,
       frames,
-      parameters,
       scales,
       geoms,
+      parameters,
       margins,
-      mousecoords,
     };
 
     setupFrames(plot);
@@ -152,7 +163,7 @@ function setupFrames(plot: Plot) {
   frames.user = Frame.of(<canvas class={def + ` z-10`}></canvas>);
   frames.user.margins = margins;
   Frame.setContext(frames.user, {
-    fillStyle: `#99999933`,
+    fillStyle: `#9999991E`,
     strokeStyle: `#00000000`,
   });
 
@@ -184,22 +195,20 @@ function setupEvents(plot: Plot) {
   const { mousecoords } = parameters;
 
   window.addEventListener(`resize`, () => Plot.dispatch(plot, `resize`));
-  window.addEventListener(`keydown`, (event) => {
-    if (event.code in keydownHandlers) keydownHandlers[event.code](plot);
-  });
+  window.addEventListener(`keydown`, (e) => keydownHandlers[e.code]?.(plot));
 
-  container.addEventListener(`mousedown`, (event) => {
+  container.addEventListener(`mousedown`, (e) => {
     if (parameters.active) Plot.dispatch(plot, `clicked-active`);
     Plot.dispatch(plot, `activate`);
     parameters.mousedown = true;
-    parameters.mousebutton = event.button;
+    parameters.mousebutton = e.button;
 
-    if (event.button === MouseButton.Left) parameters.mode = Mode.Select;
-    else if (event.button === MouseButton.Right) parameters.mode = Mode.Pan;
+    if (e.button === MouseButton.Left) parameters.mode = Mode.Select;
+    else if (e.button === MouseButton.Right) parameters.mode = Mode.Pan;
 
     const { clientHeight } = container;
-    const x = event.offsetX;
-    const y = clientHeight - event.offsetY;
+    const x = e.offsetX;
+    const y = clientHeight - e.offsetY;
 
     mousecoords[0] = x;
     mousecoords[1] = y;
@@ -209,14 +218,14 @@ function setupEvents(plot: Plot) {
     Frame.clear(frames.user);
   });
 
-  container.addEventListener(`contextmenu`, (event) => {
-    event.preventDefault();
+  container.addEventListener(`contextmenu`, (e) => {
+    e.preventDefault();
     parameters.mousedown = true;
     parameters.mousebutton = MouseButton.Right;
     parameters.mode = Mode.Pan;
 
-    parameters.mousecoords[0] = event.offsetX;
-    parameters.mousecoords[1] = container.clientHeight - event.offsetY;
+    parameters.mousecoords[0] = e.offsetX;
+    parameters.mousecoords[1] = container.clientHeight - e.offsetY;
 
     Frame.clear(frames.user);
   });
@@ -227,7 +236,7 @@ function setupEvents(plot: Plot) {
 
   container.addEventListener(
     `mousemove`,
-    throttle((event) => mousemoveHandlers[parameters.mode](plot, event), 10)
+    throttle((e) => mousemoveHandlers[parameters.mode](plot, e), 10)
   );
 
   Plot.listen(plot, `resize`, () => {
@@ -245,22 +254,31 @@ function setupEvents(plot: Plot) {
   });
 
   for (const scale of Object.values(plot.scales)) {
-    Scale.listen(scale, `changed`, () => Plot.dispatch(plot, `render`));
+    Scale.listen(scale, `changed`, () => {
+      Plot.dispatch(plot, `render`);
+      Plot.dispatch(plot, `render-axes`);
+    });
   }
 
   Plot.listen(plot, `activate`, () => {
-    addTailwind(container, `outline outline-1`);
+    addTailwind(container, `outline outline-[1px]`);
     plot.parameters.active = true;
   });
 
   Plot.listen(plot, `deactivate`, () => {
-    removeTailwind(container, `outline outline-1`);
+    removeTailwind(container, `outline outline-[1px]`);
     plot.parameters.active = false;
   });
 
   Plot.listen(plot, `render`, () => {
-    for (const frame of Object.values(plot.frames)) Frame.clear(frame);
+    for (const layer of dataLayers) Frame.clear(frames[layer]);
     for (const geom of plot.geoms) Geom.render(geom, plot.frames);
+  });
+
+  Plot.listen(plot, `render-axes`, () => {
+    for (const layer of [`xAxis`, `yAxis`] as const) Frame.clear(frames[layer]);
+    renderAxisLabels(plot, `x`);
+    renderAxisLabels(plot, `y`);
   });
 }
 
@@ -273,6 +291,9 @@ function setupScales(plot: Plot) {
   scales.area = Scale.of(Expanse.continuous(), Expanse.continuous(0, 5));
 
   const { x, y, area } = scales;
+
+  x.other = y;
+  y.other = x;
 
   const opts = { default: true, silent: true };
   const { expandX: ex, expandY: ey } = defaultParameters;

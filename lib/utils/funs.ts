@@ -208,3 +208,91 @@ export function rectsIntersect(rect1: Rect, rect2: Rect) {
     r1ymin > r2ymax
   );
 }
+
+export function addIndexed(
+  object: Record<string, any>,
+  key: string,
+  value: any
+) {
+  const keys = Object.keys(object);
+  const matching = keys.filter((x) => x.replace(/[0-9]*$/, "") === key);
+  if (matching.length === 0) {
+    object[`${key}1`] = value;
+    return;
+  }
+
+  const counts = matching.map((x) => parseInt(x.match(/[0-9]*$/)![0], 10));
+  const count = Math.max(...counts);
+  object[`${key}${count + 1}`] = value;
+}
+
+export function formatLabels(
+  labels: number[] | string[],
+  options?: { decimalPlaces?: number }
+): string[] {
+  if (!isNumberArray(labels)) return labels;
+
+  const dec = options?.decimalPlaces ?? 4;
+  const shouldFormat = (x: number) => x != 0 && Math.abs(Math.log10(x)) > dec;
+
+  // Use superscript if any number is sufficiently small or sufficiently big
+  const useSuperscript = minmax(labels).some(shouldFormat);
+  const formatFn = useSuperscript ? superscriptFn : noSuperscriptFn;
+  return labels.map(formatFn);
+}
+
+function superscriptFn(x: number) {
+  if (x === 0) return `0`;
+  return exponentialToSuperscript(x.toExponential());
+}
+
+function noSuperscriptFn(x: number) {
+  // Parsing to avoid floating-point precision formatting errors
+  if (x === 0) return `0`;
+  return parseFloat(x.toPrecision(12)).toString();
+}
+
+/**
+ * Turns a number in exponential/scientific notation (e.g. `1.2+e4`)
+ * to its superscript-formatted equivalent (`1.2×10³⁴`).
+ *
+ * @param n A string of a number in scientific notation
+ * @returns A string in superscript-based format
+ */
+export function exponentialToSuperscript(n: string) {
+  let [base, exponent] = n.split("e");
+  exponent = convertToSuperscript(exponent);
+  return base + "×10" + exponent;
+}
+
+const sups: Record<string, string> = {
+  "-": "⁻",
+  "+": "",
+  0: "⁰",
+  1: "¹",
+  2: "²",
+  3: "³",
+  4: "⁴",
+  5: "⁵",
+  6: "⁶",
+  7: "⁷",
+  8: "⁸",
+  9: "⁹",
+};
+
+/**
+ * Converts a string representation of a number to its superscript representation (unicode).
+ *
+ * @param n A number represented as a string
+ * @returns The same number as superscript
+ */
+export function convertToSuperscript(n: string) {
+  return n
+    .split("")
+    .map((x) => sups[x])
+    .join("");
+}
+
+export function isNumberArray(array: any[]): array is number[] {
+  return typeof array[0] === "number";
+}

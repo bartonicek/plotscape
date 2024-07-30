@@ -1,10 +1,9 @@
 import { Points } from "./geoms/Points";
 import { Getter } from "./Getter";
-import { Aggregator, Expanse, Factor, ReactiveData, Scale } from "./main";
-import { Plot } from "./Plot";
-import { Scene } from "./scene/Scene";
+import { Aggregator, Factor, ReactiveData, Scale, Scene } from "./main";
+import { Plot, PlotType } from "./plot/Plot";
 import { LAYER, POSITIONS } from "./utils/symbols";
-import { Dataframe, DataLayer } from "./utils/types";
+import { Dataframe } from "./utils/types";
 
 export namespace Plots {
   export enum Type {
@@ -17,6 +16,7 @@ export namespace Plots {
     selectfn: (data: T) => [any[], any[]] | [any[], any[], any[]]
   ) {
     const plot = Plot.of();
+    plot.type = PlotType.scatter;
 
     const [x, y, area] = selectfn(scene.data);
     const { scales } = plot;

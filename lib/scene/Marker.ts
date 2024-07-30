@@ -37,14 +37,14 @@ export namespace Marker {
   export const listen = makeListenFn<Marker, EventType>();
   export const dispatch = makeDispatchFn<Marker, EventType>();
 
-  export function setGroup(marker: Marker, group: Group) {
+  export function setGroup(marker: Marker, group: GroupType) {
     marker.group = group;
   }
 
   export function update(
     marker: Marker,
     indices: number[],
-    options?: { group?: Group; silent?: boolean }
+    options?: { group?: GroupType; silent?: boolean }
   ) {
     const group = options?.group ?? marker.group;
     clearTransient(marker);

@@ -1,6 +1,5 @@
-import { Frame } from "../Frame";
 import { Scale } from "../main";
-import { Dataframe, Indexable, Layers, Rect } from "../utils/types";
+import { Indexable, Layers, Rect } from "../utils/types";
 import { Points } from "./Points";
 
 export enum GeomType {

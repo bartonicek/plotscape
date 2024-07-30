@@ -1,8 +1,5 @@
 import { makeDispatchFn, makeListenFn } from "../utils/funs";
 import { Expanse, ExpanseValueMap } from "./Expanse";
-import { ExpanseBand } from "./ExpanseBand";
-import { ExpanseContinuous } from "./ExpanseContinuous";
-import { ExpansePoint } from "./ExpansePoint";
 
 export interface Scale<T extends Expanse = any, U extends Expanse = any> {
   other?: Scale;
@@ -60,10 +57,7 @@ export namespace Scale {
   }
 
   export function breaks(scale: Scale) {
-    const { domain } = scale;
-    const labels = Expanse.breaks(domain);
-    const positions = labels.map((x) => Scale.pushforward(scale, x));
-    return { labels, positions };
+    return Expanse.breaks(scale.domain);
   }
 
   export function move(scale: Scale, amount: number) {

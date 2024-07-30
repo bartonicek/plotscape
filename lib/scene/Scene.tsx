@@ -1,8 +1,8 @@
-import { Plot } from "../Plot";
-import { Marker } from "./Marker";
-import { Dataframe } from "../utils/types";
 import { Plots, React } from "../main";
-import { makeDispatchFn, makeListenFn } from "../utils/funs";
+import { Plot, PlotType } from "../plot/Plot";
+import { addIndexed, makeDispatchFn, makeListenFn } from "../utils/funs";
+import { Dataframe } from "../utils/types";
+import { Group, Marker, Transient } from "./Marker";
 
 export interface Scene<T extends Dataframe = Dataframe> {
   data: T;
@@ -14,6 +14,7 @@ export interface Scene<T extends Dataframe = Dataframe> {
 
   marker: Marker;
   plots: Plot[];
+  plotDict: Record<string, Plot>;
 }
 
 type EventType = `resize`;
@@ -23,12 +24,24 @@ export namespace Scene {
     const container = (
       <div class="w-full h-full grid relate bg-[#deded9] grid-rows-1 grid-cols-1 gap-2 p-3"></div>
     ) as HTMLDivElement;
+
     const plots = [] as Plot[];
+    const plotDict = {} as Record<string, Plot>;
     const marker = Marker.of(Object.values(data)[0].length);
     const dispatch = new EventTarget();
     const [rows, cols] = [1, 1];
 
-    const scene = { data, container, rows, cols, dispatch, marker, plots };
+    const scene = {
+      data,
+      container,
+      rows,
+      cols,
+      dispatch,
+      marker,
+      plots,
+      plotDict,
+    };
+
     setupEvents(scene);
 
     return scene;
@@ -43,9 +56,7 @@ export namespace Scene {
   }
 
   export function addPlot(scene: Scene, plot: Plot) {
-    const { container, marker, plots } = scene;
-    plots.push(plot);
-    Plot.append(container, plot);
+    const { container, marker, plots, plotDict } = scene;
 
     Plot.listen(plot, `activate`, () => {
       for (const p of plots) if (p != plot) Plot.dispatch(p, `deactivate`);
@@ -55,13 +66,19 @@ export namespace Scene {
       Marker.update(marker, e.detail.selected);
     });
 
-    Plot.listen(plot, `clicked-active`, () => {
-      Marker.clearTransient(marker);
-    });
+    Plot.listen(plot, `clicked-active`, () => Marker.clearTransient(marker));
 
     Marker.listen(marker, `changed`, () => {
       Plot.dispatch(plot, `render`);
     });
+
+    plots.push(plot);
+    plotDict[`plot${plots.length}`] = plot;
+    if (plot.type != PlotType.unknown) {
+      addIndexed(plotDict, plot.type, plot);
+    }
+
+    Plot.append(container, plot);
 
     const nCols = Math.ceil(Math.sqrt(plots.length));
     const nRows = Math.ceil(plots.length / nCols);
@@ -85,11 +102,19 @@ export namespace Scene {
 }
 
 function setupEvents(scene: Scene) {
-  const { dispatch, plots, container } = scene;
+  const { marker, plots, container } = scene;
 
   container.addEventListener(`dblclick`, () => {
     for (const plot of plots) Plot.dispatch(plot, `deactivate`);
     Marker.clearAll(scene.marker);
+  });
+
+  window.addEventListener(`keydown`, (e) => {
+    keydownHandlers[e.code]?.(scene);
+  });
+
+  window.addEventListener(`keyup`, () => {
+    Marker.setGroup(marker, Transient);
   });
 
   Scene.listen(scene, `resize`, () => {
@@ -98,5 +123,7 @@ function setupEvents(scene: Scene) {
 }
 
 const keydownHandlers: Record<string, (scene: Scene) => void> = {
-  KeyR(scene: Scene) {},
+  Digit1: (scene) => Marker.setGroup(scene.marker, Group.First),
+  Digit2: (scene) => Marker.setGroup(scene.marker, Group.Second),
+  Digit3: (scene) => Marker.setGroup(scene.marker, Group.Third),
 };

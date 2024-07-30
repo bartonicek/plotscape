@@ -1,4 +1,4 @@
-import { Frame } from "../main";
+import { Frame } from "../plot/Frame";
 
 export type MapFn<T> = (next: T) => T;
 export type ReduceFn<T, U> = (prev: U, next: T) => U;

@@ -1,28 +1,6 @@
-import {
-  React,
-  ExpansePoint,
-  ExpanseContinuous,
-  Scale,
-  Frame,
-  Factor,
-  Aggregator,
-  isCanvas,
-  Plot,
-  Expanse,
-  Scene,
-  Plots,
-  Mtcars,
-  ReactiveData,
-} from "../lib/main";
-import { Points } from "../lib/geoms/Points";
-import {
-  fetchJSON,
-  makeGetter,
-  minmax,
-  timeExecution,
-} from "../lib/utils/funs";
-import { LAYER, PARENT } from "../lib/utils/symbols";
+import { Mtcars, Plots, Scene } from "../lib/main";
 import { Group, Marker } from "../lib/scene/Marker";
+import { fetchJSON } from "../lib/utils/funs";
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
 
@@ -133,3 +111,5 @@ const foo = Plots.bar([mtcars.cyl]);
 
 // console.log(Scale.pushforward(plot1.scales.area, 76));
 // console.log(Scale.pushforward(plot1.scales.area, 400));
+
+console.log(scene.plotDict);

@@ -1,7 +1,5 @@
-import { Scale } from "./main";
-import React from "./utils/JSX";
-import { defaultParameters } from "./utils/defaultParameters";
-import { HAnchor, Margins, VAnchor } from "./utils/types";
+import { defaultParameters } from "../utils/defaultParameters";
+import { HAnchor, Margins, VAnchor } from "../utils/types";
 
 export interface Frame {
   canvas: HTMLCanvasElement;
@@ -101,6 +99,15 @@ export namespace Frame {
     frame.context.clearRect(0, 0, frame.width, frame.height);
   }
 
+  export function textWidth(frame: Frame, text: string) {
+    return frame.context.measureText(text).width;
+  }
+
+  export function textHeight(frame: Frame, text: string) {
+    const dims = frame.context.measureText(text);
+    return dims.actualBoundingBoxAscent + dims.actualBoundingBoxDescent;
+  }
+
   type DrawOptions = {
     vAnchor?: VAnchor;
     hAnchor?: HAnchor;
@@ -153,6 +160,23 @@ export namespace Frame {
     y = height - y + vAnchor * h;
 
     context.fillRect(x, y, w, -h);
+  }
+
+  export function text(
+    frame: Frame,
+    x: number,
+    y: number,
+    label: string,
+    options?: { vertical?: boolean }
+  ) {
+    const { context, height } = frame;
+
+    context.save();
+    context.translate(x, height - y);
+    if (options?.vertical) context.rotate(-Math.PI / 2);
+    context.fillText(label, 0, 0);
+    context.translate(-x, -(height - y));
+    context.restore();
   }
 }
 
