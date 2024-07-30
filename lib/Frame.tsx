@@ -33,7 +33,7 @@ export namespace Frame {
 
     const width = clientWidth - clientLeft;
     const height = clientHeight - clientTop;
-    const scalingFactor = 2;
+    const scalingFactor = 3;
     const margins = [0, 0, 0, 0] as Margins;
 
     const contextProps = {};

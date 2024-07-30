@@ -1,5 +1,10 @@
 import { defaultParameters } from "./defaultParameters";
-import { Margins } from "./types";
+import { Indexable, Margins, Rect } from "./types";
+
+export const sqrt = Math.sqrt;
+export function square(x: number) {
+  return x ** 2;
+}
 
 export async function fetchJSON(path: string) {
   return await (await fetch(path)).json();
@@ -135,14 +140,24 @@ export function removeTailwind(element: HTMLElement, classList: string) {
  * @param period Time-window in ms
  * @returns A version of the function that only fires once within each time-window
  */
-export function throttle(fn: Function, period: number) {
+export function throttle<T extends (...args: any[]) => any>(
+  fn: T,
+  period: number
+) {
   let lastTime = 0;
-  return (...args: any[]) => {
+  return function (...args: Parameters<T>) {
     const now = new Date().getTime();
     if (now - lastTime < period) return;
     lastTime = now;
     fn(...args);
   };
+}
+
+export function timeExecution(callbackfn: () => void) {
+  const t1 = performance.now();
+  callbackfn();
+  const t2 = performance.now();
+  return t2 - t1;
 }
 
 export function makeDispatchFn<
@@ -161,10 +176,35 @@ export function makeListenFn<
   return function (
     object: T,
     type: E,
-    eventfn: (event: Event) => void,
+    eventfn: (event: CustomEvent) => void,
     options?: { throttle?: number }
   ) {
     if (options?.throttle) eventfn = throttle(eventfn, options.throttle);
-    object.dispatch.addEventListener(type, eventfn);
+    object.dispatch.addEventListener(type, eventfn as EventListener);
   };
+}
+export function makeGetter<T>(arraylike: Indexable<T>) {
+  if (Array.isArray(arraylike)) {
+    return function (index: number) {
+      return arraylike[index];
+    };
+  } else {
+    return function (index: number) {
+      return arraylike.get(index);
+    };
+  }
+}
+
+export function rectsIntersect(rect1: Rect, rect2: Rect) {
+  const [r1xmin, r1xmax] = [rect1[0], rect1[2]].sort(diff);
+  const [r1ymin, r1ymax] = [rect1[1], rect1[3]].sort(diff);
+  const [r2xmin, r2xmax] = [rect2[0], rect2[2]].sort(diff);
+  const [r2ymin, r2ymax] = [rect2[1], rect2[3]].sort(diff);
+
+  return !(
+    r1xmax < r2xmin || // If any holds, rectangles don't overlap
+    r1xmin > r2xmax ||
+    r1ymax < r2ymin ||
+    r1ymin > r2ymax
+  );
 }

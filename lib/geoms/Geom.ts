@@ -1,5 +1,6 @@
 import { Frame } from "../Frame";
-import { Layers } from "../utils/types";
+import { Scale } from "../main";
+import { Dataframe, Indexable, Layers, Rect } from "../utils/types";
 import { Points } from "./Points";
 
 export enum GeomType {
@@ -8,16 +9,25 @@ export enum GeomType {
 
 export interface Geom {
   type: GeomType;
+  data: Record<string, Indexable<any>>;
+  scales: Record<string, Scale>;
 }
 
+type GeomMethods = {
+  render(geom: Geom, layers: Layers): void;
+  check(geom: Geom, selection: Rect): number[];
+};
+
 export namespace Geom {
-  const namespaces: {
-    [key in GeomType]: { render(geom: Geom, layers: Layers): void };
-  } = {
-    [GeomType.Points]: Points,
-  };
+  const methods: {
+    [key in GeomType]: GeomMethods;
+  } = { [GeomType.Points]: Points };
 
   export function render<T extends Geom>(geom: T, layers: Layers) {
-    namespaces[geom.type].render(geom, layers);
+    methods[geom.type].render(geom, layers);
+  }
+
+  export function check<T extends Geom>(geom: T, selection: Rect) {
+    return methods[geom.type].check(geom, selection);
   }
 }

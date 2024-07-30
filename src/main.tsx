@@ -9,29 +9,22 @@ import {
   isCanvas,
   Plot,
   Expanse,
+  Scene,
+  Plots,
+  Mtcars,
+  ReactiveData,
 } from "../lib/main";
 import { Points } from "../lib/geoms/Points";
-import { fetchJSON, minmax } from "../lib/utils/funs";
+import {
+  fetchJSON,
+  makeGetter,
+  minmax,
+  timeExecution,
+} from "../lib/utils/funs";
 import { LAYER, PARENT } from "../lib/utils/symbols";
+import { Group, Marker } from "../lib/scene/Marker";
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
-// Marker.update(m, [1, 2, 3], 4);
-// Marker.update(m, [1, 2, 3, 4, 5, 6], Transient);
-
-// console.log(m.indices);
-// Marker.clearTransient(m);
-
-// const foof = Expanse;
-
-// const expanse1 = ExpansePoint.of(["a", "b", "c", "d"]);
-// const expanse2 = ExpanseContinuous.of(1, 10);
-
-// const scale1 = Scale.of(expanse1, expanse2);
-// console.log(Scale.pushforward(scale1, "b"));
-
-const frame1 = Frame.of(
-  <canvas class="absolute top-0 right-0 w-full h-full bg-red-100 bg-opacity-50"></canvas>
-);
 
 // Frame.append(frame1, app);
 // Frame.resize(frame1);
@@ -71,53 +64,72 @@ const frame1 = Frame.of(
 // console.log(mtcars.mpg);
 // console.log(factor3.indices);
 
-const mtcars = await fetchJSON(`../datasets/mtcars.json`);
+const mtcars = (await fetchJSON(`../datasets/mtcars.json`)) as Mtcars;
+const scene = Scene.of(mtcars);
+Scene.append(app, scene);
 
-const plot = Plot.of();
-Plot.append(app, plot);
+const plot1 = Plots.scatter(scene, (d) => [d.wt, d.mpg]);
+const plot2 = Plots.scatter(scene, (d) => [d.cyl, d.disp]);
 
-Expanse.set(plot.scales.x.domain, (e) => {
-  const [min, max] = minmax(mtcars.wt);
-  e.min = min;
-  e.max = max;
-  e.zero = 0.1;
-  e.one = 0.9;
-});
+Scene.addPlot(scene, plot1);
+Scene.addPlot(scene, plot2);
+Marker.update(scene.marker, [0, 1, 2, 3], { group: Group.First });
 
-Expanse.set(plot.scales.y.domain, (e) => {
-  const [min, max] = minmax(mtcars.mpg);
-  e.min = min;
-  e.max = max;
-  e.zero = 0.1;
-  e.one = 0.9;
-});
+const foo = Plots.bar([mtcars.cyl]);
 
-Plot.addGeom(
-  plot,
-  Points.of(
-    { x: mtcars.wt, y: mtcars.mpg, [LAYER]: Array(mtcars.mpg.length).fill(7) },
-    plot.scales
-  )
-);
-// plot.frames[0].context.fillRect(
-//   0,
-//   0,
-//   plot.frames[0].width,
-//   plot.frames[0].height
+// const plot1 = Plot.of();
+// const plot2 = Plot.of();
+// Scene.addPlot(scene, plot1);
+// Scene.addPlot(scene, plot2);
+
+// Expanse.set(
+//   plot1.scales.x.domain,
+//   (e) => {
+//     const [min, max] = minmax(mtcars.wt);
+//     e.min = min;
+//     e.max = max;
+//     e.zero = 0.1;
+//     e.one = 0.9;
+//   },
+//   { default: true }
 // );
 
-// plot.scales.x.dispatch.addEventListener(`changed`, () =>
-//   console.log(plot.scales.x)
+// Expanse.set(
+//   plot1.scales.y.domain,
+//   (e) => {
+//     const [min, max] = minmax(mtcars.mpg);
+//     e.min = min;
+//     e.max = max;
+//     e.zero = 0.1;
+//     e.one = 0.9;
+//   },
+//   { default: true }
 // );
 
-function makeDispatchFn<
-  T extends { dispatch: EventTarget },
-  E extends string
->() {
-  return function (object: T, type: E, data?: Record<string, any>) {
-    object.dispatch.dispatchEvent(new CustomEvent(type, { detail: data }));
-  };
-}
+// Plot.addGeom(
+//   plot1,
+//   Points.of(
+//     { x: mtcars.wt, y: mtcars.mpg, [LAYER]: Array(mtcars.mpg.length).fill(7) },
+//     plot1.scales
+//   )
+// );
 
-const dispatch = makeDispatchFn<Plot, `changed`>();
-dispatch(plot, `changed`);
+// const foo = ExpansePoint.of(["a"]);
+// const bar = Expanse.unnormalize(foo, 1);
+
+// const f1 = Factor.bin(mtcars.wt);
+
+// const reactiveData = ReactiveData.of(
+//   mtcars,
+//   { width: 5 },
+//   (d, p) => Factor.bin(d.mpg, p),
+//   (d, f) => ({ sum: Aggregator.aggregate(d.mpg, f, Aggregator.sum) })
+// );
+
+// // console.log(reactiveData.data);
+// ReactiveData.set(reactiveData, (p) => (p.width = 1));
+
+// console.log(reactiveData.data);
+
+// console.log(Scale.pushforward(plot1.scales.area, 76));
+// console.log(Scale.pushforward(plot1.scales.area, 400));

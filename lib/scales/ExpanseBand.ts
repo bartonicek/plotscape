@@ -4,7 +4,8 @@ import { applyDirection } from "../utils/funs";
 import { ExpansePoint } from "./ExpansePoint";
 import { ExpanseType } from "./ExpanseType";
 
-export interface ExpanseBand extends Expanse<ExpanseType.Band> {
+export interface ExpanseBand extends Expanse {
+  type: ExpanseType.Band;
   labels: string[];
 }
 
@@ -35,12 +36,7 @@ export namespace ExpanseBand {
     return labels[index];
   }
 
-  // Have to coerce because of the type tag property
-  export function reorder(expanse: ExpanseBand, indices: number[]) {
-    ExpansePoint.reorder(expanse as unknown as ExpansePoint, indices);
-  }
-
-  export function breaks(expanse: ExpanseBand) {
-    return ExpansePoint.breaks(expanse as unknown as ExpansePoint);
-  }
+  export const train = ExpansePoint.train;
+  export const reorder = ExpansePoint.reorder;
+  export const breaks = ExpansePoint.breaks;
 }

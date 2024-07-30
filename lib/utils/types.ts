@@ -3,6 +3,10 @@ import { Frame } from "../main";
 export type MapFn<T> = (next: T) => T;
 export type ReduceFn<T, U> = (prev: U, next: T) => U;
 
+export type Indexable<T = any> =
+  | T[]
+  | { get(index: number): T; length: number };
+
 export type Reducer<T, U> = {
   name: string;
   initialfn: () => U;
@@ -10,7 +14,7 @@ export type Reducer<T, U> = {
 };
 
 export type Stringable = { toString(): string };
-
+export type Indexables = Record<string, Indexable>;
 export type Dataframe = Record<string | symbol, any[]>;
 
 export enum Direction {

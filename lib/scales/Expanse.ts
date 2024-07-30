@@ -5,8 +5,8 @@ import { Direction } from "../utils/types";
 import { ExpanseType } from "./ExpanseType";
 import { makeDispatchFn, makeListenFn } from "../utils/funs";
 
-export interface Expanse<T = ExpanseType> {
-  type: T;
+export interface Expanse {
+  type: ExpanseType;
   dispatch: EventTarget;
   zero: number;
   one: number;
@@ -32,13 +32,20 @@ export type ExpanseValueMap = {
 
 type EventType = `changed`;
 
+type ExpanseMethods = {
+  normalize(expanse: unknown, value: unknown): number;
+  unnormalize(expanse: unknown, value: unknown): unknown;
+  breaks(expanse: unknown): unknown[];
+  train(
+    expanse: unknown,
+    array: unknown[],
+    options?: { default?: boolean }
+  ): void;
+};
+
 export namespace Expanse {
-  export const namespaces: {
-    [key in ExpanseType]: {
-      normalize(expanse: any, value: any): number;
-      unnormalize(expanse: any, value: any): ExpanseValueMap[key];
-      breaks(expanse: any): ExpanseValueMap[key][];
-    };
+  export const methods: {
+    [key in ExpanseType]: ExpanseMethods;
   } = {
     [ExpanseType.Continuous]: ExpanseContinuous,
     [ExpanseType.Point]: ExpansePoint,
@@ -58,10 +65,12 @@ export namespace Expanse {
 
   export function set<T extends Expanse>(
     expanse: T,
-    setfn: (expanse: any) => void
+    setfn: (expanse: T & { [key in string]: any }) => void,
+    options?: { default?: boolean; silent?: boolean }
   ) {
     setfn(expanse);
-    Expanse.dispatch(expanse, `changed`);
+    if (options?.default) setfn(expanse.defaults as T);
+    if (!options?.silent) Expanse.dispatch(expanse, `changed`);
   }
 
   export function restoreDefaults<T extends Expanse>(expanse: T) {
@@ -76,22 +85,30 @@ export namespace Expanse {
   export const dispatch = makeDispatchFn<Expanse, EventType>();
   export const listen = makeListenFn<Expanse, EventType>();
 
-  export function normalize<T extends ExpanseType>(
-    expanse: Expanse<T>,
-    value: ExpanseValueMap[T]
+  export function normalize<T extends Expanse>(
+    expanse: T,
+    value: ExpanseValueMap[T["type"]]
   ) {
-    return namespaces[expanse.type].normalize(expanse, value);
+    return methods[expanse.type].normalize(expanse, value);
   }
 
-  export function unnormalize<T extends ExpanseType>(
-    expanse: Expanse<T>,
-    value: number
-  ): ExpanseValueMap[T] {
-    return namespaces[expanse.type].unnormalize(expanse, value);
+  export function unnormalize<T extends Expanse>(expanse: T, value: number) {
+    return methods[expanse.type].unnormalize(
+      expanse,
+      value
+    ) as ExpanseValueMap[T["type"]];
+  }
+
+  export function train<T extends Expanse>(
+    expanse: T,
+    array: ExpanseValueMap[T["type"]][],
+    options?: { default?: boolean }
+  ) {
+    return methods[expanse.type].train(expanse, array as any, options);
   }
 
   export function breaks(expanse: Expanse) {
-    return namespaces[expanse.type].breaks(expanse);
+    return methods[expanse.type].breaks(expanse);
   }
 
   export function move(expanse: Expanse, amount: number) {

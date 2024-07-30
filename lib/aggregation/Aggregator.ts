@@ -1,20 +1,29 @@
+import { makeGetter } from "../utils/funs";
 import { PARENT } from "../utils/symbols";
-import { Reducer } from "../utils/types";
+import { Indexable, Reducer } from "../utils/types";
 import { Factor } from "./Factor";
 
 export namespace Aggregator {
+  export const sum = {
+    name: `sum`,
+    initialfn: () => 0,
+    reducefn: (x: number, y: number) => x + y,
+  };
+
   export function aggregate<T, U>(
-    array: T[],
-    reducer: Reducer<T, U>,
-    factor: Factor
+    values: Indexable<T>,
+    factor: Factor,
+    reducer: Reducer<T, U>
   ) {
     const { indices, cardinality } = factor;
     const { initialfn, reducefn } = reducer;
 
     const result = Array.from(Array(cardinality), () => initialfn());
+    const index = makeGetter(indices);
+    const value = makeGetter(values);
 
     for (let i = 0; i < indices.length; i++) {
-      result[indices[i]] = reducefn(result[indices[i]], array[i]);
+      result[index(i)] = reducefn(result[index(i)], value(i));
     }
 
     return result;

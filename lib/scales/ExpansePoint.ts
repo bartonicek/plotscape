@@ -1,8 +1,9 @@
 import { Expanse } from "./Expanse";
-import { applyDirection } from "../utils/funs";
+import { applyDirection, compareAlphaNumeric } from "../utils/funs";
 import { ExpanseType } from "./ExpanseType";
 
-export interface ExpansePoint extends Expanse<ExpanseType.Point> {
+export interface ExpansePoint extends Expanse {
+  type: ExpanseType.Point;
   labels: string[];
 }
 
@@ -32,14 +33,23 @@ export namespace ExpansePoint {
     return labels[index];
   }
 
-  export function reorder(expanse: ExpansePoint, indices: number[]) {
+  export function train(expanse: Omit<ExpansePoint, `type`>, array: string[]) {
+    const labels = Array.from(new Set(array)).sort(compareAlphaNumeric);
+    expanse.labels.length = 0;
+    for (let i = 0; i < labels.length; i++) expanse.labels[i] = labels[i];
+  }
+
+  export function reorder(
+    expanse: Omit<ExpansePoint, `type`>,
+    indices: number[]
+  ) {
     const { labels } = expanse;
     const temp = Array(labels.length);
     for (let i = 0; i < indices.length; i++) temp[i] = labels[indices[i]];
     for (let i = 0; i < temp.length; i++) expanse.labels[i] = temp[i];
   }
 
-  export function breaks(expanse: ExpansePoint) {
+  export function breaks(expanse: Omit<ExpansePoint, `type`>) {
     return expanse.labels;
   }
 }

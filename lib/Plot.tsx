@@ -1,16 +1,20 @@
 import { React } from "./utils/JSX";
 import { Expanse, ExpanseContinuous, Scale } from "./main";
 import { Frame } from "./Frame";
-import { defaultParameters } from "./utils/defaultParameters";
+import { colors, defaultParameters } from "./utils/defaultParameters";
 import {
   addTailwind,
   getMargins,
   makeDispatchFn,
   makeListenFn,
   removeTailwind,
+  sqrt,
+  square,
+  throttle,
 } from "./utils/funs";
 import { Geom } from "./geoms/Geom";
-import { Layers, Margins, Rect } from "./utils/types";
+import { Dataframe, Layers, Margins, Rect } from "./utils/types";
+import { Marker } from "./scene/Marker";
 
 enum Mode {
   Select = "select",
@@ -23,7 +27,12 @@ enum MouseButton {
   Right = 2,
 }
 
-type Scales = { x: Scale; y: Scale; size: Scale };
+type Scales = {
+  x: Scale<any, ExpanseContinuous>;
+  y: Scale<any, ExpanseContinuous>;
+  area: Scale<any, ExpanseContinuous>;
+};
+
 export type Frames = Layers & {
   [key in `base` | `under` | `user` | `xAxis` | `yAxis`]: Frame;
 };
@@ -34,7 +43,9 @@ type EventType =
   | `mousedown`
   | `mouseup`
   | `activate`
-  | `deactivate`;
+  | `deactivate`
+  | `selected`
+  | `clicked-active`;
 
 export interface Plot {
   container: HTMLElement;
@@ -43,24 +54,21 @@ export interface Plot {
 
   scales: Scales;
   geoms: Geom[];
-
   margins: Margins;
-  selectionRect: [x0: number, y0: number, x1: number, y1: number];
 
   parameters: {
     active: boolean;
+    mode: Mode;
     mousedown: boolean;
     mousebutton: MouseButton;
-    mode: Mode;
-    lastX: number;
-    lastY: number;
+    mousecoords: Rect;
   };
 }
 
 export namespace Plot {
   export function of(): Plot {
     const dispatch = new EventTarget();
-    const container = <div class="w-full h-full z-12"></div>;
+    const container = <div class="relative w-full h-full z-12"></div>;
     const frames = {} as Frames;
     const scales = {} as Scales;
     const geoms = [] as Geom[];
@@ -69,12 +77,11 @@ export namespace Plot {
       mousedown: false,
       mousebutton: MouseButton.Left,
       mode: Mode.Select,
-      lastX: 0,
-      lastY: 0,
+      mousecoords: [0, 0, 0, 0] as Rect,
     };
 
     const margins = getMargins();
-    const selectionRect = [0, 0, 0, 0] as Rect;
+    const mousecoords = [0, 0, 0, 0] as Rect;
 
     const plot = {
       container,
@@ -84,7 +91,7 @@ export namespace Plot {
       scales,
       geoms,
       margins,
-      selectionRect,
+      mousecoords,
     };
 
     setupFrames(plot);
@@ -103,8 +110,8 @@ export namespace Plot {
   }
 
   export function addGeom(plot: Plot, geom: Geom) {
+    geom.scales = plot.scales;
     plot.geoms.push(geom);
-    Plot.dispatch(plot, `resize`);
   }
 }
 
@@ -122,7 +129,8 @@ function setupFrames(plot: Plot) {
     canvas.style.zIndex = `${7 - layer + 2}`;
 
     const frame = Frame.of(canvas);
-    const color = defaultParameters.groupColors[layer % 4];
+    const color = colors[layer];
+
     Frame.setContext(frame, { fillStyle: color, strokeStyle: color });
     frame.margins = margins;
 
@@ -172,42 +180,43 @@ function setupFrames(plot: Plot) {
 }
 
 function setupEvents(plot: Plot) {
-  const { container, parameters, frames, selectionRect } = plot;
+  const { container, parameters, frames } = plot;
+  const { mousecoords } = parameters;
 
   window.addEventListener(`resize`, () => Plot.dispatch(plot, `resize`));
+  window.addEventListener(`keydown`, (event) => {
+    if (event.code in keydownHandlers) keydownHandlers[event.code](plot);
+  });
 
-  container.addEventListener(`mousedown`, (e) => {
+  container.addEventListener(`mousedown`, (event) => {
+    if (parameters.active) Plot.dispatch(plot, `clicked-active`);
     Plot.dispatch(plot, `activate`);
     parameters.mousedown = true;
-    parameters.mousebutton = e.button;
+    parameters.mousebutton = event.button;
 
-    if (e.button === MouseButton.Left) parameters.mode = Mode.Select;
-    else if (e.button === MouseButton.Right) parameters.mode = Mode.Pan;
+    if (event.button === MouseButton.Left) parameters.mode = Mode.Select;
+    else if (event.button === MouseButton.Right) parameters.mode = Mode.Pan;
 
     const { clientHeight } = container;
-    const x = e.offsetX;
-    const y = clientHeight - e.offsetY;
+    const x = event.offsetX;
+    const y = clientHeight - event.offsetY;
 
-    selectionRect[0] = x;
-    selectionRect[1] = y;
-    selectionRect[2] = x;
-    selectionRect[3] = y;
+    mousecoords[0] = x;
+    mousecoords[1] = y;
+    mousecoords[2] = x;
+    mousecoords[3] = y;
 
     Frame.clear(frames.user);
   });
 
-  container.addEventListener(`dblclick`, () =>
-    Plot.dispatch(plot, `deactivate`)
-  );
-
-  container.addEventListener(`contextmenu`, (e) => {
-    e.preventDefault();
+  container.addEventListener(`contextmenu`, (event) => {
+    event.preventDefault();
     parameters.mousedown = true;
     parameters.mousebutton = MouseButton.Right;
     parameters.mode = Mode.Pan;
 
-    parameters.lastX = e.offsetX;
-    parameters.lastY = e.offsetY;
+    parameters.mousecoords[0] = event.offsetX;
+    parameters.mousecoords[1] = container.clientHeight - event.offsetY;
 
     Frame.clear(frames.user);
   });
@@ -216,31 +225,23 @@ function setupEvents(plot: Plot) {
     parameters.mousedown = false;
   });
 
-  container.addEventListener(`mousemove`, (e) => {
-    switch (parameters.mode) {
-      case Mode.Select:
-        select(plot, e);
-        break;
-      case Mode.Pan:
-        pan(plot, e);
-        break;
-    }
-  });
+  container.addEventListener(
+    `mousemove`,
+    throttle((event) => mousemoveHandlers[parameters.mode](plot, event), 10)
+  );
 
   Plot.listen(plot, `resize`, () => {
     for (const frame of Object.values(plot.frames)) Frame.resize(frame);
-    const { clientWidth, clientHeight } = container;
     const { scales, margins } = plot;
+    const { clientWidth, clientHeight } = container;
+    const { x, y } = scales;
 
-    Expanse.set(scales.x.codomain, (e) => {
-      e.min = margins[1];
-      e.max = clientWidth - margins[3];
-    });
+    const [bottom, left] = [margins[0], margins[1]];
+    const [top, right] = [clientHeight - margins[2], clientWidth - margins[3]];
+    const opts = { default: true };
 
-    Expanse.set(scales.y.codomain, (e) => {
-      e.min = margins[0];
-      e.max = clientHeight - margins[2];
-    });
+    Expanse.set(x.codomain, (e) => ((e.min = left), (e.max = right)), opts);
+    Expanse.set(y.codomain, (e) => ((e.min = bottom), (e.max = top)), opts);
   });
 
   for (const scale of Object.values(plot.scales)) {
@@ -265,47 +266,76 @@ function setupEvents(plot: Plot) {
 
 function setupScales(plot: Plot) {
   const { scales, container } = plot;
+  const { clientWidth: width, clientHeight: height } = container;
 
-  const { clientWidth, clientHeight } = container;
+  scales.x = Scale.of(Expanse.continuous(), Expanse.continuous(0, width));
+  scales.y = Scale.of(Expanse.continuous(), Expanse.continuous(0, height));
+  scales.area = Scale.of(Expanse.continuous(), Expanse.continuous(0, 5));
 
-  scales.x = Scale.of(Expanse.continuous(), Expanse.continuous(0, clientWidth));
-  scales.y = Scale.of(
-    Expanse.continuous(),
-    Expanse.continuous(0, clientHeight)
-  );
-  scales.size = Scale.of(Expanse.continuous(), Expanse.continuous());
+  const { x, y, area } = scales;
+
+  const opts = { default: true, silent: true };
+  const { expandX: ex, expandY: ey } = defaultParameters;
+
+  Expanse.set(x.domain, (e) => ((e.zero = ex), (e.one = 1 - ex)), opts);
+  Expanse.set(y.domain, (e) => ((e.zero = ey), (e.one = 1 - ey)), opts);
+
+  Expanse.set(area.domain, (e) => (e.ratio = true), opts);
+  Expanse.set(area.codomain, (e) => ((e.trans = square), (e.inv = sqrt)), opts);
 }
 
+const mousemoveHandlers = { select, pan, query };
+
 function select(plot: Plot, event: MouseEvent) {
-  const { container, frames, selectionRect, parameters } = plot;
+  const { container, frames, geoms, parameters } = plot;
   if (!parameters.active || !parameters.mousedown) return;
 
+  const { mousecoords } = parameters;
   const { clientHeight } = container;
   const x = event.offsetX;
   const y = clientHeight - event.offsetY;
 
-  selectionRect[2] = x;
-  selectionRect[3] = y;
+  mousecoords[2] = x;
+  mousecoords[3] = y;
+
+  const selectedCases = new Set<number>();
+
+  for (const geom of geoms) {
+    const selected = Geom.check(geom, mousecoords);
+    for (let i = 0; i < selected.length; i++) selectedCases.add(selected[i]);
+  }
+
+  Plot.dispatch(plot, `selected`, { selected: Array.from(selectedCases) });
 
   Frame.clear(frames.user);
-  Frame.rectangleXY(frames.user, ...selectionRect);
+  Frame.rectangleXY(frames.user, ...mousecoords);
 }
 
 function pan(plot: Plot, event: MouseEvent) {
   const { container, scales, parameters } = plot;
   if (!parameters.active || !parameters.mousedown) return;
 
-  const { lastX, lastY } = parameters;
+  const { mousecoords } = parameters;
   const { clientWidth, clientHeight } = container;
+  const [x0, y0] = mousecoords;
 
   const x = event.offsetX;
   const y = clientHeight - event.offsetY;
-  const xMove = (x - lastX) / clientWidth;
-  const yMove = (y - lastY) / clientHeight;
+  const xMove = (x - x0) / clientWidth;
+  const yMove = (y - y0) / clientHeight;
 
   Scale.move(scales.x, xMove);
   Scale.move(scales.y, yMove);
 
-  parameters.lastX = x;
-  parameters.lastY = y;
+  mousecoords[0] = x;
+  mousecoords[1] = y;
+}
+
+function query() {}
+
+const keydownHandlers: Record<string, (plot: Plot) => void> = { KeyR: reset };
+
+function reset(plot: Plot) {
+  for (const scale of Object.values(plot.scales)) Scale.restoreDefaults(scale);
+  Plot.dispatch(plot, `render`);
 }

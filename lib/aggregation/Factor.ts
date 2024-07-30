@@ -1,11 +1,17 @@
-import { computeBreaks, diff, minmax } from "../utils/funs";
+import {
+  computeBreaks,
+  diff,
+  makeGetter,
+  makeListenFn,
+  minmax,
+} from "../utils/funs";
 import { PARENT, POSITIONS } from "../utils/symbols";
-import { Dataframe, Stringable } from "../utils/types";
+import { Dataframe, Indexable, Stringable } from "../utils/types";
 
-export interface Factor<T extends Dataframe = any> {
+export interface Factor<T extends Dataframe = Dataframe> {
   parent?: Factor;
   cardinality: number;
-  indices: number[];
+  indices: Indexable<number>;
   data: T;
 }
 
@@ -103,6 +109,14 @@ export namespace Factor {
     return of(sorted.length, indices, data);
   }
 
+  export function bijection(cardinality: number) {
+    const indices = {
+      get(index: number) {
+        return index;
+      },
+    };
+  }
+
   /**
    * Creates a factor by taking the Cartesian product of two existing factors.
    * @param factor1 The first factor
@@ -123,8 +137,11 @@ export namespace Factor {
     const factor1Map = {} as Record<number, number>;
     const factor2Map = {} as Record<number, number>;
 
+    const f1Index = makeGetter(factor1.indices);
+    const f2Index = makeGetter(factor2.indices);
+
     for (let i = 0; i < factor1.indices.length; i++) {
-      const [f1level, f2level] = [factor1.indices[i], factor2.indices[i]];
+      const [f1level, f2level] = [f1Index(i), f2Index(i)];
       const index = k * f1level + f2level;
 
       // We have not seen this combination of factor levels before
@@ -154,14 +171,18 @@ export namespace Factor {
     // Copy overs the props from the parent data
     for (let [k, v] of Object.entries(factor1.data) as [string, any[]][]) {
       while (k in data) k += `$`;
-      data[k] = [];
-      for (const i of factor1ParentIndices) data[k].push(v[i]);
+      const col = [];
+      const get = makeGetter(v);
+      for (const i of factor1ParentIndices) col.push(get(i));
+      data[k] = col;
     }
 
     for (let [k, v] of Object.entries(factor2.data) as [string, any[]][]) {
       while (k in data) k += `$`;
-      data[k] = [];
-      for (const i of factor2ParentIndices) data[k].push(v[i]);
+      const col = [];
+      const get = makeGetter(v);
+      for (const i of factor2ParentIndices) col.push(get(i));
+      data[k] = col;
     }
 
     data[POSITIONS] = Object.values(positions);
