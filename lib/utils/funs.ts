@@ -1,4 +1,6 @@
+import { Reactive } from "../Reactive";
 import { defaultParameters } from "./defaultParameters";
+import { EVENTTARGET, NAME } from "./symbols";
 import { Indexable, Margins, Rect } from "./types";
 
 export const sqrt = Math.sqrt;
@@ -6,8 +8,19 @@ export function square(x: number) {
   return x ** 2;
 }
 
+export function trunc(x: number, min: number, max: number) {
+  return Math.max(min, Math.min(x, max));
+}
+
 export async function fetchJSON(path: string) {
   return await (await fetch(path)).json();
+}
+
+export function merge<
+  T extends Record<string, any>,
+  U extends Record<string, any>
+>(object1: T, object2: U) {
+  return { ...object1, ...object2 };
 }
 
 export function minmax(array: number[]) {
@@ -17,6 +30,28 @@ export function minmax(array: number[]) {
     max = Math.max(max, array[i]);
   }
   return [min, max];
+}
+
+export function pick<T extends Record<string, any>>(
+  object: T,
+  key: keyof T | undefined
+) {
+  if (key === undefined) return undefined;
+  object[key];
+}
+
+export function copyValues<T>(source: T[], target: T[]) {
+  target.length = 0;
+  for (let i = 0; i < source.length; i++) target.push(source[i]);
+}
+
+export function subset<T>(array: T[], indices: number[]) {
+  const result = Array(indices.length);
+  for (let i = 0; i < indices.length; i++) {
+    result[i] = array[indices[i]];
+  }
+
+  return result;
 }
 
 /**
@@ -36,6 +71,18 @@ export function diff(x: number, y: number) {
  */
 export function identity<T>(x: T) {
   return x;
+}
+
+export function hasName(object: Object) {
+  return object[NAME] !== undefined;
+}
+
+export function getName(object: Object) {
+  return object[NAME] ?? `unknown`;
+}
+
+export function setName(object: Object, value: string) {
+  object[NAME] = value;
 }
 
 /**
@@ -122,7 +169,8 @@ export function computeBreaks(
 
 export function getMargins() {
   const { marginLines, axisTitleFontsize } = defaultParameters;
-  return marginLines.map((x) => x * axisTitleFontsize) as Margins;
+  const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+  return marginLines.map((x) => x * rem * axisTitleFontsize) as Margins;
 }
 
 export function addTailwind(element: HTMLElement, classList: string) {
@@ -160,19 +208,13 @@ export function timeExecution(callbackfn: () => void) {
   return t2 - t1;
 }
 
-export function makeDispatchFn<
-  T extends { dispatch: EventTarget },
-  E extends string
->() {
+export function makeDispatchFn<T extends Reactive, E extends string>() {
   return function (object: T, type: E, data?: Record<string, any>) {
-    object.dispatch.dispatchEvent(new CustomEvent(type, { detail: data }));
+    object[EVENTTARGET].dispatchEvent(new CustomEvent(type, { detail: data }));
   };
 }
 
-export function makeListenFn<
-  T extends { dispatch: EventTarget },
-  E extends string
->() {
+export function makeListenFn<T extends Reactive, E extends string>() {
   return function (
     object: T,
     type: E,
@@ -180,7 +222,7 @@ export function makeListenFn<
     options?: { throttle?: number }
   ) {
     if (options?.throttle) eventfn = throttle(eventfn, options.throttle);
-    object.dispatch.addEventListener(type, eventfn as EventListener);
+    object[EVENTTARGET].addEventListener(type, eventfn as EventListener);
   };
 }
 export function makeGetter<T>(arraylike: Indexable<T>) {

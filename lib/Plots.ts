@@ -34,17 +34,26 @@ export namespace Plots {
     return plot;
   }
 
-  export function bar(data: [any[]] | [any[], number[]]) {
-    const category = data[0];
-    const value = data[1] ?? Getter.constant(1, category.length);
+  export function bar<T extends Dataframe>(
+    scene: Scene<T>,
+    selectfn: (data: T) => [any[]] | [any[], number[]]
+  ) {
+    const { data, marker } = scene;
+    const [category, _values] = selectfn(data);
+    const values = _values ?? Array(category.length).fill(1);
 
-    const flat = ReactiveData.of(
-      { category, value },
-      {},
-      (d) => Factor.from(d.category),
-      (d, f) => ({ sum: Aggregator.aggregate(d.value, f, Aggregator.sum) })
-    );
+    const factor1 = Factor.from(category);
+    const factor2 = Factor.product(factor1, marker.factor);
+    const factors = [factor1, factor2];
 
-    return flat;
+    function aggregatefn(data: { values: number[] }, factor: Factor) {
+      return {
+        stat1: Aggregator.aggregate(data.values, factor, Aggregator.sum),
+      };
+    }
+
+    const reactiveData = ReactiveData.of({ values }, aggregatefn, ...factors);
+
+    return reactiveData;
   }
 }

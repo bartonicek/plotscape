@@ -1,5 +1,5 @@
-import { Frame, Scale } from "../main";
-import { formatLabels, getMargins } from "../utils/funs";
+import { Expanse, Frame, Scale } from "../main";
+import { formatLabels, getMargins, getName } from "../utils/funs";
 import { Plot } from "./Plot";
 
 export function renderAxisLabels(plot: Plot, axis: `x` | `y`) {
@@ -52,6 +52,20 @@ export function renderAxisLabels(plot: Plot, axis: `x` | `y`) {
       Frame.text(frame, base, y, label);
     }
   }
+}
+
+export function renderAxisTitle(plot: Plot, axis: `x` | `y`) {
+  const { scales, frames, margins } = plot;
+  const scale = scales[axis];
+  const frame = frames.base;
+  const name = getName(scale);
+  const offset = axis === `x` ? margins[0] : margins[1];
+
+  const dim1 = Expanse.unnormalize(scale.codomain, 0.5);
+  const dim2 = Expanse.unnormalize(scale.other!.codomain, 0) - (offset * 2) / 3;
+
+  if (axis === `x`) Frame.text(frame, dim1, dim2, name);
+  if (axis === `y`) Frame.text(frame, dim2, dim1, name, { vertical: true });
 }
 
 function outside(pos: number, lim1: number, lim2: number) {

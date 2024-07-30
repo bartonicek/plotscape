@@ -1,9 +1,11 @@
-import { makeDispatchFn, makeListenFn } from "../utils/funs";
+import { Reactive } from "../Reactive";
+import { getName, makeDispatchFn, makeListenFn } from "../utils/funs";
+import { NAME } from "../utils/symbols";
 import { Expanse, ExpanseValueMap } from "./Expanse";
 
-export interface Scale<T extends Expanse = any, U extends Expanse = any> {
+export interface Scale<T extends Expanse = any, U extends Expanse = any>
+  extends Reactive {
   other?: Scale;
-  dispatch: EventTarget;
   domain: T;
   codomain: U;
 }
@@ -15,8 +17,7 @@ export namespace Scale {
     domain: T,
     codomain: U
   ): Scale<T, U> {
-    const dispatch = new EventTarget();
-    const scale = { domain, dispatch, codomain } as any;
+    const scale = Reactive.of({ domain, codomain });
 
     Expanse.listen(domain, `changed`, () => Scale.dispatch(scale, `changed`));
     Expanse.listen(codomain, `changed`, () => Scale.dispatch(scale, `changed`));
@@ -48,6 +49,7 @@ export namespace Scale {
     array: ExpanseValueMap[T["type"]][],
     options?: { default?: boolean }
   ) {
+    if (getName(array) !== undefined) scale[NAME] = array[NAME];
     Expanse.train(scale.domain, array, options);
   }
 

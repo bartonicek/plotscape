@@ -1,19 +1,23 @@
+import { Reactive } from "../Reactive";
 import {
   computeBreaks,
+  copyValues,
   diff,
+  makeDispatchFn,
   makeGetter,
   makeListenFn,
-  minmax,
 } from "../utils/funs";
-import { PARENT, POSITIONS } from "../utils/symbols";
-import { Dataframe, Indexable, Stringable } from "../utils/types";
+import { POSITIONS } from "../utils/symbols";
+import { Dataframe, Stringable } from "../utils/types";
 
-export interface Factor<T extends Dataframe = Dataframe> {
-  parent?: Factor;
+export interface Factor<T extends Dataframe = Dataframe> extends Reactive {
   cardinality: number;
-  indices: Indexable<number>;
+  indices: number[];
+  parentIndices?: number[];
   data: T;
 }
+
+type EventType = `changed`;
 
 export namespace Factor {
   export function of<T extends Dataframe>(
@@ -21,7 +25,26 @@ export namespace Factor {
     indices: number[],
     data: T
   ): Factor<T> {
-    return { cardinality, indices, data };
+    return Reactive.of({ cardinality, indices, data });
+  }
+
+  export const listen = makeListenFn<Factor, EventType>();
+  export const dispatch = makeDispatchFn<Factor, EventType>();
+
+  export function copyInto<T extends Factor>(target: T, source: T) {
+    target.cardinality = source.cardinality;
+
+    copyValues(source.indices, target.indices);
+
+    if (target.parentIndices && source.parentIndices) {
+      copyValues(source.parentIndices, target.parentIndices);
+    }
+
+    for (const k of Object.keys(source.data)) {
+      copyValues(source.data[k], target.data[k]);
+    }
+
+    copyValues(source.data[POSITIONS], target.data[POSITIONS]);
   }
 
   /**
@@ -34,7 +57,7 @@ export namespace Factor {
   export function from(
     array: Stringable[],
     labels?: string[]
-  ): Factor<{ labels: string[]; [POSITIONS]: number[][] }> {
+  ): Factor<{ label: string[]; [POSITIONS]: number[][] }> {
     const arr = array.map((x) => x.toString());
     labels = labels ?? Array.from(new Set(arr)).sort();
 
@@ -49,7 +72,7 @@ export namespace Factor {
       positions[index].push(i);
     }
 
-    const data = { labels, [POSITIONS]: Object.values(positions) };
+    const data = { label: labels, [POSITIONS]: Object.values(positions) };
 
     return of(labels.length, indices, data);
   }
@@ -75,46 +98,51 @@ export namespace Factor {
     binMax: number[];
     [POSITIONS]: number[][];
   }> {
-    const breaks = options?.breaks ?? computeBreaks(array, options);
+    function compute() {
+      const breaks = options?.breaks ?? computeBreaks(array, options);
 
-    const uniqueIndices = new Set<number>();
-    const indices = [] as number[];
-    const positions = {} as Record<number, number[]>;
+      const uniqueIndices = new Set<number>();
+      const indices = [] as number[];
+      const positions = {} as Record<number, number[]>;
 
-    for (let i = 0; i < array.length; i++) {
-      // index is in (binMin, binMax] (top limit inclusive)
-      const index = breaks!.findIndex((br) => br >= array[i]) - 1;
-      if (!positions[index]) positions[index] = [];
+      for (let i = 0; i < array.length; i++) {
+        // index is in (binMin, binMax] (top limit inclusive)
+        const index = breaks!.findIndex((br) => br >= array[i]) - 1;
+        if (!positions[index]) positions[index] = [];
 
-      indices.push(index);
-      positions[index].push(i);
-      uniqueIndices.add(index);
+        indices.push(index);
+        positions[index].push(i);
+        uniqueIndices.add(index);
+      }
+
+      // Need to clean up indices by removing unused ones,
+      // e.g. [0, 2, 3, 2, 5] -> [0, 1, 2, 1, 3]
+      const sorted = Array.from(uniqueIndices).sort(diff);
+      for (let i = 0; i < indices.length; i++) {
+        indices[i] = sorted.indexOf(indices[i]);
+      }
+
+      const [binMin, binMax] = [[], []] as [number[], number[]];
+      for (let i = 0; i < sorted.length; i++) {
+        binMin.push(breaks[sorted[i]]);
+        binMax.push(breaks[sorted[i] + 1]);
+      }
+
+      const data = { binMin, binMax, [POSITIONS]: Object.values(positions) };
+
+      return of(sorted.length, indices, data);
     }
 
-    // Need to clean up indices by removing unused ones,
-    // e.g. [0, 2, 3, 2, 5] -> [0, 1, 2, 1, 3]
-    const sorted = Array.from(uniqueIndices).sort(diff);
-    for (let i = 0; i < indices.length; i++) {
-      indices[i] = sorted.indexOf(indices[i]);
+    const factor = compute();
+    if (Reactive.isReactive(options)) {
+      Reactive.listen(options, `changed`, () => {
+        const newFactor = compute();
+        Factor.copyInto(factor, newFactor);
+        Factor.dispatch(factor, `changed`);
+      });
     }
 
-    const [binMin, binMax] = [[], []] as [number[], number[]];
-    for (let i = 0; i < sorted.length; i++) {
-      binMin.push(breaks[sorted[i]]);
-      binMax.push(breaks[sorted[i] + 1]);
-    }
-
-    const data = { binMin, binMax, [POSITIONS]: Object.values(positions) };
-
-    return of(sorted.length, indices, data);
-  }
-
-  export function bijection(cardinality: number) {
-    const indices = {
-      get(index: number) {
-        return index;
-      },
-    };
+    return factor;
   }
 
   /**
@@ -128,69 +156,84 @@ export namespace Factor {
     factor1: Factor<T>,
     factor2: Factor<U>
   ): Factor<T & U> {
-    const k = Math.max(factor1.cardinality, factor2.cardinality) + 1;
+    function compute() {
+      const k = Math.max(factor1.cardinality, factor2.cardinality) + 1;
 
-    const uniqueIndices = new Set<number>();
-    const indices = [] as number[];
-    const positions = {} as Record<number, number[]>;
+      const uniqueIndices = new Set<number>();
+      const indices = [] as number[];
+      const positions = {} as Record<number, number[]>;
 
-    const factor1Map = {} as Record<number, number>;
-    const factor2Map = {} as Record<number, number>;
+      const factor1Map = {} as Record<number, number>;
+      const factor2Map = {} as Record<number, number>;
 
-    const f1Index = makeGetter(factor1.indices);
-    const f2Index = makeGetter(factor2.indices);
+      const f1Index = makeGetter(factor1.indices);
+      const f2Index = makeGetter(factor2.indices);
 
-    for (let i = 0; i < factor1.indices.length; i++) {
-      const [f1level, f2level] = [f1Index(i), f2Index(i)];
-      const index = k * f1level + f2level;
+      for (let i = 0; i < factor1.indices.length; i++) {
+        const [f1level, f2level] = [f1Index(i), f2Index(i)];
+        const index = k * f1level + f2level;
 
-      // We have not seen this combination of factor levels before
-      if (!(index in factor1Map)) {
-        factor1Map[index] = f1level;
-        factor2Map[index] = f2level;
-        positions[index] = [];
+        // We have not seen this combination of factor levels before
+        if (!(index in factor1Map)) {
+          factor1Map[index] = f1level;
+          factor2Map[index] = f2level;
+          positions[index] = [];
+        }
+
+        indices.push(index);
+        positions[index].push(i);
+        uniqueIndices.add(index);
       }
 
-      indices.push(index);
-      positions[index].push(i);
-      uniqueIndices.add(index);
+      // Need to clean up indices by removing unused ones,
+      // e.g. [0, 2, 3, 2, 5] -> [0, 1, 2, 1, 3]
+      const sorted = Array.from(uniqueIndices).sort(diff);
+      for (let i = 0; i < indices.length; i++) {
+        indices[i] = sorted.indexOf(indices[i]);
+      }
+
+      const factor1ParentIndices = Object.values(factor1Map);
+      const factor2ParentIndices = Object.values(factor2Map);
+
+      const data = {} as Dataframe;
+
+      // Copy over parent data from factor 1
+      for (let [k, v] of Object.entries(factor1.data) as [string, any[]][]) {
+        while (k in data) k += `$`;
+        const col = [];
+        for (const i of factor1ParentIndices) col.push(v[i]);
+        data[k] = col;
+      }
+
+      // Copy over parent data from factor 2
+      for (let [k, v] of Object.entries(factor2.data) as [string, any[]][]) {
+        while (k in data) k += `$`;
+        const col = [];
+        for (const i of factor2ParentIndices) col.push(v[i]);
+        data[k] = col;
+      }
+
+      data[POSITIONS] = Object.values(positions);
+      const result = of(sorted.length, indices, data) as Factor<T & U>;
+      result.parentIndices = factor1ParentIndices;
+
+      return result;
     }
 
-    // Need to clean up indices by removing unused ones,
-    // e.g. [0, 2, 3, 2, 5] -> [0, 1, 2, 1, 3]
-    const sorted = Array.from(uniqueIndices).sort(diff);
-    for (let i = 0; i < indices.length; i++) {
-      indices[i] = sorted.indexOf(indices[i]);
-    }
+    const factor = compute();
 
-    const factor1ParentIndices = Object.values(factor1Map);
-    const factor2ParentIndices = Object.values(factor2Map);
+    Factor.listen(factor1, `changed`, () => {
+      const newFactor = compute();
+      Factor.copyInto(factor, newFactor);
+      Factor.dispatch(factor, `changed`);
+    });
 
-    const data = {} as Dataframe;
+    Factor.listen(factor2, `changed`, () => {
+      const newFactor = compute();
+      Factor.copyInto(factor, newFactor);
+      Factor.dispatch(factor, `changed`);
+    });
 
-    // Copy overs the props from the parent data
-    for (let [k, v] of Object.entries(factor1.data) as [string, any[]][]) {
-      while (k in data) k += `$`;
-      const col = [];
-      const get = makeGetter(v);
-      for (const i of factor1ParentIndices) col.push(get(i));
-      data[k] = col;
-    }
-
-    for (let [k, v] of Object.entries(factor2.data) as [string, any[]][]) {
-      while (k in data) k += `$`;
-      const col = [];
-      const get = makeGetter(v);
-      for (const i of factor2ParentIndices) col.push(get(i));
-      data[k] = col;
-    }
-
-    data[POSITIONS] = Object.values(positions);
-    data[PARENT] = factor1ParentIndices;
-
-    const result = of(sorted.length, indices, data) as Factor<T & U>;
-    result.parent = factor1;
-
-    return result;
+    return factor;
   }
 }

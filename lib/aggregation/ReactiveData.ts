@@ -1,75 +1,54 @@
-import { makeDispatchFn, makeListenFn } from "../utils/funs";
-import { Dataframe, Indexables } from "../utils/types";
+import { Reactive } from "../Reactive";
+import { copyValues, merge, subset } from "../utils/funs";
+import { PARENT } from "../utils/symbols";
+import { Dataframe } from "../utils/types";
 import { Factor } from "./Factor";
 
-export interface ReactiveData<
-  T extends Dataframe = any,
-  U extends Factor = any,
-  V extends Record<string, any> = any
-> {
-  data: T;
-  factor: U;
-  parameters: V;
-  defaults: V;
-  dispatch: EventTarget;
+export interface ReactiveData<T extends Dataframe> extends Reactive {
+  flat: T;
+  grouped: T;
 }
-
-type EventType = `changed` | `recomputed`;
 
 export namespace ReactiveData {
   export function of<
-    T extends Indexables,
-    U extends Record<string, any>,
-    V extends Factor,
-    W extends Dataframe
-  >(
-    data: T,
-    parameters: U,
-    factorfn: (data: T, parameters: U) => V,
-    computefn: (data: T, factor: V, parameters: U) => W
-  ) {
-    const factor = factorfn(data, parameters);
-    const newData = { ...computefn(data, factor, parameters), ...factor.data };
-    const defaults = { ...parameters };
-    const dispatch = new EventTarget();
+    T extends Dataframe,
+    U extends Dataframe,
+    V extends Factor[]
+  >(data: T, computefn: (data: T, factor: Factor) => U, ...factors: V) {
+    const result = {} as Record<string, U & V[number]["data"]>;
 
-    const reactiveData = {
-      data: newData,
-      factor,
-      parameters,
-      defaults,
-      dispatch,
-    };
+    for (let i = 0; i < factors.length; i++) {
+      result[i] = compute(data, factors[i], computefn, result[i - 1]);
 
-    ReactiveData.listen(reactiveData, `changed`, () => {
-      const { parameters } = reactiveData;
-      const factor = factorfn(data, parameters);
-      const result = computefn(data, factor, parameters);
+      Factor.listen(factors[i], `changed`, () => {
+        const newData = compute(data, factors[i], computefn, result[i - 1]);
 
-      for (const [k, v] of Object.entries(result)) {
-        reactiveData.data[k].length = 0;
-        for (let i = 0; i < v.length; i++) reactiveData.data[k].push(v[i]);
-      }
+        for (const k of Object.keys(newData)) {
+          copyValues(newData[k], result[i][k]);
+          result[i][k][PARENT] = newData[k][PARENT];
+        }
+      });
+    }
 
-      for (const [k, v] of Object.entries(factor.data)) {
-        reactiveData.data[k].length = 0;
-        for (let i = 0; i < v.length; i++) reactiveData.data[k].push(v[i]);
-      }
-    });
-
-    return reactiveData;
+    return result;
   }
 
-  export const listen = makeListenFn<ReactiveData, EventType>();
-  export const dispatch = makeDispatchFn<ReactiveData, EventType>();
-
-  export function set<U extends Record<string, any>>(
-    data: ReactiveData<any, any, U>,
-    setfn: (parameters: U) => void,
-    options?: { default?: boolean; silent?: boolean }
+  function compute<T extends Dataframe, U extends Factor, V extends Dataframe>(
+    data: T,
+    factor: U,
+    computefn: (data: T, factor: U) => V,
+    parentData?: V
   ) {
-    setfn(data.parameters);
-    if (options?.default) setfn(data.defaults);
-    if (!options?.silent) ReactiveData.dispatch(data, `changed`);
+    const computed = computefn(data, factor);
+    if (!(parentData && factor.parentIndices)) {
+      return merge(computed, factor.data);
+    }
+
+    for (const k of Object.keys(computed)) {
+      const parentValues = subset(parentData[k], factor.parentIndices);
+      computed[k][PARENT] = parentValues;
+    }
+
+    return merge(computed, factor.data);
   }
 }

@@ -1,13 +1,13 @@
-import { ExpanseContinuous } from "./ExpanseContinuous";
-import { ExpanseBand } from "./ExpanseBand";
-import { ExpansePoint } from "./ExpansePoint";
-import { Direction } from "../utils/types";
-import { ExpanseType } from "./ExpanseType";
+import { Reactive } from "../Reactive";
 import { makeDispatchFn, makeListenFn } from "../utils/funs";
+import { Direction } from "../utils/types";
+import { ExpanseBand } from "./ExpanseBand";
+import { ExpanseContinuous } from "./ExpanseContinuous";
+import { ExpansePoint } from "./ExpansePoint";
+import { ExpanseType } from "./ExpanseType";
 
-export interface Expanse {
+export interface Expanse extends Reactive {
   type: ExpanseType;
-  dispatch: EventTarget;
   zero: number;
   one: number;
   direction: Direction;
@@ -57,10 +57,9 @@ export namespace Expanse {
   }
 
   export function base() {
-    const dispatch = new EventTarget();
     const [zero, one] = [0, 1];
     const direction = Direction.Forwards;
-    return { dispatch, zero, one, direction };
+    return Reactive.of({ zero, one, direction });
   }
 
   export function set<T extends Expanse>(

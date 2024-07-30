@@ -1,4 +1,7 @@
+import { Factor } from "../main";
+import { Reactive } from "../Reactive";
 import { makeDispatchFn, makeListenFn } from "../utils/funs";
+import { LAYER } from "../utils/symbols";
 
 export const Transient = 255 as const;
 export type Transient = typeof Transient;
@@ -16,11 +19,11 @@ export enum Group {
 
 type GroupType = Group | Transient;
 
-export interface Marker {
+export interface Marker extends Reactive {
   group: GroupType;
   indices: number[];
   transientIndices: number[];
-  dispatch: EventTarget;
+  factor: Factor;
 }
 
 type EventType = `changed`;
@@ -30,8 +33,12 @@ export namespace Marker {
     const group = Transient;
     const indices = Array<number>(n).fill(Group.Base);
     const transientIndices: number[] = [];
-    const dispatch = new EventTarget();
-    return { group, indices, transientIndices, dispatch };
+    const factor = Factor.of(8, indices, { [LAYER]: indices });
+
+    const marker = Reactive.of({ group, indices, transientIndices, factor });
+    Marker.listen(marker, `changed`, () => Factor.dispatch(factor, `changed`));
+
+    return marker;
   }
 
   export const listen = makeListenFn<Marker, EventType>();

@@ -1,4 +1,15 @@
 import { Frame } from "../plot/Frame";
+import { NAME, PARENT } from "./symbols";
+
+declare global {
+  // Makes it possible to assign names to objects such as Arrays
+  interface Object {
+    [NAME]?: string;
+  }
+  interface Array<T> {
+    [PARENT]?: this;
+  }
+}
 
 export type MapFn<T> = (next: T) => T;
 export type ReduceFn<T, U> = (prev: U, next: T) => U;
@@ -48,7 +59,9 @@ export enum MouseButton {
   Right = 2,
 }
 export const dataLayers = [0, 1, 2, 3, 4, 5, 6, 7] as const;
+export const baseLayers = [4, 5, 6, 7] as const;
 export type DataLayer = (typeof dataLayers)[number];
+
 export type Layers = {
   [key in DataLayer]: Frame;
 };

@@ -35,6 +35,7 @@ export namespace ExpanseContinuous {
     const [trans, inv] = [identity, identity];
     const ratio = false;
     const defaults = { min, max, zero, one, direction, trans, inv };
+
     return { type, min, max, ratio, ...base, trans, inv, defaults };
   }
 

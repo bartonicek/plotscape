@@ -1,13 +1,19 @@
-import { Plots, React } from "../main";
+import { Frame, Plots, React } from "../main";
 import { Plot, PlotType } from "../plot/Plot";
-import { addIndexed, makeDispatchFn, makeListenFn } from "../utils/funs";
+import { Reactive } from "../Reactive";
+import {
+  addIndexed,
+  hasName,
+  makeDispatchFn,
+  makeListenFn,
+  setName,
+} from "../utils/funs";
 import { Dataframe } from "../utils/types";
 import { Group, Marker, Transient } from "./Marker";
 
-export interface Scene<T extends Dataframe = Dataframe> {
+export interface Scene<T extends Dataframe = Dataframe> extends Reactive {
   data: T;
   container: HTMLDivElement;
-  dispatch: EventTarget;
 
   rows: number;
   cols: number;
@@ -22,7 +28,7 @@ type EventType = `resize`;
 export namespace Scene {
   export function of<T extends Dataframe>(data: T): Scene<T> {
     const container = (
-      <div class="w-full h-full grid relate bg-[#deded9] grid-rows-1 grid-cols-1 gap-2 p-3"></div>
+      <div class="w-full h-full grid relate bg-[#deded9] grid-rows-1 grid-cols-1 gap-5 p-5"></div>
     ) as HTMLDivElement;
 
     const plots = [] as Plot[];
@@ -31,7 +37,11 @@ export namespace Scene {
     const dispatch = new EventTarget();
     const [rows, cols] = [1, 1];
 
-    const scene = {
+    for (const [k, v] of Object.entries(data)) {
+      if (!hasName(v)) setName(v, k);
+    }
+
+    const scene = Reactive.of({
       data,
       container,
       rows,
@@ -40,7 +50,7 @@ export namespace Scene {
       marker,
       plots,
       plotDict,
-    };
+    });
 
     setupEvents(scene);
 
@@ -66,7 +76,10 @@ export namespace Scene {
       Marker.update(marker, e.detail.selected);
     });
 
-    Plot.listen(plot, `clicked-active`, () => Marker.clearTransient(marker));
+    Plot.listen(plot, `clicked-active`, () => {
+      for (const p of plots) Frame.clear(p.frames.user);
+      Marker.clearTransient(marker);
+    });
 
     Marker.listen(marker, `changed`, () => {
       Plot.dispatch(plot, `render`);
@@ -104,8 +117,15 @@ export namespace Scene {
 function setupEvents(scene: Scene) {
   const { marker, plots, container } = scene;
 
-  container.addEventListener(`dblclick`, () => {
+  container.addEventListener(`mousedown`, () => {
     for (const plot of plots) Plot.dispatch(plot, `deactivate`);
+  });
+
+  container.addEventListener(`dblclick`, () => {
+    for (const plot of plots) {
+      Plot.dispatch(plot, `deactivate`);
+      Frame.clear(plot.frames.user);
+    }
     Marker.clearAll(scene.marker);
   });
 

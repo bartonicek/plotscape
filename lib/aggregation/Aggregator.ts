@@ -29,41 +29,41 @@ export namespace Aggregator {
     return result;
   }
 
-  export function stack<T>(
-    aggregate: T[],
-    reducer: Reducer<T, T>,
-    factor: Factor
-  ) {
-    const { parent } = factor;
+  export function stack<T>(array: T[], factor: Factor, reducer: Reducer<T, T>) {
+    const { parentIndices } = factor;
+    if (!parentIndices) throw new Error(`Factor does not have a parent`);
 
-    if (!parent) throw new Error(`Factor does not have a parent`);
     const { reducefn, initialfn } = reducer;
 
-    const stacked = Array.from(Array<T>(parent.cardinality), () => initialfn());
-    const result = Array.from(Array<T>(aggregate.length), () => initialfn());
+    const stacked = [] as T[];
+    const result = Array.from(Array<T>(array.length), () => initialfn());
 
-    for (let i = 0; i < aggregate.length; i++) {
-      const index = factor.data[PARENT][i];
-      stacked[index] = reducefn(stacked[index], aggregate[i]);
+    for (let i = 0; i < array.length; i++) {
+      const index = parentIndices[i];
+      if (stacked[index] === undefined) stacked[index] = initialfn();
+      stacked[index] = reducefn(stacked[index], array[i]);
       result[i] = stacked[index];
     }
 
+    result[PARENT] = stacked;
     return result;
   }
 
   export function normalize<T>(
-    aggregate: T[],
-    parentAggregate: T[],
+    array: T[],
     factor: Factor,
     normalizefn: (x: T, y: T) => T
   ) {
-    const { parent } = factor;
+    const { parentIndices } = factor;
+    const parentAggregate = array[PARENT];
 
-    if (!parent) throw new Error(`Factor does not have a parent`);
-    const result = [...aggregate];
+    if (!parentIndices) throw new Error(`Factor does not have a parent`);
+    if (!parentAggregate) throw new Error(`Values have not been stacked`);
 
-    for (let i = 0; i < aggregate.length; i++) {
-      const index = factor.data[PARENT][i];
+    const result = [...array];
+
+    for (let i = 0; i < array.length; i++) {
+      const index = parentIndices[i];
       result[i] = normalizefn(result[i], parentAggregate[index]);
     }
 

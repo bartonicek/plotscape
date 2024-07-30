@@ -1,5 +1,6 @@
 import { Geom } from "../geoms/Geom";
 import { Expanse, ExpanseContinuous, Scale } from "../main";
+import { Reactive } from "../Reactive";
 import { colors, defaultParameters } from "../utils/defaultParameters";
 import {
   addTailwind,
@@ -10,10 +11,11 @@ import {
   sqrt,
   square,
   throttle,
+  trunc,
 } from "../utils/funs";
 import { React } from "../utils/JSX";
-import { dataLayers, Layers, Margins, Rect } from "../utils/types";
-import { renderAxisLabels } from "./axes";
+import { baseLayers, dataLayers, Layers, Margins, Rect } from "../utils/types";
+import { renderAxisLabels, renderAxisTitle } from "./axes";
 import { Frame } from "./Frame";
 
 enum Mode {
@@ -54,11 +56,10 @@ export enum PlotType {
   bar = `bar`,
 }
 
-export interface Plot {
+export interface Plot extends Reactive {
   type: PlotType;
 
   container: HTMLElement;
-  dispatch: EventTarget;
   frames: Frames;
 
   scales: Scales;
@@ -78,7 +79,6 @@ export namespace Plot {
   export function of(): Plot {
     const type = PlotType.unknown;
     const container = <div class="relative w-full h-full z-12"></div>;
-    const dispatch = new EventTarget();
 
     const frames = {} as Frames;
     const scales = {} as Scales;
@@ -94,16 +94,15 @@ export namespace Plot {
 
     const margins = getMargins();
 
-    const plot = {
+    const plot = Reactive.of({
       type,
       container,
-      dispatch,
       frames,
       scales,
       geoms,
       parameters,
       margins,
-    };
+    });
 
     setupFrames(plot);
     setupScales(plot);
@@ -149,6 +148,10 @@ function setupFrames(plot: Plot) {
   }
 
   frames.base = Frame.of(<canvas class={def + ` bg-gray-100 z-0`}></canvas>);
+  Frame.setContext(frames.base, {
+    font: `${defaultParameters.axisTitleFontsize}rem sans-serif`,
+  });
+
   frames.under = Frame.of(
     <canvas
       class={def + ` bg-white z-1 border border-l-black border-b-black`}
@@ -162,17 +165,14 @@ function setupFrames(plot: Plot) {
 
   frames.user = Frame.of(<canvas class={def + ` z-10`}></canvas>);
   frames.user.margins = margins;
-  Frame.setContext(frames.user, {
-    fillStyle: `#9999991E`,
-    strokeStyle: `#00000000`,
-  });
+  Frame.setContext(frames.user, { globalAlpha: 1 / 15 });
 
   frames.xAxis = Frame.of(<canvas class={def}></canvas>);
   Frame.setContext(frames.xAxis, {
     fillStyle: `#3B4854`,
     textBaseline: `top`,
     textAlign: `center`,
-    font: `${defaultParameters.axisLabelFontsize}px serif`,
+    font: `${defaultParameters.axisLabelFontsize}rem serif`,
   });
 
   frames.yAxis = Frame.of(<canvas class={def}></canvas>);
@@ -180,7 +180,7 @@ function setupFrames(plot: Plot) {
     fillStyle: `#3B4854`,
     textBaseline: `middle`,
     textAlign: `right`,
-    font: `${defaultParameters.axisLabelFontsize}px serif`,
+    font: `${defaultParameters.axisLabelFontsize}rem serif`,
   });
 
   for (let [k, v] of Object.entries(frames)) {
@@ -195,9 +195,13 @@ function setupEvents(plot: Plot) {
   const { mousecoords } = parameters;
 
   window.addEventListener(`resize`, () => Plot.dispatch(plot, `resize`));
-  window.addEventListener(`keydown`, (e) => keydownHandlers[e.code]?.(plot));
+  window.addEventListener(`keydown`, (e) => {
+    if (!parameters.active) return;
+    keydownHandlers[e.code]?.(plot);
+  });
 
   container.addEventListener(`mousedown`, (e) => {
+    e.stopPropagation();
     if (parameters.active) Plot.dispatch(plot, `clicked-active`);
     Plot.dispatch(plot, `activate`);
     parameters.mousedown = true;
@@ -214,8 +218,6 @@ function setupEvents(plot: Plot) {
     mousecoords[1] = y;
     mousecoords[2] = x;
     mousecoords[3] = y;
-
-    Frame.clear(frames.user);
   });
 
   container.addEventListener(`contextmenu`, (e) => {
@@ -261,12 +263,12 @@ function setupEvents(plot: Plot) {
   }
 
   Plot.listen(plot, `activate`, () => {
-    addTailwind(container, `outline outline-[1px]`);
+    addTailwind(container, `outline outline-2 outline-slate-600`);
     plot.parameters.active = true;
   });
 
   Plot.listen(plot, `deactivate`, () => {
-    removeTailwind(container, `outline outline-[1px]`);
+    removeTailwind(container, `outline outline-2 outline-slate-600`);
     plot.parameters.active = false;
   });
 
@@ -276,9 +278,14 @@ function setupEvents(plot: Plot) {
   });
 
   Plot.listen(plot, `render-axes`, () => {
-    for (const layer of [`xAxis`, `yAxis`] as const) Frame.clear(frames[layer]);
+    for (const layer of [`base`, `xAxis`, `yAxis`] as const) {
+      Frame.clear(frames[layer]);
+    }
+
     renderAxisLabels(plot, `x`);
     renderAxisLabels(plot, `y`);
+    renderAxisTitle(plot, `x`);
+    renderAxisTitle(plot, `y`);
   });
 }
 
@@ -288,7 +295,7 @@ function setupScales(plot: Plot) {
 
   scales.x = Scale.of(Expanse.continuous(), Expanse.continuous(0, width));
   scales.y = Scale.of(Expanse.continuous(), Expanse.continuous(0, height));
-  scales.area = Scale.of(Expanse.continuous(), Expanse.continuous(0, 5));
+  scales.area = Scale.of(Expanse.continuous(), Expanse.continuous(0, 10));
 
   const { x, y, area } = scales;
 
@@ -354,7 +361,41 @@ function pan(plot: Plot, event: MouseEvent) {
 
 function query() {}
 
-const keydownHandlers: Record<string, (plot: Plot) => void> = { KeyR: reset };
+const keydownHandlers: Record<string, (plot: Plot) => void> = {
+  KeyR: reset,
+  Equal: grow,
+  Minus: shrink,
+  BracketLeft: fade,
+  BracketRight: unfade,
+};
+
+function grow(plot: Plot) {
+  const { area } = plot.scales;
+  Expanse.set(area.codomain, (e) => ((e.min *= 10 / 9), (e.max *= 10 / 9)));
+}
+
+function shrink(plot: Plot) {
+  const { area } = plot.scales;
+  Expanse.set(area.codomain, (e) => ((e.min *= 9 / 10), (e.max *= 9 / 10)));
+}
+
+function fade(plot: Plot) {
+  for (const layer of baseLayers) {
+    const frame = plot.frames[layer];
+    const alpha = frame.context.globalAlpha;
+    frame.context.globalAlpha = trunc((alpha * 9) / 10, 0, 1);
+  }
+  Plot.dispatch(plot, `render`);
+}
+
+function unfade(plot: Plot) {
+  for (const layer of baseLayers) {
+    const frame = plot.frames[layer];
+    const alpha = frame.context.globalAlpha;
+    frame.context.globalAlpha = trunc((alpha * 10) / 9, 0, 1);
+  }
+  Plot.dispatch(plot, `render`);
+}
 
 function reset(plot: Plot) {
   for (const scale of Object.values(plot.scales)) Scale.restoreDefaults(scale);
