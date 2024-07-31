@@ -47,9 +47,13 @@ export namespace Scale {
   export function train<T extends Expanse>(
     scale: Scale<T>,
     array: ExpanseValueMap[T["type"]][],
-    options?: { default?: boolean }
+    options?: { default?: boolean; silent?: boolean; ratio?: true }
   ) {
     if (getName(array) !== undefined) scale[NAME] = array[NAME];
+    if (typeof array[0] === "string" && Expanse.isContinuous(scale.domain)) {
+      scale.domain = Expanse.band(array as any) as unknown as T;
+    }
+
     Expanse.train(scale.domain, array, options);
   }
 

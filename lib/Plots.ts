@@ -1,11 +1,12 @@
 import { Reduced } from "./aggregation/Reduced";
 import { Summaries } from "./aggregation/Summaries";
+import { Bars } from "./geoms/Bars";
 import { Points } from "./geoms/Points";
 import { Getter } from "./Getter";
-import { Factor, Reducer, Scale, Scene } from "./main";
+import { Expanse, Factor, Reducer, Scale, Scene } from "./main";
 import { Plot, PlotType } from "./plot/Plot";
 import { Marker } from "./scene/Marker";
-import { LAYER, POSITIONS } from "./utils/symbols";
+import { LAYER, NAME, POSITIONS } from "./utils/symbols";
 import { Dataframe, Indexable } from "./utils/types";
 
 export namespace Plots {
@@ -70,6 +71,32 @@ export namespace Plots {
       }),
     ]);
 
-    return coordinates;
+    const plot = Plot.of();
+    const { scales } = plot;
+    const k = (1 / (Array.from(new Set(category)).length + 1)) * 0.8;
+
+    Scale.train(scales.x, coordinates[0].x as any, { default: true });
+    Scale.train(scales.y, coordinates[0].height as any, {
+      default: true,
+      ratio: true,
+    });
+
+    Scale.train(scales.height, coordinates[0].height as any, {
+      default: true,
+      ratio: true,
+    });
+    Expanse.set(scales.width.codomain, (e) => (e.scale = k), { default: true });
+
+    scales.x[NAME] = category[NAME];
+    scales.y[NAME] = `sum of ${values[NAME]}`;
+
+    const bars = Bars.of({
+      flat: coordinates[0] as any,
+      grouped: coordinates[1] as any,
+    });
+
+    Plot.addGeom(plot, bars);
+
+    return plot;
   }
 }

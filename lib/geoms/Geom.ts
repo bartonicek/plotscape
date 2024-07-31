@@ -1,10 +1,19 @@
 import { Scale } from "../main";
-import { Indexable, Layers, Rect } from "../utils/types";
+import { LAYER, POSITIONS } from "../utils/symbols";
+import { DataLayer, Indexable, Layers, Rect } from "../utils/types";
+import { Bars } from "./Bars";
 import { Points } from "./Points";
 
 export enum GeomType {
   Points,
+  Bars,
 }
+
+export type FlatData = { [POSITIONS]: Indexable<number[]> };
+export type GroupedData = {
+  [POSITIONS]: Indexable<number[]>;
+  [LAYER]: Indexable<DataLayer>;
+};
 
 export interface Geom {
   type: GeomType;
@@ -23,7 +32,7 @@ type GeomMethods = {
 export namespace Geom {
   const methods: {
     [key in GeomType]: GeomMethods;
-  } = { [GeomType.Points]: Points };
+  } = { [GeomType.Points]: Points, [GeomType.Bars]: Bars };
 
   export function render<T extends Geom>(geom: T, layers: Layers) {
     methods[geom.type].render(geom, layers);

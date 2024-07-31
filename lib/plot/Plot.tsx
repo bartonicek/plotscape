@@ -33,6 +33,8 @@ type Scales = {
   x: Scale<any, ExpanseContinuous>;
   y: Scale<any, ExpanseContinuous>;
   area: Scale<any, ExpanseContinuous>;
+  width: Scale<any, ExpanseContinuous>;
+  height: Scale<any, ExpanseContinuous>;
 };
 
 export type Frames = Layers & {
@@ -150,6 +152,8 @@ function setupFrames(plot: Plot) {
   frames.base = Frame.of(<canvas class={def + ` bg-gray-100 z-0`}></canvas>);
   Frame.setContext(frames.base, {
     font: `${defaultParameters.axisTitleFontsize}rem sans-serif`,
+    textBaseline: `middle`,
+    textAlign: `center`,
   });
 
   frames.under = Frame.of(
@@ -245,7 +249,7 @@ function setupEvents(plot: Plot) {
     for (const frame of Object.values(plot.frames)) Frame.resize(frame);
     const { scales, margins } = plot;
     const { clientWidth, clientHeight } = container;
-    const { x, y } = scales;
+    const { x, y, width, height } = scales;
 
     const [bottom, left] = [margins[0], margins[1]];
     const [top, right] = [clientHeight - margins[2], clientWidth - margins[3]];
@@ -253,6 +257,8 @@ function setupEvents(plot: Plot) {
 
     Expanse.set(x.codomain, (e) => ((e.min = left), (e.max = right)), opts);
     Expanse.set(y.codomain, (e) => ((e.min = bottom), (e.max = top)), opts);
+    Expanse.set(width.codomain, (e) => (e.max = right), opts);
+    Expanse.set(height.codomain, (e) => (e.max = top), opts);
   });
 
   for (const scale of Object.values(plot.scales)) {
@@ -296,6 +302,8 @@ function setupScales(plot: Plot) {
   scales.x = Scale.of(Expanse.continuous(), Expanse.continuous(0, width));
   scales.y = Scale.of(Expanse.continuous(), Expanse.continuous(0, height));
   scales.area = Scale.of(Expanse.continuous(), Expanse.continuous(0, 10));
+  scales.height = Scale.of(Expanse.continuous(), Expanse.continuous(0, height));
+  scales.width = Scale.of(Expanse.continuous(), Expanse.continuous(0, width));
 
   const { x, y, area } = scales;
 

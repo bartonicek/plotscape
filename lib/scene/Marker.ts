@@ -3,6 +3,7 @@ import { Factor } from "../main";
 import { Reactive } from "../Reactive";
 import { makeDispatchFn, makeListenFn } from "../utils/funs";
 import { LAYER } from "../utils/symbols";
+import { DataLayer, Indexable } from "../utils/types";
 
 export const Transient = 255 as const;
 export type Transient = typeof Transient;
@@ -93,8 +94,9 @@ export namespace Marker {
     if (!options?.silent) Marker.dispatch(marker, `changed`);
   }
 
-  export function getLayer(marker: Marker) {
-    return Getter.computed((i) => marker.factor.data[LAYER][marker.indices[i]]);
+  export function getLayer(marker: Marker): Indexable<DataLayer> {
+    const { factor, indices } = marker;
+    return Getter.computed((i) => factor.data[LAYER][indices[i]] as DataLayer);
   }
 }
 

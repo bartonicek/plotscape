@@ -21,11 +21,11 @@ Scene.append(app, scene);
 
 const plot1 = Plots.scatter(scene, (d) => [d.wt, d.mpg]);
 const plot2 = Plots.scatter(scene, (d) => [d.cyl, d.disp]);
+const plot3 = Plots.bar(scene, (d) => [d.cyl, d.mpg]);
 
 Scene.addPlot(scene, plot1);
 Scene.addPlot(scene, plot2);
-
-const foo = Plots.bar(scene, (d) => [d.cyl, d.mpg]);
+Scene.addPlot(scene, plot3);
 
 // if (Reactive.isReactive(foo[1])) {
 //   Reactive.listen(foo[1], `changed`, () => console.log(foo[1]));

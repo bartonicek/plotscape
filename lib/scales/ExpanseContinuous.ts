@@ -13,6 +13,7 @@ export interface ExpanseContinuous extends Expanse {
   type: ExpanseType.Continuous;
   min: number;
   max: number;
+  scale: number;
   ratio: boolean;
   trans: (x: number) => number;
   inv: (x: number) => number;
@@ -33,14 +34,13 @@ export namespace ExpanseContinuous {
     const base = Expanse.base();
     const { zero, one, direction } = base;
     const [trans, inv] = [identity, identity];
-    const ratio = false;
-    const defaults = { min, max, zero, one, direction, trans, inv };
-
-    return { type, min, max, ratio, ...base, trans, inv, defaults };
+    const [scale, ratio] = [1, false];
+    const defaults = { min, max, zero, one, direction, scale, trans, inv };
+    return { type, min, max, ratio, ...base, scale, trans, inv, defaults };
   }
 
   export function normalize(expanse: ExpanseContinuous, value: number) {
-    const { min, max, zero, one, direction, trans } = expanse;
+    const { min, max, zero, one, direction, scale, trans } = expanse;
     const range = trans(max) - trans(min);
     let pct = (trans(value) - trans(min)) / range;
     pct = zero + pct * (one - zero);
@@ -50,8 +50,8 @@ export namespace ExpanseContinuous {
 
   // Unnormalize doesn't use direction since [0, 1] already encodes direction
   export function unnormalize(expanse: ExpanseContinuous, value: number) {
-    const { min, max, zero, one, trans, inv } = expanse;
-    const pct = (value - zero) / (one - zero);
+    const { min, max, zero, one, scale, trans, inv } = expanse;
+    const pct = ((value - zero) / (one - zero)) * scale;
     const range = trans(max) - trans(min);
 
     return inv(trans(min) + pct * range);
@@ -60,10 +60,10 @@ export namespace ExpanseContinuous {
   export function train(
     expanse: ExpanseContinuous,
     array: number[],
-    options?: { default?: boolean; silent?: boolean }
+    options?: { default?: boolean; silent?: boolean; ratio?: true }
   ) {
     let [min, max] = minmax(array);
-    min = expanse.ratio ? 0 : min;
+    min = expanse.ratio || options?.ratio ? 0 : min;
     Expanse.set(expanse, (e) => ((e.min = min), (e.max = max)), options);
   }
 

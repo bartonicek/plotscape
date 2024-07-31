@@ -56,6 +56,14 @@ export namespace Expanse {
     return ExpanseContinuous.of(min, max);
   }
 
+  export function point(labels: string[]) {
+    return ExpansePoint.of(labels);
+  }
+
+  export function band(labels: string[]) {
+    return ExpanseBand.of(labels);
+  }
+
   export function base() {
     const [zero, one] = [0, 1];
     const direction = Direction.Forwards;
@@ -101,7 +109,7 @@ export namespace Expanse {
   export function train<T extends Expanse>(
     expanse: T,
     array: ExpanseValueMap[T["type"]][],
-    options?: { default?: boolean }
+    options?: { default?: boolean; ratio?: true }
   ) {
     return methods[expanse.type].train(expanse, array as any, options);
   }
@@ -122,5 +130,13 @@ export namespace Expanse {
     Expanse.set(expanse, () => {
       expanse.direction *= -1;
     });
+  }
+
+  export function isContinuous(expanse: Expanse) {
+    return expanse.type === ExpanseType.Continuous;
+  }
+
+  export function isPoint(expanse: Expanse) {
+    return expanse.type === ExpanseType.Point;
   }
 }
