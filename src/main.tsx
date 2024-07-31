@@ -1,11 +1,7 @@
 import { Mtcars, Plots, Scene } from "../lib/main";
-import { Reactive } from "../lib/Reactive";
-import { Group, Marker } from "../lib/scene/Marker";
 import { fetchJSON } from "../lib/utils/funs";
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
-
-const pars = Reactive.of({ width: 5 });
 
 const mtcars = (await fetchJSON(`../datasets/mtcars.json`)) as Mtcars;
 // const factor1 = Factor.from(mtcars.cyl);
@@ -28,8 +24,11 @@ const plot2 = Plots.scatter(scene, (d) => [d.cyl, d.disp]);
 
 Scene.addPlot(scene, plot1);
 Scene.addPlot(scene, plot2);
-Marker.update(scene.marker, [0, 1, 2, 3], { group: Group.First });
 
-const b = Plots.bar(scene, (d) => [d.cyl]);
+const foo = Plots.bar(scene, (d) => [d.cyl, d.mpg]);
 
-console.log(b);
+// if (Reactive.isReactive(foo[1])) {
+//   Reactive.listen(foo[1], `changed`, () => console.log(foo[1]));
+// }
+
+// Marker.update(scene.marker, [1, 2, 3, 4, 5], { group: Group.First });

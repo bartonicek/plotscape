@@ -1,7 +1,7 @@
 import { Reactive } from "../Reactive";
 import { defaultParameters } from "./defaultParameters";
 import { EVENTTARGET, NAME } from "./symbols";
-import { Indexable, Margins, Rect } from "./types";
+import { Flat, Indexable, Margins, Rect } from "./types";
 
 export const sqrt = Math.sqrt;
 export function square(x: number) {
@@ -19,7 +19,7 @@ export async function fetchJSON(path: string) {
 export function merge<
   T extends Record<string, any>,
   U extends Record<string, any>
->(object1: T, object2: U) {
+>(object1: T, object2: U): Flat<T & U> {
   return { ...object1, ...object2 };
 }
 
@@ -41,6 +41,7 @@ export function pick<T extends Record<string, any>>(
 }
 
 export function copyValues<T>(source: T[], target: T[]) {
+  if (source === target) return;
   target.length = 0;
   for (let i = 0; i < source.length; i++) target.push(source[i]);
 }
@@ -337,4 +338,17 @@ export function convertToSuperscript(n: string) {
 
 export function isNumberArray(array: any[]): array is number[] {
   return typeof array[0] === "number";
+}
+
+export function findLength(indexables: (Indexable | undefined)[]) {
+  let n: number | undefined = undefined;
+  for (const indexable of indexables) {
+    if (indexable && `length` in indexable) n = indexable.length;
+  }
+
+  if (!n) {
+    throw new Error(`At least one variable needs to be of fixed length`);
+  }
+
+  return n;
 }

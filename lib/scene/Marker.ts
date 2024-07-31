@@ -1,3 +1,4 @@
+import { Getter } from "../Getter";
 import { Factor } from "../main";
 import { Reactive } from "../Reactive";
 import { makeDispatchFn, makeListenFn } from "../utils/funs";
@@ -7,14 +8,14 @@ export const Transient = 255 as const;
 export type Transient = typeof Transient;
 
 export enum Group {
-  Base = 7,
-  First = 6,
-  Second = 5,
-  Third = 4,
-  BaseTransient = 3,
-  FirstTransient = 2,
-  SecondTransient = 1,
-  ThirdTransient = 0,
+  Base = 0,
+  First = 1,
+  Second = 2,
+  Third = 3,
+  BaseTransient = 4,
+  FirstTransient = 5,
+  SecondTransient = 6,
+  ThirdTransient = 7,
 }
 
 type GroupType = Group | Transient;
@@ -23,7 +24,7 @@ export interface Marker extends Reactive {
   group: GroupType;
   indices: number[];
   transientIndices: number[];
-  factor: Factor;
+  factor: Factor<{ [LAYER]: number[] }>;
 }
 
 type EventType = `changed`;
@@ -33,7 +34,7 @@ export namespace Marker {
     const group = Transient;
     const indices = Array<number>(n).fill(Group.Base);
     const transientIndices: number[] = [];
-    const factor = Factor.of(8, indices, { [LAYER]: indices });
+    const factor = Factor.of(8, indices, { [LAYER]: [7, 6, 5, 4, 3, 2, 1] });
 
     const marker = Reactive.of({ group, indices, transientIndices, factor });
     Marker.listen(marker, `changed`, () => Factor.dispatch(factor, `changed`));
@@ -54,7 +55,7 @@ export namespace Marker {
     options?: { group?: GroupType; silent?: boolean }
   ) {
     const group = options?.group ?? marker.group;
-    clearTransient(marker);
+    clearTransient(marker, { silent: true });
 
     if (group === Transient) {
       for (let i = 0; i < indices.length; i++) {
@@ -91,12 +92,16 @@ export namespace Marker {
 
     if (!options?.silent) Marker.dispatch(marker, `changed`);
   }
+
+  export function getLayer(marker: Marker) {
+    return Getter.computed((i) => marker.factor.data[LAYER][marker.indices[i]]);
+  }
 }
 
 function addTransient(x: number) {
-  return x & ~4;
+  return x | 4;
 }
 
 function stripTransient(x: number) {
-  return x | 4;
+  return x & ~4;
 }

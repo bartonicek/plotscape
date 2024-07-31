@@ -6,13 +6,15 @@ import {
   makeDispatchFn,
   makeGetter,
   makeListenFn,
+  subset,
 } from "../utils/funs";
 import { POSITIONS } from "../utils/symbols";
-import { Dataframe, Stringable } from "../utils/types";
+import { Dataframe, Flat, Stringable } from "../utils/types";
 
 export interface Factor<T extends Dataframe = Dataframe> extends Reactive {
   cardinality: number;
   indices: number[];
+  parent?: Factor;
   parentIndices?: number[];
   data: T;
 }
@@ -31,7 +33,7 @@ export namespace Factor {
   export const listen = makeListenFn<Factor, EventType>();
   export const dispatch = makeDispatchFn<Factor, EventType>();
 
-  export function copyInto<T extends Factor>(target: T, source: T) {
+  export function copyFrom<T extends Factor>(source: T, target: T) {
     target.cardinality = source.cardinality;
 
     copyValues(source.indices, target.indices);
@@ -40,7 +42,7 @@ export namespace Factor {
       copyValues(source.parentIndices, target.parentIndices);
     }
 
-    for (const k of Object.keys(source.data)) {
+    for (const k of Reflect.ownKeys(source.data)) {
       copyValues(source.data[k], target.data[k]);
     }
 
@@ -92,7 +94,7 @@ export namespace Factor {
    */
   export function bin(
     array: number[],
-    options?: BinOptions
+    options?: BinOptions | (BinOptions & Reactive)
   ): Factor<{
     binMin: number[];
     binMax: number[];
@@ -134,10 +136,10 @@ export namespace Factor {
     }
 
     const factor = compute();
-    if (Reactive.isReactive(options)) {
+    if (options && Reactive.isReactive(options)) {
       Reactive.listen(options, `changed`, () => {
         const newFactor = compute();
-        Factor.copyInto(factor, newFactor);
+        Factor.copyFrom(factor, newFactor);
         Factor.dispatch(factor, `changed`);
       });
     }
@@ -155,7 +157,7 @@ export namespace Factor {
   export function product<T extends Dataframe, U extends Dataframe>(
     factor1: Factor<T>,
     factor2: Factor<U>
-  ): Factor<T & U> {
+  ): Factor<Flat<T & U>> {
     function compute() {
       const k = Math.max(factor1.cardinality, factor2.cardinality) + 1;
 
@@ -198,24 +200,24 @@ export namespace Factor {
       const data = {} as Dataframe;
 
       // Copy over parent data from factor 1
-      for (let [k, v] of Object.entries(factor1.data) as [string, any[]][]) {
-        while (k in data) k += `$`;
-        const col = [];
-        for (const i of factor1ParentIndices) col.push(v[i]);
+      for (let k of Reflect.ownKeys(factor1.data)) {
+        if (typeof k === "string") while (k in data) k += `$`;
+        const col = subset(factor1.data[k], factor1ParentIndices);
         data[k] = col;
       }
 
       // Copy over parent data from factor 2
-      for (let [k, v] of Object.entries(factor2.data) as [string, any[]][]) {
-        while (k in data) k += `$`;
-        const col = [];
-        for (const i of factor2ParentIndices) col.push(v[i]);
+      for (let k of Reflect.ownKeys(factor2.data)) {
+        if (typeof k === "string") while (k in data) k += `$`;
+        const col = subset(factor2.data[k], factor2ParentIndices);
         data[k] = col;
       }
 
       data[POSITIONS] = Object.values(positions);
+
       const result = of(sorted.length, indices, data) as Factor<T & U>;
       result.parentIndices = factor1ParentIndices;
+      result.parent = factor1;
 
       return result;
     }
@@ -224,13 +226,13 @@ export namespace Factor {
 
     Factor.listen(factor1, `changed`, () => {
       const newFactor = compute();
-      Factor.copyInto(factor, newFactor);
+      Factor.copyFrom(newFactor, factor);
       Factor.dispatch(factor, `changed`);
     });
 
     Factor.listen(factor2, `changed`, () => {
       const newFactor = compute();
-      Factor.copyInto(factor, newFactor);
+      Factor.copyFrom(newFactor, factor);
       Factor.dispatch(factor, `changed`);
     });
 

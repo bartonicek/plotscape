@@ -1,8 +1,7 @@
 import "./index.css";
 
-export * from "./aggregation/Aggregator";
 export * from "./aggregation/Factor";
-export * from "./aggregation/ReactiveData";
+export * from "./aggregation/Reducer";
 export * from "./plot/Frame";
 export * from "./plot/Plot";
 export * from "./Plots";

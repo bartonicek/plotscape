@@ -1,28 +1,22 @@
 import { Frame } from "../plot/Frame";
-import { NAME, PARENT } from "./symbols";
+import { NAME } from "./symbols";
 
 declare global {
   // Makes it possible to assign names to objects such as Arrays
   interface Object {
     [NAME]?: string;
   }
-  interface Array<T> {
-    [PARENT]?: this;
-  }
+  // interface Array<T> {
+  //   [PARENT]?: this;
+  // }
 }
+
+export type Flat<T> = { [key in keyof T]: T[key] } & {};
 
 export type MapFn<T> = (next: T) => T;
 export type ReduceFn<T, U> = (prev: U, next: T) => U;
 
-export type Indexable<T = any> =
-  | T[]
-  | { get(index: number): T; length: number };
-
-export type Reducer<T, U> = {
-  name: string;
-  initialfn: () => U;
-  reducefn: ReduceFn<T, U>;
-};
+export type Indexable<T = any> = T[] | { get(index: number): T };
 
 export type Stringable = { toString(): string };
 export type Indexables = Record<string, Indexable>;

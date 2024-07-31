@@ -17,7 +17,9 @@ export namespace Reactive {
     Reactive.dispatch(object, `changed`);
   }
 
-  export function isReactive(object: any): object is Reactive {
+  export function isReactive(
+    object: Record<PropertyKey, any>
+  ): object is Reactive {
     return object[EVENTTARGET] !== undefined;
   }
 

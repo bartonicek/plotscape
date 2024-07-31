@@ -76,7 +76,7 @@ export namespace Scene {
       Marker.update(marker, e.detail.selected);
     });
 
-    Plot.listen(plot, `clicked-active`, () => {
+    Plot.listen(plot, `clear-transient`, () => {
       for (const p of plots) Frame.clear(p.frames.user);
       Marker.clearTransient(marker);
     });

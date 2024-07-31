@@ -48,7 +48,7 @@ type EventType =
   | `activate`
   | `deactivate`
   | `selected`
-  | `clicked-active`;
+  | `clear-transient`;
 
 export enum PlotType {
   unknown = `unknown`,
@@ -202,7 +202,7 @@ function setupEvents(plot: Plot) {
 
   container.addEventListener(`mousedown`, (e) => {
     e.stopPropagation();
-    if (parameters.active) Plot.dispatch(plot, `clicked-active`);
+    if (parameters.active) Plot.dispatch(plot, `clear-transient`);
     Plot.dispatch(plot, `activate`);
     parameters.mousedown = true;
     parameters.mousebutton = e.button;
@@ -357,6 +357,8 @@ function pan(plot: Plot, event: MouseEvent) {
 
   mousecoords[0] = x;
   mousecoords[1] = y;
+
+  Plot.dispatch(plot, `clear-transient`);
 }
 
 function query() {}

@@ -8,7 +8,10 @@ export enum GeomType {
 
 export interface Geom {
   type: GeomType;
-  data: Record<string, Indexable<any>>;
+  data: {
+    flat: Record<string, Indexable>;
+    grouped: Record<string, Indexable>;
+  };
   scales: Record<string, Scale>;
 }
 

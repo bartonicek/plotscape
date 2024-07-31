@@ -1,9 +1,12 @@
+import { Reduced } from "./aggregation/Reduced";
+import { Summaries } from "./aggregation/Summaries";
 import { Points } from "./geoms/Points";
 import { Getter } from "./Getter";
-import { Aggregator, Factor, ReactiveData, Scale, Scene } from "./main";
+import { Factor, Reducer, Scale, Scene } from "./main";
 import { Plot, PlotType } from "./plot/Plot";
+import { Marker } from "./scene/Marker";
 import { LAYER, POSITIONS } from "./utils/symbols";
-import { Dataframe } from "./utils/types";
+import { Dataframe, Indexable } from "./utils/types";
 
 export namespace Plots {
   export enum Type {
@@ -25,10 +28,14 @@ export namespace Plots {
     Scale.train(scales.y, y, { default: true });
     if (area) Scale.train(scales.area, area, { default: true });
 
-    const layer = scene.marker.indices;
-    const pos = Getter.computed((i) => [i], x.length);
+    const { marker } = scene;
 
-    const points = Points.of({ x, y, area, [LAYER]: layer, [POSITIONS]: pos });
+    const layer = Marker.getLayer(marker);
+    const pos = Getter.computed((i) => [i]);
+
+    const data = { x, y, area, [LAYER]: layer, [POSITIONS]: pos };
+
+    const points = Points.of({ flat: data, grouped: data });
     Plot.addGeom(plot, points);
 
     return plot;
@@ -39,21 +46,30 @@ export namespace Plots {
     selectfn: (data: T) => [any[]] | [any[], number[]]
   ) {
     const { data, marker } = scene;
-    const [category, _values] = selectfn(data);
-    const values = _values ?? Array(category.length).fill(1);
+
+    let [category, values] = selectfn(data) as [any[], Indexable<number>];
+    values = values ?? Getter.constant(1);
 
     const factor1 = Factor.from(category);
     const factor2 = Factor.product(factor1, marker.factor);
-    const factors = [factor1, factor2];
+    const factors = [factor1, factor2] as const;
 
-    function aggregatefn(data: { values: number[] }, factor: Factor) {
-      return {
-        stat1: Aggregator.aggregate(data.values, factor, Aggregator.sum),
-      };
-    }
+    const summaries = Summaries.of({ stat: [values, Reducer.sum] }, factors);
+    const coordinates = Summaries.translate(summaries, [
+      (d) => ({
+        x: d.label,
+        y: Getter.constant(0),
+        height: d.stat,
+        width: Getter.constant(1),
+      }),
+      (d) => ({
+        x: d.label,
+        y: Getter.constant(0),
+        height: Reduced.stack(d.stat),
+        width: Getter.constant(1),
+      }),
+    ]);
 
-    const reactiveData = ReactiveData.of({ values }, aggregatefn, ...factors);
-
-    return reactiveData;
+    return coordinates;
   }
 }

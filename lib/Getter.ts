@@ -1,28 +1,34 @@
 export namespace Getter {
-  export function constant<T>(value: T, length: number) {
+  export function of<
+    T extends number | string,
+    U extends T[] | { get(index: number): T } | T
+  >(value: U) {
+    if (Array.isArray(value)) return (index: number) => value[index];
+    if (typeof value === "number" || typeof value === "string") {
+      return () => value;
+    }
+    return (index: number) => value.get(index);
+  }
+
+  export function constant<T>(value: T) {
     return {
-      length,
+      value,
       get() {
-        return value;
+        return this.value;
       },
     };
   }
 
-  export function identity(length: number) {
+  export function identity() {
     return {
-      length,
       get(index: number) {
         return index;
       },
     };
   }
 
-  export function computed<T>(
-    callbackfn: (index: number) => T,
-    length: number
-  ) {
+  export function computed<T>(callbackfn: (index: number) => T) {
     return {
-      length,
       get(index: number) {
         return callbackfn(index);
       },
