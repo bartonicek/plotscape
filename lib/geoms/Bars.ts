@@ -1,7 +1,7 @@
 import { ExpanseContinuous, Frame, Scale } from "../main";
 import { findLength, makeGetter, rectsIntersect } from "../utils/funs";
 import { LAYER, POSITIONS } from "../utils/symbols";
-import { DataLayer, Indexable, Layers, Rect } from "../utils/types";
+import { DataLayer, Indexable, Layers, Rect, VAnchor } from "../utils/types";
 import { FlatData, Geom, GeomType, GroupedData } from "./Geom";
 
 type Data = {
@@ -56,7 +56,7 @@ export namespace Bars {
       const ph = Scale.pushforward(scales.height, getHeight(i));
       const layer = layers[getLayer(i) as DataLayer];
 
-      Frame.rectangleWH(layer, px, py, pw, ph);
+      Frame.rectangleWH(layer, px, py, pw, ph, { vAnchor: VAnchor.Bottom });
     }
   }
 

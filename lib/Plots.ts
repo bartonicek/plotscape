@@ -73,18 +73,17 @@ export namespace Plots {
 
     const plot = Plot.of();
     const { scales } = plot;
-    const k = (1 / (Array.from(new Set(category)).length + 1)) * 0.8;
+    const k = 1 / Array.from(new Set(category)).length;
 
-    Scale.train(scales.x, coordinates[0].x as any, { default: true });
-    Scale.train(scales.y, coordinates[0].height as any, {
+    const flat = coordinates[0] as any;
+    scales.x.domain = Expanse.band([]);
+    Expanse.set(scales.x.domain, (e) => ((e.zero = 0.1), (e.one = 0.9)), {
       default: true,
-      ratio: true,
     });
 
-    Scale.train(scales.height, coordinates[0].height as any, {
-      default: true,
-      ratio: true,
-    });
+    Scale.train(scales.x, flat.x, { default: true });
+    Scale.train(scales.y, flat.height, { default: true, ratio: true });
+    Scale.train(scales.height, flat.height, { default: true, ratio: true });
     Expanse.set(scales.width.codomain, (e) => (e.scale = k), { default: true });
 
     scales.x[NAME] = category[NAME];

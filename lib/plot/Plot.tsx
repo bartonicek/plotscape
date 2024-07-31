@@ -257,8 +257,8 @@ function setupEvents(plot: Plot) {
 
     Expanse.set(x.codomain, (e) => ((e.min = left), (e.max = right)), opts);
     Expanse.set(y.codomain, (e) => ((e.min = bottom), (e.max = top)), opts);
-    Expanse.set(width.codomain, (e) => (e.max = right), opts);
-    Expanse.set(height.codomain, (e) => (e.max = top), opts);
+    Expanse.set(width.codomain, (e) => (e.max = right / 2), opts);
+    Expanse.set(height.codomain, (e) => (e.max = top / 2), opts);
   });
 
   for (const scale of Object.values(plot.scales)) {
