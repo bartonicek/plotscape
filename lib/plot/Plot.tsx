@@ -210,7 +210,7 @@ export namespace Plot {
     [`[`]: fade,
     [`]`]: unfade,
     [`z`]: zoom,
-    [`x`]: popzoom,
+    [`x`]: popZoom,
   };
 
   function grow(plot: Plot) {
@@ -278,14 +278,12 @@ export namespace Plot {
     Expanse.set(scales.height.codomain, (e) => (e.mult *= yStretch));
     Expanse.set(scales.area.codomain, (e) => (e.mult *= areaStretch));
 
-    console.log(scales.height.codomain.mult);
-
     zoomStack.push([x0, y0, x1, y1]);
     Plot.dispatch(plot, `clear-transient`);
     Plot.dispatch(plot, `render`);
   }
 
-  export function popzoom(plot: Plot) {
+  export function popZoom(plot: Plot) {
     const { scales, zoomStack } = plot;
 
     if (zoomStack.length === 1) return;
@@ -297,8 +295,6 @@ export namespace Plot {
 
     Scale.expand(scales.x, ix0, ix1);
     Scale.expand(scales.y, iy0, iy1);
-
-    console.log(scales.y.domain);
 
     const xStretch = rangeInverse(ix0, ix1);
     const yStretch = rangeInverse(iy0, iy1);
@@ -526,4 +522,9 @@ function setupScales(
 
   Expanse.set(width.domain, (e) => (e.one = 1 - 2 * ex), opts);
   Expanse.set(height.domain, (e) => (e.one = 1 - 2 * ey), opts);
+
+  // Truncate so e.g. bars cannot have negative height
+  const trunc0 = (x: number) => Math.max(x, 0);
+  Expanse.set(width.codomain, (e) => (e.inv = trunc0), opts);
+  Expanse.set(height.codomain, (e) => (e.inv = trunc0), opts);
 }

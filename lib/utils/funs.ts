@@ -1,13 +1,149 @@
 import { Reactive } from "../Reactive";
 import { defaultParameters } from "./defaultParameters";
-import { EVENTTARGET, NAME } from "./symbols";
+import { EVENTTARGET } from "./symbols";
 import { Entries, Flat, Indexable, Margins, Rect } from "./types";
 
-export const sqrt = Math.sqrt;
-export const max = Math.max;
+/**
+ * The identity function.
+ * @param x A value
+ * @returns The same value back
+ */
+export function identity<T>(x: T) {
+  return x;
+}
 
+/**
+ * Takes a value and returns it lazily.
+ *
+ * @param x Any value
+ * @returns A function that always returns the original value
+ */
+export const just =
+  <T>(x: T) =>
+  () =>
+    x;
+
+/** Lazily returns the value 0. */
+export const zero = just(0);
+
+/** Lazily returns the value 1. */
+export const one = just(1);
+
+/**
+ * Increments a number by 1.
+ *
+ * @param x A number
+ * @returns The number plus one
+ */
+export function inc(x: number) {
+  return x + 1;
+}
+
+/**
+ * Decrements a number by 1.
+ *
+ * @param x A number
+ * @returns The number minus one.
+ */
+export function dec(x: number) {
+  return x - 1;
+}
+
+/**
+ * Calls a function/callback immediately
+ *
+ * @param fn A callback
+ * @returns The return value of the callback
+ */
+export function call<T extends () => any>(fn: T) {
+  return fn();
+}
+
+/**
+ * Computes the square of a number.
+ *
+ * @param x A number
+ * @returns The number squared
+ */
 export function square(x: number) {
   return x ** 2;
+}
+
+/**
+ * Computes the square root of a number. Exported from `Math`.
+ * @param x A number
+ * @returns The square root of the number
+ */
+export const sqrt = Math.sqrt;
+
+/**
+ * Computes the base-10 logarithm of a number
+ *
+ * @param x A number
+ * @returns Its base-10 logarithm
+ */
+export const log10 = Math.log10;
+
+/**
+ * Computes 10 raised to the power of a number
+ *
+ * @param x A number (the exponent)
+ * @returns Ten raised to the power of `x`
+ */
+export function exp10(x: number) {
+  return 10 ** x;
+}
+
+/**
+ * Computes the maximum of several numbers. Exported from `Math`.
+ * @param values One or more numbers
+ * @returns The highest number
+ */
+export const max = Math.max;
+
+/**
+ * Computes the difference between two numbers.
+ *
+ * @param x A number
+ * @param y Another number
+ * @returns A difference between the two numbers
+ */
+export function diff(x: number, y: number) {
+  return x - y;
+}
+
+/**
+ * Computes the sum of two numbers.
+ *
+ * @param x A number
+ * @param y Another number
+ * @returns A sum of the two numbers
+ */
+export function sum(x: number, y: number) {
+  return x + y;
+}
+
+/**
+ * Computes the product of two numbers.
+ *
+ * @param x A number
+ * @param y Another number
+ * @returns A product of the two numbers
+ */
+export function prod(x: number, y: number) {
+  return x * y;
+}
+
+/**
+ * Truncates a number to a value between `min` and `max`.
+ *
+ * @param value A number
+ * @param min Minimum (defaults to `0`)
+ * @param max Maximum (defaults to `1`)
+ * @returns Either `value`, `min`, or `max`
+ */
+export function trunc(value: number, min: number = 0, max: number = 1) {
+  return Math.min(Math.max(value, min), max);
 }
 
 /**
@@ -41,20 +177,186 @@ export function invertRange(
   return [-min * ri, ri - min * ri];
 }
 
-export function trunc(x: number, min = 0, max = 1) {
-  return Math.max(min, Math.min(x, max));
+/**
+ * Rounds a number to `n` decimal places.
+ *
+ * @param value Number to round
+ * @param places The number of decimal places
+ * @returns The number rounded to `n` decimal places
+ */
+export function round(value: number, places = 0) {
+  return Math.round(value * 10 ** places) / 10 ** places;
 }
 
+/**
+ * Compares two strings alphanumerically (i.e. `ABC2 < ABC20`). Used for sorting.
+ * @param x An alphanumeric string
+ * @param y Another alphanumeric string
+ * @returns `1` if first greater, `-1` if second greater
+ */
+export function compareAlphaNumeric(x: string, y: string) {
+  return x.localeCompare(y, "en", { numeric: true });
+}
+
+/**
+ * Capitalizes a string.
+ *
+ * @param string A string
+ * @returns A capitalized string
+ */
+export function capitalize<T extends string>(string: T) {
+  return (string.charAt(0).toUpperCase() + string.slice(1)) as Capitalize<T>;
+}
+
+/**
+ * Converts a function to lowercase (localized).
+ *
+ * @param string A string
+ * @returns The lowercase version of the string
+ */
+export function toLowerCase(string: string) {
+  return string.toLocaleLowerCase();
+}
+
+/**
+ * Converts a function to uppercase (localized).
+ *
+ * @param string A string
+ * @returns The uppercase version of the string
+ */
+export function toUpperCase(string: string) {
+  return string.toLocaleUpperCase();
+}
+
+/**
+ * Strips whitespace.
+ * @param string A string
+ * @returns The string without whitespace characters
+ */
+export function stripWS(string: string) {
+  return string.replace(/\s/g, "");
+}
+
+/**
+ * Repeats a value `n` times
+ *
+ * @param value The value to repeat
+ * @param n The number of times to repeat
+ * @returns An array of length `n` filled with the value
+ */
+export function rep<T>(value: T, n: number) {
+  return Array(n).fill(value);
+}
+
+/**
+ * Subsets an array on an array of indices. Can specify start and
+ * end to subset on a shorter slice of the index array.
+ *
+ * @param array An array of type `T`
+ * @param indices An array of indices
+ * @param start The position of the start index (defaults to 0)
+ * @param end The position of th end index (defaults to `indices.length`)
+ * @returns A new array of type `T`, ordered based on the indices
+ */
+export function subset<T>(
+  array: T[],
+  indices: number[],
+  start = 0,
+  end = indices.length
+) {
+  const result = Array(end - start) as T[];
+
+  for (let i = 0; i < end - start; i++) {
+    result[i] = array[indices[start + i]];
+  }
+
+  return result;
+}
+
+/**
+ * Find the minimum and maximum of an array.
+ * @param array An array of numbers
+ * @returns The tuple `[min, max]`
+ */
+export function minmax(array: number[]) {
+  let [min, max] = [Infinity, -Infinity];
+  for (let i = 0; i < array.length; i++) {
+    min = Math.min(min, array[i]);
+    max = Math.max(max, array[i]);
+  }
+  return [min, max] as [min: number, max: number];
+}
+
+/**
+ * Computes a cumulative sum of the array of numbers.
+ *
+ * @param array An array of numbers
+ * @returns A array of equal length as the input
+ */
+export function cumsum(array: number[]) {
+  const result = Array(array.length);
+  result[0] = array[0];
+
+  for (let i = 1; i < array.length; i++) {
+    result[i] = array[i] + result[i - 1];
+  }
+
+  return result;
+}
+
+/**
+ * Samples a random integer from within the pre-specified interval
+ *
+ * @param from Start of the interval (inclusive)
+ * @param to End of the interval (exclusive)
+ * @returns An integer within [`start`, `end`)
+ */
+export function randomInteger(from: number, to: number) {
+  return Math.floor(from + Math.random() * to);
+}
+
+/**
+ * Samples `n` integers from within the (`from`, `to`] interval
+ *
+ * @param from Start of the interval (inclusive)
+ * @param to End of the interval (exclusive)
+ * @param n Number of integers to sample
+ * @returns An array of integers in the interval
+ */
+export function uniqueIntegers(
+  from: number,
+  to: number,
+  n: number = to - from
+) {
+  const length = to - from;
+  const sampled = [] as number[];
+  const usedIndices = new Set<number>();
+
+  while (sampled.length < Math.min(n, length)) {
+    let integer = randomInteger(from, to);
+    while (usedIndices.has(integer)) integer = randomInteger(from, to);
+    sampled.push(integer);
+    usedIndices.add(integer);
+  }
+
+  return sampled;
+}
+
+/**
+ * Fetches a JSON object from path. Can error (in two ways).
+ * @param path A file path
+ * @returns A JSON object
+ */
 export async function fetchJSON(path: string) {
   return await (await fetch(path)).json();
 }
 
-export function suppressError(fn: () => void) {
-  try {
-    fn();
-  } catch {}
-}
-
+/**
+ * Merges two objects together
+ * @param object1 An object
+ * @param object2 Another object
+ * @returns An object with properties of both (shallow copy)
+ */
 export function merge<
   T extends Record<string, any>,
   U extends Record<string, any>
@@ -62,74 +364,27 @@ export function merge<
   return { ...object1, ...object2 };
 }
 
-export function minmax(array: number[]) {
-  let [min, max] = [Infinity, -Infinity];
-  for (let i = 0; i < array.length; i++) {
-    min = Math.min(min, array[i]);
-    max = Math.max(max, array[i]);
-  }
-  return [min, max];
-}
-
-export function pick<T extends Record<string, any>>(
-  object: T,
-  key: keyof T | undefined
-) {
-  if (key === undefined) return undefined;
-  object[key];
-}
-
+/**
+ * Copies values from one array to another, mutating in place (keeping the pointer the same but replacing everything)
+ * @param source The source array
+ * @param target The target array
+ */
 export function copyValues<T>(source: T[], target: T[]) {
   if (source === target) return;
   target.length = 0;
   for (let i = 0; i < source.length; i++) target.push(source[i]);
 }
 
+/**
+ * Copies properties from one object to another, mutating in place
+ * @param source The source object
+ * @param target The target object
+ */
 export function copyProps<T extends Record<string, any>>(source: T, target: T) {
   for (const [k, v] of Object.entries(source) as Entries<T>) {
     if (isArray(v) && isArray(source[k])) copyValues(v, source[k]);
     else target[k] = v;
   }
-}
-
-export function subset<T>(array: T[], indices: number[]) {
-  const result = Array(indices.length);
-  for (let i = 0; i < indices.length; i++) {
-    result[i] = array[indices[i]];
-  }
-
-  return result;
-}
-
-/**
- * Computes a difference between two numbers.
- * @param x A number
- * @param y Another number
- * @returns The difference
- */
-export function diff(x: number, y: number) {
-  return x - y;
-}
-
-/**
- * The identity function.
- * @param x A value
- * @returns The same value back
- */
-export function identity<T>(x: T) {
-  return x;
-}
-
-export function hasName(object: Object) {
-  return object[NAME] !== undefined;
-}
-
-export function getName(object: Object) {
-  return object[NAME] ?? `unknown`;
-}
-
-export function setName(object: Object, value: string) {
-  object[NAME] = value;
 }
 
 /**
@@ -179,16 +434,12 @@ export function prettyBreaks(min: number, max: number, n = 4) {
 }
 
 /**
- * Compares two strings alphanumerically (i.e. `ABC2 < ABC20`). Used for sorting.
- * @param x An alphanumeric string
- * @param y Another alphanumeric string
- * @returns `1` if first greater, `-1` if second greater
+ * Computes breaks of a histogram based on an array.
+ * @param array An array of numbers
+ * @param options A list of options related to the histogram binning
+ * @returns An array of breaks
  */
-export function compareAlphaNumeric(x: string, y: string) {
-  return x.localeCompare(y, "en", { numeric: true });
-}
-
-export function computeBreaks(
+export function binBreaks(
   array: number[],
   options?: { width?: number; anchor?: number; nBins?: number }
 ) {
@@ -214,15 +465,30 @@ export function computeBreaks(
   return breaks;
 }
 
+/**
+ * Get margins by multiplying the number of lines by the font size.
+ * @returns An array of margins in pixels
+ */
 export function getMargins() {
   const { marginLines, axisTitleFontsize } = defaultParameters;
   const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
   return marginLines.map((x) => x * rem * axisTitleFontsize) as Margins;
 }
 
+/**
+ * Adds a list of tailwind classes to an HTML element.
+ * @param element An HTML element
+ * @param classList A list of tailwind classes (strings)
+ */
 export function addTailwind(element: HTMLElement, classList: string) {
   for (const c of classList.split(" ")) element.classList.add(c);
 }
+
+/**
+ * Removes a list of tailwind classes from an HTML element.
+ * @param element An HTML element
+ * @param classList A list of tailwind classes (strings)
+ */
 
 export function removeTailwind(element: HTMLElement, classList: string) {
   for (const c of classList.split(" ")) element.classList.remove(c);
@@ -248,6 +514,11 @@ export function throttle<T extends (...args: any[]) => any>(
   };
 }
 
+/**
+ * Time the execution of a callback.
+ * @param callbackfn A callback function that takes no arguments
+ * @returns The time it took to run the callback
+ */
 export function timeExecution(callbackfn: () => void) {
   const t1 = performance.now();
   callbackfn();
@@ -272,18 +543,19 @@ export function makeListenFn<T extends Reactive, E extends string>() {
     object[EVENTTARGET].addEventListener(type, eventfn as EventListener);
   };
 }
-export function makeGetter<T>(arraylike: Indexable<T>) {
-  if (Array.isArray(arraylike)) {
-    return function (index: number) {
-      return arraylike[index];
-    };
-  } else {
-    return function (index: number) {
-      return arraylike.get(index);
-    };
-  }
+export function makeGetter<T>(indexable: Indexable<T>) {
+  if (typeof indexable === "function") return indexable;
+  return function (index: number) {
+    return indexable[index];
+  };
 }
 
+/**
+ * Checks whether two rectangles intersect.
+ * @param rect1 One rectangle specified by a list of corner coordinates: [x0, y0, x1, y1]
+ * @param rect2 Another rectangle
+ * @returns `true` if the rectangles intersect, false otherwise
+ */
 export function rectsIntersect(rect1: Rect, rect2: Rect) {
   const [r1xmin, r1xmax] = [rect1[0], rect1[2]].sort(diff);
   const [r1ymin, r1ymax] = [rect1[1], rect1[3]].sort(diff);
@@ -298,6 +570,15 @@ export function rectsIntersect(rect1: Rect, rect2: Rect) {
   );
 }
 
+/**
+ * Adds a property to an indexed dictionary. E.g. `addIndexed({ foo1: 420 }, "foo", 69)` returns
+ * `{ foo1: 420, foo2: 69 }`
+ *
+ * @param object An object with properties which may be indexed
+ * @param key A string
+ * @param value Any value
+ * @returns Nothing (mutates the object in place)
+ */
 export function addIndexed(
   object: Record<string, any>,
   key: string,
@@ -315,6 +596,13 @@ export function addIndexed(
   object[`${key}${count + 1}`] = value;
 }
 
+/**
+ * Format plot labels - returns the labels back if they're an array of strings,
+ * otherwise rounds numeric labels and converts them to exponential if too big.
+ * @param labels An array of strings or numbers
+ * @param options A list of options
+ * @returns A formated array of labels
+ */
 export function formatLabels(
   labels: number[] | string[],
   options?: { decimalPlaces?: number }
@@ -382,21 +670,36 @@ export function convertToSuperscript(n: string) {
     .join("");
 }
 
+/**
+ * Checks whether an object is an array. Exported from `Array`.
+ */
 export const isArray = Array.isArray;
 
+/**
+ * Checks whether an array is an array of numbers (by checking the first value only)
+ * @param array An array
+ * @returns `true` if the first element is a number, `false` otherwise
+ */
 export function isNumberArray(array: any[]): array is number[] {
   return typeof array[0] === "number";
 }
 
+/**
+ * Finds the length across a list of `Indexable`s. The function just loops
+ * through the list, until it finds an an array and then it returns its length.
+ * If it doesn't find one (all indexables are functions), then it throws an error.
+ * @param indexables An array of indexables
+ * @returns A `number` (or throws)
+ */
 export function findLength(indexables: (Indexable | undefined)[]) {
   let n: number | undefined = undefined;
   for (const indexable of indexables) {
-    if (indexable && `length` in indexable) n = indexable.length;
+    if (Array.isArray(indexable)) n = indexable.length;
+    break;
   }
 
-  if (!n) {
-    throw new Error(`At least one variable needs to be of fixed length`);
-  }
+  const msg = `At least one variable needs to be of fixed length`;
+  if (!n) throw new Error(msg);
 
   return n;
 }

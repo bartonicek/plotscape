@@ -1,5 +1,6 @@
 import { Expanse, Frame, Scale } from "../main";
-import { formatLabels, getMargins, getName } from "../utils/funs";
+import { formatLabels, getMargins } from "../utils/funs";
+import { Name } from "../utils/Name";
 import { Plot } from "./Plot";
 
 export function renderAxisLabels(plot: Plot, axis: `x` | `y`) {
@@ -40,10 +41,10 @@ export function renderAxisLabels(plot: Plot, axis: `x` | `y`) {
       const w = Frame.textWidth(frame, label) + 1;
       const h = Frame.textHeight(frame, label) + 1;
 
-      if (plot.margins[1] / 2 < w) {
-        plot.margins[1] = 2 * w;
-        Plot.dispatch(plot, `resize`);
-      }
+      // if (plot.margins[1] / 2 < w) {
+      //   plot.margins[1] = 2 * w;
+      //   Plot.dispatch(plot, `resize`);
+      // }
 
       if (outside(y, bottom, height - top)) continue;
       if (overlap(lastY, y, lastH, h)) continue;
@@ -58,7 +59,7 @@ export function renderAxisTitle(plot: Plot, axis: `x` | `y`) {
   const { scales, frames, margins } = plot;
   const scale = scales[axis];
   const frame = frames.base;
-  const name = getName(scale);
+  const name = Name.get(scale);
   const offset = axis === `x` ? margins[0] : margins[1];
 
   const dim1 = Expanse.unnormalize(scale.codomain, 0.5);

@@ -11,27 +11,14 @@ export namespace Getter {
   }
 
   export function constant<T>(value: T) {
-    return {
-      value,
-      get() {
-        return this.value;
-      },
-    };
+    return () => value;
   }
 
   export function identity() {
-    return {
-      get(index: number) {
-        return index;
-      },
-    };
+    return (index: number) => index;
   }
 
   export function computed<T>(callbackfn: (index: number) => T) {
-    return {
-      get(index: number) {
-        return callbackfn(index);
-      },
-    };
+    return (index: number) => callbackfn(index);
   }
 }

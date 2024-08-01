@@ -1,6 +1,6 @@
 import { Reactive } from "../Reactive";
 import {
-  computeBreaks,
+  binBreaks,
   copyValues,
   diff,
   makeDispatchFn,
@@ -101,7 +101,7 @@ export namespace Factor {
     [POSITIONS]: number[][];
   }> {
     function compute() {
-      const breaks = options?.breaks ?? computeBreaks(array, options);
+      const breaks = options?.breaks ?? binBreaks(array, options);
 
       const uniqueIndices = new Set<number>();
       const indices = [] as number[];

@@ -1,5 +1,6 @@
 import { Reactive } from "../Reactive";
-import { getName, makeDispatchFn, makeListenFn } from "../utils/funs";
+import { makeDispatchFn, makeListenFn } from "../utils/funs";
+import { Name } from "../utils/Name";
 import { NAME } from "../utils/symbols";
 import { Expanse, ExpanseValueMap } from "./Expanse";
 
@@ -58,7 +59,7 @@ export namespace Scale {
     array: ExpanseValueMap[T["type"]][],
     options?: { default?: boolean; silent?: boolean; ratio?: true }
   ) {
-    if (getName(array) !== undefined) scale[NAME] = array[NAME];
+    if (Name.has(array)) scale[NAME] = array[NAME];
 
     // Automatically coerce expanse to band if array is string
     if (typeof array[0] === "string" && Expanse.isContinuous(scale.domain)) {

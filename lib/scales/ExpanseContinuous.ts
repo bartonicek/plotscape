@@ -15,9 +15,14 @@ export interface ExpanseContinuous extends Expanse {
   max: number;
   scale: number;
   mult: number;
+  offset: number;
+
   ratio: boolean;
+  negative: boolean;
+
   trans: (x: number) => number;
   inv: (x: number) => number;
+
   defaults: {
     min: number;
     max: number;
@@ -39,6 +44,7 @@ export namespace ExpanseContinuous {
       mult?: number;
       offset?: number;
       ratio?: boolean;
+      negative?: boolean;
       zero?: number;
       one?: number;
       direction?: Direction;
@@ -48,10 +54,15 @@ export namespace ExpanseContinuous {
     const base = Expanse.base(options);
     const { zero, one, direction } = base;
     const [trans, inv] = [identity, identity];
-    const ratio = options?.ratio ?? false;
     const scale = options?.scale ?? 1;
     const mult = options?.mult ?? 1;
     const offset = options?.offset ?? 0;
+
+    const ratio = options?.ratio ?? false;
+    const negative = options?.negative ?? false;
+
+    if (negative) {
+    }
 
     const defaults = {
       min,
@@ -74,6 +85,7 @@ export namespace ExpanseContinuous {
       mult,
       offset,
       ratio,
+      negative,
       ...base,
       trans,
       inv,
