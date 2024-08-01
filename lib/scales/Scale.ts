@@ -50,8 +50,11 @@ export namespace Scale {
     options?: { default?: boolean; silent?: boolean; ratio?: true }
   ) {
     if (getName(array) !== undefined) scale[NAME] = array[NAME];
+
+    // Automatically coerce expanse to band if array is string
     if (typeof array[0] === "string" && Expanse.isContinuous(scale.domain)) {
-      scale.domain = Expanse.band(array as any) as unknown as T;
+      const labels = Array.from(new Set(array) as Set<string>);
+      scale.domain = Expanse.band(labels) as unknown as T;
     }
 
     Expanse.train(scale.domain, array, options);

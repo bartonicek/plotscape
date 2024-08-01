@@ -1,6 +1,12 @@
 import { Reactive } from "../Reactive";
-import { makeDispatchFn, makeListenFn } from "../utils/funs";
-import { Direction } from "../utils/types";
+import {
+  copyProps,
+  copyValues,
+  isArray,
+  makeDispatchFn,
+  makeListenFn,
+} from "../utils/funs";
+import { Direction, Entries } from "../utils/types";
 import { ExpanseBand } from "./ExpanseBand";
 import { ExpanseContinuous } from "./ExpanseContinuous";
 import { ExpansePoint } from "./ExpansePoint";
@@ -11,10 +17,13 @@ export interface Expanse extends Reactive {
   zero: number;
   one: number;
   direction: Direction;
+  frozen: string[];
+  linked: Expanse[];
   defaults: {
     zero: number;
     one: number;
     direction: Direction;
+    [key: string]: any;
   };
 }
 
@@ -52,22 +61,21 @@ export namespace Expanse {
     [ExpanseType.Band]: ExpanseBand,
   };
 
-  export function continuous(min = 0, max = 1) {
-    return ExpanseContinuous.of(min, max);
-  }
+  export const continuous = ExpanseContinuous.of;
+  export const point = ExpansePoint.of;
+  export const band = ExpanseBand.of;
 
-  export function point(labels: string[]) {
-    return ExpansePoint.of(labels);
-  }
-
-  export function band(labels: string[]) {
-    return ExpanseBand.of(labels);
-  }
-
-  export function base() {
-    const [zero, one] = [0, 1];
-    const direction = Direction.Forwards;
-    return Reactive.of({ zero, one, direction });
+  export function base(options?: {
+    zero?: number;
+    one?: number;
+    direction?: Direction;
+  }) {
+    const zero = options?.zero ?? 0;
+    const one = options?.one ?? 1;
+    const direction = options?.direction ?? Direction.Forwards;
+    const frozen = [] as string[];
+    const linked = [] as Expanse[];
+    return Reactive.of({ zero, one, direction, frozen, linked });
   }
 
   export function set<T extends Expanse>(
@@ -75,18 +83,39 @@ export namespace Expanse {
     setfn: (expanse: T & { [key in string]: any }) => void,
     options?: { default?: boolean; silent?: boolean }
   ) {
-    setfn(expanse);
-    if (options?.default) setfn(expanse.defaults as T);
+    const temp = { ...expanse };
+    setfn(temp);
+    for (const k of expanse.frozen) delete temp[k as keyof typeof temp];
+
+    copyProps(temp, expanse);
+    if (options?.default) copyProps(temp, expanse.defaults);
     if (!options?.silent) Expanse.dispatch(expanse, `changed`);
+
+    for (const e of expanse.linked) Expanse.set(e as T, setfn, options);
+  }
+
+  export function freeze<T extends Expanse>(
+    expanse: T,
+    properties: (keyof T)[]
+  ) {
+    for (const prop of properties as string[]) {
+      if (!expanse.frozen.includes(prop)) expanse.frozen.push(prop);
+    }
+  }
+
+  export function linkTo<T extends Expanse>(expanse: T, other: T) {
+    expanse.linked.push(other);
   }
 
   export function restoreDefaults<T extends Expanse>(expanse: T) {
     const { defaults } = expanse;
-    for (const [k, v] of Object.entries(defaults) as [keyof T, T[keyof T]][]) {
-      if (Array.isArray(expanse[k]) && Array.isArray(v)) {
-        for (let i = 0; i < v.length; i++) expanse[k][i] = v[i];
-      } else expanse[k] = v;
+
+    for (const [k, v] of Object.entries(defaults) as Entries<T>) {
+      if (isArray(v) && isArray(expanse[k])) copyValues(v, expanse[k]);
+      else expanse[k] = v;
     }
+
+    Expanse.dispatch(expanse, `changed`);
   }
 
   export const dispatch = makeDispatchFn<Expanse, EventType>();
@@ -119,17 +148,13 @@ export namespace Expanse {
   }
 
   export function move(expanse: Expanse, amount: number) {
-    const { direction } = expanse;
-    Expanse.set(expanse, () => {
-      expanse.zero += direction * amount;
-      expanse.one += direction * amount;
-    });
+    const { direction: d } = expanse;
+    const amt = amount;
+    Expanse.set(expanse, (e) => ((e.zero += d * amt), (e.one += d * amt)));
   }
 
   export function flip(expanse: Expanse) {
-    Expanse.set(expanse, () => {
-      expanse.direction *= -1;
-    });
+    Expanse.set(expanse, () => (expanse.direction *= -1));
   }
 
   export function isContinuous(expanse: Expanse) {

@@ -1,7 +1,14 @@
 import { ExpanseContinuous, Frame, Scale } from "../main";
 import { findLength, makeGetter, rectsIntersect } from "../utils/funs";
 import { LAYER, POSITIONS } from "../utils/symbols";
-import { DataLayer, Indexable, Layers, Rect, VAnchor } from "../utils/types";
+import {
+  DataLayer,
+  HAnchor,
+  Indexable,
+  Layers,
+  Rect,
+  VAnchor,
+} from "../utils/types";
 import { FlatData, Geom, GeomType, GroupedData } from "./Geom";
 
 type Data = {
@@ -18,24 +25,37 @@ type Scales = {
   height: Scale<any, ExpanseContinuous>;
 };
 
+type BarData = { flat: Data & FlatData; grouped: Data & GroupedData };
+
 export interface Bars extends Geom {
   type: GeomType.Bars;
-  data: { flat: Data & FlatData; grouped: Data & GroupedData };
+  data: BarData;
   scales: Scales;
+
+  vAnchor: VAnchor;
+  hAnchor: HAnchor;
 }
 
 export namespace Bars {
-  export function of(data: {
-    flat: Data & FlatData;
-    grouped: Data & GroupedData;
-  }): Bars {
+  export function of(
+    data: BarData,
+    options?: {
+      vAnchor?: VAnchor;
+      hAnchor?: HAnchor;
+    }
+  ): Bars {
     const scales = {} as Scales; // Will be definitely assigned when added to Plot
-    return { type: GeomType.Bars, data, scales };
+
+    const type = GeomType.Bars;
+    const vAnchor = options?.vAnchor ?? VAnchor.Bottom;
+    const hAnchor = options?.hAnchor ?? HAnchor.Center;
+
+    return { type, data, scales, vAnchor, hAnchor };
   }
 
-  export function render(points: Bars, layers: Layers) {
-    const { scales } = points;
-    const data = points.data.grouped;
+  export function render(bars: Bars, layers: Layers) {
+    const { scales, hAnchor, vAnchor } = bars;
+    const data = bars.data.grouped;
 
     const { x, y, width, height } = data;
     const layer = data[LAYER];
@@ -56,13 +76,13 @@ export namespace Bars {
       const ph = Scale.pushforward(scales.height, getHeight(i));
       const layer = layers[getLayer(i) as DataLayer];
 
-      Frame.rectangleWH(layer, px, py, pw, ph, { vAnchor: VAnchor.Bottom });
+      Frame.rectangleWH(layer, px, py, pw, ph, { hAnchor, vAnchor });
     }
   }
 
-  export function check(points: Bars, selection: Rect) {
-    const { scales } = points;
-    const data = points.data.flat;
+  export function check(bars: Bars, selection: Rect) {
+    const { scales, hAnchor, vAnchor } = bars;
+    const data = bars.data.flat;
 
     const { x, y, width, height } = data;
     const positions = data[POSITIONS];
@@ -81,10 +101,17 @@ export namespace Bars {
     for (let i = 0; i < n; i++) {
       const px = Scale.pushforward(scales.x, getX(i));
       const py = Scale.pushforward(scales.y, getY(i));
-      const pw = Scale.pushforward(scales.width, getWidth(i)) / 2;
-      const ph = Scale.pushforward(scales.height, getHeight(i)) / 2;
+      const pw = Scale.pushforward(scales.width, getWidth(i));
+      const ph = Scale.pushforward(scales.height, getHeight(i));
 
-      if (rectsIntersect(selection, [px - pw, py - ph, px + pw, py + ph])) {
+      const coords = [
+        px - pw * hAnchor,
+        py - ph * vAnchor,
+        px + pw * hAnchor,
+        py + ph * (1 - vAnchor),
+      ] as Rect;
+
+      if (rectsIntersect(selection, coords)) {
         const positions = getPositions(i);
         for (let j = 0; j < positions.length; j++) selected.push(positions[j]);
       }

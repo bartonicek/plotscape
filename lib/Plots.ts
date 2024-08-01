@@ -73,18 +73,20 @@ export namespace Plots {
 
     const plot = Plot.of();
     const { scales } = plot;
-    const k = 1 / Array.from(new Set(category)).length;
 
     const flat = coordinates[0] as any;
-    scales.x.domain = Expanse.band([]);
-    Expanse.set(scales.x.domain, (e) => ((e.zero = 0.1), (e.one = 0.9)), {
-      default: true,
-    });
-
+    scales.x.domain = Expanse.band([], { zero: 0.1, one: 0.9 });
     Scale.train(scales.x, flat.x, { default: true });
     Scale.train(scales.y, flat.height, { default: true, ratio: true });
     Scale.train(scales.height, flat.height, { default: true, ratio: true });
-    Expanse.set(scales.width.codomain, (e) => (e.scale = k), { default: true });
+
+    const k = 1 / Array.from(new Set(category)).length;
+    Expanse.freeze(scales.y.domain, [`zero`]);
+    Expanse.freeze(scales.height.domain, [`zero`]);
+    Expanse.linkTo(scales.y.domain, scales.height.domain);
+    Expanse.set(scales.width.codomain, (e) => ((e.scale = k), (e.mult = 0.9)), {
+      default: true,
+    });
 
     scales.x[NAME] = category[NAME];
     scales.y[NAME] = `sum of ${values[NAME]}`;

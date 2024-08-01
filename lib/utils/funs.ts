@@ -1,7 +1,7 @@
 import { Reactive } from "../Reactive";
 import { defaultParameters } from "./defaultParameters";
 import { EVENTTARGET, NAME } from "./symbols";
-import { Flat, Indexable, Margins, Rect } from "./types";
+import { Entries, Flat, Indexable, Margins, Rect } from "./types";
 
 export const sqrt = Math.sqrt;
 export function square(x: number) {
@@ -14,6 +14,12 @@ export function trunc(x: number, min: number, max: number) {
 
 export async function fetchJSON(path: string) {
   return await (await fetch(path)).json();
+}
+
+export function suppressError(fn: () => void) {
+  try {
+    fn();
+  } catch {}
 }
 
 export function merge<
@@ -44,6 +50,13 @@ export function copyValues<T>(source: T[], target: T[]) {
   if (source === target) return;
   target.length = 0;
   for (let i = 0; i < source.length; i++) target.push(source[i]);
+}
+
+export function copyProps<T extends Record<string, any>>(source: T, target: T) {
+  for (const [k, v] of Object.entries(source) as Entries<T>) {
+    if (isArray(v) && isArray(source[k])) copyValues(v, source[k]);
+    else target[k] = v;
+  }
 }
 
 export function subset<T>(array: T[], indices: number[]) {
@@ -335,6 +348,8 @@ export function convertToSuperscript(n: string) {
     .map((x) => sups[x])
     .join("");
 }
+
+export const isArray = Array.isArray;
 
 export function isNumberArray(array: any[]): array is number[] {
   return typeof array[0] === "number";

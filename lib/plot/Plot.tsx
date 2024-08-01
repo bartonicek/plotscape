@@ -4,6 +4,7 @@ import { Reactive } from "../Reactive";
 import { colors, defaultParameters } from "../utils/defaultParameters";
 import {
   addTailwind,
+  copyValues,
   getMargins,
   makeDispatchFn,
   makeListenFn,
@@ -30,11 +31,11 @@ enum MouseButton {
 }
 
 type Scales = {
-  x: Scale<any, ExpanseContinuous>;
-  y: Scale<any, ExpanseContinuous>;
-  area: Scale<any, ExpanseContinuous>;
-  width: Scale<any, ExpanseContinuous>;
-  height: Scale<any, ExpanseContinuous>;
+  x: Scale<Expanse, ExpanseContinuous>;
+  y: Scale<Expanse, ExpanseContinuous>;
+  area: Scale<Expanse, ExpanseContinuous>;
+  width: Scale<Expanse, ExpanseContinuous>;
+  height: Scale<Expanse, ExpanseContinuous>;
 };
 
 export type Frames = Layers & {
@@ -125,12 +126,27 @@ export namespace Plot {
     geom.scales = plot.scales;
     plot.geoms.push(geom);
   }
+
+  export function checkSelection(plot: Plot) {
+    const { geoms, parameters, frames } = plot;
+    const selectedCases = new Set<number>();
+
+    for (const geom of geoms) {
+      const selected = Geom.check(geom, parameters.mousecoords);
+      for (let i = 0; i < selected.length; i++) selectedCases.add(selected[i]);
+    }
+
+    Plot.dispatch(plot, `selected`, { selected: Array.from(selectedCases) });
+    Frame.clear(frames.user);
+    Frame.rectangleXY(frames.user, ...parameters.mousecoords);
+  }
 }
 
 function setupFrames(plot: Plot) {
   const { container, frames } = plot;
   const margins = getMargins();
-  const dataLayers = [0, 1, 2, 3, 4, 5, 6, 7] as const;
+  const [bottom, left, top, right] = margins;
+  const dataLayers = [7, 6, 5, 4, 3, 2, 1, 0] as const;
 
   // Default Tailwind classes
   const def = `absolute top-0 right-0 w-full h-full`;
@@ -162,10 +178,10 @@ function setupFrames(plot: Plot) {
     ></canvas>
   );
 
-  frames.under.canvas.style.width = `calc(100% - ${margins[1]}px - ${margins[3]}px)`;
-  frames.under.canvas.style.height = `calc(100% - ${margins[0]}px - ${margins[2]}px)`;
-  frames.under.canvas.style.top = margins[2] + `px`;
-  frames.under.canvas.style.right = margins[3] + `px`;
+  frames.under.canvas.style.width = `calc(100% - ${left}px - ${right}px)`;
+  frames.under.canvas.style.height = `calc(100% - ${bottom}px - ${top}px)`;
+  frames.under.canvas.style.top = top + `px`;
+  frames.under.canvas.style.right = right + `px`;
 
   frames.user = Frame.of(<canvas class={def + ` z-10`}></canvas>);
   frames.user.margins = margins;
@@ -200,13 +216,15 @@ function setupEvents(plot: Plot) {
 
   window.addEventListener(`resize`, () => Plot.dispatch(plot, `resize`));
   window.addEventListener(`keydown`, (e) => {
-    if (!parameters.active) return;
-    keydownHandlers[e.code]?.(plot);
+    if (parameters.active) Plot.dispatch(plot, e.key as EventType);
   });
 
   container.addEventListener(`mousedown`, (e) => {
     e.stopPropagation();
-    if (parameters.active) Plot.dispatch(plot, `clear-transient`);
+
+    const wasActive = parameters.active;
+
+    if (wasActive) Plot.dispatch(plot, `clear-transient`);
     Plot.dispatch(plot, `activate`);
     parameters.mousedown = true;
     parameters.mousebutton = e.button;
@@ -214,14 +232,11 @@ function setupEvents(plot: Plot) {
     if (e.button === MouseButton.Left) parameters.mode = Mode.Select;
     else if (e.button === MouseButton.Right) parameters.mode = Mode.Pan;
 
-    const { clientHeight } = container;
     const x = e.offsetX;
-    const y = clientHeight - e.offsetY;
+    const y = container.clientHeight - e.offsetY;
 
-    mousecoords[0] = x;
-    mousecoords[1] = y;
-    mousecoords[2] = x;
-    mousecoords[3] = y;
+    copyValues([x, y, x, y], mousecoords);
+    if (wasActive && parameters.mode === Mode.Select) Plot.checkSelection(plot);
   });
 
   container.addEventListener(`contextmenu`, (e) => {
@@ -245,6 +260,10 @@ function setupEvents(plot: Plot) {
     throttle((e) => mousemoveHandlers[parameters.mode](plot, e), 10)
   );
 
+  for (const [k, v] of Object.entries(keydownHandlers)) {
+    Plot.listen(plot, k as EventType, () => v(plot));
+  }
+
   Plot.listen(plot, `resize`, () => {
     for (const frame of Object.values(plot.frames)) Frame.resize(frame);
     const { scales, margins } = plot;
@@ -257,8 +276,8 @@ function setupEvents(plot: Plot) {
 
     Expanse.set(x.codomain, (e) => ((e.min = left), (e.max = right)), opts);
     Expanse.set(y.codomain, (e) => ((e.min = bottom), (e.max = top)), opts);
-    Expanse.set(width.codomain, (e) => (e.max = right / 2), opts);
-    Expanse.set(height.codomain, (e) => (e.max = top / 2), opts);
+    Expanse.set(width.codomain, (e) => (e.max = right - left), opts);
+    Expanse.set(height.codomain, (e) => (e.max = top - bottom), opts);
   });
 
   for (const scale of Object.values(plot.scales)) {
@@ -283,6 +302,8 @@ function setupEvents(plot: Plot) {
     for (const geom of plot.geoms) Geom.render(geom, plot.frames);
   });
 
+  Plot.listen(plot, `clear-transient`, () => Frame.clear(frames.user));
+
   Plot.listen(plot, `render-axes`, () => {
     for (const layer of [`base`, `xAxis`, `yAxis`] as const) {
       Frame.clear(frames[layer]);
@@ -297,15 +318,15 @@ function setupEvents(plot: Plot) {
 
 function setupScales(plot: Plot) {
   const { scales, container } = plot;
-  const { clientWidth: width, clientHeight: height } = container;
+  const { clientWidth: w, clientHeight: h } = container;
 
-  scales.x = Scale.of(Expanse.continuous(), Expanse.continuous(0, width));
-  scales.y = Scale.of(Expanse.continuous(), Expanse.continuous(0, height));
+  scales.x = Scale.of(Expanse.continuous(), Expanse.continuous(0, w));
+  scales.y = Scale.of(Expanse.continuous(), Expanse.continuous(0, h));
   scales.area = Scale.of(Expanse.continuous(), Expanse.continuous(0, 10));
-  scales.height = Scale.of(Expanse.continuous(), Expanse.continuous(0, height));
-  scales.width = Scale.of(Expanse.continuous(), Expanse.continuous(0, width));
+  scales.height = Scale.of(Expanse.continuous(), Expanse.continuous(0, h));
+  scales.width = Scale.of(Expanse.continuous(), Expanse.continuous(0, w));
 
-  const { x, y, area } = scales;
+  const { x, y, area, width, height } = scales;
 
   x.other = y;
   y.other = x;
@@ -318,13 +339,18 @@ function setupScales(plot: Plot) {
 
   Expanse.set(area.domain, (e) => (e.ratio = true), opts);
   Expanse.set(area.codomain, (e) => ((e.trans = square), (e.inv = sqrt)), opts);
+
+  Expanse.set(width.domain, (e) => (e.one = 1 - 2 * ex), opts);
+  Expanse.set(height.domain, (e) => (e.one = 1 - 2 * ey), opts);
 }
 
 const mousemoveHandlers = { select, pan, query };
 
 function select(plot: Plot, event: MouseEvent) {
-  const { container, frames, geoms, parameters } = plot;
+  const { container, parameters } = plot;
   if (!parameters.active || !parameters.mousedown) return;
+
+  Plot.dispatch(plot, `clear-transient`);
 
   const { mousecoords } = parameters;
   const { clientHeight } = container;
@@ -334,17 +360,7 @@ function select(plot: Plot, event: MouseEvent) {
   mousecoords[2] = x;
   mousecoords[3] = y;
 
-  const selectedCases = new Set<number>();
-
-  for (const geom of geoms) {
-    const selected = Geom.check(geom, mousecoords);
-    for (let i = 0; i < selected.length; i++) selectedCases.add(selected[i]);
-  }
-
-  Plot.dispatch(plot, `selected`, { selected: Array.from(selectedCases) });
-
-  Frame.clear(frames.user);
-  Frame.rectangleXY(frames.user, ...mousecoords);
+  Plot.checkSelection(plot);
 }
 
 function pan(plot: Plot, event: MouseEvent) {
@@ -372,21 +388,25 @@ function pan(plot: Plot, event: MouseEvent) {
 function query() {}
 
 const keydownHandlers: Record<string, (plot: Plot) => void> = {
-  KeyR: reset,
-  Equal: grow,
-  Minus: shrink,
-  BracketLeft: fade,
-  BracketRight: unfade,
+  [`r`]: reset,
+  [`=`]: grow,
+  [`-`]: shrink,
+  [`[`]: fade,
+  [`]`]: unfade,
 };
 
 function grow(plot: Plot) {
-  const { area } = plot.scales;
+  const { area, width } = plot.scales;
   Expanse.set(area.codomain, (e) => ((e.min *= 10 / 9), (e.max *= 10 / 9)));
+  Expanse.set(width.codomain, (e) => (e.mult < 1 ? (e.mult *= 10 / 9) : null));
 }
 
 function shrink(plot: Plot) {
-  const { area } = plot.scales;
+  const { area, width } = plot.scales;
   Expanse.set(area.codomain, (e) => ((e.min *= 9 / 10), (e.max *= 9 / 10)));
+  Expanse.set(width.codomain, (e) => (e.mult *= 9 / 10));
+
+  console.log(width.codomain.mult);
 }
 
 function fade(plot: Plot) {

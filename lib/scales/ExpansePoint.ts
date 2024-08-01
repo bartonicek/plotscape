@@ -1,16 +1,26 @@
+import { applyDirection, compareAlphaNumeric, copyValues } from "../utils/funs";
+import { Direction } from "../utils/types";
 import { Expanse } from "./Expanse";
-import { applyDirection, compareAlphaNumeric } from "../utils/funs";
 import { ExpanseType } from "./ExpanseType";
 
 export interface ExpansePoint extends Expanse {
   type: ExpanseType.Point;
   labels: string[];
+  defaults: {
+    zero: number;
+    one: number;
+    direction: Direction;
+    labels: string[];
+  };
 }
 
 export namespace ExpansePoint {
-  export function of(labels: string[]): ExpansePoint {
+  export function of(
+    labels: string[],
+    options?: { zero?: number; one?: number; direction?: Direction }
+  ): ExpansePoint {
     const type = ExpanseType.Point;
-    const base = Expanse.base();
+    const base = Expanse.base(options);
     const { zero, one, direction } = base;
     const defaults = { labels: [...labels], zero, one, direction };
     return { type, labels, ...base, defaults };
@@ -33,10 +43,14 @@ export namespace ExpansePoint {
     return labels[index];
   }
 
-  export function train(expanse: Omit<ExpansePoint, `type`>, array: string[]) {
+  export function train(
+    expanse: Omit<ExpansePoint, `type`>,
+    array: string[],
+    options?: { default?: boolean }
+  ) {
     const labels = Array.from(new Set(array)).sort(compareAlphaNumeric);
-    expanse.labels.length = 0;
-    for (let i = 0; i < labels.length; i++) expanse.labels[i] = labels[i];
+    copyValues(labels, expanse.labels);
+    if (options?.default) copyValues(labels, expanse.defaults.labels);
   }
 
   export function reorder(

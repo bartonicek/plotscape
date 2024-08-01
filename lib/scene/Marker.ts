@@ -9,14 +9,14 @@ export const Transient = 255 as const;
 export type Transient = typeof Transient;
 
 export enum Group {
-  Base = 0,
-  First = 1,
-  Second = 2,
-  Third = 3,
-  BaseTransient = 4,
-  FirstTransient = 5,
-  SecondTransient = 6,
-  ThirdTransient = 7,
+  Base = 7,
+  First = 6,
+  Second = 5,
+  Third = 4,
+  BaseTransient = 3,
+  FirstTransient = 2,
+  SecondTransient = 1,
+  ThirdTransient = 0,
 }
 
 type GroupType = Group | Transient;
@@ -28,14 +28,14 @@ export interface Marker extends Reactive {
   factor: Factor<{ [LAYER]: number[] }>;
 }
 
-type EventType = `changed`;
+type EventType = `changed` | `no-selection` | `some-selection`;
 
 export namespace Marker {
   export function of(n: number): Marker {
     const group = Transient;
     const indices = Array<number>(n).fill(Group.Base);
     const transientIndices: number[] = [];
-    const factor = Factor.of(8, indices, { [LAYER]: [7, 6, 5, 4, 3, 2, 1] });
+    const factor = Factor.of(8, indices, { [LAYER]: [0, 1, 2, 3, 4, 5, 6, 7] });
 
     const marker = Reactive.of({ group, indices, transientIndices, factor });
     Marker.listen(marker, `changed`, () => Factor.dispatch(factor, `changed`));
@@ -101,9 +101,9 @@ export namespace Marker {
 }
 
 function addTransient(x: number) {
-  return x | 4;
+  return x & ~4;
 }
 
 function stripTransient(x: number) {
-  return x & ~4;
+  return x | 4;
 }

@@ -13,6 +13,8 @@ declare global {
 
 export type Flat<T> = { [key in keyof T]: T[key] } & {};
 
+export type Entries<T> = [keyof T, T[keyof T]][];
+
 export type MapFn<T> = (next: T) => T;
 export type ReduceFn<T, U> = (prev: U, next: T) => U;
 
