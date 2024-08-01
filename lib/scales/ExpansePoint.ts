@@ -16,7 +16,7 @@ export interface ExpansePoint extends Expanse {
 
 export namespace ExpansePoint {
   export function of(
-    labels: string[],
+    labels: string[] = [],
     options?: { zero?: number; one?: number; direction?: Direction }
   ): ExpansePoint {
     const type = ExpanseType.Point;

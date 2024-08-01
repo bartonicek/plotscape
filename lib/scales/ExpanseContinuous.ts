@@ -37,6 +37,7 @@ export namespace ExpanseContinuous {
     options?: {
       scale?: number;
       mult?: number;
+      offset?: number;
       ratio?: boolean;
       zero?: number;
       one?: number;
@@ -50,6 +51,7 @@ export namespace ExpanseContinuous {
     const ratio = options?.ratio ?? false;
     const scale = options?.scale ?? 1;
     const mult = options?.mult ?? 1;
+    const offset = options?.offset ?? 0;
 
     const defaults = {
       min,
@@ -58,6 +60,7 @@ export namespace ExpanseContinuous {
       mult,
       zero,
       one,
+      offset,
       direction,
       trans,
       inv,
@@ -69,6 +72,7 @@ export namespace ExpanseContinuous {
       max,
       scale,
       mult,
+      offset,
       ratio,
       ...base,
       trans,
@@ -78,9 +82,11 @@ export namespace ExpanseContinuous {
   }
 
   export function normalize(expanse: ExpanseContinuous, value: number) {
-    const { min, max, zero, one, direction, scale, mult, trans } = expanse;
+    const { min, max, zero, one } = expanse;
+    const { direction, scale, mult, offset, trans } = expanse;
+
     const range = trans(max) - trans(min);
-    let pct = (trans(value) - trans(min)) / range / scale / mult;
+    let pct = (trans(value - offset) - trans(min)) / range / scale / mult;
     pct = zero + pct * (one - zero);
 
     return applyDirection(pct, direction);
@@ -88,11 +94,13 @@ export namespace ExpanseContinuous {
 
   // Unnormalize doesn't use direction since [0, 1] already encodes direction
   export function unnormalize(expanse: ExpanseContinuous, value: number) {
-    const { min, max, zero, one, scale, mult, trans, inv } = expanse;
+    const { min, max, zero, one } = expanse;
+    const { scale, mult, offset, trans, inv } = expanse;
+
     const pct = ((value - zero) / (one - zero)) * scale * mult;
     const range = trans(max) - trans(min);
 
-    return inv(trans(min) + pct * range);
+    return inv(trans(min) + pct * range) + offset;
   }
 
   export function train(

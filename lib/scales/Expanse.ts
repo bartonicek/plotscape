@@ -62,6 +62,9 @@ export namespace Expanse {
     [ExpanseType.Band]: ExpanseBand,
   };
 
+  export const Continuous = ExpanseType.Continuous;
+  export const Point = ExpanseType.Point;
+  export const Band = ExpanseType.Band;
   export const continuous = ExpanseContinuous.of;
   export const point = ExpansePoint.of;
   export const band = ExpanseBand.of;
@@ -128,10 +131,8 @@ export namespace Expanse {
   }
 
   export function unnormalize<T extends Expanse>(expanse: T, value: number) {
-    return methods[expanse.type].unnormalize(
-      expanse,
-      value
-    ) as ExpanseValueMap[T["type"]];
+    type ReturnType = ExpanseValueMap[T["type"]];
+    return methods[expanse.type].unnormalize(expanse, value) as ReturnType;
   }
 
   export function train<T extends Expanse>(

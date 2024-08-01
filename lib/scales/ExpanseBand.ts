@@ -11,7 +11,7 @@ export interface ExpanseBand extends Expanse {
 
 export namespace ExpanseBand {
   export function of(
-    labels: string[],
+    labels: string[] = [],
     options?: { zero?: number; one?: number; direction?: Direction }
   ): ExpanseBand {
     const type = ExpanseType.Band;

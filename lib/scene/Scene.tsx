@@ -81,8 +81,8 @@ export namespace Scene {
       Marker.clearTransient(marker);
     });
 
-    Marker.listen(marker, `changed`, () => {
-      Plot.dispatch(plot, `render`);
+    Plot.listen(plot, `lock-others`, () => {
+      for (const p of plots) if (p !== plot) Plot.dispatch(p, `lock`);
     });
 
     plots.push(plot);
@@ -139,6 +139,17 @@ function setupEvents(scene: Scene) {
 
   Scene.listen(scene, `resize`, () => {
     for (const plot of plots) Plot.dispatch(plot, `resize`);
+  });
+
+  Marker.listen(marker, `updated`, () => {
+    for (const plot of plots) Plot.dispatch(plot, `render`);
+  });
+
+  Marker.listen(marker, `cleared`, () => {
+    for (const plot of plots) {
+      Plot.dispatch(plot, `render`);
+      Plot.dispatch(plot, `unlock`);
+    }
   });
 }
 

@@ -1,6 +1,7 @@
 import { Geom } from "../geoms/Geom";
 import { Expanse, ExpanseContinuous, Scale } from "../main";
 import { Reactive } from "../Reactive";
+import { ExpanseType } from "../scales/ExpanseType";
 import { colors, defaultParameters } from "../utils/defaultParameters";
 import {
   addTailwind,
@@ -54,6 +55,9 @@ type EventType =
   | `mouseup`
   | `activate`
   | `deactivate`
+  | `lock`
+  | `unlock`
+  | `lock-others`
   | `selected`
   | `clear-transient`;
 
@@ -77,6 +81,7 @@ export interface Plot extends Reactive {
 
   parameters: {
     active: boolean;
+    locked: boolean;
     mode: Mode;
     mousedown: boolean;
     mousebutton: MouseButton;
@@ -85,7 +90,9 @@ export interface Plot extends Reactive {
 }
 
 export namespace Plot {
-  export function of(): Plot {
+  export function of(options?: {
+    scales?: { x?: ExpanseType; y?: ExpanseType };
+  }): Plot {
     const type = PlotType.unknown;
     const container = <div class="relative w-full h-full z-12"></div>;
 
@@ -98,6 +105,7 @@ export namespace Plot {
 
     const parameters = {
       active: false,
+      locked: false,
       mousedown: false,
       mousebutton: MouseButton.Left,
       mode: Mode.Select,
@@ -117,9 +125,9 @@ export namespace Plot {
       margins,
     });
 
-    setupFrames(plot);
-    setupScales(plot);
-    setupEvents(plot); // Need to set up events last
+    setupFrames(plot, options);
+    setupScales(plot, options);
+    setupEvents(plot, options); // Need to set up events last
 
     return plot;
   }
@@ -147,6 +155,7 @@ export namespace Plot {
     }
 
     Plot.dispatch(plot, `selected`, { selected: Array.from(selectedCases) });
+    Plot.dispatch(plot, `lock-others`);
     Frame.clear(frames.user);
     Frame.rectangleXY(frames.user, ...parameters.mousecoords);
   }
@@ -237,8 +246,10 @@ export namespace Plot {
   }
 
   export function reset(plot: Plot) {
-    for (const scale of Object.values(plot.scales))
+    for (const scale of Object.values(plot.scales)) {
       Scale.restoreDefaults(scale);
+    }
+    plot.zoomStack.length = 1;
     Plot.dispatch(plot, `render`);
   }
 
@@ -303,7 +314,7 @@ export namespace Plot {
   }
 }
 
-function setupFrames(plot: Plot) {
+function setupFrames(plot: Plot, options?: {}) {
   const { container, frames } = plot;
   const margins = getMargins();
   const [bottom, left, top, right] = margins;
@@ -371,7 +382,7 @@ function setupFrames(plot: Plot) {
   }
 }
 
-function setupEvents(plot: Plot) {
+function setupEvents(plot: Plot, options?: {}) {
   const { container, parameters, frames } = plot;
   const { mousecoords } = parameters;
 
@@ -383,9 +394,8 @@ function setupEvents(plot: Plot) {
   container.addEventListener(`mousedown`, (e) => {
     e.stopPropagation();
 
-    const wasActive = parameters.active;
+    const { locked } = parameters;
 
-    if (wasActive) Plot.dispatch(plot, `clear-transient`);
     Plot.dispatch(plot, `activate`);
     parameters.mousedown = true;
     parameters.mousebutton = e.button;
@@ -397,7 +407,12 @@ function setupEvents(plot: Plot) {
     const y = container.clientHeight - e.offsetY;
 
     copyValues([x, y, x, y], mousecoords);
-    if (wasActive && parameters.mode === Mode.Select) Plot.checkSelection(plot);
+    if (!locked && parameters.mode === Mode.Select) {
+      Plot.dispatch(plot, `clear-transient`);
+      Plot.checkSelection(plot);
+    }
+
+    Plot.dispatch(plot, `unlock`);
   });
 
   container.addEventListener(`contextmenu`, (e) => {
@@ -464,6 +479,8 @@ function setupEvents(plot: Plot) {
   });
 
   Plot.listen(plot, `clear-transient`, () => Frame.clear(frames.user));
+  Plot.listen(plot, `lock`, () => (plot.parameters.locked = true));
+  Plot.listen(plot, `unlock`, () => (plot.parameters.locked = false));
 
   Plot.listen(plot, `render-axes`, () => {
     for (const layer of [`base`, `xAxis`, `yAxis`] as const) {
@@ -477,12 +494,18 @@ function setupEvents(plot: Plot) {
   });
 }
 
-function setupScales(plot: Plot) {
+function setupScales(
+  plot: Plot,
+  options?: { scales?: { x?: ExpanseType; y?: ExpanseType } }
+) {
   const { scales, container } = plot;
   const { clientWidth: w, clientHeight: h } = container;
 
-  scales.x = Scale.of(Expanse.continuous(), Expanse.continuous(0, w));
-  scales.y = Scale.of(Expanse.continuous(), Expanse.continuous(0, h));
+  const xDomain = Expanse[options?.scales?.x ?? ExpanseType.Continuous]();
+  const yDomain = Expanse[options?.scales?.y ?? ExpanseType.Continuous]();
+
+  scales.x = Scale.of(xDomain, Expanse.continuous(0, w));
+  scales.y = Scale.of(yDomain, Expanse.continuous(0, h));
   scales.area = Scale.of(Expanse.continuous(), Expanse.continuous(0, 10));
   scales.height = Scale.of(Expanse.continuous(), Expanse.continuous(0, h));
   scales.width = Scale.of(Expanse.continuous(), Expanse.continuous(0, w));

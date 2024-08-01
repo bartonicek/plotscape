@@ -28,7 +28,7 @@ export interface Marker extends Reactive {
   factor: Factor<{ [LAYER]: number[] }>;
 }
 
-type EventType = `changed` | `no-selection` | `some-selection`;
+type EventType = `updated` | `cleared`;
 
 export namespace Marker {
   export function of(n: number): Marker {
@@ -38,7 +38,8 @@ export namespace Marker {
     const factor = Factor.of(8, indices, { [LAYER]: [0, 1, 2, 3, 4, 5, 6, 7] });
 
     const marker = Reactive.of({ group, indices, transientIndices, factor });
-    Marker.listen(marker, `changed`, () => Factor.dispatch(factor, `changed`));
+    Marker.listen(marker, `updated`, () => Factor.dispatch(factor, `changed`));
+    Marker.listen(marker, `cleared`, () => Factor.dispatch(factor, `changed`));
 
     return marker;
   }
@@ -71,7 +72,7 @@ export namespace Marker {
       }
     }
 
-    if (!options?.silent) Marker.dispatch(marker, `changed`);
+    if (!options?.silent) Marker.dispatch(marker, `updated`);
   }
 
   export function clearAll(marker: Marker, options?: { silent?: boolean }) {
@@ -79,7 +80,7 @@ export namespace Marker {
       marker.indices[i] = Group.Base;
     }
 
-    if (!options?.silent) Marker.dispatch(marker, `changed`);
+    if (!options?.silent) Marker.dispatch(marker, `cleared`);
   }
 
   export function clearTransient(
@@ -91,7 +92,7 @@ export namespace Marker {
       marker.indices[index] = stripTransient(marker.indices[index]);
     }
 
-    if (!options?.silent) Marker.dispatch(marker, `changed`);
+    if (!options?.silent) Marker.dispatch(marker, `cleared`);
   }
 
   export function getLayer(marker: Marker): Indexable<DataLayer> {
