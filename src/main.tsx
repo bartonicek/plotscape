@@ -1,4 +1,4 @@
-import { Expanse, Plots, Scene } from "../lib/main";
+import { Plots, Scene } from "../lib/main";
 import { fetchJSON } from "../lib/utils/funs";
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
@@ -23,5 +23,5 @@ Scene.addPlot(scene, plot3);
 
 // Marker.update(scene.marker, [1, 2, 3, 4, 5], { group: Group.First });
 
-const d = plot3.scales.y.codomain;
-Expanse.listen(d, `changed`, (e) => console.log(d, e));
+// const d = plot3.scales.y.codomain;
+// Expanse.listen(d, `changed`, (e) => console.log(d, e));

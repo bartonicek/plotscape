@@ -91,8 +91,6 @@ export namespace Expanse {
     copyProps(temp, expanse);
     if (options?.default) copyProps(temp, expanse.defaults);
     if (!options?.silent) Expanse.dispatch(expanse, `changed`);
-
-    for (const e of expanse.linked) Expanse.set(e as T, setfn, options);
   }
 
   export function freeze<T extends Expanse>(
@@ -152,6 +150,7 @@ export namespace Expanse {
     const { direction: d } = expanse;
     const amt = amount;
     Expanse.set(expanse, (e) => ((e.zero += d * amt), (e.one += d * amt)));
+    for (const e of expanse.linked) Expanse.move(e, amount);
   }
 
   export function expand(
