@@ -23,6 +23,7 @@ export type Indexable<T = any> = T[] | ((index: number) => T);
 export type Stringable = { toString(): string };
 export type Indexables = Record<string, Indexable>;
 export type Dataframe = Record<string | symbol, any[]>;
+export type UntypedColumns<S extends string[]> = { [key in S[number]]: any[] };
 
 export enum Direction {
   Forwards = 1,

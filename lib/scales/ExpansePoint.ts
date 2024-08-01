@@ -3,6 +3,9 @@ import { Direction } from "../utils/types";
 import { Expanse } from "./Expanse";
 import { ExpanseType } from "./ExpanseType";
 
+/** Converts string labels to the [0, 1] interval and back, such that each value is placed
+ * equidistantly along the interval, and the first label is placed at 0 and the last at 1.
+ */
 export interface ExpansePoint extends Expanse {
   type: ExpanseType.Point;
   labels: string[];

@@ -9,6 +9,9 @@ import { Direction } from "../utils/types";
 import { Expanse } from "./Expanse";
 import { ExpanseType } from "./ExpanseType";
 
+/**
+ * Converts numeric values to the [0, 1] interval and back.
+ */
 export interface ExpanseContinuous extends Expanse {
   type: ExpanseType.Continuous;
   min: number;

@@ -1,10 +1,10 @@
-import { Mtcars, Plots, Scene } from "../lib/main";
+import { MtcarsUntyped, Plots, Scene } from "../lib/main";
 import { fetchJSON } from "../lib/utils/funs";
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
 
-const mtcars = (await fetchJSON(`../datasets/mtcars.json`)) as Mtcars;
-// mtcars.cyl = mtcars.cyl.map((x) => x.toString());
+const mtcars = (await fetchJSON(`../datasets/mtcars.json`)) as MtcarsUntyped;
+mtcars.cyl = mtcars.cyl.map((x) => x.toString());
 
 const scene = Scene.of(mtcars);
 Scene.append(app, scene);

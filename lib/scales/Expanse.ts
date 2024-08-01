@@ -13,6 +13,7 @@ import { ExpanseContinuous } from "./ExpanseContinuous";
 import { ExpansePoint } from "./ExpansePoint";
 import { ExpanseType } from "./ExpanseType";
 
+/** Converts values from some type to the interval [0, 1] and back. */
 export interface Expanse extends Reactive {
   type: ExpanseType;
   zero: number;

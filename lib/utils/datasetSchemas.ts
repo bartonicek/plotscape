@@ -1,3 +1,9 @@
+import { UntypedColumns } from "./types";
+
+export type MtcarsUntyped = UntypedColumns<
+  [`am`, `carb`, `cyl`, `disp`, `drat`, `gear`, `hp`, `mpg`, `qsec`, `vs`, `wt`]
+>;
+
 export type Mtcars = {
   am: number[];
   carb: number[];
