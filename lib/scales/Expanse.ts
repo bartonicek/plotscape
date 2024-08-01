@@ -2,6 +2,7 @@ import { Reactive } from "../Reactive";
 import {
   copyProps,
   copyValues,
+  invertRange,
   isArray,
   makeDispatchFn,
   makeListenFn,
@@ -151,6 +152,30 @@ export namespace Expanse {
     const { direction: d } = expanse;
     const amt = amount;
     Expanse.set(expanse, (e) => ((e.zero += d * amt), (e.one += d * amt)));
+  }
+
+  export function expand(
+    expanse: Expanse,
+    zero: number,
+    one: number,
+    options?: { default?: boolean }
+  ) {
+    const { zero: currZero, one: currOne, direction } = expanse;
+    const currRange = currOne - currZero;
+
+    // Reflect if direction is backwards
+    if (direction === Direction.Backwards) [zero, one] = [1 - zero, 1 - one];
+
+    // Normalize the zoom values within the current range
+    let [nZero, nOne] = [zero, one].map((x) => (x - currZero) / currRange);
+    [nZero, nOne] = invertRange(nZero, nOne);
+
+    // Finally, reflect again
+    if (direction === Direction.Backwards) {
+      [nZero, nOne] = [1 - nZero, 1 - nOne];
+    }
+
+    Expanse.set(expanse, (e) => ((e.zero = nZero), (e.one = nOne)), options);
   }
 
   export function flip(expanse: Expanse) {

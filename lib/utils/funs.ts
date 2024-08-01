@@ -4,11 +4,44 @@ import { EVENTTARGET, NAME } from "./symbols";
 import { Entries, Flat, Indexable, Margins, Rect } from "./types";
 
 export const sqrt = Math.sqrt;
+export const max = Math.max;
+
 export function square(x: number) {
   return x ** 2;
 }
 
-export function trunc(x: number, min: number, max: number) {
+/**
+ * Returns the inverse of a range.
+ * E.g. `rangeInverse(0.25, 0.75) === 2`.
+ *
+ * @param min Lower limit of the range
+ * @param max Upper limit of the range
+ * @returns The inverse range
+ */
+export function rangeInverse(min: number, max: number) {
+  return 1 / (max - min);
+}
+
+/**
+ * Inverts numerical range defined by its limits and returns new limits
+ * such that scaling 0 and 1 will return the original limits.
+ * I.e. if we define a scaling function:
+ * `const scale = (value) => (value - newMin) / (newMax - newMin)`),
+ * then `scale(0) === min` and `scale(1) === max`.
+ *
+ * @param min Lower limit of the range
+ * @param max Upper limit of the range
+ * @returns A tuple with limits of the new range
+ */
+export function invertRange(
+  min: number,
+  max: number
+): [min: number, max: number] {
+  const ri = rangeInverse(min, max);
+  return [-min * ri, ri - min * ri];
+}
+
+export function trunc(x: number, min = 0, max = 1) {
   return Math.max(min, Math.min(x, max));
 }
 

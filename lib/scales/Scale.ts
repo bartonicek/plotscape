@@ -44,6 +44,15 @@ export namespace Scale {
     return Expanse.unnormalize(domain, Expanse.normalize(codomain, value));
   }
 
+  export function expand(
+    scale: Scale,
+    zero: number,
+    one: number,
+    options?: { default?: boolean }
+  ) {
+    Expanse.expand(scale.domain, zero, one, options);
+  }
+
   export function train<T extends Expanse>(
     scale: Scale<T>,
     array: ExpanseValueMap[T["type"]][],

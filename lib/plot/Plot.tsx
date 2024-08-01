@@ -5,9 +5,13 @@ import { colors, defaultParameters } from "../utils/defaultParameters";
 import {
   addTailwind,
   copyValues,
+  diff,
   getMargins,
+  invertRange,
   makeDispatchFn,
   makeListenFn,
+  max,
+  rangeInverse,
   removeTailwind,
   sqrt,
   square,
@@ -69,6 +73,8 @@ export interface Plot extends Reactive {
   geoms: Geom[];
   margins: Margins;
 
+  zoomStack: Rect[];
+
   parameters: {
     active: boolean;
     mode: Mode;
@@ -87,6 +93,9 @@ export namespace Plot {
     const scales = {} as Scales;
     const geoms = [] as Geom[];
 
+    const { expandX, expandY } = defaultParameters;
+    const zoomStack = [[expandX, expandY, 1 - expandX, 1 - expandY]] as Rect[];
+
     const parameters = {
       active: false,
       mousedown: false,
@@ -103,6 +112,7 @@ export namespace Plot {
       frames,
       scales,
       geoms,
+      zoomStack,
       parameters,
       margins,
     });
@@ -139,6 +149,153 @@ export namespace Plot {
     Plot.dispatch(plot, `selected`, { selected: Array.from(selectedCases) });
     Frame.clear(frames.user);
     Frame.rectangleXY(frames.user, ...parameters.mousecoords);
+  }
+
+  export const mousemoveHandlers = { select, pan, query };
+
+  function select(plot: Plot, event: MouseEvent) {
+    const { container, parameters } = plot;
+    if (!parameters.active || !parameters.mousedown) return;
+
+    Plot.dispatch(plot, `clear-transient`);
+
+    const { mousecoords } = parameters;
+    const { clientHeight } = container;
+    const x = event.offsetX;
+    const y = clientHeight - event.offsetY;
+
+    mousecoords[2] = x;
+    mousecoords[3] = y;
+
+    Plot.checkSelection(plot);
+  }
+
+  function pan(plot: Plot, event: MouseEvent) {
+    const { container, scales, parameters } = plot;
+    if (!parameters.active || !parameters.mousedown) return;
+
+    const { mousecoords } = parameters;
+    const { clientWidth, clientHeight } = container;
+    const [x0, y0] = mousecoords;
+
+    const x = event.offsetX;
+    const y = clientHeight - event.offsetY;
+    const xMove = (x - x0) / clientWidth;
+    const yMove = (y - y0) / clientHeight;
+
+    Scale.move(scales.x, xMove);
+    Scale.move(scales.y, yMove);
+
+    mousecoords[0] = x;
+    mousecoords[1] = y;
+
+    Plot.dispatch(plot, `clear-transient`);
+  }
+
+  function query() {}
+
+  export const keydownHandlers = {
+    [`r`]: reset,
+    [`=`]: grow,
+    [`-`]: shrink,
+    [`[`]: fade,
+    [`]`]: unfade,
+    [`z`]: zoom,
+    [`x`]: popzoom,
+  };
+
+  function grow(plot: Plot) {
+    const { area, width } = plot.scales;
+    Expanse.set(area.codomain, (e) => ((e.min *= 10 / 9), (e.max *= 10 / 9)));
+    Expanse.set(width.codomain, (e) =>
+      e.mult < 1 ? (e.mult *= 10 / 9) : null
+    );
+  }
+
+  function shrink(plot: Plot) {
+    const { area, width } = plot.scales;
+    Expanse.set(area.codomain, (e) => ((e.min *= 9 / 10), (e.max *= 9 / 10)));
+    Expanse.set(width.codomain, (e) => (e.mult *= 9 / 10));
+  }
+
+  function fade(plot: Plot) {
+    for (const layer of baseLayers) {
+      const frame = plot.frames[layer];
+      const alpha = frame.context.globalAlpha;
+      frame.context.globalAlpha = trunc((alpha * 9) / 10, 0, 1);
+    }
+    Plot.dispatch(plot, `render`);
+  }
+
+  function unfade(plot: Plot) {
+    for (const layer of baseLayers) {
+      const frame = plot.frames[layer];
+      const alpha = frame.context.globalAlpha;
+      frame.context.globalAlpha = trunc((alpha * 10) / 9, 0, 1);
+    }
+    Plot.dispatch(plot, `render`);
+  }
+
+  export function reset(plot: Plot) {
+    for (const scale of Object.values(plot.scales))
+      Scale.restoreDefaults(scale);
+    Plot.dispatch(plot, `render`);
+  }
+
+  export function zoom(plot: Plot, coords?: Rect) {
+    const { scales, parameters, zoomStack } = plot;
+    let [x0, y0, x1, y1] = coords ?? parameters.mousecoords;
+
+    // If zoom area is too small, do nothing
+    if (Math.abs(x1 - x0) < 10 || Math.abs(y1 - y0) < 10) return;
+
+    const { x, y } = scales;
+
+    [x0, x1] = [x0, x1].map((e) => trunc(Expanse.normalize(x.codomain, e)));
+    [x0, x1] = [x0, x1].sort(diff);
+    [y0, y1] = [y0, y1].map((e) => trunc(Expanse.normalize(y.codomain, e)));
+    [y0, y1] = [y0, y1].sort(diff);
+
+    Scale.expand(scales.x, x0, x1);
+    Scale.expand(scales.y, y0, y1);
+
+    const xStretch = rangeInverse(x0, x1);
+    const yStretch = rangeInverse(y0, y1);
+    const areaStretch = sqrt(max(xStretch, yStretch));
+
+    Expanse.set(scales.width.codomain, (e) => (e.mult *= xStretch));
+    Expanse.set(scales.height.codomain, (e) => (e.mult *= yStretch));
+    Expanse.set(scales.area.codomain, (e) => (e.mult *= areaStretch));
+
+    zoomStack.push([x0, y0, x1, y1]);
+    Plot.dispatch(plot, `clear-transient`);
+    Plot.dispatch(plot, `render`);
+  }
+
+  export function popzoom(plot: Plot) {
+    const { scales, zoomStack } = plot;
+
+    if (zoomStack.length === 1) return;
+
+    const [x0, y0, x1, y1] = zoomStack[zoomStack.length - 1];
+
+    const [ix0, ix1] = invertRange(x0, x1);
+    const [iy0, iy1] = invertRange(y0, y1);
+
+    Scale.expand(scales.x, ix0, ix1);
+    Scale.expand(scales.y, iy0, iy1);
+
+    const xStretch = rangeInverse(ix0, ix1);
+    const yStretch = rangeInverse(iy0, iy1);
+    const areaStretch = 1 / sqrt(max(1 / xStretch, 1 / yStretch));
+
+    Expanse.set(scales.width.codomain, (e) => (e.mult *= xStretch));
+    Expanse.set(scales.height.codomain, (e) => (e.mult *= yStretch));
+    Expanse.set(scales.area.codomain, (e) => (e.mult *= areaStretch));
+
+    zoomStack.pop();
+    Plot.dispatch(plot, `clear-transient`);
+    Plot.dispatch(plot, `render`);
   }
 }
 
@@ -257,10 +414,10 @@ function setupEvents(plot: Plot) {
 
   container.addEventListener(
     `mousemove`,
-    throttle((e) => mousemoveHandlers[parameters.mode](plot, e), 10)
+    throttle((e) => Plot.mousemoveHandlers[parameters.mode](plot, e), 10)
   );
 
-  for (const [k, v] of Object.entries(keydownHandlers)) {
+  for (const [k, v] of Object.entries(Plot.keydownHandlers)) {
     Plot.listen(plot, k as EventType, () => v(plot));
   }
 
@@ -342,92 +499,4 @@ function setupScales(plot: Plot) {
 
   Expanse.set(width.domain, (e) => (e.one = 1 - 2 * ex), opts);
   Expanse.set(height.domain, (e) => (e.one = 1 - 2 * ey), opts);
-}
-
-const mousemoveHandlers = { select, pan, query };
-
-function select(plot: Plot, event: MouseEvent) {
-  const { container, parameters } = plot;
-  if (!parameters.active || !parameters.mousedown) return;
-
-  Plot.dispatch(plot, `clear-transient`);
-
-  const { mousecoords } = parameters;
-  const { clientHeight } = container;
-  const x = event.offsetX;
-  const y = clientHeight - event.offsetY;
-
-  mousecoords[2] = x;
-  mousecoords[3] = y;
-
-  Plot.checkSelection(plot);
-}
-
-function pan(plot: Plot, event: MouseEvent) {
-  const { container, scales, parameters } = plot;
-  if (!parameters.active || !parameters.mousedown) return;
-
-  const { mousecoords } = parameters;
-  const { clientWidth, clientHeight } = container;
-  const [x0, y0] = mousecoords;
-
-  const x = event.offsetX;
-  const y = clientHeight - event.offsetY;
-  const xMove = (x - x0) / clientWidth;
-  const yMove = (y - y0) / clientHeight;
-
-  Scale.move(scales.x, xMove);
-  Scale.move(scales.y, yMove);
-
-  mousecoords[0] = x;
-  mousecoords[1] = y;
-
-  Plot.dispatch(plot, `clear-transient`);
-}
-
-function query() {}
-
-const keydownHandlers: Record<string, (plot: Plot) => void> = {
-  [`r`]: reset,
-  [`=`]: grow,
-  [`-`]: shrink,
-  [`[`]: fade,
-  [`]`]: unfade,
-};
-
-function grow(plot: Plot) {
-  const { area, width } = plot.scales;
-  Expanse.set(area.codomain, (e) => ((e.min *= 10 / 9), (e.max *= 10 / 9)));
-  Expanse.set(width.codomain, (e) => (e.mult < 1 ? (e.mult *= 10 / 9) : null));
-}
-
-function shrink(plot: Plot) {
-  const { area, width } = plot.scales;
-  Expanse.set(area.codomain, (e) => ((e.min *= 9 / 10), (e.max *= 9 / 10)));
-  Expanse.set(width.codomain, (e) => (e.mult *= 9 / 10));
-
-  console.log(width.codomain.mult);
-}
-
-function fade(plot: Plot) {
-  for (const layer of baseLayers) {
-    const frame = plot.frames[layer];
-    const alpha = frame.context.globalAlpha;
-    frame.context.globalAlpha = trunc((alpha * 9) / 10, 0, 1);
-  }
-  Plot.dispatch(plot, `render`);
-}
-
-function unfade(plot: Plot) {
-  for (const layer of baseLayers) {
-    const frame = plot.frames[layer];
-    const alpha = frame.context.globalAlpha;
-    frame.context.globalAlpha = trunc((alpha * 10) / 9, 0, 1);
-  }
-  Plot.dispatch(plot, `render`);
-}
-
-function reset(plot: Plot) {
-  for (const scale of Object.values(plot.scales)) Scale.restoreDefaults(scale);
-  Plot.dispatch(plot, `render`);
 }
