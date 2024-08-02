@@ -1,7 +1,7 @@
 import { Reactive } from "../Reactive";
 import { defaultParameters } from "./defaultParameters";
 import { EVENTTARGET } from "./symbols";
-import { Entries, Flat, Indexable, Margins, Rect } from "./types";
+import { Entries, Flat, Indexable, Margins, Primitive, Rect } from "./types";
 
 /**
  * The identity function.
@@ -543,11 +543,13 @@ export function makeListenFn<T extends Reactive, E extends string>() {
     object[EVENTTARGET].addEventListener(type, eventfn as EventListener);
   };
 }
-export function makeGetter<T>(indexable: Indexable<T>) {
-  if (typeof indexable === "function") return indexable;
-  return function (index: number) {
-    return indexable[index];
-  };
+
+export function makeGetter<T>(indexable: Indexable<T>): (index: number) => T {
+  if (isArray(indexable)) return (index: number) => indexable[index];
+  else if (typeof indexable === "function") {
+    return indexable as (index: number) => T;
+  }
+  return () => indexable;
 }
 
 /**
@@ -670,6 +672,17 @@ export function convertToSuperscript(n: string) {
     .join("");
 }
 
+const primitives = [`string`, `number`, `boolean`, `undefined`];
+
+/**
+ * Checks whether a value is primitive
+ * @param value A value
+ * @returns `true` if the value is primitive
+ */
+export function isPrimitive(value: any): value is Primitive {
+  return value === null || primitives.includes(typeof value);
+}
+
 /**
  * Checks whether an object is an array. Exported from `Array`.
  */
@@ -678,7 +691,7 @@ export const isArray = Array.isArray;
 /**
  * Checks whether an array is an array of numbers (by checking the first value only)
  * @param array An array
- * @returns `true` if the first element is a number, `false` otherwise
+ * @returns `true` if the first element is a number
  */
 export function isNumberArray(array: any[]): array is number[] {
   return typeof array[0] === "number";

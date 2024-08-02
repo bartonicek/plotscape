@@ -25,12 +25,15 @@ export interface Points extends Geom {
 }
 
 export namespace Points {
-  export function of(data: {
-    flat: Data & FlatData;
-    grouped: Data & GroupedData;
-  }): Points {
+  export function of(data: { flat: Data; grouped: Data }): Points {
     const scales = {} as Scales; // Will be definitely assigned when added to Plot
-    return { type: GeomType.Points, data, scales };
+
+    const typedData = data as {
+      flat: Data & FlatData;
+      grouped: Data & GroupedData;
+    };
+
+    return { type: GeomType.Points, data: typedData, scales };
   }
 
   export function render(points: Points, layers: Layers) {
@@ -42,7 +45,7 @@ export namespace Points {
 
     const n = findLength([x, y, area, layer]);
     const [getX, getY, getLayer] = [x, y, layer].map(makeGetter);
-    const getRadius = makeGetter(area ?? Getter.constant(0.5));
+    const getRadius = makeGetter(area ?? 0.5);
 
     for (let i = 0; i < n; i++) {
       const px = Scale.pushforward(scales.x, getX(i));

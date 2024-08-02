@@ -25,11 +25,9 @@ type Scales = {
   height: Scale<any, ExpanseContinuous>;
 };
 
-type BarData = { flat: Data & FlatData; grouped: Data & GroupedData };
-
 export interface Bars extends Geom {
   type: GeomType.Bars;
-  data: BarData;
+  data: { flat: Data & FlatData; grouped: Data & GroupedData };
   scales: Scales;
 
   vAnchor: VAnchor;
@@ -38,7 +36,7 @@ export interface Bars extends Geom {
 
 export namespace Bars {
   export function of(
-    data: BarData,
+    data: { flat: Data; grouped: Data },
     options?: {
       vAnchor?: VAnchor;
       hAnchor?: HAnchor;
@@ -50,7 +48,12 @@ export namespace Bars {
     const vAnchor = options?.vAnchor ?? VAnchor.Bottom;
     const hAnchor = options?.hAnchor ?? HAnchor.Center;
 
-    return { type, data, scales, vAnchor, hAnchor };
+    const typedData = data as {
+      flat: Data & FlatData;
+      grouped: Data & GroupedData;
+    };
+
+    return { type, data: typedData, scales, vAnchor, hAnchor };
   }
 
   export function render(bars: Bars, layers: Layers) {

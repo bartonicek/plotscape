@@ -1,5 +1,5 @@
 import { Reactive } from "../Reactive";
-import { copyValues, merge, subset } from "../utils/funs";
+import { copyValues, isArray, merge, subset } from "../utils/funs";
 import { PARENTVALUES } from "../utils/symbols";
 import { Dataframe, Flat, Indexable } from "../utils/types";
 import { Factor } from "./Factor";
@@ -9,9 +9,6 @@ import { Reducer } from "./Reducer";
 export namespace Summaries {
   type ReducerTuple<T = any, U = any> = readonly [Indexable<T>, Reducer<T, U>];
   type Data = Record<string | symbol, Indexable>;
-  type TranslateFn<T extends Data> = (data: T) => Data;
-
-  type ReactiveData<T extends Data> = T & Reactive;
 
   export function of<
     T extends Record<string, ReducerTuple>,
@@ -42,7 +39,7 @@ export namespace Summaries {
       if (factor.parent && factor.parentIndices) {
         for (const k of Object.keys(computed)) {
           const parentValues = subset(result[i - 1][k], factor.parentIndices);
-          computed[k][PARENTVALUES] = parentValues;
+          computed[k][PARENTVALUES] = parentValues as any;
         }
 
         Factor.listen(factor, `changed`, () => {
@@ -86,9 +83,24 @@ export namespace Summaries {
     return computed as Computed;
   }
 
+  type TranslateFn<T extends Data = any> = (data: T) => Data;
+  type TranslateFns<T extends readonly Data[]> = T extends readonly [
+    infer U extends Data,
+    ...infer Rest extends readonly Data[]
+  ]
+    ? [TranslateFn<U>, ...TranslateFns<Rest>]
+    : [];
+
+  type Translated<T extends TranslateFn[]> = T extends [
+    infer U extends TranslateFn,
+    ...infer Rest extends TranslateFn[]
+  ]
+    ? [ReturnType<U>, ...Translated<Rest>]
+    : [];
+
   export function translate<
     T extends readonly Data[],
-    U extends { [key in keyof T]: TranslateFn<T[key]> }
+    U extends TranslateFns<T>
   >(data: T, translatefns: U) {
     const result = [];
 
@@ -100,7 +112,7 @@ export namespace Summaries {
         const newTranslated = compute(data[i]);
 
         for (const k of Reflect.ownKeys(newTranslated)) {
-          if (Array.isArray(newTranslated[k]) && Array.isArray(translated[k])) {
+          if (isArray(newTranslated[k]) && isArray(translated[k])) {
             copyValues(newTranslated[k], translated[k]);
           }
         }
@@ -108,13 +120,23 @@ export namespace Summaries {
 
       function compute(data: Data) {
         const computed = translatefns[i](data);
-        for (const s of Object.getOwnPropertySymbols(data)) {
-          computed[s] = data[s];
-        }
+        const symbols = Object.getOwnPropertySymbols(data);
+        for (const s of symbols) computed[s] = data[s];
         return computed;
       }
     }
 
-    return result as { [key in keyof U]: ReturnType<U[key]> };
+    return result as Translated<U>;
+  }
+
+  export function formatQueries<T extends Dataframe>(
+    reducerQueries: [(data: T) => any[], Reducer][],
+    data: T
+  ) {
+    return Object.fromEntries(
+      reducerQueries?.map(([selectfn, reducer], i) => {
+        return [`query${i}`, [selectfn(data), reducer]];
+      }) ?? []
+    );
   }
 }

@@ -11,6 +11,8 @@ declare global {
   // }
 }
 
+export type Primitive = string | number | boolean | undefined | null;
+
 export type Flat<T> = { [key in keyof T]: T[key] } & {};
 
 export type Entries<T> = [keyof T, T[keyof T]][];
@@ -18,7 +20,7 @@ export type Entries<T> = [keyof T, T[keyof T]][];
 export type MapFn<T> = (next: T) => T;
 export type ReduceFn<T, U> = (prev: U, next: T) => U;
 
-export type Indexable<T = any> = T[] | ((index: number) => T);
+export type Indexable<T = any> = T | T[] | ((index: number) => T);
 
 export type Stringable = { toString(): string };
 export type Indexables = Record<string, Indexable>;

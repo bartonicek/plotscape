@@ -1,9 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { Factor } from "../../aggregation/Factor";
+import { Factor } from "../../transformation/Factor";
 import { POSITIONS } from "../../utils/symbols";
-import { fetchJSON } from "../../utils/funs";
-import { Mtcars } from "../../utils/datasetSchemas";
-import { Glob } from "bun";
 
 // Data comes from:  const mtcars: Mtcars = await Bun.file(`./datasets/mtcars.json`).json();
 // Here its supplied in code so that it's a bit easier to see what's going on:

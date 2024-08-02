@@ -1,5 +1,7 @@
 import { Geom } from "../geoms/Geom";
 import { Expanse, ExpanseContinuous, Scale } from "../main";
+import { Barplot } from "../plots/Barplot";
+import { Scatterplot } from "../plots/Scatterplot";
 import { Reactive } from "../Reactive";
 import { ExpanseType } from "../scales/ExpanseType";
 import { colors, defaultParameters } from "../utils/defaultParameters";
@@ -61,14 +63,8 @@ type EventType =
   | `selected`
   | `clear-transient`;
 
-export enum PlotType {
-  unknown = `unknown`,
-  scatter = `scatter`,
-  bar = `bar`,
-}
-
 export interface Plot extends Reactive {
-  type: PlotType;
+  type: Plot.Type;
 
   container: HTMLElement;
   frames: Frames;
@@ -90,10 +86,17 @@ export interface Plot extends Reactive {
 }
 
 export namespace Plot {
+  export enum Type {
+    unknown = `unknown`,
+    scatter = `scatter`,
+    bar = `bar`,
+  }
+
   export function of(options?: {
+    type?: Type;
     scales?: { x?: ExpanseType; y?: ExpanseType };
   }): Plot {
-    const type = PlotType.unknown;
+    const type = options?.type ?? Type.unknown;
     const container = <div class="relative w-full h-full z-12"></div>;
 
     const frames = {} as Frames;
@@ -134,6 +137,9 @@ export namespace Plot {
 
   export const dispatch = makeDispatchFn<Plot, EventType>();
   export const listen = makeListenFn<Plot, EventType>();
+
+  export const scatter = Scatterplot;
+  export const bar = Barplot;
 
   export function append(parent: HTMLElement, plot: Plot) {
     parent.appendChild(plot.container);

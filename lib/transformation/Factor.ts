@@ -8,6 +8,7 @@ import {
   makeListenFn,
   subset,
 } from "../utils/funs";
+import { Name } from "../utils/Name";
 import { POSITIONS } from "../utils/symbols";
 import { Dataframe, Flat, Stringable } from "../utils/types";
 
@@ -62,6 +63,8 @@ export namespace Factor {
   ): Factor<{ label: string[]; [POSITIONS]: number[][] }> {
     const arr = array.map((x) => x.toString());
     labels = labels ?? Array.from(new Set(arr)).sort();
+
+    if (Name.has(array)) Name.copy(array, labels);
 
     const indices = [] as number[];
     const positions = {} as Record<number, number[]>;

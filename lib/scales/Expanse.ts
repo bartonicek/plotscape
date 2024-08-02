@@ -139,7 +139,7 @@ export namespace Expanse {
   export function train<T extends Expanse>(
     expanse: T,
     array: ExpanseValueMap[T["type"]][],
-    options?: { default?: boolean; ratio?: true }
+    options?: { default?: boolean; ratio?: boolean }
   ) {
     return methods[expanse.type].train(expanse, array as any, options);
   }

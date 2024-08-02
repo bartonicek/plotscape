@@ -1,5 +1,5 @@
-import { Frame, Plots, React } from "../main";
-import { Plot, PlotType } from "../plot/Plot";
+import { Frame, React } from "../main";
+import { Plot } from "../plot/Plot";
 import { Reactive } from "../Reactive";
 import { addIndexed, makeDispatchFn, makeListenFn } from "../utils/funs";
 import { Name } from "../utils/Name";
@@ -82,7 +82,7 @@ export namespace Scene {
 
     plots.push(plot);
     plotDict[`plot${plots.length}`] = plot;
-    if (plot.type != PlotType.unknown) {
+    if (plot.type != Plot.Type.unknown) {
       addIndexed(plotDict, plot.type, plot);
     }
 
@@ -95,7 +95,7 @@ export namespace Scene {
 
   export function addplotByType<T extends Dataframe>(
     scene: Scene<T>,
-    type: Plots.Type,
+    type: Plot.Type,
     selectfn: (data: T) => any[][]
   ) {}
 
