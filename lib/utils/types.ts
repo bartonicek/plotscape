@@ -60,7 +60,19 @@ export enum MouseButton {
 export const dataLayers = [0, 1, 2, 3, 4, 5, 6, 7] as const;
 export const baseLayers = [4, 5, 6, 7] as const;
 export type DataLayer = (typeof dataLayers)[number];
+export type DataLayers = { [key in DataLayer]: Frame };
 
-export type Layers = {
-  [key in DataLayer]: Frame;
-};
+export type TaggedUnion<
+  T extends Record<string, any> | undefined,
+  U extends Record<string, any> | undefined
+> = T extends undefined
+  ? U
+  : U extends undefined
+  ? T
+  : Flat<
+      { [key in keyof T & string]: T[key] } & {
+        [key in keyof U as key extends keyof T & string
+          ? `${key}$`
+          : key]: U[key];
+      }
+    >;

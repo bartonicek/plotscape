@@ -10,7 +10,7 @@ import {
 } from "../utils/funs";
 import { Name } from "../utils/Name";
 import { POSITIONS } from "../utils/symbols";
-import { Dataframe, Flat, Stringable } from "../utils/types";
+import { Dataframe, Stringable, TaggedUnion } from "../utils/types";
 
 export interface Factor<T extends Dataframe = Dataframe> extends Reactive {
   cardinality: number;
@@ -160,7 +160,7 @@ export namespace Factor {
   export function product<T extends Dataframe, U extends Dataframe>(
     factor1: Factor<T>,
     factor2: Factor<U>
-  ): Factor<Flat<T & U>> {
+  ): Factor<TaggedUnion<T, U>> {
     function compute() {
       const k = Math.max(factor1.cardinality, factor2.cardinality) + 1;
 
@@ -204,21 +204,26 @@ export namespace Factor {
 
       // Copy over parent data from factor 1
       for (let k of Reflect.ownKeys(factor1.data)) {
-        if (typeof k === "string") while (k in data) k += `$`;
+        let newK = k as string;
+        if (typeof k === "string") while (newK in data) k += `$`;
         const col = subset(factor1.data[k], factor1ParentIndices);
-        data[k] = col;
+        if (Name.has(factor1.data[k])) Name.copy(factor1.data[k], col);
+        data[newK] = col;
       }
 
       // Copy over parent data from factor 2
       for (let k of Reflect.ownKeys(factor2.data)) {
-        if (typeof k === "string") while (k in data) k += `$`;
+        let newK = k as string;
+        if (typeof k === "string") while (newK in data) newK += `$`;
         const col = subset(factor2.data[k], factor2ParentIndices);
-        data[k] = col;
+        if (Name.has(factor2.data[k])) Name.copy(factor2.data[k], col);
+        data[newK] = col;
       }
 
       data[POSITIONS] = Object.values(positions);
 
-      const result = of(sorted.length, indices, data) as Factor<T & U>;
+      type Data = TaggedUnion<T, U>;
+      const result = of(sorted.length, indices, data) as Factor<Data>;
       result.parentIndices = factor1ParentIndices;
       result.parent = factor1;
 

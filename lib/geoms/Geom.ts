@@ -1,6 +1,6 @@
 import { Scale } from "../main";
 import { LAYER, POSITIONS } from "../utils/symbols";
-import { DataLayer, Indexable, Layers, Rect } from "../utils/types";
+import { DataLayer, DataLayers, Indexable, Rect } from "../utils/types";
 import { Bars } from "./Bars";
 import { Points } from "./Points";
 
@@ -25,7 +25,7 @@ export interface Geom {
 }
 
 type GeomMethods = {
-  render(geom: Geom, layers: Layers): void;
+  render(geom: Geom, layers: DataLayers): void;
   check(geom: Geom, selection: Rect): number[];
 };
 
@@ -34,7 +34,7 @@ export namespace Geom {
     [key in GeomType]: GeomMethods;
   } = { [GeomType.Points]: Points, [GeomType.Bars]: Bars };
 
-  export function render<T extends Geom>(geom: T, layers: Layers) {
+  export function render<T extends Geom>(geom: T, layers: DataLayers) {
     methods[geom.type].render(geom, layers);
   }
 

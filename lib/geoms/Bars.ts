@@ -3,9 +3,9 @@ import { findLength, makeGetter, rectsIntersect } from "../utils/funs";
 import { LAYER, POSITIONS } from "../utils/symbols";
 import {
   DataLayer,
+  DataLayers,
   HAnchor,
   Indexable,
-  Layers,
   Rect,
   VAnchor,
 } from "../utils/types";
@@ -56,7 +56,7 @@ export namespace Bars {
     return { type, data: typedData, scales, vAnchor, hAnchor };
   }
 
-  export function render(bars: Bars, layers: Layers) {
+  export function render(bars: Bars, layers: DataLayers) {
     const { scales, hAnchor, vAnchor } = bars;
     const data = bars.data.grouped;
 

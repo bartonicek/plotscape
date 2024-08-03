@@ -1,6 +1,7 @@
 import { Geom } from "../geoms/Geom";
 import { Expanse, ExpanseContinuous, Scale } from "../main";
 import { Barplot } from "../plots/Barplot";
+import { Fluctuationplot } from "../plots/Fluctplot";
 import { Scatterplot } from "../plots/Scatterplot";
 import { Reactive } from "../Reactive";
 import { ExpanseType } from "../scales/ExpanseType";
@@ -22,7 +23,13 @@ import {
   trunc,
 } from "../utils/funs";
 import { React } from "../utils/JSX";
-import { baseLayers, dataLayers, Layers, Margins, Rect } from "../utils/types";
+import {
+  baseLayers,
+  dataLayers,
+  DataLayers,
+  Margins,
+  Rect,
+} from "../utils/types";
 import { renderAxisLabels, renderAxisTitle } from "./axes";
 import { Frame } from "./Frame";
 
@@ -45,7 +52,7 @@ type Scales = {
   height: Scale<Expanse, ExpanseContinuous>;
 };
 
-export type Frames = Layers & {
+export type Frames = DataLayers & {
   [key in `base` | `under` | `user` | `xAxis` | `yAxis`]: Frame;
 };
 
@@ -140,6 +147,7 @@ export namespace Plot {
 
   export const scatter = Scatterplot;
   export const bar = Barplot;
+  export const fluct = Fluctuationplot;
 
   export function append(parent: HTMLElement, plot: Plot) {
     parent.appendChild(plot.container);

@@ -47,7 +47,7 @@ export function Barplot<T extends Dataframe>(
     Expanse.freeze(scale.domain, [`zero`]);
   }
 
-  const k = 1 / Array.from(new Set(category)).length;
+  const k = 1 / new Set(category).size;
   Expanse.linkTo(scales.y.domain, scales.height.domain);
   Expanse.set(scales.width.codomain, (e) => ((e.scale = k), (e.mult = 0.9)), {
     default: true,

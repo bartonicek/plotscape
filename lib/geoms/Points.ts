@@ -3,7 +3,7 @@ import { ExpanseContinuous, Scale } from "../main";
 import { Frame } from "../plot/Frame";
 import { findLength, makeGetter, rectsIntersect } from "../utils/funs";
 import { LAYER, POSITIONS } from "../utils/symbols";
-import { DataLayer, Indexable, Layers, Rect } from "../utils/types";
+import { DataLayer, DataLayers, Indexable, Rect } from "../utils/types";
 import { FlatData, Geom, GeomType, GroupedData } from "./Geom";
 
 type Data = {
@@ -36,7 +36,7 @@ export namespace Points {
     return { type: GeomType.Points, data: typedData, scales };
   }
 
-  export function render(points: Points, layers: Layers) {
+  export function render(points: Points, layers: DataLayers) {
     const { scales } = points;
     const data = points.data.grouped;
 
