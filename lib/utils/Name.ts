@@ -1,4 +1,11 @@
-import { NAME } from "./symbols";
+export const NAME = Symbol(`name`);
+
+declare global {
+  // Makes it possible to assign names to objects such as Arrays
+  interface Object {
+    [NAME]?: string;
+  }
+}
 
 export namespace Name {
   export function has(object: Object) {

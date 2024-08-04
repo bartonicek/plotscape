@@ -24,7 +24,7 @@ export function Fluctuationplot<T extends Dataframe>(
   const { data, marker } = scene;
   type Variables = [any[], any[], Indexable<number>];
   const plot = Plot.of({
-    type: Plot.Type.bar,
+    type: Plot.Type.Fluct,
     scales: { x: Expanse.Band, y: Expanse.Band },
   });
 

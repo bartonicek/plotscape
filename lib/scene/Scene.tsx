@@ -1,8 +1,8 @@
 import { Frame, React } from "../main";
 import { Plot } from "../plot/Plot";
-import { Reactive } from "../Reactive";
 import { addIndexed, makeDispatchFn, makeListenFn } from "../utils/funs";
 import { Name } from "../utils/Name";
+import { Reactive } from "../utils/Reactive";
 import { Dataframe } from "../utils/types";
 import { Group, Marker, Transient } from "./Marker";
 
@@ -82,7 +82,7 @@ export namespace Scene {
 
     plots.push(plot);
     plotDict[`plot${plots.length}`] = plot;
-    if (plot.type != Plot.Type.unknown) {
+    if (plot.type != Plot.Type.Unknown) {
       addIndexed(plotDict, plot.type, plot);
     }
 

@@ -1,5 +1,5 @@
-import { makeDispatchFn, makeListenFn } from "./utils/funs";
-import { EVENTTARGET } from "./utils/symbols";
+import { makeDispatchFn, makeListenFn } from "./funs";
+import { EVENTTARGET } from "./symbols";
 
 export interface Reactive {
   [EVENTTARGET]: EventTarget;

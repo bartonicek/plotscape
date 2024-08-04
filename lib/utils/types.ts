@@ -1,15 +1,4 @@
 import { Frame } from "../plot/Frame";
-import { NAME } from "./symbols";
-
-declare global {
-  // Makes it possible to assign names to objects such as Arrays
-  interface Object {
-    [NAME]?: string;
-  }
-  // interface Array<T> {
-  //   [PARENT]?: this;
-  // }
-}
 
 export type Primitive = string | number | boolean | undefined | null;
 
@@ -20,11 +9,16 @@ export type Entries<T> = [keyof T, T[keyof T]][];
 export type MapFn<T> = (next: T) => T;
 export type ReduceFn<T, U> = (prev: U, next: T) => U;
 
-export type Indexable<T = any> = T | T[] | ((index: number) => T);
-
 export type Stringable = { toString(): string };
+
+export type Indexable<T = any> = T | T[] | ((index: number) => T);
 export type Indexables = Record<string, Indexable>;
+export type IndexableValue<T extends Indexable> = T extends Indexable<infer U>
+  ? U
+  : never;
+
 export type Dataframe = Record<string | symbol, any[]>;
+export type Data = Record<string | symbol, Indexable>;
 export type UntypedColumns<S extends string[]> = { [key in S[number]]: any[] };
 
 export enum Direction {

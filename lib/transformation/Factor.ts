@@ -1,4 +1,3 @@
-import { Reactive } from "../Reactive";
 import {
   binBreaks,
   copyValues,
@@ -9,10 +8,18 @@ import {
   subset,
 } from "../utils/funs";
 import { Name } from "../utils/Name";
+import { Reactive } from "../utils/Reactive";
 import { POSITIONS } from "../utils/symbols";
-import { Dataframe, Stringable, TaggedUnion } from "../utils/types";
+import {
+  Data,
+  Dataframe,
+  Indexable,
+  Stringable,
+  TaggedUnion,
+} from "../utils/types";
 
-export interface Factor<T extends Dataframe = Dataframe> extends Reactive {
+export interface Factor<T extends Data = Data> extends Reactive {
+  type: Factor.Type;
   cardinality: number;
   indices: number[];
   parent?: Factor;
@@ -20,15 +27,22 @@ export interface Factor<T extends Dataframe = Dataframe> extends Reactive {
   data: T;
 }
 
-type EventType = `changed`;
-
 export namespace Factor {
-  export function of<T extends Dataframe>(
+  export enum Type {
+    Constant,
+    Bijection,
+    Surjection,
+  }
+
+  type EventType = `changed`;
+
+  export function of<T extends Data>(
+    type: Type,
     cardinality: number,
     indices: number[],
     data: T
   ): Factor<T> {
-    return Reactive.of({ cardinality, indices, data });
+    return Reactive.of({ type, cardinality, indices, data });
   }
 
   export const listen = makeListenFn<Factor, EventType>();
@@ -36,7 +50,6 @@ export namespace Factor {
 
   export function copyFrom<T extends Factor>(source: T, target: T) {
     target.cardinality = source.cardinality;
-
     copyValues(source.indices, target.indices);
 
     if (target.parentIndices && source.parentIndices) {
@@ -46,8 +59,17 @@ export namespace Factor {
     for (const k of Reflect.ownKeys(source.data)) {
       copyValues(source.data[k], target.data[k]);
     }
+  }
 
-    copyValues(source.data[POSITIONS], target.data[POSITIONS]);
+  export function bijection(): Factor<{ [POSITIONS]: Indexable<number[]> }> {
+    const cardinality = Infinity;
+    const indices = [] as number[];
+    const positions = (index: number) => [index];
+
+    const type = Type.Bijection;
+    const data = { [POSITIONS]: positions };
+
+    return of(type, cardinality, indices, data);
   }
 
   /**
@@ -77,9 +99,10 @@ export namespace Factor {
       positions[index].push(i);
     }
 
+    const type = Type.Surjection;
     const data = { label: labels, [POSITIONS]: Object.values(positions) };
 
-    return of(labels.length, indices, data);
+    return of(type, labels.length, indices, data);
   }
 
   type BinOptions = {
@@ -133,9 +156,10 @@ export namespace Factor {
         binMax.push(breaks[sorted[i] + 1]);
       }
 
+      const type = Type.Surjection;
       const data = { binMin, binMax, [POSITIONS]: Object.values(positions) };
 
-      return of(sorted.length, indices, data);
+      return of(type, sorted.length, indices, data);
     }
 
     const factor = compute();
@@ -220,10 +244,11 @@ export namespace Factor {
         data[newK] = col;
       }
 
+      const type = Type.Surjection;
       data[POSITIONS] = Object.values(positions);
 
       type Data = TaggedUnion<T, U>;
-      const result = of(sorted.length, indices, data) as Factor<Data>;
+      const result = of(type, sorted.length, indices, data) as Factor<Data>;
       result.parentIndices = factor1ParentIndices;
       result.parent = factor1;
 

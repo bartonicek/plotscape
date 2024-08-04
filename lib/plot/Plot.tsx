@@ -3,7 +3,6 @@ import { Expanse, ExpanseContinuous, Scale } from "../main";
 import { Barplot } from "../plots/Barplot";
 import { Fluctuationplot } from "../plots/Fluctplot";
 import { Scatterplot } from "../plots/Scatterplot";
-import { Reactive } from "../Reactive";
 import { ExpanseType } from "../scales/ExpanseType";
 import { colors, defaultParameters } from "../utils/defaultParameters";
 import {
@@ -23,6 +22,7 @@ import {
   trunc,
 } from "../utils/funs";
 import { React } from "../utils/JSX";
+import { Reactive } from "../utils/Reactive";
 import {
   baseLayers,
   dataLayers,
@@ -94,16 +94,17 @@ export interface Plot extends Reactive {
 
 export namespace Plot {
   export enum Type {
-    unknown = `unknown`,
-    scatter = `scatter`,
-    bar = `bar`,
+    Unknown = `unknown`,
+    Scatter = `scatter`,
+    Bar = `bar`,
+    Fluct = `fluct`,
   }
 
   export function of(options?: {
     type?: Type;
     scales?: { x?: ExpanseType; y?: ExpanseType };
   }): Plot {
-    const type = options?.type ?? Type.unknown;
+    const type = options?.type ?? Type.Unknown;
     const container = <div class="relative w-full h-full z-12"></div>;
 
     const frames = {} as Frames;

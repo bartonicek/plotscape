@@ -1,4 +1,4 @@
-import { Reactive } from "../Reactive";
+import { Reactive } from "../utils/Reactive";
 import {
   copyProps,
   copyValues,

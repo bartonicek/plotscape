@@ -1,5 +1,5 @@
 import { ExpanseContinuous, Frame, Scale } from "../main";
-import { findLength, makeGetter, rectsIntersect } from "../utils/funs";
+import { findLength, rectsIntersect } from "../utils/funs";
 import { LAYER, POSITIONS } from "../utils/symbols";
 import {
   DataLayer,
@@ -60,26 +60,23 @@ export namespace Bars {
     const { scales, hAnchor, vAnchor } = bars;
     const data = bars.data.grouped;
 
-    const { x, y, width, height } = data;
-    const layer = data[LAYER];
-
     const n = findLength(Object.values(data));
-    const [getX, getY, getWidth, getHeight, getLayer] = [
-      x,
-      y,
-      width,
-      height,
-      layer,
-    ].map(makeGetter);
+    const [x, y, width, height, layer] = Geom.get(data, [
+      `x`,
+      `y`,
+      `width`,
+      `height`,
+      LAYER,
+    ]);
 
     for (let i = 0; i < n; i++) {
-      const px = Scale.pushforward(scales.x, getX(i));
-      const py = Scale.pushforward(scales.y, getY(i));
-      const pw = Scale.pushforward(scales.width, getWidth(i));
-      const ph = Scale.pushforward(scales.height, getHeight(i));
-      const layer = layers[getLayer(i) as DataLayer];
+      const xi = Scale.pushforward(scales.x, x(i));
+      const yi = Scale.pushforward(scales.y, y(i));
+      const wi = Scale.pushforward(scales.width, width(i));
+      const hi = Scale.pushforward(scales.height, height(i));
+      const li = layers[layer(i) as DataLayer];
 
-      Frame.rectangleWH(layer, px, py, pw, ph, { hAnchor, vAnchor });
+      Frame.rectangleWH(li, xi, yi, wi, hi, { hAnchor, vAnchor });
     }
   }
 
@@ -87,36 +84,33 @@ export namespace Bars {
     const { scales, hAnchor, vAnchor } = bars;
     const data = bars.data.flat;
 
-    const { x, y, width, height } = data;
-    const positions = data[POSITIONS];
-
     const n = findLength(Object.values(data));
-    const [getX, getY, getWidth, getHeight, getPositions] = [
-      x,
-      y,
-      width,
-      height,
-      positions,
-    ].map(makeGetter);
+    const [x, y, width, height, positions] = Geom.get(data, [
+      `x`,
+      `y`,
+      `width`,
+      `height`,
+      POSITIONS,
+    ]);
 
     const selected = [] as number[];
 
     for (let i = 0; i < n; i++) {
-      const px = Scale.pushforward(scales.x, getX(i));
-      const py = Scale.pushforward(scales.y, getY(i));
-      const pw = Scale.pushforward(scales.width, getWidth(i));
-      const ph = Scale.pushforward(scales.height, getHeight(i));
+      const xi = Scale.pushforward(scales.x, x(i));
+      const yi = Scale.pushforward(scales.y, y(i));
+      const wi = Scale.pushforward(scales.width, width(i));
+      const hi = Scale.pushforward(scales.height, height(i));
 
       const coords = [
-        px - pw * hAnchor,
-        py - ph * vAnchor,
-        px + pw * hAnchor,
-        py + ph * (1 - vAnchor),
+        xi - wi * hAnchor,
+        yi - hi * vAnchor,
+        xi + wi * hAnchor,
+        yi + hi * (1 - vAnchor),
       ] as Rect;
 
       if (rectsIntersect(selection, coords)) {
-        const positions = getPositions(i);
-        for (let j = 0; j < positions.length; j++) selected.push(positions[j]);
+        const pos = positions(i);
+        for (let j = 0; j < pos.length; j++) selected.push(pos[j]);
       }
     }
 

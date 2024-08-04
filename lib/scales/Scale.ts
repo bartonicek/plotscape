@@ -1,6 +1,6 @@
-import { Reactive } from "../Reactive";
 import { makeDispatchFn, makeListenFn } from "../utils/funs";
 import { Name } from "../utils/Name";
+import { Reactive } from "../utils/Reactive";
 import { Expanse, ExpanseValueMap } from "./Expanse";
 
 export interface Scale<T extends Expanse = any, U extends Expanse = any>

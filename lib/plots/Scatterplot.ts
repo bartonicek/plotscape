@@ -9,7 +9,7 @@ export function Scatterplot<T extends Dataframe>(
   selectfn: (data: T) => [any[], any[]] | [any[], any[], any[]]
 ) {
   const { data, marker } = scene;
-  const plot = Plot.of({ type: Plot.Type.scatter });
+  const plot = Plot.of({ type: Plot.Type.Scatter });
 
   const [x, y, area] = selectfn(data);
   const { scales } = plot;

@@ -1,7 +1,6 @@
-import { Getter } from "../Getter";
 import { ExpanseContinuous, Scale } from "../main";
 import { Frame } from "../plot/Frame";
-import { findLength, makeGetter, rectsIntersect } from "../utils/funs";
+import { findLength, rectsIntersect } from "../utils/funs";
 import { LAYER, POSITIONS } from "../utils/symbols";
 import { DataLayer, DataLayers, Indexable, Rect } from "../utils/types";
 import { FlatData, Geom, GeomType, GroupedData } from "./Geom";
@@ -40,20 +39,16 @@ export namespace Points {
     const { scales } = points;
     const data = points.data.grouped;
 
-    const { x, y, area } = data;
-    const layer = data[LAYER];
-
-    const n = findLength([x, y, area, layer]);
-    const [getX, getY, getLayer] = [x, y, layer].map(makeGetter);
-    const getRadius = makeGetter(area ?? 0.5);
+    const n = findLength(Object.values(data));
+    const [x, y, radius, layer] = Geom.get(data, [`x`, `y`, `area`, LAYER]);
 
     for (let i = 0; i < n; i++) {
-      const px = Scale.pushforward(scales.x, getX(i));
-      const py = Scale.pushforward(scales.y, getY(i));
-      const pr = Scale.pushforward(scales.area, getRadius(i));
-      const layer = layers[getLayer(i) as DataLayer];
+      const xi = Scale.pushforward(scales.x, x(i));
+      const yi = Scale.pushforward(scales.y, y(i));
+      const ri = Scale.pushforward(scales.area, radius(i));
+      const li = layers[layer(i) as DataLayer];
 
-      Frame.point(layer, px, py, { radius: pr });
+      Frame.point(li, xi, yi, { radius: ri });
     }
   }
 
@@ -61,24 +56,27 @@ export namespace Points {
     const { scales } = points;
     const data = points.data.flat;
 
-    const { x, y, area } = data;
-    const positions = data[POSITIONS];
-
-    const n = findLength([x, y, area, positions]);
-    const [getX, getY, getPositions] = [x, y, positions].map(makeGetter);
-    const getRadius = makeGetter(area ?? Getter.constant(0.5));
+    const n = findLength(Object.values(data));
+    const [x, y, radius, positions] = Geom.get(data, [
+      `x`,
+      `y`,
+      `area`,
+      POSITIONS,
+    ]);
 
     const selected = [] as number[];
 
     for (let i = 0; i < n; i++) {
-      const px = Scale.pushforward(scales.x, getX(i));
-      const py = Scale.pushforward(scales.y, getY(i));
-      let pr = Scale.pushforward(scales.area, getRadius(i));
-      pr = pr / Math.sqrt(2);
+      const xi = Scale.pushforward(scales.x, x(i));
+      const yi = Scale.pushforward(scales.y, y(i));
+      let ri = Scale.pushforward(scales.area, radius(i));
+      ri = ri / Math.sqrt(2);
 
-      if (rectsIntersect(selection, [px - pr, py - pr, px + pr, py + pr])) {
-        const positions = getPositions(i);
-        for (let j = 0; j < positions.length; j++) selected.push(positions[j]);
+      const coords = [xi - ri, yi - ri, xi + ri, yi + ri] as Rect;
+
+      if (rectsIntersect(selection, coords)) {
+        const pos = positions(i);
+        for (let j = 0; j < pos.length; j++) selected.push(pos[j]);
       }
     }
 

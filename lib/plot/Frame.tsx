@@ -162,6 +162,18 @@ export namespace Frame {
     context.fillRect(x, y, w, -h);
   }
 
+  export function line(frame: Frame, x: number[], y: number[]) {
+    const { context, height } = frame;
+
+    context.moveTo(x[0], height - y[0]);
+
+    for (let i = 0; i < x.length; i++) {
+      context.lineTo(x[i], height - y[i]);
+    }
+
+    context.stroke();
+  }
+
   export function text(
     frame: Frame,
     x: number,

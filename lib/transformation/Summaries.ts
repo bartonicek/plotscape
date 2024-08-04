@@ -1,4 +1,4 @@
-import { Reactive } from "../Reactive";
+import { Reactive } from "../utils/Reactive";
 import { copyValues, isArray, merge, subset } from "../utils/funs";
 import { PARENTVALUES } from "../utils/symbols";
 import { Dataframe, Flat, Indexable } from "../utils/types";

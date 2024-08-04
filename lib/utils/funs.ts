@@ -1,5 +1,5 @@
-import { Reactive } from "../Reactive";
 import { defaultParameters } from "./defaultParameters";
+import { Reactive } from "./Reactive";
 import { EVENTTARGET } from "./symbols";
 import { Entries, Flat, Indexable, Margins, Primitive, Rect } from "./types";
 

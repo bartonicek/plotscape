@@ -19,7 +19,7 @@ export function Barplot<T extends Dataframe>(
   }
 ) {
   const { data, marker } = scene;
-  const plot = Plot.of({ type: Plot.Type.bar, scales: { x: Expanse.Band } });
+  const plot = Plot.of({ type: Plot.Type.Bar, scales: { x: Expanse.Band } });
 
   let [category, values] = selectfn(data) as [any[], Indexable<number>];
   values = values ?? 1;

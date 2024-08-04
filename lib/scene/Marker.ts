@@ -1,6 +1,5 @@
-import { Getter } from "../Getter";
 import { Factor } from "../main";
-import { Reactive } from "../Reactive";
+import { Reactive } from "../utils/Reactive";
 import { makeDispatchFn, makeListenFn } from "../utils/funs";
 import { LAYER } from "../utils/symbols";
 import { DataLayer, Indexable } from "../utils/types";
@@ -35,7 +34,10 @@ export namespace Marker {
     const group = Transient;
     const indices = Array<number>(n).fill(Group.Base);
     const transientIndices: number[] = [];
-    const factor = Factor.of(8, indices, { [LAYER]: [0, 1, 2, 3, 4, 5, 6, 7] });
+    const type = Factor.Type.Surjection;
+    const factor = Factor.of(type, 8, indices, {
+      [LAYER]: [0, 1, 2, 3, 4, 5, 6, 7],
+    });
 
     const marker = Reactive.of({ group, indices, transientIndices, factor });
     Marker.listen(marker, `updated`, () => Factor.dispatch(factor, `changed`));
@@ -97,7 +99,7 @@ export namespace Marker {
 
   export function getLayer(marker: Marker): Indexable<DataLayer> {
     const { factor, indices } = marker;
-    return Getter.computed((i) => factor.data[LAYER][indices[i]] as DataLayer);
+    return (i) => factor.data[LAYER][indices[i]] as DataLayer;
   }
 }
 
