@@ -11,14 +11,14 @@ export type ReduceFn<T, U> = (prev: U, next: T) => U;
 
 export type Stringable = { toString(): string };
 
-export type Indexable<T = any> = T | T[] | ((index: number) => T);
+export type Indexable<T = any> = T[] | ((index: number) => T);
 export type Indexables = Record<string, Indexable>;
 export type IndexableValue<T extends Indexable> = T extends Indexable<infer U>
   ? U
   : never;
 
-export type Dataframe = Record<string | symbol, any[]>;
-export type Data = Record<string | symbol, Indexable>;
+export type Columns = Record<string | symbol, any[]>;
+export type Dataframe = Record<string | symbol, Indexable>;
 export type UntypedColumns<S extends string[]> = { [key in S[number]]: any[] };
 
 export enum Direction {
@@ -26,6 +26,7 @@ export enum Direction {
   Backwards = -1,
 }
 
+export type Point = [x: number, y: number];
 export type Rect = [x0: number, y0: number, x1: number, y1: number];
 
 export type Margins = [

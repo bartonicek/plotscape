@@ -11,15 +11,16 @@ import {
 import { Reduced } from "../transformation/Reduced";
 import { Summaries } from "../transformation/Summaries";
 import { max, sqrt, square } from "../utils/funs";
-import { Dataframe, Indexable, VAnchor } from "../utils/types";
+import { Name } from "../utils/Name";
+import { Columns, Indexable, VAnchor } from "../utils/types";
 
-export function Fluctuationplot<T extends Dataframe>(
+export function Fluctuationplot<T extends Columns>(
   scene: Scene<T>,
   selectfn: (data: T) => [any[], any[]] | [any[], any[], number[]],
   options?: {
     reducer?: Reducer<number, number>;
     queries?: [(data: T) => any[], Reducer][];
-  }
+  },
 ) {
   const { data, marker } = scene;
   type Variables = [any[], any[], Indexable<number>];
@@ -29,13 +30,16 @@ export function Fluctuationplot<T extends Dataframe>(
   });
 
   let [cat1, cat2, values] = selectfn(data) as Variables;
-  values = values ?? 1;
+  const reducer = values && options?.reducer ? options.reducer : Reducer.sum;
+  values = values ?? (() => 1);
+
+  if (!Name.has(values)) Name.set(values, `count`);
+  else Name.set(values, `${reducer.name} of ${Name.get(values)}`);
 
   const factor1 = Factor.product(Factor.from(cat1), Factor.from(cat2));
   const factor2 = Factor.product(factor1, marker.factor);
   const factors = [factor1, factor2] as const;
 
-  const reducer = values && options?.reducer ? options.reducer : Reducer.sum;
   const qs = Summaries.formatQueries(options?.queries ?? [], data);
 
   const summaries = Summaries.of({ stat: [values, reducer], ...qs }, factors);

@@ -1,4 +1,5 @@
 import { makeGetter } from "../utils/funs";
+import { Name } from "../utils/Name";
 import { Indexable } from "../utils/types";
 import { Factor } from "./Factor";
 import { Reduced } from "./Reduced";
@@ -53,15 +54,18 @@ export namespace Reducer {
     const { indices, cardinality: n } = factor;
     const { initialfn, reducefn } = reducer;
 
-    const result = Array.from(Array(n), () => initialfn());
+    const array = Array.from(Array(n), () => initialfn());
 
     const index = makeGetter(indices);
     const value = makeGetter(values);
 
     for (let i = 0; i < indices.length; i++) {
-      result[index(i)] = reducefn(result[index(i)], value(i));
+      array[index(i)] = reducefn(array[index(i)], value(i));
     }
 
-    return Reduced.of(result, factor, reducer);
+    const result = Reduced.of(array, factor, reducer);
+    Name.copy(values as any, result);
+
+    return result;
   }
 }

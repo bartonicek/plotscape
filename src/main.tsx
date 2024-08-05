@@ -12,7 +12,7 @@ async function mtcarsScene() {
 
   const plot1 = Plot.scatter(scene, (d) => [d.wt, d.mpg]);
   const plot2 = Plot.scatter(scene, (d) => [d.cyl, d.disp]);
-  const plot3 = Plot.bar(scene, (d) => [d.cyl], {
+  const plot3 = Plot.bar(scene, (d) => [d.cyl, d.mpg], {
     reducer: Reducer.sum,
     queries: [[(d) => d.am, Reducer.table]],
   });

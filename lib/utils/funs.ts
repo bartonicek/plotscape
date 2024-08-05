@@ -1,7 +1,15 @@
 import { defaultParameters } from "./defaultParameters";
 import { Reactive } from "./Reactive";
 import { EVENTTARGET } from "./symbols";
-import { Entries, Flat, Indexable, Margins, Primitive, Rect } from "./types";
+import {
+  Entries,
+  Flat,
+  Indexable,
+  Margins,
+  Point,
+  Primitive,
+  Rect,
+} from "./types";
 
 /**
  * The identity function.
@@ -171,7 +179,7 @@ export function rangeInverse(min: number, max: number) {
  */
 export function invertRange(
   min: number,
-  max: number
+  max: number,
 ): [min: number, max: number] {
   const ri = rangeInverse(min, max);
   return [-min * ri, ri - min * ri];
@@ -262,7 +270,7 @@ export function subset<T>(
   array: T[],
   indices: number[],
   start = 0,
-  end = indices.length
+  end = indices.length,
 ) {
   const result = Array(end - start) as T[];
 
@@ -326,7 +334,7 @@ export function randomInteger(from: number, to: number) {
 export function uniqueIntegers(
   from: number,
   to: number,
-  n: number = to - from
+  n: number = to - from,
 ) {
   const length = to - from;
   const sampled = [] as number[];
@@ -359,7 +367,7 @@ export async function fetchJSON(path: string) {
  */
 export function merge<
   T extends Record<string, any>,
-  U extends Record<string, any>
+  U extends Record<string, any>,
 >(object1: T, object2: U): Flat<T & U> {
   return { ...object1, ...object2 };
 }
@@ -441,7 +449,7 @@ export function prettyBreaks(min: number, max: number, n = 4) {
  */
 export function binBreaks(
   array: number[],
-  options?: { width?: number; anchor?: number; nBins?: number }
+  options?: { width?: number; anchor?: number; nBins?: number },
 ) {
   let { width, anchor, nBins } = options || {};
   const [min, max] = minmax(array);
@@ -503,7 +511,7 @@ export function removeTailwind(element: HTMLElement, classList: string) {
  */
 export function throttle<T extends (...args: any[]) => any>(
   fn: T,
-  period: number
+  period: number,
 ) {
   let lastTime = 0;
   return function (...args: Parameters<T>) {
@@ -537,7 +545,7 @@ export function makeListenFn<T extends Reactive, E extends string>() {
     object: T,
     type: E,
     eventfn: (event: CustomEvent) => void,
-    options?: { throttle?: number }
+    options?: { throttle?: number },
   ) {
     if (options?.throttle) eventfn = throttle(eventfn, options.throttle);
     object[EVENTTARGET].addEventListener(type, eventfn as EventListener);
@@ -550,6 +558,19 @@ export function makeGetter<T>(indexable: Indexable<T>): (index: number) => T {
     return indexable as (index: number) => T;
   }
   return () => indexable;
+}
+
+/**
+ * Checks whether a point is inside a rectangle.
+ * @param point A points (`[x, y]`)
+ * @param rect A rectangle (`[x0, y0, x1, y1]`)
+ * @returns `true` if the point is inside the rectangle
+ */
+export function pointInRect(point: Point, rect: Rect) {
+  const [x, y] = point;
+  const [x0, y0, x1, y1] = rect;
+
+  return !(x < x0 || x > x1 || y < y0 || y > y1);
 }
 
 /**
@@ -584,7 +605,7 @@ export function rectsIntersect(rect1: Rect, rect2: Rect) {
 export function addIndexed(
   object: Record<string, any>,
   key: string,
-  value: any
+  value: any,
 ) {
   const keys = Object.keys(object);
   const matching = keys.filter((x) => x.replace(/[0-9]*$/, "") === key);
@@ -598,6 +619,17 @@ export function addIndexed(
   object[`${key}${count + 1}`] = value;
 }
 
+export function formatLabel(label: number | string) {
+  if (typeof label != "number") return label;
+
+  if (label === 0) return label.toString();
+
+  const base = Math.floor(Math.log10(Math.abs(label)));
+  if (base > 4) return round(label).toString();
+  if (base <= 4 && base > 0) return round(label, 4 - base).toString();
+  else return round(label, Math.abs(base) + 2).toString();
+}
+
 /**
  * Format plot labels - returns the labels back if they're an array of strings,
  * otherwise rounds numeric labels and converts them to exponential if too big.
@@ -607,7 +639,7 @@ export function addIndexed(
  */
 export function formatLabels(
   labels: number[] | string[],
-  options?: { decimalPlaces?: number }
+  options?: { decimalPlaces?: number },
 ): string[] {
   if (!isNumberArray(labels)) return labels;
 

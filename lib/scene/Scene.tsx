@@ -3,10 +3,10 @@ import { Plot } from "../plot/Plot";
 import { addIndexed, makeDispatchFn, makeListenFn } from "../utils/funs";
 import { Name } from "../utils/Name";
 import { Reactive } from "../utils/Reactive";
-import { Dataframe } from "../utils/types";
+import { Columns } from "../utils/types";
 import { Group, Marker, Transient } from "./Marker";
 
-export interface Scene<T extends Dataframe = Dataframe> extends Reactive {
+export interface Scene<T extends Columns = Columns> extends Reactive {
   data: T;
   container: HTMLDivElement;
 
@@ -21,9 +21,9 @@ export interface Scene<T extends Dataframe = Dataframe> extends Reactive {
 type EventType = `resize`;
 
 export namespace Scene {
-  export function of<T extends Dataframe>(data: T): Scene<T> {
+  export function of<T extends Columns>(data: T): Scene<T> {
     const container = (
-      <div class="w-full h-full grid relate bg-[#deded9] grid-rows-1 grid-cols-1 gap-5 p-5"></div>
+      <div class="relate grid h-full w-full grid-cols-1 grid-rows-1 gap-5 bg-[#deded9] p-5"></div>
     ) as HTMLDivElement;
 
     const plots = [] as Plot[];
@@ -93,10 +93,10 @@ export namespace Scene {
     Scene.setDimensions(scene, nRows, nCols);
   }
 
-  export function addplotByType<T extends Dataframe>(
+  export function addplotByType<T extends Columns>(
     scene: Scene<T>,
     type: Plot.Type,
-    selectfn: (data: T) => any[][]
+    selectfn: (data: T) => any[][],
   ) {}
 
   export function setDimensions(scene: Scene, rows: number, cols: number) {

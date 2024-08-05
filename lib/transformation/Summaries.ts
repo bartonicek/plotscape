@@ -1,7 +1,7 @@
 import { Reactive } from "../utils/Reactive";
 import { copyValues, isArray, merge, subset } from "../utils/funs";
 import { PARENTVALUES } from "../utils/symbols";
-import { Dataframe, Flat, Indexable } from "../utils/types";
+import { Columns, Flat, Indexable } from "../utils/types";
 import { Factor } from "./Factor";
 import { Reduced } from "./Reduced";
 import { Reducer } from "./Reducer";
@@ -65,10 +65,10 @@ export namespace Summaries {
     return result as { [key in keyof U]: Flat<U[key]["data"] & Computed> };
   }
 
-  function compute<
-    T extends Dataframe,
-    U extends Record<string, ReducerTuple<T>>
-  >(factor: Factor<T>, summaries: U) {
+  function compute<T extends Data, U extends Record<string, ReducerTuple<T>>>(
+    factor: Factor<T>,
+    summaries: U
+  ) {
     const computed = {} as Record<string, any>;
 
     for (const [k, v] of Object.entries(summaries)) {
@@ -129,7 +129,7 @@ export namespace Summaries {
     return result as Translated<U>;
   }
 
-  export function formatQueries<T extends Dataframe>(
+  export function formatQueries<T extends Columns>(
     reducerQueries: [(data: T) => any[], Reducer][],
     data: T
   ) {

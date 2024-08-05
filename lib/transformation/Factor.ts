@@ -2,6 +2,7 @@ import {
   binBreaks,
   copyValues,
   diff,
+  isArray,
   makeDispatchFn,
   makeGetter,
   makeListenFn,
@@ -11,14 +12,14 @@ import { Name } from "../utils/Name";
 import { Reactive } from "../utils/Reactive";
 import { POSITIONS } from "../utils/symbols";
 import {
-  Data,
+  Columns,
   Dataframe,
   Indexable,
   Stringable,
   TaggedUnion,
 } from "../utils/types";
 
-export interface Factor<T extends Data = Data> extends Reactive {
+export interface Factor<T extends Dataframe = Dataframe> extends Reactive {
   type: Factor.Type;
   cardinality: number;
   indices: number[];
@@ -36,7 +37,7 @@ export namespace Factor {
 
   type EventType = `changed`;
 
-  export function of<T extends Data>(
+  export function of<T extends Dataframe>(
     type: Type,
     cardinality: number,
     indices: number[],
@@ -57,7 +58,11 @@ export namespace Factor {
     }
 
     for (const k of Reflect.ownKeys(source.data)) {
-      copyValues(source.data[k], target.data[k]);
+      if (isArray(source.data[k]) && isArray(target.data[k])) {
+        copyValues(source.data[k], target.data[k]);
+      } else {
+        target.data[k] = source.data[k];
+      }
     }
   }
 
@@ -181,7 +186,7 @@ export namespace Factor {
    * @returns A factor which has as its levels all of the unique combinations
    * of the levels of the two factors (and the corresponding data)
    */
-  export function product<T extends Dataframe, U extends Dataframe>(
+  export function product<T extends Columns, U extends Columns>(
     factor1: Factor<T>,
     factor2: Factor<U>
   ): Factor<TaggedUnion<T, U>> {
@@ -224,7 +229,7 @@ export namespace Factor {
       const factor1ParentIndices = Object.values(factor1Map);
       const factor2ParentIndices = Object.values(factor2Map);
 
-      const data = {} as Dataframe;
+      const data = {} as Columns;
 
       // Copy over parent data from factor 1
       for (let k of Reflect.ownKeys(factor1.data)) {

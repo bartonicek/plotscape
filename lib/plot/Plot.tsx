@@ -9,6 +9,7 @@ import {
   addTailwind,
   copyValues,
   diff,
+  formatLabel,
   getMargins,
   invertRange,
   makeDispatchFn,
@@ -68,17 +69,22 @@ type EventType =
   | `unlock`
   | `lock-others`
   | `selected`
-  | `clear-transient`;
+  | `clear-transient`
+  | `set-mode-query`;
 
 export interface Plot extends Reactive {
   type: Plot.Type;
 
   container: HTMLElement;
+  queryDisplay: HTMLElement;
   frames: Frames;
 
   scales: Scales;
-  geoms: Geom[];
   margins: Margins;
+
+  renderables: Geom[];
+  selectables: Geom[];
+  queryables: Geom[];
 
   zoomStack: Rect[];
 
@@ -89,6 +95,7 @@ export interface Plot extends Reactive {
     mousedown: boolean;
     mousebutton: MouseButton;
     mousecoords: Rect;
+    lastkey: string;
   };
 }
 
@@ -105,11 +112,21 @@ export namespace Plot {
     scales?: { x?: ExpanseType; y?: ExpanseType };
   }): Plot {
     const type = options?.type ?? Type.Unknown;
-    const container = <div class="relative w-full h-full z-12"></div>;
+    const container = (
+      <div id="plot-container" class="relative h-full w-full"></div>
+    );
+    const queryDisplay = (
+      <div class="relative z-30 hidden w-fit border border-black bg-gray-50 p-2"></div>
+    );
+
+    container.appendChild(queryDisplay);
 
     const frames = {} as Frames;
     const scales = {} as Scales;
-    const geoms = [] as Geom[];
+
+    const renderables = [] as Geom[];
+    const selectables = [] as Geom[];
+    const queryables = [] as Geom[];
 
     const { expandX, expandY } = defaultParameters;
     const zoomStack = [[expandX, expandY, 1 - expandX, 1 - expandY]] as Rect[];
@@ -121,6 +138,7 @@ export namespace Plot {
       mousebutton: MouseButton.Left,
       mode: Mode.Select,
       mousecoords: [0, 0, 0, 0] as Rect,
+      lastkey: ``,
     };
 
     const margins = getMargins();
@@ -128,9 +146,12 @@ export namespace Plot {
     const plot = Reactive.of({
       type,
       container,
+      queryDisplay,
       frames,
       scales,
-      geoms,
+      renderables,
+      selectables,
+      queryables,
       zoomStack,
       parameters,
       margins,
@@ -157,14 +178,16 @@ export namespace Plot {
 
   export function addGeom(plot: Plot, geom: Geom) {
     geom.scales = plot.scales;
-    plot.geoms.push(geom);
+    plot.queryables.push(geom);
+    plot.selectables.push(geom);
+    plot.renderables.push(geom);
   }
 
   export function checkSelection(plot: Plot) {
-    const { geoms, parameters, frames } = plot;
+    const { selectables, parameters, frames } = plot;
     const selectedCases = new Set<number>();
 
-    for (const geom of geoms) {
+    for (const geom of selectables) {
       const selected = Geom.check(geom, parameters.mousecoords);
       for (let i = 0; i < selected.length; i++) selectedCases.add(selected[i]);
     }
@@ -216,7 +239,45 @@ export namespace Plot {
     Plot.dispatch(plot, `clear-transient`);
   }
 
-  function query() {}
+  function query(plot: Plot, event: MouseEvent) {
+    const { offsetX, offsetY } = event;
+    const { container, queryDisplay, queryables } = plot;
+    const { clientWidth, clientHeight } = container;
+
+    queryDisplay.style.display = `none`;
+
+    const x = offsetX;
+    const y = clientHeight - offsetY;
+
+    let result: Record<string, any> | undefined;
+    for (const geom of queryables) {
+      result = Geom.query(geom, [x, y]);
+      if (result) break;
+    }
+
+    if (!result) return;
+
+    let queryString = ``;
+    for (const [k, v] of Object.entries(result)) {
+      queryString += `${k}: ${formatLabel(v)}\n`;
+    }
+
+    queryDisplay.innerText = queryString;
+
+    const queryStyles = getComputedStyle(queryDisplay);
+    const queryWidth = parseFloat(queryStyles.width.slice(0, -2));
+
+    if (x + queryWidth > clientWidth) {
+      queryDisplay.style.left = `auto`;
+      queryDisplay.style.right = `${clientWidth - x + 5}px`;
+    } else {
+      queryDisplay.style.left = `${x + 5}px`;
+      queryDisplay.style.right = `auto`;
+    }
+
+    queryDisplay.style.top = offsetY + `px`;
+    queryDisplay.style.display = `inline-block`;
+  }
 
   export const keydownHandlers = {
     [`r`]: reset,
@@ -226,13 +287,14 @@ export namespace Plot {
     [`]`]: unfade,
     [`z`]: zoom,
     [`x`]: popZoom,
+    [`q`]: setQueryMode,
   };
 
   function grow(plot: Plot) {
     const { area, width } = plot.scales;
     Expanse.set(area.codomain, (e) => ((e.min *= 10 / 9), (e.max *= 10 / 9)));
     Expanse.set(width.codomain, (e) =>
-      e.mult < 1 ? (e.mult *= 10 / 9) : null
+      e.mult < 1 ? (e.mult *= 10 / 9) : null,
     );
   }
 
@@ -266,6 +328,10 @@ export namespace Plot {
     }
     plot.zoomStack.length = 1;
     Plot.dispatch(plot, `render`);
+  }
+
+  export function setQueryMode(plot: Plot) {
+    Plot.dispatch(plot, `set-mode-query`);
   }
 
   export function zoom(plot: Plot, coords?: Rect) {
@@ -348,7 +414,7 @@ function setupFrames(plot: Plot, options?: {}) {
     frames[layer] = frame;
   }
 
-  frames.base = Frame.of(<canvas class={def + ` bg-gray-100 z-0`}></canvas>);
+  frames.base = Frame.of(<canvas class={def + ` z-0 bg-gray-100`}></canvas>);
   Frame.setContext(frames.base, {
     font: `${defaultParameters.axisTitleFontsize}rem sans-serif`,
     textBaseline: `middle`,
@@ -357,8 +423,8 @@ function setupFrames(plot: Plot, options?: {}) {
 
   frames.under = Frame.of(
     <canvas
-      class={def + ` bg-white z-1 border border-l-black border-b-black`}
-    ></canvas>
+      class={def + ` z-1 border border-b-black border-l-black bg-white`}
+    ></canvas>,
   );
 
   frames.under.canvas.style.width = `calc(100% - ${left}px - ${right}px)`;
@@ -399,7 +465,12 @@ function setupEvents(plot: Plot, options?: {}) {
 
   window.addEventListener(`resize`, () => Plot.dispatch(plot, `resize`));
   window.addEventListener(`keydown`, (e) => {
-    if (parameters.active) Plot.dispatch(plot, e.key as EventType);
+    if (e.key === `q`) Plot.dispatch(plot, e.key as EventType);
+    else if (parameters.active) Plot.dispatch(plot, e.key as EventType);
+  });
+  window.addEventListener(`keyup`, () => {
+    parameters.mode = Mode.Select;
+    plot.queryDisplay.style.display = `none`;
   });
 
   container.addEventListener(`mousedown`, (e) => {
@@ -444,7 +515,9 @@ function setupEvents(plot: Plot, options?: {}) {
 
   container.addEventListener(
     `mousemove`,
-    throttle((e) => Plot.mousemoveHandlers[parameters.mode](plot, e), 10)
+    throttle((e) => {
+      Plot.mousemoveHandlers[parameters.mode](plot, e);
+    }, 10),
   );
 
   for (const [k, v] of Object.entries(Plot.keydownHandlers)) {
@@ -486,12 +559,13 @@ function setupEvents(plot: Plot, options?: {}) {
 
   Plot.listen(plot, `render`, () => {
     for (const layer of dataLayers) Frame.clear(frames[layer]);
-    for (const geom of plot.geoms) Geom.render(geom, plot.frames);
+    for (const geom of plot.renderables) Geom.render(geom, plot.frames);
   });
 
   Plot.listen(plot, `clear-transient`, () => Frame.clear(frames.user));
-  Plot.listen(plot, `lock`, () => (plot.parameters.locked = true));
-  Plot.listen(plot, `unlock`, () => (plot.parameters.locked = false));
+  Plot.listen(plot, `lock`, () => (parameters.locked = true));
+  Plot.listen(plot, `unlock`, () => (parameters.locked = false));
+  Plot.listen(plot, `set-mode-query`, () => (parameters.mode = Mode.Query));
 
   Plot.listen(plot, `render-axes`, () => {
     for (const layer of [`base`, `xAxis`, `yAxis`] as const) {
@@ -507,7 +581,7 @@ function setupEvents(plot: Plot, options?: {}) {
 
 function setupScales(
   plot: Plot,
-  options?: { scales?: { x?: ExpanseType; y?: ExpanseType } }
+  options?: { scales?: { x?: ExpanseType; y?: ExpanseType } },
 ) {
   const { scales, container } = plot;
   const { clientWidth: w, clientHeight: h } = container;

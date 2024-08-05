@@ -7,10 +7,11 @@ import { Factor } from "../transformation/Factor";
 import { Reduced } from "../transformation/Reduced";
 import { Reducer } from "../transformation/Reducer";
 import { Summaries } from "../transformation/Summaries";
+import { one, zero } from "../utils/funs";
 import { Name } from "../utils/Name";
-import { Dataframe, Indexable } from "../utils/types";
+import { Columns, Indexable } from "../utils/types";
 
-export function Barplot<T extends Dataframe>(
+export function Barplot<T extends Columns>(
   scene: Scene<T>,
   selectfn: (data: T) => [any[]] | [any[], number[]],
   options?: {
@@ -22,19 +23,22 @@ export function Barplot<T extends Dataframe>(
   const plot = Plot.of({ type: Plot.Type.Bar, scales: { x: Expanse.Band } });
 
   let [category, values] = selectfn(data) as [any[], Indexable<number>];
-  values = values ?? 1;
+  const reducer = values && options?.reducer ? options.reducer : Reducer.sum;
+  values = values ?? (() => 1);
+
+  if (!Name.has(values)) Name.set(values, `count`);
+  else Name.set(values, `${reducer.name} of ${Name.get(values)}`);
 
   const factor1 = Factor.from(category);
   const factor2 = Factor.product(factor1, marker.factor);
   const factors = [factor1, factor2] as const;
 
-  const reducer = values && options?.reducer ? options.reducer : Reducer.sum;
   const qs = Summaries.formatQueries(options?.queries ?? [], data);
 
   const summaries = Summaries.of({ stat: [values, reducer], ...qs }, factors);
   const coordinates = Summaries.translate(summaries, [
-    (d) => ({ x: d.label, y: 0, height: d.stat, width: 1 }),
-    (d) => ({ x: d.label, y: 0, height: Reduced.stack(d.stat), width: 1 }),
+    (d) => ({ x: d.label, y: zero, height: d.stat, width: one }),
+    (d) => ({ x: d.label, y: zero, height: Reduced.stack(d.stat), width: one }),
   ]);
 
   const { scales } = plot;
@@ -53,9 +57,7 @@ export function Barplot<T extends Dataframe>(
     default: true,
   });
 
-  const rname = reducer.name;
-  const yName = Name.has(values) ? `${rname} of ${Name.get(values)}` : `count`;
-  Name.set(scales.y, yName);
+  Name.set(scales.y, Name.get(values));
 
   const bars = Bars.of({ flat, grouped });
   Plot.addGeom(plot, bars);
