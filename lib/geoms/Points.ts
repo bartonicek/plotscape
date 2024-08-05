@@ -4,7 +4,7 @@ import { findLength, pointInRect, rectsIntersect } from "../utils/funs";
 import { Name } from "../utils/Name";
 import { LAYER, POSITIONS } from "../utils/symbols";
 import { DataLayer, DataLayers, Indexable, Point, Rect } from "../utils/types";
-import { FlatData, Geom, GeomType, GroupedData } from "./Geom";
+import { FlatData, Geom, GroupedData } from "./Geom";
 
 type Data = {
   x: Indexable;
@@ -19,7 +19,7 @@ type Scales = {
 };
 
 export interface Points extends Geom {
-  type: GeomType.Points;
+  type: Geom.Type.Points;
   data: { flat: Data & FlatData; grouped: Data & GroupedData };
   scales: Scales;
 }
@@ -33,7 +33,7 @@ export namespace Points {
       grouped: Data & GroupedData;
     };
 
-    return { type: GeomType.Points, data: typedData, scales };
+    return { type: Geom.Type.Points, data: typedData, scales };
   }
 
   export function render(points: Points, layers: DataLayers) {

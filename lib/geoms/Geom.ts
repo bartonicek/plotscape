@@ -11,11 +11,7 @@ import {
 } from "../utils/types";
 import { Bars } from "./Bars";
 import { Points } from "./Points";
-
-export enum GeomType {
-  Points,
-  Bars,
-}
+import { Rectangles } from "./Rectangles";
 
 export type FlatData = { [POSITIONS]: Indexable<number[]> };
 export type GroupedData = {
@@ -26,7 +22,7 @@ export type GroupedData = {
 export type GeomData = { flat: Dataframe; grouped: Dataframe };
 
 export interface Geom<T extends GeomData = GeomData> {
-  type: GeomType;
+  type: Geom.Type;
   data: T;
   scales: Record<string, Scale>;
 }
@@ -38,14 +34,21 @@ type GeomMethods = {
 };
 
 export namespace Geom {
-  const methods: { [key in GeomType]: GeomMethods } = {
-    [GeomType.Points]: Points,
-    [GeomType.Bars]: Bars,
+  export enum Type {
+    Points,
+    Bars,
+    Rectangles,
+  }
+
+  const methods: { [key in Type]: GeomMethods } = {
+    [Type.Points]: Points,
+    [Type.Bars]: Bars,
+    [Type.Rectangles]: Rectangles,
   };
 
   export function getter<T extends Indexable>(
     indexable: T,
-    fallback: (index: number) => any = () => 0.5
+    fallback: (index: number) => any = () => 0.5,
   ) {
     return makeGetter(indexable ?? fallback);
   }
@@ -53,7 +56,7 @@ export namespace Geom {
   export function getters<T extends Dataframe, U extends readonly (keyof T)[]>(
     data: T,
     keys: U,
-    fallback: (index: number) => any = () => 0.5
+    fallback: (index: number) => any = () => 0.5,
   ) {
     return keys.map((x) => Geom.getter(data[x], fallback));
   }

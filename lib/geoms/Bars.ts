@@ -11,7 +11,7 @@ import {
   Rect,
   VAnchor,
 } from "../utils/types";
-import { FlatData, Geom, GeomType, GroupedData } from "./Geom";
+import { FlatData, Geom, GroupedData } from "./Geom";
 
 type Data = {
   x: Indexable;
@@ -28,7 +28,7 @@ type Scales = {
 };
 
 export interface Bars extends Geom {
-  type: GeomType.Bars;
+  type: Geom.Type.Bars;
   data: { flat: Data & FlatData; grouped: Data & GroupedData };
   scales: Scales;
 
@@ -46,7 +46,7 @@ export namespace Bars {
   ): Bars {
     const scales = {} as Scales; // Will be definitely assigned when added to Plot
 
-    const type = GeomType.Bars;
+    const type = Geom.Type.Bars;
     const vAnchor = options?.vAnchor ?? VAnchor.Bottom;
     const hAnchor = options?.hAnchor ?? HAnchor.Center;
 

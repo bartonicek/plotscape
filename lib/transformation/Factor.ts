@@ -8,6 +8,7 @@ import {
   makeListenFn,
   subset,
 } from "../utils/funs";
+import { Meta } from "../utils/Metadata";
 import { Name } from "../utils/Name";
 import { Reactive } from "../utils/Reactive";
 import { POSITIONS } from "../utils/symbols";
@@ -41,7 +42,7 @@ export namespace Factor {
     type: Type,
     cardinality: number,
     indices: number[],
-    data: T
+    data: T,
   ): Factor<T> {
     return Reactive.of({ type, cardinality, indices, data });
   }
@@ -86,7 +87,7 @@ export namespace Factor {
    */
   export function from(
     array: Stringable[],
-    labels?: string[]
+    labels?: string[],
   ): Factor<{ label: string[]; [POSITIONS]: number[][] }> {
     const arr = array.map((x) => x.toString());
     labels = labels ?? Array.from(new Set(arr)).sort();
@@ -125,7 +126,7 @@ export namespace Factor {
    */
   export function bin(
     array: number[],
-    options?: BinOptions | (BinOptions & Reactive)
+    options?: BinOptions | (BinOptions & Reactive),
   ): Factor<{
     binMin: number[];
     binMax: number[];
@@ -161,8 +162,18 @@ export namespace Factor {
         binMax.push(breaks[sorted[i] + 1]);
       }
 
+      Meta.setMinMax(binMin, breaks[0], breaks[breaks.length - 1]);
+      Meta.setMinMax(binMax, breaks[0], breaks[breaks.length - 1]);
+      Name.set(binMin, `min of ${Name.get(array)}`);
+      Name.set(binMax, `max of ${Name.get(array)}`);
+
       const type = Type.Surjection;
-      const data = { binMin, binMax, [POSITIONS]: Object.values(positions) };
+      const data = {
+        breaks,
+        binMin,
+        binMax,
+        [POSITIONS]: Object.values(positions),
+      };
 
       return of(type, sorted.length, indices, data);
     }
@@ -188,7 +199,7 @@ export namespace Factor {
    */
   export function product<T extends Columns, U extends Columns>(
     factor1: Factor<T>,
-    factor2: Factor<U>
+    factor2: Factor<U>,
   ): Factor<TaggedUnion<T, U>> {
     function compute() {
       const k = Math.max(factor1.cardinality, factor2.cardinality) + 1;

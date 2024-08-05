@@ -5,6 +5,7 @@ import {
   minmax,
   prettyBreaks,
 } from "../utils/funs";
+import { Meta } from "../utils/Metadata";
 import { Direction } from "../utils/types";
 import { Expanse } from "./Expanse";
 import { ExpanseType } from "./ExpanseType";
@@ -51,7 +52,7 @@ export namespace ExpanseContinuous {
       zero?: number;
       one?: number;
       direction?: Direction;
-    }
+    },
   ): ExpanseContinuous {
     const type = ExpanseType.Continuous;
     const base = Expanse.base(options);
@@ -121,9 +122,9 @@ export namespace ExpanseContinuous {
   export function train(
     expanse: ExpanseContinuous,
     array: number[],
-    options?: { default?: boolean; silent?: boolean; ratio?: true }
+    options?: { default?: boolean; silent?: boolean; ratio?: true },
   ) {
-    let [min, max] = minmax(array);
+    let [min, max] = Meta.getMinMax(array) ?? minmax(array);
     min = expanse.ratio || options?.ratio ? 0 : min;
     Expanse.set(expanse, (e) => ((e.min = min), (e.max = max)), options);
   }

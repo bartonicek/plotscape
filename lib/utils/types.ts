@@ -13,9 +13,8 @@ export type Stringable = { toString(): string };
 
 export type Indexable<T = any> = T[] | ((index: number) => T);
 export type Indexables = Record<string, Indexable>;
-export type IndexableValue<T extends Indexable> = T extends Indexable<infer U>
-  ? U
-  : never;
+export type IndexableValue<T extends Indexable> =
+  T extends Indexable<infer U> ? U : never;
 
 export type Columns = Record<string | symbol, any[]>;
 export type Dataframe = Record<string | symbol, Indexable>;
@@ -33,7 +32,7 @@ export type Margins = [
   bottom: number,
   left: number,
   top: number,
-  right: number
+  right: number,
 ];
 
 export enum VAnchor {
@@ -59,15 +58,15 @@ export type DataLayers = { [key in DataLayer]: Frame };
 
 export type TaggedUnion<
   T extends Record<string, any> | undefined,
-  U extends Record<string, any> | undefined
+  U extends Record<string, any> | undefined,
 > = T extends undefined
   ? U
   : U extends undefined
-  ? T
-  : Flat<
-      { [key in keyof T & string]: T[key] } & {
-        [key in keyof U as key extends keyof T & string
-          ? `${key}$`
-          : key]: U[key];
-      }
-    >;
+    ? T
+    : Flat<
+        { [key in keyof T & string]: T[key] } & {
+          [key in keyof U as key extends keyof T & string
+            ? `${key}$`
+            : key]: U[key];
+        }
+      >;

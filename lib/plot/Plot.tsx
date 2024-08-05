@@ -2,6 +2,7 @@ import { Geom } from "../geoms/Geom";
 import { Expanse, ExpanseContinuous, Scale } from "../main";
 import { Barplot } from "../plots/Barplot";
 import { Fluctuationplot } from "../plots/Fluctplot";
+import { Histogram } from "../plots/Histogram";
 import { Scatterplot } from "../plots/Scatterplot";
 import { ExpanseType } from "../scales/ExpanseType";
 import { colors, defaultParameters } from "../utils/defaultParameters";
@@ -104,6 +105,7 @@ export namespace Plot {
     Unknown = `unknown`,
     Scatter = `scatter`,
     Bar = `bar`,
+    Histo = `histo`,
     Fluct = `fluct`,
   }
 
@@ -170,6 +172,7 @@ export namespace Plot {
   export const scatter = Scatterplot;
   export const bar = Barplot;
   export const fluct = Fluctuationplot;
+  export const histo = Histogram;
 
   export function append(parent: HTMLElement, plot: Plot) {
     parent.appendChild(plot.container);
@@ -263,20 +266,21 @@ export namespace Plot {
     }
 
     queryDisplay.innerText = queryString;
+    queryDisplay.style.display = `inline-block`;
 
     const queryStyles = getComputedStyle(queryDisplay);
     const queryWidth = parseFloat(queryStyles.width.slice(0, -2));
+    const { clientWidth: width } = queryDisplay;
 
     if (x + queryWidth > clientWidth) {
       queryDisplay.style.left = `auto`;
-      queryDisplay.style.right = `${clientWidth - x + 5}px`;
+      queryDisplay.style.right = `${width - offsetX + 5}px`;
     } else {
       queryDisplay.style.left = `${x + 5}px`;
       queryDisplay.style.right = `auto`;
     }
 
     queryDisplay.style.top = offsetY + `px`;
-    queryDisplay.style.display = `inline-block`;
   }
 
   export const keydownHandlers = {
