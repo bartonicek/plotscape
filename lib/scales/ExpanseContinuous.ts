@@ -8,21 +8,18 @@ import {
 import { Meta } from "../utils/Meta";
 import { Direction } from "../utils/types";
 import { Expanse } from "./Expanse";
-import { ExpanseType } from "./ExpanseType";
 
 /**
  * Converts numeric values to the [0, 1] interval and back.
  */
 export interface ExpanseContinuous extends Expanse {
-  type: ExpanseType.Continuous;
+  type: Expanse.Type.Continuous;
   min: number;
   max: number;
   scale: number;
   mult: number;
   offset: number;
-
   ratio: boolean;
-  negative: boolean;
 
   trans: (x: number) => number;
   inv: (x: number) => number;
@@ -54,19 +51,14 @@ export namespace ExpanseContinuous {
       direction?: Direction;
     },
   ): ExpanseContinuous {
-    const type = ExpanseType.Continuous;
+    const type = Expanse.Type.Continuous;
     const base = Expanse.base(options);
     const { zero, one, direction } = base;
     const [trans, inv] = [identity, identity];
     const scale = options?.scale ?? 1;
     const mult = options?.mult ?? 1;
     const offset = options?.offset ?? 0;
-
     const ratio = options?.ratio ?? false;
-    const negative = options?.negative ?? false;
-
-    if (negative) {
-    }
 
     const defaults = {
       min,
@@ -89,7 +81,6 @@ export namespace ExpanseContinuous {
       mult,
       offset,
       ratio,
-      negative,
       ...base,
       trans,
       inv,

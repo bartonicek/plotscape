@@ -38,13 +38,13 @@ export function renderAxisLabels(plot: Plot, axis: `x` | `y`) {
     for (let i = 0; i < labels.length; i++) {
       const label = labels[i];
       const y = Scale.pushforward(scale, breaks[i]);
-      // const w = Frame.textWidth(frame, label) + 1;
+      const w = Frame.textWidth(frame, label) + 1;
       const h = Frame.textHeight(frame, label) + 1;
 
-      // if (plot.margins[1] / 2 < w) {
-      //   plot.margins[1] = 2 * w;
-      //   Plot.dispatch(plot, `resize`);
-      // }
+      if (plot.margins[1] / 2 < w) {
+        plot.margins[1] = 2 * w;
+        Plot.dispatch(plot, `resize`);
+      }
 
       if (outside(y, bottom, height - top)) continue;
       if (overlap(lastY, y, lastH, h)) continue;

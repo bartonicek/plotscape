@@ -2,14 +2,13 @@ import { applyDirection } from "../utils/funs";
 import { Direction } from "../utils/types";
 import { Expanse } from "./Expanse";
 import { ExpansePoint } from "./ExpansePoint";
-import { ExpanseType } from "./ExpanseType";
 
 /**
  * Converts string labels to the [0, 1] interval and back, such that each
  * label is placed in the middle of its corresponding bin.
  */
 export interface ExpanseBand extends Expanse {
-  type: ExpanseType.Band;
+  type: Expanse.Type.Band;
   labels: string[];
   weights?: number[];
 }
@@ -22,9 +21,9 @@ export namespace ExpanseBand {
       zero?: number;
       one?: number;
       direction?: Direction;
-    }
+    },
   ): ExpanseBand {
-    const type = ExpanseType.Band;
+    const type = Expanse.Type.Band;
     const base = Expanse.base(options);
     const { zero, one, direction } = base;
     const weights = options?.weights ?? Array(labels.length).fill(1);

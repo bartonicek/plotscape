@@ -1,13 +1,12 @@
 import { applyDirection, compareAlphaNumeric, copyValues } from "../utils/funs";
 import { Direction } from "../utils/types";
 import { Expanse } from "./Expanse";
-import { ExpanseType } from "./ExpanseType";
 
 /** Converts string labels to the [0, 1] interval and back, such that each value is placed
  * equidistantly along the interval, and the first label is placed at 0 and the last at 1.
  */
 export interface ExpansePoint extends Expanse {
-  type: ExpanseType.Point;
+  type: Expanse.Type.Point;
   labels: string[];
   defaults: {
     zero: number;
@@ -20,9 +19,9 @@ export interface ExpansePoint extends Expanse {
 export namespace ExpansePoint {
   export function of(
     labels: string[] = [],
-    options?: { zero?: number; one?: number; direction?: Direction }
+    options?: { zero?: number; one?: number; direction?: Direction },
   ): ExpansePoint {
-    const type = ExpanseType.Point;
+    const type = Expanse.Type.Point;
     const base = Expanse.base(options);
     const { zero, one, direction } = base;
     const defaults = { labels: [...labels], zero, one, direction };
@@ -49,7 +48,7 @@ export namespace ExpansePoint {
   export function train(
     expanse: Omit<ExpansePoint, `type`>,
     array: string[],
-    options?: { default?: boolean }
+    options?: { default?: boolean },
   ) {
     const labels = Array.from(new Set(array)).sort(compareAlphaNumeric);
     copyValues(labels, expanse.labels);
@@ -58,7 +57,7 @@ export namespace ExpansePoint {
 
   export function reorder(
     expanse: Omit<ExpansePoint, `type`>,
-    indices: number[]
+    indices: number[],
   ) {
     const { labels } = expanse;
     const temp = Array(labels.length);

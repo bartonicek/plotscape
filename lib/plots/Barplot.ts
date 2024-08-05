@@ -9,7 +9,7 @@ import { Reducer } from "../transformation/Reducer";
 import { Summaries } from "../transformation/Summaries";
 import { one, zero } from "../utils/funs";
 import { Meta } from "../utils/Meta";
-import { Columns, Indexable } from "../utils/types";
+import { Columns } from "../utils/types";
 
 export function Barplot<T extends Columns>(
   scene: Scene<T>,
@@ -22,9 +22,9 @@ export function Barplot<T extends Columns>(
   const { data, marker } = scene;
   const plot = Plot.of({ type: Plot.Type.Bar, scales: { x: Expanse.Band } });
 
-  let [category, values] = selectfn(data) as [any[], Indexable<number>];
-  const reducer = values && options?.reducer ? options.reducer : Reducer.sum;
-  values = values ?? (() => 1);
+  let [category, vals] = selectfn(data);
+  const reducer = vals && options?.reducer ? options.reducer : Reducer.sum;
+  const values = vals ? [...vals] : () => 1;
 
   if (!Meta.hasName(values)) Meta.setName(values, `count`);
   else Meta.setName(values, `${reducer.name} of ${Meta.getName(values)}`);

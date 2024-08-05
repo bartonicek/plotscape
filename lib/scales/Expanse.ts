@@ -9,13 +9,13 @@ import {
 } from "../utils/funs";
 import { Direction, Entries } from "../utils/types";
 import { ExpanseBand } from "./ExpanseBand";
+import { ExpanseCompound } from "./ExpanseCompound";
 import { ExpanseContinuous } from "./ExpanseContinuous";
 import { ExpansePoint } from "./ExpansePoint";
-import { ExpanseType } from "./ExpanseType";
 
 /** Converts values from some type to the interval [0, 1] and back. */
 export interface Expanse extends Reactive {
-  type: ExpanseType;
+  type: Expanse.Type;
   zero: number;
   one: number;
   direction: Direction;
@@ -30,45 +30,62 @@ export interface Expanse extends Reactive {
 }
 
 export type ExpanseTypeMap = {
-  [ExpanseType.Continuous]: ExpanseContinuous;
-  [ExpanseType.Point]: ExpansePoint;
-  [ExpanseType.Band]: ExpanseBand;
+  [Expanse.Type.Continuous]: ExpanseContinuous;
+  [Expanse.Type.Point]: ExpansePoint;
+  [Expanse.Type.Band]: ExpanseBand;
+  [Expanse.Type.Compound]: ExpanseCompound;
 };
 
 export type ExpanseValueMap = {
-  [ExpanseType.Continuous]: number;
-  [ExpanseType.Point]: string;
-  [ExpanseType.Band]: string;
+  [Expanse.Type.Continuous]: number;
+  [Expanse.Type.Point]: string;
+  [Expanse.Type.Band]: string;
+  [Expanse.Type.Compound]: any[];
 };
 
 type EventType = `changed`;
 
 type ExpanseMethods = {
-  normalize(expanse: unknown, value: unknown): number;
-  unnormalize(expanse: unknown, value: unknown): unknown;
+  normalize(expanse: unknown, value: unknown): number | number[];
+  unnormalize(expanse: unknown, value: unknown): unknown | unknown[];
   breaks(expanse: unknown): unknown[];
   train(
     expanse: unknown,
     array: unknown[],
-    options?: { default?: boolean }
+    options?: { default?: boolean },
   ): void;
 };
 
 export namespace Expanse {
+  export enum Type {
+    Continuous = "continuous",
+    Point = "point",
+    Band = "band",
+    Compound = "compound",
+  }
+
   export const methods: {
-    [key in ExpanseType]: ExpanseMethods;
+    [key in Type]: ExpanseMethods;
   } = {
-    [ExpanseType.Continuous]: ExpanseContinuous,
-    [ExpanseType.Point]: ExpansePoint,
-    [ExpanseType.Band]: ExpanseBand,
+    [Expanse.Type.Continuous]: ExpanseContinuous,
+    [Expanse.Type.Point]: ExpansePoint,
+    [Expanse.Type.Band]: ExpanseBand,
+    [Expanse.Type.Compound]: ExpanseCompound,
   };
 
-  export const Continuous = ExpanseType.Continuous;
-  export const Point = ExpanseType.Point;
-  export const Band = ExpanseType.Band;
+  export const Continuous = Type.Continuous;
+  export const Point = Type.Point;
+  export const Band = Type.Band;
+
   export const continuous = ExpanseContinuous.of;
   export const point = ExpansePoint.of;
   export const band = ExpanseBand.of;
+  export const compound = ExpanseCompound.of;
+
+  export function infer(values: any[]) {
+    if (typeof values[0] === `number`) return Expanse.continuous();
+    else return Expanse.band();
+  }
 
   export function base(options?: {
     zero?: number;
@@ -86,7 +103,7 @@ export namespace Expanse {
   export function set<T extends Expanse>(
     expanse: T,
     setfn: (expanse: T & { [key in string]: any }) => void,
-    options?: { default?: boolean; silent?: boolean }
+    options?: { default?: boolean; silent?: boolean },
   ) {
     const temp = { ...expanse };
     setfn(temp);
@@ -99,7 +116,7 @@ export namespace Expanse {
 
   export function freeze<T extends Expanse>(
     expanse: T,
-    properties: (keyof T)[]
+    properties: (keyof T)[],
   ) {
     for (const prop of properties as string[]) {
       if (!expanse.frozen.includes(prop)) expanse.frozen.push(prop);
@@ -126,7 +143,7 @@ export namespace Expanse {
 
   export function normalize<T extends Expanse>(
     expanse: T,
-    value: ExpanseValueMap[T["type"]]
+    value: ExpanseValueMap[T["type"]],
   ) {
     return methods[expanse.type].normalize(expanse, value);
   }
@@ -139,7 +156,7 @@ export namespace Expanse {
   export function train<T extends Expanse>(
     expanse: T,
     array: ExpanseValueMap[T["type"]][],
-    options?: { default?: boolean; ratio?: boolean }
+    options?: { default?: boolean; ratio?: boolean },
   ) {
     return methods[expanse.type].train(expanse, array as any, options);
   }
@@ -159,7 +176,7 @@ export namespace Expanse {
     expanse: Expanse,
     zero: number,
     one: number,
-    options?: { default?: boolean }
+    options?: { default?: boolean },
   ) {
     const { zero: currZero, one: currOne, direction } = expanse;
     const currRange = currOne - currZero;
@@ -184,10 +201,10 @@ export namespace Expanse {
   }
 
   export function isContinuous(expanse: Expanse) {
-    return expanse.type === ExpanseType.Continuous;
+    return expanse.type === Expanse.Type.Continuous;
   }
 
   export function isPoint(expanse: Expanse) {
-    return expanse.type === ExpanseType.Point;
+    return expanse.type === Expanse.Type.Point;
   }
 }

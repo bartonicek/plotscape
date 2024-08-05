@@ -8,6 +8,8 @@ export interface Scale<T extends Expanse = any, U extends Expanse = any>
   other?: Scale;
   domain: T;
   codomain: U;
+  // pushadapter: (value: any, domain: T, codomain: U) => number;
+  // pulladapter: (value: any, domain: T, codomain: U) => any;
 }
 
 type EventType = `changed`;

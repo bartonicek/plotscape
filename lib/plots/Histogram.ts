@@ -10,7 +10,7 @@ import { Summaries } from "../transformation/Summaries";
 import { minmax, zero } from "../utils/funs";
 import { Meta } from "../utils/Meta";
 import { Reactive } from "../utils/Reactive";
-import { Columns, Indexable } from "../utils/types";
+import { Columns } from "../utils/types";
 
 export function Histogram<T extends Columns>(
   scene: Scene<T>,
@@ -23,9 +23,9 @@ export function Histogram<T extends Columns>(
   const { data, marker } = scene;
   const plot = Plot.of({ type: Plot.Type.Histo });
 
-  let [binned, values] = selectfn(data) as [any[], Indexable<number>];
-  const reducer = values && options?.reducer ? options.reducer : Reducer.sum;
-  values = values ?? (() => 1);
+  let [binned, vals] = selectfn(data);
+  const reducer = vals && options?.reducer ? options.reducer : Reducer.sum;
+  const values = vals ? [...vals] : () => 1;
 
   if (!Meta.hasName(values)) Meta.setName(values, `count`);
   else Meta.setName(values, `${reducer.name} of ${Meta.getName(values)}`);

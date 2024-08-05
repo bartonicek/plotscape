@@ -1,4 +1,4 @@
-import { Expanse, MtcarsUntyped, Plot, Reducer, Scene } from "../lib/main";
+import { MtcarsUntyped, Plot, Reducer, Scene } from "../lib/main";
 import { fetchJSON } from "../lib/utils/funs";
 
 async function mtcarsScene() {
@@ -17,18 +17,35 @@ async function mtcarsScene() {
     queries: [[(d) => d.am, Reducer.table]],
   });
   const plot4 = Plot.fluct(scene, (d) => [d.cyl, d.am]);
+  const plot5 = Plot.line(scene, (d) => [d.wt, d.mpg, d.cyl]);
 
   Scene.addPlot(scene, plot1);
   Scene.addPlot(scene, plot2);
   Scene.addPlot(scene, plot3);
   Scene.addPlot(scene, plot4);
+}
 
-  Expanse.listen(plot4.scales.area.codomain, `changed`, () =>
-    console.log(
-      plot4.scales.area.codomain,
-      Expanse.unnormalize(plot4.scales.area.codomain, 1),
-    ),
-  );
+async function imdbScene() {
+  const app = document.querySelector<HTMLDivElement>("#app")!;
+  const imdb = await fetchJSON(`../datasets/imdb1000.json`);
+
+  const scene = Scene.of(imdb);
+  Scene.append(app, scene);
+
+  console.log(imdb);
+
+  const plot1 = Plot.scatter(scene, (d) => [d.runtime, d.rating]);
+  const plot2 = Plot.histo(scene, (d) => [d.votes]);
+  const plot3 = Plot.bar(scene, (d) => [d.director, d.votes], {
+    reducer: Reducer.sum,
+  });
+  const plot4 = Plot.fluct(scene, (d) => [d.genre1, d.genre2]);
+  // const plot5 = Plot.line(scene, (d) => [d.wt, d.mpg, d.cyl]);
+
+  Scene.addPlot(scene, plot1);
+  Scene.addPlot(scene, plot2);
+  Scene.addPlot(scene, plot3);
+  Scene.addPlot(scene, plot4);
 }
 
 async function diamondsScene() {
@@ -45,4 +62,4 @@ async function diamondsScene() {
   Scene.addPlot(scene, plot2);
 }
 
-mtcarsScene();
+imdbScene();

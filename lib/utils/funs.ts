@@ -266,6 +266,23 @@ export function rep<T>(value: T, n: number) {
 }
 
 /**
+ * Returns an ascending/descending sequence of numbers. If `length` is unspecified
+ * and `start` and `end` are integers, will return a sequence of integers.
+ *
+ * @param start Start of the sequence.
+ * @param end End of the sequence.
+ * @param length Length of the sequence (optional)
+ * @returns
+ */
+export function seq(start: number, end: number, length?: number) {
+  const range = Math.abs(end - start);
+  length = length ?? Math.ceil(range) + 1;
+  const inc = range / (length - 1);
+  const sign = end >= start ? 1 : -1;
+  return Array.from(Array(length), (_, i) => start + sign * inc * i);
+}
+
+/**
  * Subsets an array on an array of indices. Can specify start and
  * end to subset on a shorter slice of the index array.
  *
@@ -567,6 +584,49 @@ export function makeGetter<T>(indexable: Indexable<T>): (index: number) => T {
     return indexable as (index: number) => T;
   }
   return () => indexable;
+}
+
+type Segment = Rect;
+function segmentToPointVec(segment: Segment) {
+  const [x0, y0, x1, y1] = segment;
+  return [x0, y0, x1 - x0, y1 - y0];
+}
+
+function inRange(value: number, min: number, max: number) {
+  return !(value < min) && !(value > max);
+}
+
+/**
+ * Checks whether two segments intersect
+ * @param segment1 A segment (define as: `[x0, y0, x1, y1]`)
+ * @param segment2 Another segment
+ * @returns Whether the two segments intersect
+ */
+export function segmentsIntersect(segment1: Segment, segment2: Segment) {
+  let [s1x0, s1y0, s1x1, s1y1] = segmentToPointVec(segment1);
+  let [s2x0, s2y0, s2x1, s2y1] = segmentToPointVec(segment2);
+
+  const det = s2x1 * s1y1 - s1x1 * s2y1;
+  const s = ((s1x0 - s2x0) * s1y1 - (s1y0 - s2y0) * s1x1) / det;
+  const t = -(-(s1x0 - s2x0) * s2y1 + (s1y0 - s2y0) * s2x1) / det;
+
+  return inRange(s, 0, 1) && inRange(t, 0, 1);
+}
+
+/**
+ * Checks whether a segment intersects a rectangle
+ * @param rect A rectangle
+ * @param segment A segment
+ * @returns `true` if the segment does intersect the rectangle
+ */
+export function rectSegmentIntersect(rect: Rect, segment: Segment) {
+  const [x0, y0, x1, y1] = rect;
+  return (
+    segmentsIntersect([x0, y0, x1, y0], segment) ||
+    segmentsIntersect([x0, y0, x0, y1], segment) ||
+    segmentsIntersect([x1, y0, x1, y1], segment) ||
+    segmentsIntersect([x0, y1, x1, y1], segment)
+  );
 }
 
 /**

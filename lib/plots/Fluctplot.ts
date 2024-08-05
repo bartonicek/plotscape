@@ -12,7 +12,7 @@ import { Reduced } from "../transformation/Reduced";
 import { Summaries } from "../transformation/Summaries";
 import { max, sqrt, square } from "../utils/funs";
 import { Meta } from "../utils/Meta";
-import { Columns, Indexable, VAnchor } from "../utils/types";
+import { Columns, VAnchor } from "../utils/types";
 
 export function Fluctuationplot<T extends Columns>(
   scene: Scene<T>,
@@ -23,15 +23,14 @@ export function Fluctuationplot<T extends Columns>(
   },
 ) {
   const { data, marker } = scene;
-  type Variables = [any[], any[], Indexable<number>];
   const plot = Plot.of({
     type: Plot.Type.Fluct,
     scales: { x: Expanse.Band, y: Expanse.Band },
   });
 
-  let [cat1, cat2, values] = selectfn(data) as Variables;
-  const reducer = values && options?.reducer ? options.reducer : Reducer.sum;
-  values = values ?? (() => 1);
+  let [cat1, cat2, vals] = selectfn(data);
+  const reducer = vals && options?.reducer ? options.reducer : Reducer.sum;
+  const values = vals ? [...vals] : () => 1;
 
   if (!Meta.hasName(values)) Meta.setName(values, `count`);
   else Meta.setName(values, `${reducer.name} of ${Meta.getName(values)}`);

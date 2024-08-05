@@ -3,8 +3,8 @@ import { Expanse, ExpanseContinuous, Scale } from "../main";
 import { Barplot } from "../plots/Barplot";
 import { Fluctuationplot } from "../plots/Fluctplot";
 import { Histogram } from "../plots/Histogram";
+import { Lineplot } from "../plots/Lineplot";
 import { Scatterplot } from "../plots/Scatterplot";
-import { ExpanseType } from "../scales/ExpanseType";
 import { colors, defaultParameters } from "../utils/defaultParameters";
 import {
   addTailwind,
@@ -109,11 +109,12 @@ export namespace Plot {
     Bar = `bar`,
     Histo = `histo`,
     Fluct = `fluct`,
+    Line = `line`,
   }
 
   export function of(options?: {
     type?: Type;
-    scales?: { x?: ExpanseType; y?: ExpanseType };
+    scales?: { x?: Expanse.Type; y?: Expanse.Type };
   }): Plot {
     const type = options?.type ?? Type.Unknown;
     const container = (
@@ -175,6 +176,7 @@ export namespace Plot {
   export const bar = Barplot;
   export const fluct = Fluctuationplot;
   export const histo = Histogram;
+  export const line = Lineplot;
 
   export function append(parent: HTMLElement, plot: Plot) {
     parent.appendChild(plot.container);
@@ -351,9 +353,14 @@ export namespace Plot {
 
     const { x, y } = scales;
 
-    [x0, x1] = [x0, x1].map((e) => trunc(Expanse.normalize(x.codomain, e)));
+    [x0, x1] = [x0, x1].map((e) =>
+      trunc(Expanse.normalize(x.codomain, e) as number),
+    );
     [x0, x1] = [x0, x1].sort(diff);
-    [y0, y1] = [y0, y1].map((e) => trunc(Expanse.normalize(y.codomain, e)));
+    [y0, y1] = [y0, y1].map((e) =>
+      trunc(Expanse.normalize(y.codomain, e) as number),
+    );
+
     [y0, y1] = [y0, y1].sort(diff);
 
     Scale.expand(scales.x, x0, x1);
@@ -536,13 +543,16 @@ function setupEvents(plot: Plot, options?: {}) {
 
   Plot.listen(plot, `resize`, () => {
     for (const frame of Object.values(plot.frames)) Frame.resize(frame);
-    const { scales, margins } = plot;
+    const { scales, margins, frames } = plot;
     const { clientWidth, clientHeight } = container;
     const { x, y, width, height, area } = scales;
 
     const [bottom, left] = [margins[0], margins[1]];
     const [top, right] = [clientHeight - margins[2], clientWidth - margins[3]];
     const opts = { default: true };
+
+    frames.under.canvas.style.width = `calc(100% - ${left}px - ${margins[3]}px)`;
+    frames.under.canvas.style.height = `calc(100% - ${bottom}px - ${margins[2]}px)`;
 
     Expanse.set(x.codomain, (e) => ((e.min = left), (e.max = right)), opts);
     Expanse.set(y.codomain, (e) => ((e.min = bottom), (e.max = top)), opts);
@@ -595,13 +605,13 @@ function setupEvents(plot: Plot, options?: {}) {
 
 function setupScales(
   plot: Plot,
-  options?: { scales?: { x?: ExpanseType; y?: ExpanseType } },
+  options?: { scales?: { x?: Expanse.Type; y?: Expanse.Type } },
 ) {
   const { scales, container } = plot;
   const { clientWidth: w, clientHeight: h } = container;
 
-  const xDomain = Expanse[options?.scales?.x ?? ExpanseType.Continuous]();
-  const yDomain = Expanse[options?.scales?.y ?? ExpanseType.Continuous]();
+  const xDomain = Expanse[options?.scales?.x ?? Expanse.Type.Continuous]();
+  const yDomain = Expanse[options?.scales?.y ?? Expanse.Type.Continuous]();
 
   scales.x = Scale.of(xDomain, Expanse.continuous(0, w));
   scales.y = Scale.of(yDomain, Expanse.continuous(0, h));

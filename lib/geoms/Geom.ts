@@ -10,6 +10,7 @@ import {
   Rect,
 } from "../utils/types";
 import { Bars } from "./Bars";
+import { Lines } from "./Lines";
 import { Points } from "./Points";
 import { Rectangles } from "./Rectangles";
 
@@ -38,12 +39,14 @@ export namespace Geom {
     Points,
     Bars,
     Rectangles,
+    Lines,
   }
 
   const methods: { [key in Type]: GeomMethods } = {
     [Type.Points]: Points,
     [Type.Bars]: Bars,
     [Type.Rectangles]: Rectangles,
+    [Type.Lines]: Lines,
   };
 
   export function getter<T extends Indexable>(
