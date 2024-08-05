@@ -50,6 +50,7 @@ type Scales = {
   x: Scale<Expanse, ExpanseContinuous>;
   y: Scale<Expanse, ExpanseContinuous>;
   area: Scale<Expanse, ExpanseContinuous>;
+  size: Scale<Expanse, ExpanseContinuous>;
   width: Scale<Expanse, ExpanseContinuous>;
   height: Scale<Expanse, ExpanseContinuous>;
 };
@@ -296,16 +297,18 @@ export namespace Plot {
   };
 
   function grow(plot: Plot) {
-    const { area, width } = plot.scales;
+    const { area, size, width } = plot.scales;
     Expanse.set(area.codomain, (e) => ((e.min *= 10 / 9), (e.max *= 10 / 9)));
+    Expanse.set(size.codomain, (e) => ((e.min *= 10 / 9), (e.max *= 10 / 9)));
     Expanse.set(width.codomain, (e) =>
       e.mult < 1 ? (e.mult *= 10 / 9) : null,
     );
   }
 
   function shrink(plot: Plot) {
-    const { area, width } = plot.scales;
+    const { area, width, size } = plot.scales;
     Expanse.set(area.codomain, (e) => ((e.min *= 9 / 10), (e.max *= 9 / 10)));
+    Expanse.set(size.codomain, (e) => ((e.min *= 9 / 10), (e.max *= 9 / 10)));
     Expanse.set(width.codomain, (e) => (e.mult *= 9 / 10));
   }
 
@@ -363,6 +366,7 @@ export namespace Plot {
     Expanse.set(scales.width.codomain, (e) => (e.mult *= xStretch));
     Expanse.set(scales.height.codomain, (e) => (e.mult *= yStretch));
     Expanse.set(scales.area.codomain, (e) => (e.mult *= areaStretch));
+    Expanse.set(scales.size.codomain, (e) => (e.mult *= areaStretch));
 
     zoomStack.push([x0, y0, x1, y1]);
     Plot.dispatch(plot, `clear-transient`);
@@ -389,6 +393,7 @@ export namespace Plot {
     Expanse.set(scales.width.codomain, (e) => (e.mult *= xStretch));
     Expanse.set(scales.height.codomain, (e) => (e.mult *= yStretch));
     Expanse.set(scales.area.codomain, (e) => (e.mult *= areaStretch));
+    Expanse.set(scales.size.codomain, (e) => (e.mult *= areaStretch));
 
     zoomStack.pop();
     Plot.dispatch(plot, `clear-transient`);
@@ -533,7 +538,7 @@ function setupEvents(plot: Plot, options?: {}) {
     for (const frame of Object.values(plot.frames)) Frame.resize(frame);
     const { scales, margins } = plot;
     const { clientWidth, clientHeight } = container;
-    const { x, y, width, height } = scales;
+    const { x, y, width, height, area } = scales;
 
     const [bottom, left] = [margins[0], margins[1]];
     const [top, right] = [clientHeight - margins[2], clientWidth - margins[3]];
@@ -541,8 +546,12 @@ function setupEvents(plot: Plot, options?: {}) {
 
     Expanse.set(x.codomain, (e) => ((e.min = left), (e.max = right)), opts);
     Expanse.set(y.codomain, (e) => ((e.min = bottom), (e.max = top)), opts);
-    Expanse.set(width.codomain, (e) => (e.max = right - left), opts);
-    Expanse.set(height.codomain, (e) => (e.max = top - bottom), opts);
+
+    const [w, h] = [right - left, top - bottom];
+
+    Expanse.set(width.codomain, (e) => (e.max = w), opts);
+    Expanse.set(height.codomain, (e) => (e.max = h), opts);
+    Expanse.set(area.codomain, (e) => (e.max = Math.min(w, h)));
   });
 
   for (const scale of Object.values(plot.scales)) {
@@ -596,11 +605,12 @@ function setupScales(
 
   scales.x = Scale.of(xDomain, Expanse.continuous(0, w));
   scales.y = Scale.of(yDomain, Expanse.continuous(0, h));
-  scales.area = Scale.of(Expanse.continuous(), Expanse.continuous(0, 10));
   scales.height = Scale.of(Expanse.continuous(), Expanse.continuous(0, h));
   scales.width = Scale.of(Expanse.continuous(), Expanse.continuous(0, w));
+  scales.area = Scale.of(Expanse.continuous(), Expanse.continuous());
+  scales.size = Scale.of(Expanse.continuous(), Expanse.continuous(0, 10));
 
-  const { x, y, area, width, height } = scales;
+  const { x, y, width, height, size, area } = scales;
 
   x.other = y;
   y.other = x;
@@ -612,7 +622,9 @@ function setupScales(
   Expanse.set(y.domain, (e) => ((e.zero = ey), (e.one = 1 - ey)), opts);
 
   Expanse.set(area.domain, (e) => (e.ratio = true), opts);
+  Expanse.set(size.domain, (e) => (e.ratio = true), opts);
   Expanse.set(area.codomain, (e) => ((e.trans = square), (e.inv = sqrt)), opts);
+  Expanse.set(size.codomain, (e) => ((e.trans = square), (e.inv = sqrt)), opts);
 
   Expanse.set(width.domain, (e) => (e.one = 1 - 2 * ex), opts);
   Expanse.set(height.domain, (e) => (e.one = 1 - 2 * ey), opts);

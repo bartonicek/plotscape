@@ -1,6 +1,6 @@
 import { Expanse, Frame, Scale } from "../main";
 import { formatLabels, getMargins } from "../utils/funs";
-import { Name } from "../utils/Name";
+import { Meta } from "../utils/Meta";
 import { Plot } from "./Plot";
 
 export function renderAxisLabels(plot: Plot, axis: `x` | `y`) {
@@ -38,7 +38,7 @@ export function renderAxisLabels(plot: Plot, axis: `x` | `y`) {
     for (let i = 0; i < labels.length; i++) {
       const label = labels[i];
       const y = Scale.pushforward(scale, breaks[i]);
-      const w = Frame.textWidth(frame, label) + 1;
+      // const w = Frame.textWidth(frame, label) + 1;
       const h = Frame.textHeight(frame, label) + 1;
 
       // if (plot.margins[1] / 2 < w) {
@@ -59,7 +59,7 @@ export function renderAxisTitle(plot: Plot, axis: `x` | `y`) {
   const { scales, frames, margins } = plot;
   const scale = scales[axis];
   const frame = frames.base;
-  const name = Name.get(scale);
+  const name = Meta.getName(scale);
   const offset = axis === `x` ? margins[0] : margins[1];
 
   const dim1 = Expanse.unnormalize(scale.codomain, 0.5);

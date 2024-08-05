@@ -8,7 +8,7 @@ import { Reduced } from "../transformation/Reduced";
 import { Reducer } from "../transformation/Reducer";
 import { Summaries } from "../transformation/Summaries";
 import { minmax, zero } from "../utils/funs";
-import { Name } from "../utils/Name";
+import { Meta } from "../utils/Meta";
 import { Reactive } from "../utils/Reactive";
 import { Columns, Indexable } from "../utils/types";
 
@@ -27,8 +27,8 @@ export function Histogram<T extends Columns>(
   const reducer = values && options?.reducer ? options.reducer : Reducer.sum;
   values = values ?? (() => 1);
 
-  if (!Name.has(values)) Name.set(values, `count`);
-  else Name.set(values, `${reducer.name} of ${Name.get(values)}`);
+  if (!Meta.hasName(values)) Meta.setName(values, `count`);
+  else Meta.setName(values, `${reducer.name} of ${Meta.getName(values)}`);
 
   const [min, max] = minmax(binned);
   const range = max - min;
@@ -85,8 +85,8 @@ export function Histogram<T extends Columns>(
 
   Expanse.freeze(scales.y.domain, [`zero`]);
 
-  Name.set(scales.x, Name.get(binned));
-  Name.set(scales.y, Name.get(values));
+  Meta.setName(scales.x, Meta.getName(binned));
+  Meta.setName(scales.y, Meta.getName(values));
 
   const rectangles = Rectangles.of({ flat, grouped });
   Plot.addGeom(plot, rectangles);

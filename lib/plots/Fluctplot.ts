@@ -11,7 +11,7 @@ import {
 import { Reduced } from "../transformation/Reduced";
 import { Summaries } from "../transformation/Summaries";
 import { max, sqrt, square } from "../utils/funs";
-import { Name } from "../utils/Name";
+import { Meta } from "../utils/Meta";
 import { Columns, Indexable, VAnchor } from "../utils/types";
 
 export function Fluctuationplot<T extends Columns>(
@@ -33,8 +33,8 @@ export function Fluctuationplot<T extends Columns>(
   const reducer = values && options?.reducer ? options.reducer : Reducer.sum;
   values = values ?? (() => 1);
 
-  if (!Name.has(values)) Name.set(values, `count`);
-  else Name.set(values, `${reducer.name} of ${Name.get(values)}`);
+  if (!Meta.hasName(values)) Meta.setName(values, `count`);
+  else Meta.setName(values, `${reducer.name} of ${Meta.getName(values)}`);
 
   const factor1 = Factor.product(Factor.from(cat1), Factor.from(cat2));
   const factor2 = Factor.product(factor1, marker.factor);
@@ -62,20 +62,21 @@ export function Fluctuationplot<T extends Columns>(
   Scale.train(scales.height, flat.height, opts);
   Scale.train(scales.width, flat.width, opts);
 
-  const k = 1 / max(new Set(cat1).size, new Set(cat2).size) ** 2;
+  const k = max(new Set(cat1).size, new Set(cat2).size);
 
   scales.width.codomain = scales.area.codomain;
   scales.height.codomain = scales.area.codomain;
 
-  const settingWH = (e: ExpanseContinuous) => {
-    e.scale = k;
-    e.mult = 0.9;
-    e.trans = square;
-    e.inv = sqrt;
-  };
-
-  Expanse.set(scales.width.codomain, settingWH, { default: true });
-  Expanse.set(scales.height.codomain, settingWH, { default: true });
+  Expanse.set(
+    scales.area.codomain,
+    (e: ExpanseContinuous) => {
+      e.scale = 1 / k;
+      e.mult = 0.9;
+      e.trans = square;
+      e.inv = sqrt;
+    },
+    { default: true },
+  );
 
   const bars = Bars.of({ flat, grouped }, { vAnchor: VAnchor.Middle });
   Plot.addGeom(plot, bars);

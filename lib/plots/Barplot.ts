@@ -8,7 +8,7 @@ import { Reduced } from "../transformation/Reduced";
 import { Reducer } from "../transformation/Reducer";
 import { Summaries } from "../transformation/Summaries";
 import { one, zero } from "../utils/funs";
-import { Name } from "../utils/Name";
+import { Meta } from "../utils/Meta";
 import { Columns, Indexable } from "../utils/types";
 
 export function Barplot<T extends Columns>(
@@ -17,7 +17,7 @@ export function Barplot<T extends Columns>(
   options?: {
     reducer?: Reducer<number, number>;
     queries?: [(data: T) => any[], Reducer][];
-  }
+  },
 ) {
   const { data, marker } = scene;
   const plot = Plot.of({ type: Plot.Type.Bar, scales: { x: Expanse.Band } });
@@ -26,8 +26,8 @@ export function Barplot<T extends Columns>(
   const reducer = values && options?.reducer ? options.reducer : Reducer.sum;
   values = values ?? (() => 1);
 
-  if (!Name.has(values)) Name.set(values, `count`);
-  else Name.set(values, `${reducer.name} of ${Name.get(values)}`);
+  if (!Meta.hasName(values)) Meta.setName(values, `count`);
+  else Meta.setName(values, `${reducer.name} of ${Meta.getName(values)}`);
 
   const factor1 = Factor.from(category);
   const factor2 = Factor.product(factor1, marker.factor);
@@ -57,7 +57,7 @@ export function Barplot<T extends Columns>(
     default: true,
   });
 
-  Name.set(scales.y, Name.get(values));
+  Meta.setName(scales.y, Meta.getName(values));
 
   const bars = Bars.of({ flat, grouped });
   Plot.addGeom(plot, bars);

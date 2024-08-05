@@ -6,21 +6,27 @@ import { LAYER, POSITIONS } from "../utils/symbols";
 
 export function Scatterplot<T extends Dataframe>(
   scene: Scene<T>,
-  selectfn: (data: T) => [any[], any[]] | [any[], any[], any[]]
+  selectfn: (data: T) => [any[], any[]] | [any[], any[], any[]],
 ) {
   const { data, marker } = scene;
   const plot = Plot.of({ type: Plot.Type.Scatter });
 
-  const [x, y, area] = selectfn(data);
+  const [x, y, size] = selectfn(data);
   const { scales } = plot;
 
   Scale.train(scales.x, x, { default: true });
   Scale.train(scales.y, y, { default: true });
-  if (area) Scale.train(scales.area, area, { default: true });
+  if (size) Scale.train(scales.size, size, { default: true });
 
   const layer = Marker.getLayer(marker);
   const position = (index: number) => [index];
-  const coordinates = { x, y, area, [LAYER]: layer, [POSITIONS]: position };
+  const coordinates = {
+    x,
+    y,
+    area: size,
+    [LAYER]: layer,
+    [POSITIONS]: position,
+  };
 
   const points = Points.of({ flat: coordinates, grouped: coordinates });
   Plot.addGeom(plot, points);

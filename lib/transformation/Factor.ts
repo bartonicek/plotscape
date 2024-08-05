@@ -10,7 +10,6 @@ import {
   subset,
 } from "../utils/funs";
 import { Meta } from "../utils/Meta";
-import { Name } from "../utils/Name";
 import { Reactive } from "../utils/Reactive";
 import { POSITIONS } from "../utils/symbols";
 import {
@@ -94,7 +93,7 @@ export namespace Factor {
     const arr = array.map((x) => x.toString());
     labels = labels ?? Array.from(new Set(arr)).sort();
 
-    if (Name.has(array)) Name.copy(array, labels);
+    if (Meta.hasName(array)) Meta.copy(array, labels);
 
     const indices = [] as number[];
     const positions = {} as Record<number, number[]>;
@@ -167,16 +166,11 @@ export namespace Factor {
       const [min, max] = [breaks[sorted[0]], breaks[last(sorted) + 1]];
       Meta.setMinMax(binMin, min, max);
       Meta.setMinMax(binMax, min, max);
-      Name.set(binMin, `min of ${Name.get(array)}`);
-      Name.set(binMax, `max of ${Name.get(array)}`);
+      Meta.setName(binMin, `min of ${Meta.getName(array)}`);
+      Meta.setName(binMax, `max of ${Meta.getName(array)}`);
 
       const type = Type.Surjection;
-      const data = {
-        breaks,
-        binMin,
-        binMax,
-        [POSITIONS]: Object.values(positions),
-      };
+      const data = { binMin, binMax, [POSITIONS]: Object.values(positions) };
 
       return of(type, sorted.length, indices, data);
     }
@@ -250,7 +244,7 @@ export namespace Factor {
         let newK = k as string;
         if (typeof k === "string") while (newK in data) k += `$`;
         const col = subset(factor1.data[k], factor1ParentIndices);
-        if (Name.has(factor1.data[k])) Name.copy(factor1.data[k], col);
+        if (Meta.hasName(factor1.data[k])) Meta.copy(factor1.data[k], col);
         data[newK] = col;
       }
 
@@ -259,7 +253,7 @@ export namespace Factor {
         let newK = k as string;
         if (typeof k === "string") while (newK in data) newK += `$`;
         const col = subset(factor2.data[k], factor2ParentIndices);
-        if (Name.has(factor2.data[k])) Name.copy(factor2.data[k], col);
+        if (Meta.hasName(factor2.data[k])) Meta.copy(factor2.data[k], col);
         data[newK] = col;
       }
 

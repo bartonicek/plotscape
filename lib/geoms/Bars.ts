@@ -1,6 +1,6 @@
 import { ExpanseContinuous, Frame, Scale } from "../main";
 import { findLength, pointInRect, rectsIntersect } from "../utils/funs";
-import { Name } from "../utils/Name";
+import { Meta } from "../utils/Meta";
 import { LAYER, POSITIONS } from "../utils/symbols";
 import {
   DataLayer,
@@ -134,7 +134,7 @@ export namespace Bars {
         const result = {} as Record<string, any>;
 
         for (const v of Object.values(data)) {
-          if (v && Name.has(v)) result[Name.get(v)] = Geom.getter(v)(i);
+          if (v && Meta.hasName(v)) result[Meta.getName(v)] = Geom.getter(v)(i);
         }
 
         return result;

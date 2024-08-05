@@ -1,5 +1,5 @@
 import { makeDispatchFn, makeListenFn } from "../utils/funs";
-import { Name } from "../utils/Name";
+import { Meta } from "../utils/Meta";
 import { Reactive } from "../utils/Reactive";
 import { Expanse, ExpanseValueMap } from "./Expanse";
 
@@ -64,7 +64,7 @@ export namespace Scale {
     },
   ) {
     const setName = options?.name ?? true;
-    if (setName && Name.has(array)) Name.copy(array, scale);
+    if (setName && Meta.hasName(array)) Meta.copy(array, scale);
 
     // Automatically coerce expanse to band if array is string
     if (typeof array[0] === "string" && Expanse.isContinuous(scale.domain)) {

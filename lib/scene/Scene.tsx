@@ -1,7 +1,7 @@
 import { Frame, React } from "../main";
 import { Plot } from "../plot/Plot";
 import { addIndexed, makeDispatchFn, makeListenFn } from "../utils/funs";
-import { Name } from "../utils/Name";
+import { Meta } from "../utils/Meta";
 import { Reactive } from "../utils/Reactive";
 import { Columns } from "../utils/types";
 import { Group, Marker, Transient } from "./Marker";
@@ -33,7 +33,7 @@ export namespace Scene {
     const [rows, cols] = [1, 1];
 
     for (const [k, v] of Object.entries(data)) {
-      if (!Name.has(v)) Name.set(v, k);
+      if (!Meta.hasName(v)) Meta.setName(v, k);
     }
 
     const scene = Reactive.of({

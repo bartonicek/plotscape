@@ -1,5 +1,5 @@
 import { makeGetter } from "../utils/funs";
-import { Name } from "../utils/Name";
+import { Meta } from "../utils/Meta";
 import { Indexable } from "../utils/types";
 import { Factor } from "./Factor";
 import { Reduced } from "./Reduced";
@@ -31,25 +31,18 @@ export namespace Reducer {
   };
 
   export const table: Reducer<string, Record<string, number>> = {
-    name: `typical`,
+    name: `table`,
     initialfn: () => ({}),
     reducefn: (prev: Record<string, number>, next: string) => {
       prev[next] = prev[next] + 1 || 0;
       return prev;
     },
-    // afterfn: (result: Record<string, number>) => {
-    //   let [value, count] = [``, 0];
-    //   for (const [k, v] of Object.entries(result)) {
-    //     if (v >= count) (value = k), (count = v);
-    //   }
-    //   return value;
-    // },
   };
 
   export function reduce<T, U>(
     values: Indexable<T>,
     factor: Factor,
-    reducer: Reducer<T, U>
+    reducer: Reducer<T, U>,
   ) {
     const { indices, cardinality: n } = factor;
     const { initialfn, reducefn } = reducer;
@@ -64,7 +57,7 @@ export namespace Reducer {
     }
 
     const result = Reduced.of(array, factor, reducer);
-    Name.copy(values as any, result);
+    Meta.copy(values as any, result);
 
     return result;
   }

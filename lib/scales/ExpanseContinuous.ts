@@ -101,8 +101,9 @@ export namespace ExpanseContinuous {
     const { min, max, zero, one } = expanse;
     const { direction, scale, mult, offset, trans } = expanse;
 
+    value = value / (scale * mult) - offset;
     const range = trans(max) - trans(min);
-    let pct = (trans(value - offset) - trans(min)) / range / scale / mult;
+    let pct = (trans(value - offset) - trans(min)) / range;
     pct = zero + pct * (one - zero);
 
     return applyDirection(pct, direction);
@@ -113,10 +114,10 @@ export namespace ExpanseContinuous {
     const { min, max, zero, one } = expanse;
     const { scale, mult, offset, trans, inv } = expanse;
 
-    const pct = ((value - zero) / (one - zero)) * scale * mult;
+    const pct = (value - zero) / (one - zero);
     const range = trans(max) - trans(min);
 
-    return inv(trans(min) + pct * range) + offset;
+    return inv(trans(min) + pct * range) * (scale * mult) + offset;
   }
 
   export function train(

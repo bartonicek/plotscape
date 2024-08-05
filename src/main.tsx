@@ -1,4 +1,4 @@
-import { MtcarsUntyped, Plot, Reducer, Scene } from "../lib/main";
+import { Expanse, MtcarsUntyped, Plot, Reducer, Scene } from "../lib/main";
 import { fetchJSON } from "../lib/utils/funs";
 
 async function mtcarsScene() {
@@ -22,6 +22,13 @@ async function mtcarsScene() {
   Scene.addPlot(scene, plot2);
   Scene.addPlot(scene, plot3);
   Scene.addPlot(scene, plot4);
+
+  Expanse.listen(plot4.scales.area.codomain, `changed`, () =>
+    console.log(
+      plot4.scales.area.codomain,
+      Expanse.unnormalize(plot4.scales.area.codomain, 1),
+    ),
+  );
 }
 
 async function diamondsScene() {
