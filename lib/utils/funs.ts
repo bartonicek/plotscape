@@ -246,6 +246,15 @@ export function stripWS(string: string) {
 }
 
 /**
+ * Returns the last value in an array.
+ * @param array An array
+ * @returns The last value
+ */
+export function last<T>(array: T[]) {
+  return array[array.length - 1];
+}
+
+/**
  * Repeats a value `n` times
  *
  * @param value The value to repeat

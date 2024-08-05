@@ -3,6 +3,7 @@ import {
   copyValues,
   diff,
   isArray,
+  last,
   makeDispatchFn,
   makeGetter,
   makeListenFn,
@@ -163,8 +164,9 @@ export namespace Factor {
         binMax.push(breaks[sorted[i] + 1]);
       }
 
-      Meta.setMinMax(binMin, breaks[0], breaks[breaks.length - 1]);
-      Meta.setMinMax(binMax, breaks[0], breaks[breaks.length - 1]);
+      const [min, max] = [breaks[sorted[0]], breaks[last(sorted) + 1]];
+      Meta.setMinMax(binMin, min, max);
+      Meta.setMinMax(binMax, min, max);
       Name.set(binMin, `min of ${Name.get(array)}`);
       Name.set(binMax, `max of ${Name.get(array)}`);
 
