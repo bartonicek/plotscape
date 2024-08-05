@@ -71,7 +71,8 @@ type EventType =
   | `lock-others`
   | `selected`
   | `clear-transient`
-  | `set-mode-query`;
+  | `set-mode-query`
+  | (string & {});
 
 export interface Plot extends Reactive {
   type: Plot.Type;

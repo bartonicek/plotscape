@@ -15,7 +15,7 @@ type EventType = `changed`;
 export namespace Scale {
   export function of<T extends Expanse, U extends Expanse>(
     domain: T,
-    codomain: U
+    codomain: U,
   ): Scale<T, U> {
     const scale = Reactive.of({ domain, codomain });
 
@@ -30,7 +30,7 @@ export namespace Scale {
 
   export function pushforward<T extends Expanse, U extends Expanse>(
     scale: Scale<T, U>,
-    value: ExpanseValueMap[T["type"]]
+    value: ExpanseValueMap[T["type"]],
   ) {
     const { domain, codomain } = scale;
     return Expanse.unnormalize(codomain, Expanse.normalize(domain, value));
@@ -38,7 +38,7 @@ export namespace Scale {
 
   export function pullback<T extends Expanse, U extends Expanse>(
     scale: Scale<T, U>,
-    value: ExpanseValueMap[U["type"]]
+    value: ExpanseValueMap[U["type"]],
   ) {
     const { domain, codomain } = scale;
     return Expanse.unnormalize(domain, Expanse.normalize(codomain, value));
@@ -48,7 +48,7 @@ export namespace Scale {
     scale: Scale,
     zero: number,
     one: number,
-    options?: { default?: boolean }
+    options?: { default?: boolean },
   ) {
     Expanse.expand(scale.domain, zero, one, options);
   }
@@ -56,9 +56,15 @@ export namespace Scale {
   export function train<T extends Expanse>(
     scale: Scale<T>,
     array: ExpanseValueMap[T["type"]][],
-    options?: { default?: boolean; silent?: boolean; ratio?: boolean }
+    options?: {
+      default?: boolean;
+      silent?: boolean;
+      ratio?: boolean;
+      name?: boolean;
+    },
   ) {
-    if (Name.has(array)) Name.copy(array, scale);
+    const setName = options?.name ?? true;
+    if (setName && Name.has(array)) Name.copy(array, scale);
 
     // Automatically coerce expanse to band if array is string
     if (typeof array[0] === "string" && Expanse.isContinuous(scale.domain)) {

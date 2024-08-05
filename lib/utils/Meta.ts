@@ -9,6 +9,11 @@ declare global {
 }
 
 export namespace Meta {
+  export function copy(source: any[], target: any[]) {
+    target[MIN] = source[MIN];
+    target[MAX] = source[MAX];
+  }
+
   export function hasMinMax(array: number[]) {
     return !!array[MIN] && !!array[MAX];
   }

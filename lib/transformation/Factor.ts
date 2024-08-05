@@ -8,7 +8,7 @@ import {
   makeListenFn,
   subset,
 } from "../utils/funs";
-import { Meta } from "../utils/Metadata";
+import { Meta } from "../utils/Meta";
 import { Name } from "../utils/Name";
 import { Reactive } from "../utils/Reactive";
 import { POSITIONS } from "../utils/symbols";
@@ -61,6 +61,7 @@ export namespace Factor {
     for (const k of Reflect.ownKeys(source.data)) {
       if (isArray(source.data[k]) && isArray(target.data[k])) {
         copyValues(source.data[k], target.data[k]);
+        Meta.copy(source.data[k], target.data[k]);
       } else {
         target.data[k] = source.data[k];
       }
@@ -182,7 +183,7 @@ export namespace Factor {
     if (options && Reactive.isReactive(options)) {
       Reactive.listen(options, `changed`, () => {
         const newFactor = compute();
-        Factor.copyFrom(factor, newFactor);
+        Factor.copyFrom(newFactor, factor);
         Factor.dispatch(factor, `changed`);
       });
     }

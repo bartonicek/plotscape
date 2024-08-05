@@ -5,7 +5,7 @@ import {
   minmax,
   prettyBreaks,
 } from "../utils/funs";
-import { Meta } from "../utils/Metadata";
+import { Meta } from "../utils/Meta";
 import { Direction } from "../utils/types";
 import { Expanse } from "./Expanse";
 import { ExpanseType } from "./ExpanseType";

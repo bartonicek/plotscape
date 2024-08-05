@@ -7,8 +7,9 @@ import { Factor } from "../transformation/Factor";
 import { Reduced } from "../transformation/Reduced";
 import { Reducer } from "../transformation/Reducer";
 import { Summaries } from "../transformation/Summaries";
-import { zero } from "../utils/funs";
+import { minmax, zero } from "../utils/funs";
 import { Name } from "../utils/Name";
+import { Reactive } from "../utils/Reactive";
 import { Columns, Indexable } from "../utils/types";
 
 export function Histogram<T extends Columns>(
@@ -29,7 +30,27 @@ export function Histogram<T extends Columns>(
   if (!Name.has(values)) Name.set(values, `count`);
   else Name.set(values, `${reducer.name} of ${Name.get(values)}`);
 
-  const factor1 = Factor.bin(binned);
+  const [min, max] = minmax(binned);
+  const range = max - min;
+  const pars = Reactive.of({ anchor: min, width: range / 15 });
+  Plot.listen(plot, `=`, () => Reactive.set(pars, (p) => (p.width *= 10 / 9)));
+  Plot.listen(plot, `-`, () => Reactive.set(pars, (p) => (p.width *= 9 / 10)));
+  Plot.listen(plot, `'`, () =>
+    Reactive.set(pars, (p) => (p.anchor += range / 10)),
+  );
+  Plot.listen(plot, `;`, () =>
+    Reactive.set(pars, (p) => (p.anchor -= range / 10)),
+  );
+
+  Plot.listen(plot, `r`, () => {
+    Reactive.set(pars, (p) => {
+      p.anchor = min;
+      p.width = range / 15;
+    });
+    Plot.dispatch(plot, `render`);
+  });
+
+  const factor1 = Factor.bin(binned, pars);
   const factor2 = Factor.product(factor1, marker.factor);
   const factors = [factor1, factor2] as const;
 
@@ -54,8 +75,14 @@ export function Histogram<T extends Columns>(
   const { scales } = plot;
   const [flat, grouped] = coordinates;
 
-  Scale.train(scales.x, flat.x1, { default: true });
+  Scale.train(scales.x, flat.x1, { default: true, name: false });
   Scale.train(scales.y, flat.y1, { default: true, ratio: true });
+
+  Reactive.listen(flat as any, `changed`, () => {
+    Scale.train(scales.x, flat.x1, { default: true, name: false });
+    Scale.train(scales.y, flat.y1, { default: true, ratio: true });
+  });
+
   Expanse.freeze(scales.y.domain, [`zero`]);
 
   Name.set(scales.x, Name.get(binned));
