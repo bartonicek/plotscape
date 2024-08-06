@@ -1,6 +1,6 @@
 import { Frame, React } from "../main";
 import { Plot } from "../plot/Plot";
-import { addIndexed, makeDispatchFn, makeListenFn } from "../utils/funs";
+import { addIndexed } from "../utils/funs";
 import { Meta } from "../utils/Meta";
 import { Reactive } from "../utils/Reactive";
 import { Columns } from "../utils/types";
@@ -52,8 +52,8 @@ export namespace Scene {
     return scene;
   }
 
-  export const listen = makeListenFn<Scene, EventType>();
-  export const dispatch = makeDispatchFn<Scene, EventType>();
+  export const listen = Reactive.makeListenFn<Scene, EventType>();
+  export const dispatch = Reactive.makeDispatchFn<Scene, EventType>();
 
   export function append(parent: HTMLElement, scene: Scene) {
     parent.appendChild(scene.container);

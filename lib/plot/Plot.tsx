@@ -13,8 +13,6 @@ import {
   formatLabel,
   getMargins,
   invertRange,
-  makeDispatchFn,
-  makeListenFn,
   max,
   rangeInverse,
   removeTailwind,
@@ -169,8 +167,8 @@ export namespace Plot {
     return plot;
   }
 
-  export const dispatch = makeDispatchFn<Plot, EventType>();
-  export const listen = makeListenFn<Plot, EventType>();
+  export const dispatch = Reactive.makeDispatchFn<Plot, EventType>();
+  export const listen = Reactive.makeListenFn<Plot, EventType>();
 
   export const scatter = Scatterplot;
   export const bar = Barplot;

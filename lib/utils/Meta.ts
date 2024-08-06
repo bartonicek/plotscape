@@ -1,4 +1,7 @@
+import { isArray } from "./funs";
+
 const NAME = Symbol(`name`);
+const LENGTH = Symbol(`length`);
 const MIN = Symbol(`min`);
 const MAX = Symbol(`max`);
 const QUERYABLE = Symbol(`queryable`);
@@ -6,6 +9,7 @@ const QUERYABLE = Symbol(`queryable`);
 declare global {
   interface Object {
     [NAME]?: string;
+    [LENGTH]?: number;
     [MIN]?: number;
     [MAX]?: number;
     [QUERYABLE]?: boolean;
@@ -28,8 +32,17 @@ export namespace Meta {
     return object[NAME] ?? `unknown`;
   }
 
-  export function setName(object: Object, name: string) {
-    object[NAME] = name;
+  export function setName(object: Object, value: string) {
+    object[NAME] = value;
+  }
+
+  export function getLength(object: Object) {
+    if (isArray(object)) return object.length;
+    return object[LENGTH];
+  }
+
+  export function setLength(object: Object, value: number) {
+    object[LENGTH] = value;
   }
 
   export function hasMinMax(array: number[]) {

@@ -4,17 +4,16 @@ import {
   diff,
   isArray,
   last,
-  makeDispatchFn,
   makeGetter,
-  makeListenFn,
   subset,
 } from "../utils/funs";
+import { Getter } from "../utils/Getter";
 import { Meta } from "../utils/Meta";
 import { Reactive } from "../utils/Reactive";
 import { POSITIONS } from "../utils/symbols";
 import {
-  Columns,
   Dataframe,
+  Flat,
   Indexable,
   Stringable,
   TaggedUnion,
@@ -47,8 +46,8 @@ export namespace Factor {
     return Reactive.of({ type, cardinality, indices, data });
   }
 
-  export const listen = makeListenFn<Factor, EventType>();
-  export const dispatch = makeDispatchFn<Factor, EventType>();
+  export const listen = Reactive.makeListenFn<Factor, EventType>();
+  export const dispatch = Reactive.makeDispatchFn<Factor, EventType>();
 
   export function copyFrom<T extends Factor>(source: T, target: T) {
     target.cardinality = source.cardinality;
@@ -68,15 +67,17 @@ export namespace Factor {
     }
   }
 
-  export function bijection(): Factor<{ [POSITIONS]: Indexable<number[]> }> {
+  export function bijection<T extends Dataframe>(
+    data: T,
+  ): Factor<Flat<T & { [POSITIONS]: Indexable<number[]> }>> {
     const cardinality = Infinity;
     const indices = [] as number[];
     const positions = (index: number) => [index];
 
     const type = Type.Bijection;
-    const data = { [POSITIONS]: positions };
+    const factorData = { ...data, [POSITIONS]: positions };
 
-    return of(type, cardinality, indices, data);
+    return of(type, cardinality, indices, factorData);
   }
 
   /**
@@ -194,11 +195,31 @@ export namespace Factor {
    * @returns A factor which has as its levels all of the unique combinations
    * of the levels of the two factors (and the corresponding data)
    */
-  export function product<T extends Columns, U extends Columns>(
+  export function product<T extends Dataframe, U extends Dataframe>(
     factor1: Factor<T>,
     factor2: Factor<U>,
   ): Factor<TaggedUnion<T, U>> {
     function compute() {
+      if (factor1.type === Type.Bijection) {
+        const data = {} as Dataframe;
+
+        for (const k of Reflect.ownKeys(factor1.data)) {
+          data[k] = Getter.of(factor1.data[k]);
+        }
+
+        for (const k of Reflect.ownKeys(factor2.data)) {
+          data[k] = Getter.proxy(factor2.data[k], factor2.indices);
+        }
+
+        const type = Type.Bijection;
+        const cardinality = factor2.indices.length;
+        const indices = [] as number[];
+
+        return of(type, cardinality, indices, data) as Factor<
+          TaggedUnion<T, U>
+        >;
+      }
+
       const k = Math.max(factor1.cardinality, factor2.cardinality) + 1;
 
       const uniqueIndices = new Set<number>();
@@ -237,14 +258,17 @@ export namespace Factor {
       const factor1ParentIndices = Object.values(factor1Map);
       const factor2ParentIndices = Object.values(factor2Map);
 
-      const data = {} as Columns;
+      const data = {} as Dataframe;
 
       // Copy over parent data from factor 1
       for (let k of Reflect.ownKeys(factor1.data)) {
         let newK = k as string;
         if (typeof k === "string") while (newK in data) k += `$`;
-        const col = subset(factor1.data[k], factor1ParentIndices);
-        if (Meta.hasName(factor1.data[k])) Meta.copy(factor1.data[k], col);
+
+        const [d, inds] = [factor1.data[k], factor1ParentIndices];
+
+        const col = isArray(d) ? subset(d, inds) : Getter.proxy(d, inds);
+        Meta.copy(d, col);
         data[newK] = col;
       }
 
@@ -252,8 +276,10 @@ export namespace Factor {
       for (let k of Reflect.ownKeys(factor2.data)) {
         let newK = k as string;
         if (typeof k === "string") while (newK in data) newK += `$`;
-        const col = subset(factor2.data[k], factor2ParentIndices);
-        if (Meta.hasName(factor2.data[k])) Meta.copy(factor2.data[k], col);
+        const [d, inds] = [factor2.data[k], factor2ParentIndices];
+
+        const col = isArray(d) ? subset(d, inds) : Getter.proxy(d, inds);
+        Meta.copy(d, col);
         data[newK] = col;
       }
 

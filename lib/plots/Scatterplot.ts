@@ -1,8 +1,8 @@
 import { Dataframe, Scene } from "@abartonicek/plotscape5";
 import { Points } from "../geoms/Points";
 import { Plot, Scale } from "../main";
-import { Marker } from "../scene/Marker";
-import { LAYER, POSITIONS } from "../utils/symbols";
+import { LAYER, Marker } from "../scene/Marker";
+import { POSITIONS } from "../utils/symbols";
 
 export function Scatterplot<T extends Dataframe>(
   scene: Scene<T>,

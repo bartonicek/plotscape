@@ -1,26 +1,30 @@
-import { Reactive } from "../utils/Reactive";
 import {
   copyProps,
   copyValues,
   invertRange,
   isArray,
-  makeDispatchFn,
-  makeListenFn,
+  isNumber,
 } from "../utils/funs";
+import { Reactive } from "../utils/Reactive";
 import { Direction, Entries } from "../utils/types";
 import { ExpanseBand } from "./ExpanseBand";
 import { ExpanseCompound } from "./ExpanseCompound";
 import { ExpanseContinuous } from "./ExpanseContinuous";
 import { ExpansePoint } from "./ExpansePoint";
 
+export const VALUE = Symbol(`value`);
+
 /** Converts values from some type to the interval [0, 1] and back. */
-export interface Expanse extends Reactive {
+export interface Expanse<T = any> extends Reactive {
+  readonly value: T; // Only a type-level tag
   type: Expanse.Type;
+
   zero: number;
   one: number;
   direction: Direction;
   frozen: string[];
   linked: Expanse[];
+
   defaults: {
     zero: number;
     one: number;
@@ -33,27 +37,15 @@ export type ExpanseTypeMap = {
   [Expanse.Type.Continuous]: ExpanseContinuous;
   [Expanse.Type.Point]: ExpansePoint;
   [Expanse.Type.Band]: ExpanseBand;
-  [Expanse.Type.Compound]: ExpanseCompound;
-};
-
-export type ExpanseValueMap = {
-  [Expanse.Type.Continuous]: number;
-  [Expanse.Type.Point]: string;
-  [Expanse.Type.Band]: string;
-  [Expanse.Type.Compound]: any[];
 };
 
 type EventType = `changed`;
 
 type ExpanseMethods = {
-  normalize(expanse: unknown, value: unknown): number | number[];
-  unnormalize(expanse: unknown, value: unknown): unknown | unknown[];
+  normalize(expanse: unknown, value: unknown): unknown;
+  unnormalize(expanse: unknown, value: unknown): unknown;
   breaks(expanse: unknown): unknown[];
-  train(
-    expanse: unknown,
-    array: unknown[],
-    options?: { default?: boolean },
-  ): void;
+  train(expanse: unknown, array: unknown[], options?: {}): void;
 };
 
 export namespace Expanse {
@@ -82,9 +74,10 @@ export namespace Expanse {
   export const band = ExpanseBand.of;
   export const compound = ExpanseCompound.of;
 
-  export function infer(values: any[]) {
-    if (typeof values[0] === `number`) return Expanse.continuous();
-    else return Expanse.band();
+  export function infer(values: any[], options = { train: true }) {
+    const expanse = isNumber(values[0]) ? Expanse.continuous() : Expanse.band();
+    if (options.train) Expanse.train(expanse, values);
+    return expanse;
   }
 
   export function base(options?: {
@@ -138,24 +131,20 @@ export namespace Expanse {
     Expanse.dispatch(expanse, `changed`);
   }
 
-  export const dispatch = makeDispatchFn<Expanse, EventType>();
-  export const listen = makeListenFn<Expanse, EventType>();
+  export const dispatch = Reactive.makeDispatchFn<Expanse, EventType>();
+  export const listen = Reactive.makeListenFn<Expanse, EventType>();
 
-  export function normalize<T extends Expanse>(
-    expanse: T,
-    value: ExpanseValueMap[T["type"]],
-  ) {
-    return methods[expanse.type].normalize(expanse, value);
+  export function normalize<T extends Expanse>(expanse: T, value: T[`value`]) {
+    return methods[expanse.type].normalize(expanse, value) as number;
   }
 
   export function unnormalize<T extends Expanse>(expanse: T, value: number) {
-    type ReturnType = ExpanseValueMap[T["type"]];
-    return methods[expanse.type].unnormalize(expanse, value) as ReturnType;
+    return methods[expanse.type].unnormalize(expanse, value) as T[`value`];
   }
 
   export function train<T extends Expanse>(
     expanse: T,
-    array: ExpanseValueMap[T["type"]][],
+    array: T[`value`][],
     options?: { default?: boolean; ratio?: boolean },
   ) {
     return methods[expanse.type].train(expanse, array as any, options);

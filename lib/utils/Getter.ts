@@ -1,12 +1,37 @@
-import { isArray } from "./utils/funs";
-import { Indexable } from "./utils/types";
+import { isArray } from "./funs";
+import { Meta } from "./Meta";
+import { Indexable } from "./types";
+
+type Getter<T> = (index: number) => T;
 
 export namespace Getter {
-  export function of<T>(indexable: Indexable<T>) {
-    if (isArray(indexable)) return (index: number) => indexable[index];
-    else if (typeof indexable === "function") {
-      return indexable as (index: number) => T;
+  export function of<T>(indexable: Indexable<T>): Getter<T> {
+    if (typeof indexable === `function`) return indexable;
+    else if (isArray(indexable)) {
+      const getter = (index: number) => indexable[index];
+      Meta.setLength(getter, indexable.length);
+      return getter;
+    } else {
+      return () => indexable;
     }
-    return () => indexable;
+  }
+
+  export function constant<T>(value: T): Getter<T> {
+    return () => value;
+  }
+
+  export function proxy<T>(
+    indexable: Indexable<T>,
+    indices: number[],
+  ): Getter<T> {
+    const getter = Getter.of(indexable);
+    const proxyGetter = (index: number) => getter(indices[index]);
+    return proxyGetter;
+  }
+
+  export function multi<T extends Indexable[]>(indexables: T): Getter<any[]> {
+    const getters = indexables.map(Getter.of);
+    const getter = (index: number) => getters.map((x) => x(index));
+    return getter;
   }
 }

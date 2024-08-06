@@ -5,8 +5,9 @@ import { Expanse } from "./Expanse";
 /** Converts string labels to the [0, 1] interval and back, such that each value is placed
  * equidistantly along the interval, and the first label is placed at 0 and the last at 1.
  */
-export interface ExpansePoint extends Expanse {
+export interface ExpansePoint extends Expanse<string> {
   type: Expanse.Type.Point;
+
   labels: string[];
   defaults: {
     zero: number;
@@ -21,11 +22,14 @@ export namespace ExpansePoint {
     labels: string[] = [],
     options?: { zero?: number; one?: number; direction?: Direction },
   ): ExpansePoint {
+    const value = ``;
     const type = Expanse.Type.Point;
+
     const base = Expanse.base(options);
     const { zero, one, direction } = base;
     const defaults = { labels: [...labels], zero, one, direction };
-    return { type, labels, ...base, defaults };
+
+    return { value, type, labels, ...base, defaults };
   }
 
   export function normalize(expanse: ExpansePoint, value: string) {

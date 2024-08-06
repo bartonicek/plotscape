@@ -3,7 +3,7 @@ import { Direction } from "../utils/types";
 import { Expanse } from "./Expanse";
 
 export interface ExpanseCompound<T extends Expanse[] = Expanse[]>
-  extends Expanse {
+  extends Expanse<any[]> {
   expanses: T;
 }
 
@@ -12,26 +12,26 @@ export namespace ExpanseCompound {
     expanses: T = [] as unknown as T,
     options?: { zero?: number; one?: number; direction?: Direction },
   ): ExpanseCompound<T> {
+    const value = [] as any[];
     const type = Expanse.Type.Compound;
+
     const base = Expanse.base(options);
     const { zero, one, direction } = base;
     const defaults = { zero, one, direction };
-    return { type, expanses, ...base, defaults };
+
+    return { value, type, expanses, ...base, defaults };
   }
 
-  export function normalize(expanse: ExpanseCompound, value: any[]): number[] {
+  export function normalize(expanse: ExpanseCompound, value: any[]) {
     const { expanses } = expanse;
     if (!Array.isArray(value)) return value;
     return value.map((e, i) => Expanse.normalize(expanses[i], e)) as number[];
   }
 
-  export function unnormalize(
-    expanse: ExpanseCompound,
-    value: any[],
-  ): number[] {
+  export function unnormalize(expanse: ExpanseCompound, value: number[]) {
     const { expanses } = expanse;
     if (!Array.isArray(value)) return value;
-    return value.map((e, i) => Expanse.unnormalize(expanses[i], e)) as number[];
+    return value.map((e, i) => Expanse.unnormalize(expanses[i], e)) as any[];
   }
 
   export function train(expanse: ExpanseCompound, values: any[][]) {
@@ -49,5 +49,9 @@ export namespace ExpanseCompound {
 
   export function breaks(expanse: ExpanseCompound) {
     return seq(expanse.zero, expanse.one, 4);
+  }
+
+  export function restoreDefaults(expanse: ExpanseCompound) {
+    for (const e of expanse.expanses) Expanse.restoreDefaults(e);
   }
 }

@@ -1,11 +1,11 @@
-import { Dataframe, Scene } from "@abartonicek/plotscape5";
-import { Lines } from "../geoms/Lines";
-import { Expanse, Plot, Scale } from "../main";
-import { Marker } from "../scene/Marker";
+import { Expanse, Factor, Plot, Scale } from "../main";
+import { Scene } from "../scene/Scene";
+import { Summaries } from "../transformation/Summaries";
+import { Getter } from "../utils/Getter";
 import { Meta } from "../utils/Meta";
-import { LAYER, POSITIONS } from "../utils/symbols";
+import { Columns } from "../utils/types";
 
-export function Lineplot<T extends Dataframe>(
+export function Lineplot<T extends Columns>(
   scene: Scene<T>,
   selectfn: (data: T) => number[][],
 ) {
@@ -15,28 +15,23 @@ export function Lineplot<T extends Dataframe>(
   const vars = selectfn(data);
   const names = vars.map(Meta.getName);
 
-  const x = (index: number) => names;
-  const y = (index: number) => vars.map((e) => e[index]);
+  const x = Getter.constant(names);
+  const y = Getter.multi(vars);
+
+  const factor1 = Factor.bijection({ x, y });
+  const factor2 = Factor.product(factor1, marker.factor);
+
+  const summaries = Summaries.of({}, [factor1, factor2] as const);
+  const coordinates = Summaries.translate(summaries, [(d) => d, (d) => d]);
 
   const { scales } = plot;
-  const yDomains = vars.map((x) => Expanse.infer(x));
-  const yCodomains = vars.map(() => scales.y.codomain);
-  scales.y.domain = Expanse.compound(yDomains);
-  scales.y.codomain = Expanse.compound(yCodomains) as any;
 
-  Scale.train(scales.x, names, { default: true });
-  Scale.train(scales.y, vars, { default: true });
+  scales.y.domain = Expanse.compound(vars.map((x) => Expanse.infer(x)));
+  Scale.train(scales.x, names);
 
-  const layer = Marker.getLayer(marker);
-  const position = (index: number) => [index];
-  const coordinates = { x, y, [LAYER]: layer, [POSITIONS]: position };
+  console.log(Scale.breaks(scales.y));
 
-  const lines = Lines.of(
-    { flat: coordinates, grouped: coordinates },
-    { n: vars[0].length },
-  );
-
-  Plot.addGeom(plot, lines);
+  // Plot.addGeom(plot, lines);
 
   return plot;
 }

@@ -1,7 +1,5 @@
 import { Factor } from "../main";
 import { Reactive } from "../utils/Reactive";
-import { makeDispatchFn, makeListenFn } from "../utils/funs";
-import { LAYER } from "../utils/symbols";
 import { DataLayer, Indexable } from "../utils/types";
 
 export const Transient = 255 as const;
@@ -46,8 +44,8 @@ export namespace Marker {
     return marker;
   }
 
-  export const listen = makeListenFn<Marker, EventType>();
-  export const dispatch = makeDispatchFn<Marker, EventType>();
+  export const listen = Reactive.makeListenFn<Marker, EventType>();
+  export const dispatch = Reactive.makeDispatchFn<Marker, EventType>();
 
   export function setGroup(marker: Marker, group: GroupType) {
     marker.group = group;
@@ -56,7 +54,7 @@ export namespace Marker {
   export function update(
     marker: Marker,
     indices: number[],
-    options?: { group?: GroupType; silent?: boolean }
+    options?: { group?: GroupType; silent?: boolean },
   ) {
     const group = options?.group ?? marker.group;
     clearTransient(marker, { silent: true });
@@ -87,7 +85,7 @@ export namespace Marker {
 
   export function clearTransient(
     marker: Marker,
-    options?: { silent?: boolean }
+    options?: { silent?: boolean },
   ) {
     for (let i = 0; i < marker.transientIndices.length; i++) {
       const index = marker.transientIndices[i];
@@ -110,3 +108,4 @@ function addTransient(x: number) {
 function stripTransient(x: number) {
   return x | 4;
 }
+export const LAYER = Symbol(`layer`);

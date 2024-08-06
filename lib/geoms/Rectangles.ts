@@ -1,7 +1,8 @@
 import { ExpanseContinuous, Frame, Scale } from "../main";
+import { LAYER } from "../scene/Marker";
 import { findLength, pointInRect, rectsIntersect } from "../utils/funs";
 import { Meta } from "../utils/Meta";
-import { LAYER, POSITIONS } from "../utils/symbols";
+import { POSITIONS } from "../utils/symbols";
 import { DataLayer, DataLayers, Indexable, Point, Rect } from "../utils/types";
 import { FlatData, Geom, GroupedData } from "./Geom";
 

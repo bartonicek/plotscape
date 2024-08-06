@@ -12,8 +12,9 @@ import { Expanse } from "./Expanse";
 /**
  * Converts numeric values to the [0, 1] interval and back.
  */
-export interface ExpanseContinuous extends Expanse {
+export interface ExpanseContinuous extends Expanse<number> {
   type: Expanse.Type.Continuous;
+
   min: number;
   max: number;
   scale: number;
@@ -37,43 +38,32 @@ export interface ExpanseContinuous extends Expanse {
 }
 
 export namespace ExpanseContinuous {
-  export function of(
-    min = 0,
-    max = 1,
-    options?: {
-      scale?: number;
-      mult?: number;
-      offset?: number;
-      ratio?: boolean;
-      negative?: boolean;
-      zero?: number;
-      one?: number;
-      direction?: Direction;
-    },
-  ): ExpanseContinuous {
+  type Options = {
+    scale?: number;
+    mult?: number;
+    offset?: number;
+    ratio?: boolean;
+    negative?: boolean;
+    zero?: number;
+    one?: number;
+    direction?: Direction;
+  };
+
+  export function of(min = 0, max = 1, options?: Options): ExpanseContinuous {
+    const value = 0;
     const type = Expanse.Type.Continuous;
+
     const base = Expanse.base(options);
-    const { zero, one, direction } = base;
     const [trans, inv] = [identity, identity];
     const scale = options?.scale ?? 1;
     const mult = options?.mult ?? 1;
     const offset = options?.offset ?? 0;
     const ratio = options?.ratio ?? false;
 
-    const defaults = {
-      min,
-      max,
-      scale,
-      mult,
-      zero,
-      one,
-      offset,
-      direction,
-      trans,
-      inv,
-    };
+    const defaults = { min, max, scale, mult, ...base, offset, trans, inv };
 
     return {
+      value,
       type,
       min,
       max,

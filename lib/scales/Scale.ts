@@ -1,15 +1,12 @@
-import { makeDispatchFn, makeListenFn } from "../utils/funs";
 import { Meta } from "../utils/Meta";
 import { Reactive } from "../utils/Reactive";
-import { Expanse, ExpanseValueMap } from "./Expanse";
+import { Expanse } from "./Expanse";
 
 export interface Scale<T extends Expanse = any, U extends Expanse = any>
   extends Reactive {
   other?: Scale;
   domain: T;
   codomain: U;
-  // pushadapter: (value: any, domain: T, codomain: U) => number;
-  // pulladapter: (value: any, domain: T, codomain: U) => any;
 }
 
 type EventType = `changed`;
@@ -27,21 +24,21 @@ export namespace Scale {
     return scale;
   }
 
-  export const dispatch = makeDispatchFn<Scale, EventType>();
-  export const listen = makeListenFn<Scale, EventType>();
+  export const dispatch = Reactive.makeDispatchFn<Scale, EventType>();
+  export const listen = Reactive.makeListenFn<Scale, EventType>();
 
   export function pushforward<T extends Expanse, U extends Expanse>(
     scale: Scale<T, U>,
-    value: ExpanseValueMap[T["type"]],
-  ) {
+    value: T[`value`],
+  ): U[`value`] {
     const { domain, codomain } = scale;
     return Expanse.unnormalize(codomain, Expanse.normalize(domain, value));
   }
 
   export function pullback<T extends Expanse, U extends Expanse>(
     scale: Scale<T, U>,
-    value: ExpanseValueMap[U["type"]],
-  ) {
+    value: U[`value`],
+  ): T[`value`] {
     const { domain, codomain } = scale;
     return Expanse.unnormalize(domain, Expanse.normalize(codomain, value));
   }
@@ -57,7 +54,7 @@ export namespace Scale {
 
   export function train<T extends Expanse>(
     scale: Scale<T>,
-    array: ExpanseValueMap[T["type"]][],
+    array: T[`value`][],
     options?: {
       default?: boolean;
       silent?: boolean;

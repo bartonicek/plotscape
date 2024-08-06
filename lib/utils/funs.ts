@@ -1,6 +1,5 @@
 import { defaultParameters } from "./defaultParameters";
-import { Reactive } from "./Reactive";
-import { EVENTTARGET } from "./symbols";
+import { Meta } from "./Meta";
 import {
   Entries,
   Flat,
@@ -560,30 +559,10 @@ export function timeExecution(callbackfn: () => void) {
   return t2 - t1;
 }
 
-export function makeDispatchFn<T extends Reactive, E extends string>() {
-  return function (object: T, type: E, data?: Record<string, any>) {
-    object[EVENTTARGET].dispatchEvent(new CustomEvent(type, { detail: data }));
-  };
-}
-
-export function makeListenFn<T extends Reactive, E extends string>() {
-  return function (
-    object: T,
-    type: E,
-    eventfn: (event: CustomEvent) => void,
-    options?: { throttle?: number },
-  ) {
-    if (options?.throttle) eventfn = throttle(eventfn, options.throttle);
-    object[EVENTTARGET].addEventListener(type, eventfn as EventListener);
-  };
-}
-
 export function makeGetter<T>(indexable: Indexable<T>): (index: number) => T {
-  if (isArray(indexable)) return (index: number) => indexable[index];
-  else if (typeof indexable === "function") {
-    return indexable as (index: number) => T;
-  }
-  return () => indexable;
+  if (typeof indexable === `function`) return indexable;
+  else if (isArray(indexable)) return (index: number) => indexable[index];
+  else return () => indexable;
 }
 
 type Segment = Rect;
@@ -688,6 +667,16 @@ export function addIndexed(
   object[`${key}${count + 1}`] = value;
 }
 
+export function minDecimal(array: number[]) {
+  let min = Infinity;
+  for (let i = 0; i < array.length; i++) {
+    if (array[i] === 0) continue;
+    min = Math.min(min, Math.log10(Math.abs(array[i])));
+  }
+  if (min > 3) return 0;
+  return Math.floor(Math.abs(min)) + 2;
+}
+
 export function formatLabel(label: number | string) {
   if (typeof label != "number") return label;
 
@@ -714,6 +703,9 @@ export function formatLabels(
 
   const dec = options?.decimalPlaces ?? 4;
   const shouldFormat = (x: number) => x != 0 && Math.abs(Math.log10(x)) > dec;
+
+  const mindec = minDecimal(labels);
+  labels = labels.map((x) => round(x, mindec));
 
   // Use superscript if any number is sufficiently small or sufficiently big
   const useSuperscript = minmax(labels).some(shouldFormat);
@@ -789,6 +781,10 @@ export function isPrimitive(value: any): value is Primitive {
  */
 export const isArray = Array.isArray;
 
+export function isNumber(x: any): x is number {
+  return typeof x === `number`;
+}
+
 /**
  * Checks whether an array is an array of numbers (by checking the first value only)
  * @param array An array
@@ -806,14 +802,12 @@ export function isNumberArray(array: any[]): array is number[] {
  * @returns A `number` (or throws)
  */
 export function findLength(indexables: (Indexable | undefined)[]) {
-  let n: number | undefined = undefined;
   for (const indexable of indexables) {
-    if (Array.isArray(indexable)) n = indexable.length;
-    break;
+    if (!indexable) continue;
+    const length = Meta.getLength(indexable);
+    if (length) return length;
   }
 
   const msg = `At least one variable needs to be of fixed length`;
-  if (!n) throw new Error(msg);
-
-  return n;
+  throw new Error(msg);
 }

@@ -1,5 +1,4 @@
-import { Reactive } from "../Reactive";
-import { makeDispatchFn, makeListenFn } from "../utils/funs";
+import { Reactive } from "../utils/Reactive";
 import { FACTOR, PARENTVALUES, REDUCER } from "../utils/symbols";
 import { Factor } from "./Factor";
 import { Reducer } from "./Reducer";
@@ -15,7 +14,7 @@ export namespace Reduced {
     reduced: T[] | Reduced<T>,
     factor: Factor,
     reducer: Reducer<any, T>,
-    parentValues?: T[]
+    parentValues?: T[],
   ) {
     const result = reduced as Reduced<T>;
     result[FACTOR] = factor;
@@ -24,8 +23,8 @@ export namespace Reduced {
     return result;
   }
 
-  export const listen = makeListenFn<Reduced, `changed`>();
-  export const dispatch = makeDispatchFn<Reduced, `changed`>();
+  export const listen = Reactive.makeListenFn<Reduced, `changed`>();
+  export const dispatch = Reactive.makeDispatchFn<Reduced, `changed`>();
 
   export function stack<T>(reduced: Reduced<T>): Reduced<T> {
     const [factor, reducer, parentValues] = getPointers(reduced);
@@ -53,7 +52,7 @@ export namespace Reduced {
 
   export function normalize<T>(
     reduced: Reduced<T>,
-    normalizefn: (x: T, y: T) => T
+    normalizefn: (x: T, y: T) => T,
   ): Reduced<T> {
     const [factor, reducer, parentValues] = getPointers(reduced);
 

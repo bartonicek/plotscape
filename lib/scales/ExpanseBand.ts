@@ -7,26 +7,29 @@ import { ExpansePoint } from "./ExpansePoint";
  * Converts string labels to the [0, 1] interval and back, such that each
  * label is placed in the middle of its corresponding bin.
  */
-export interface ExpanseBand extends Expanse {
+export interface ExpanseBand extends Expanse<string> {
   type: Expanse.Type.Band;
+
   labels: string[];
   weights?: number[];
 }
 
 export namespace ExpanseBand {
-  export function of(
-    labels: string[] = [],
-    options?: {
-      weights?: number[];
-      zero?: number;
-      one?: number;
-      direction?: Direction;
-    },
-  ): ExpanseBand {
+  type Options = {
+    weights?: number[];
+    zero?: number;
+    one?: number;
+    direction?: Direction;
+  };
+
+  export function of(labels: string[] = [], options?: Options): ExpanseBand {
+    const value = ``;
     const type = Expanse.Type.Band;
+
     const base = Expanse.base(options);
     const { zero, one, direction } = base;
     const weights = options?.weights ?? Array(labels.length).fill(1);
+
     const defaults = {
       labels: [...labels],
       weights: [...weights],
@@ -35,7 +38,7 @@ export namespace ExpanseBand {
       direction,
     };
 
-    return { type, labels, weights, ...base, defaults };
+    return { value, type, labels, weights, ...base, defaults };
   }
 
   export function normalize(expanse: ExpanseBand, value: string) {

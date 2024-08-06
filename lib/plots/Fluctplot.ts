@@ -5,9 +5,9 @@ import {
   Factor,
   Plot,
   Reducer,
-  Scale,
   Scene,
 } from "../main";
+import { Scale } from "../scales/Scale";
 import { Reduced } from "../transformation/Reduced";
 import { Summaries } from "../transformation/Summaries";
 import { max, sqrt, square } from "../utils/funs";

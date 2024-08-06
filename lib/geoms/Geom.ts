@@ -1,6 +1,7 @@
 import { Scale } from "../main";
+import { LAYER } from "../scene/Marker";
 import { makeGetter } from "../utils/funs";
-import { LAYER, POSITIONS } from "../utils/symbols";
+import { POSITIONS } from "../utils/symbols";
 import {
   Dataframe,
   DataLayer,
