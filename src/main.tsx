@@ -1,5 +1,5 @@
 import { MtcarsUntyped, Plot, Reducer, Scene } from "../lib/main";
-import { fetchJSON, minDecimal } from "../lib/utils/funs";
+import { fetchJSON } from "../lib/utils/funs";
 
 async function mtcarsScene() {
   const app = document.querySelector<HTMLDivElement>("#app")!;
@@ -41,11 +41,13 @@ async function imdbScene() {
     reducer: Reducer.sum,
   });
   const plot4 = Plot.fluct(scene, (d) => [d.genre1, d.genre2]);
+  const plot5 = Plot.line(scene, (d) => [d.runtime, d.votes, d.rating]);
 
   Scene.addPlot(scene, plot1);
   Scene.addPlot(scene, plot2);
   Scene.addPlot(scene, plot3);
   Scene.addPlot(scene, plot4);
+  Scene.addPlot(scene, plot5);
 }
 
 async function diamondsScene() {
@@ -63,5 +65,3 @@ async function diamondsScene() {
 }
 
 mtcarsScene();
-
-console.log(minDecimal([100, 200, 0.0004455]));

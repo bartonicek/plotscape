@@ -11,6 +11,7 @@ import { ExpanseBand } from "./ExpanseBand";
 import { ExpanseCompound } from "./ExpanseCompound";
 import { ExpanseContinuous } from "./ExpanseContinuous";
 import { ExpansePoint } from "./ExpansePoint";
+import { ExpanseSplit } from "./ExpanseSplit";
 
 export const VALUE = Symbol(`value`);
 
@@ -44,16 +45,17 @@ type EventType = `changed`;
 type ExpanseMethods = {
   normalize(expanse: unknown, value: unknown): unknown;
   unnormalize(expanse: unknown, value: unknown): unknown;
-  breaks(expanse: unknown): unknown[];
+  breaks(expanse: unknown): string[] | number[];
   train(expanse: unknown, array: unknown[], options?: {}): void;
 };
 
 export namespace Expanse {
   export enum Type {
-    Continuous = "continuous",
-    Point = "point",
-    Band = "band",
-    Compound = "compound",
+    Continuous = `continuous`,
+    Point = `point`,
+    Band = `band`,
+    Compound = `compound`,
+    Split = `split`,
   }
 
   export const methods: {
@@ -63,6 +65,7 @@ export namespace Expanse {
     [Expanse.Type.Point]: ExpansePoint,
     [Expanse.Type.Band]: ExpanseBand,
     [Expanse.Type.Compound]: ExpanseCompound,
+    [Expanse.Type.Split]: ExpanseSplit,
   };
 
   export const Continuous = Type.Continuous;
@@ -73,6 +76,7 @@ export namespace Expanse {
   export const point = ExpansePoint.of;
   export const band = ExpanseBand.of;
   export const compound = ExpanseCompound.of;
+  export const split = ExpanseSplit.of;
 
   export function infer(values: any[], options = { train: true }) {
     const expanse = isNumber(values[0]) ? Expanse.continuous() : Expanse.band();

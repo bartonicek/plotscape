@@ -26,12 +26,15 @@ export namespace Getter {
   ): Getter<T> {
     const getter = Getter.of(indexable);
     const proxyGetter = (index: number) => getter(indices[index]);
+    Meta.copy(indexable, proxyGetter);
+    Meta.setLength(proxyGetter, indices.length);
     return proxyGetter;
   }
 
   export function multi<T extends Indexable[]>(indexables: T): Getter<any[]> {
     const getters = indexables.map(Getter.of);
     const getter = (index: number) => getters.map((x) => x(index));
+    Meta.setLength(getter, Meta.getLength(indexables[0])!);
     return getter;
   }
 }

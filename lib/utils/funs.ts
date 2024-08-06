@@ -697,14 +697,14 @@ export function formatLabel(label: number | string) {
  */
 export function formatLabels(
   labels: number[] | string[],
-  options?: { decimalPlaces?: number },
+  options?: { tens?: number; decimals?: number },
 ): string[] {
   if (!isNumberArray(labels)) return labels;
 
-  const dec = options?.decimalPlaces ?? 4;
+  const dec = options?.tens ?? 4;
   const shouldFormat = (x: number) => x != 0 && Math.abs(Math.log10(x)) > dec;
 
-  const mindec = minDecimal(labels);
+  const mindec = options?.decimals ?? minDecimal(labels);
   labels = labels.map((x) => round(x, mindec));
 
   // Use superscript if any number is sufficiently small or sufficiently big

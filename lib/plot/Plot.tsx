@@ -112,7 +112,7 @@ export namespace Plot {
 
   export function of(options?: {
     type?: Type;
-    scales?: { x?: Expanse.Type; y?: Expanse.Type };
+    scales?: { x?: Expanse.Type.Band; y?: Expanse.Type.Band };
   }): Plot {
     const type = options?.type ?? Type.Unknown;
     const container = (
@@ -407,8 +407,7 @@ export namespace Plot {
 }
 
 function setupFrames(plot: Plot, options?: {}) {
-  const { container, frames } = plot;
-  const margins = getMargins();
+  const { container, frames, margins } = plot;
   const [bottom, left, top, right] = margins;
   const dataLayers = [7, 6, 5, 4, 3, 2, 1, 0] as const;
 
@@ -552,6 +551,8 @@ function setupEvents(plot: Plot, options?: {}) {
     frames.under.canvas.style.width = `calc(100% - ${left}px - ${margins[3]}px)`;
     frames.under.canvas.style.height = `calc(100% - ${bottom}px - ${margins[2]}px)`;
 
+    for (const frame of Object.values(frames)) Frame.clip(frame);
+
     Expanse.set(x.codomain, (e) => ((e.min = left), (e.max = right)), opts);
     Expanse.set(y.codomain, (e) => ((e.min = bottom), (e.max = top)), opts);
 
@@ -603,7 +604,7 @@ function setupEvents(plot: Plot, options?: {}) {
 
 function setupScales(
   plot: Plot,
-  options?: { scales?: { x?: Expanse.Type; y?: Expanse.Type } },
+  options?: { scales?: { x?: Expanse.Type.Band; y?: Expanse.Type.Band } },
 ) {
   const { scales, container } = plot;
   const { clientWidth: w, clientHeight: h } = container;

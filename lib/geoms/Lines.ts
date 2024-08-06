@@ -1,4 +1,6 @@
-import { ExpanseContinuous, Frame, Scale } from "../main";
+import { Frame } from "../plot/Frame";
+import { ExpanseContinuous } from "../scales/ExpanseContinuous";
+import { Scale } from "../scales/Scale";
 import { LAYER } from "../scene/Marker";
 import { findLength, rectSegmentIntersect } from "../utils/funs";
 import { POSITIONS } from "../utils/symbols";
@@ -38,16 +40,16 @@ export namespace Lines {
   }
 
   export function render(lines: Lines, layers: DataLayers) {
-    let { n, scales } = lines;
+    const { scales } = lines;
     const data = lines.data.grouped;
 
-    n = n ?? findLength(Object.values(data));
+    const n = findLength(Object.values(data));
     const vars = [`x`, `y`, LAYER] as const;
     const [x, y, layer] = Geom.getters(data, vars);
 
     for (let i = 0; i < n; i++) {
-      const xi = x(i).map((e: any) => Scale.pushforward(scales.x, e));
-      const yi = y(i).map((e: any) => Scale.pushforward(scales.x, e));
+      const xi = Scale.pushforward(scales.x, x(i)) as unknown as number[];
+      const yi = Scale.pushforward(scales.y, y(i)) as unknown as number[];
       const li = layers[layer(i) as DataLayer];
 
       Frame.line(li, xi, yi);
@@ -55,21 +57,22 @@ export namespace Lines {
   }
 
   export function check(lines: Lines, selection: Rect) {
-    let { n, scales } = lines;
+    const { scales } = lines;
     const data = lines.data.flat;
 
-    n = n ?? findLength(Object.values(data));
+    const n = findLength(Object.values(data));
     const vars = [`x`, `y`, POSITIONS] as const;
     const [x, y, positions] = Geom.getters(data, vars);
 
     const selected = [] as number[];
 
     for (let i = 0; i < n; i++) {
-      const xi = x(i).map((e: any) => Scale.pushforward(scales.x, e));
-      const yi = y(i).map((e: any) => Scale.pushforward(scales.x, e));
+      const xi = Scale.pushforward(scales.x, x(i)) as unknown as number[];
+      const yi = Scale.pushforward(scales.y, y(i)) as unknown as number[];
 
-      for (let j = 1; j < x.length; j++) {
+      for (let j = 1; j < xi.length; j++) {
         const coords = [xi[j - 1], yi[j - 1], xi[j], yi[j]] as Rect;
+
         if (rectSegmentIntersect(selection, coords)) {
           const pos = positions(i);
           for (let k = 0; k < pos.length; k++) selected.push(pos[k]);
@@ -96,8 +99,8 @@ export namespace Lines {
     ] as Rect;
 
     for (let i = 0; i < n; i++) {
-      const xi = x(i).map((e: any) => Scale.pushforward(scales.x, e));
-      const yi = y(i).map((e: any) => Scale.pushforward(scales.x, e));
+      const xi = Scale.pushforward(scales.x, x(i)) as unknown as number[];
+      const yi = Scale.pushforward(scales.y, y(i)) as unknown as number[];
 
       for (let j = 1; j < x.length; j++) {
         const coords = [xi[j - 1], yi[j - 1], xi[j], yi[j]] as Rect;

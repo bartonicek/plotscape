@@ -1,5 +1,5 @@
 import { Expanse, Frame, Scale } from "../main";
-import { formatLabels, getMargins } from "../utils/funs";
+import { getMargins } from "../utils/funs";
 import { Meta } from "../utils/Meta";
 import { Plot } from "./Plot";
 
@@ -8,8 +8,7 @@ export function renderAxisLabels(plot: Plot, axis: `x` | `y`) {
   const frame = plot.frames[`${axis}Axis`];
   const { context } = frame;
 
-  const breaks = Scale.breaks(scale) as string[] | number[];
-  const labels = formatLabels(breaks);
+  const { labels, positions } = Scale.breaks(scale);
   const [bottom, left, top, right] = getMargins();
   const fontsize = parseInt(context.font.match(/^[0-9]*/)![0], 10);
 
@@ -23,7 +22,7 @@ export function renderAxisLabels(plot: Plot, axis: `x` | `y`) {
 
     for (let i = 0; i < labels.length; i++) {
       const label = labels[i];
-      const x = Scale.pushforward(scale, breaks[i]);
+      const x = positions[i];
       const w = Frame.textWidth(frame, label) + 1;
 
       if (outside(x, left, width - right)) continue;
@@ -37,7 +36,7 @@ export function renderAxisLabels(plot: Plot, axis: `x` | `y`) {
 
     for (let i = 0; i < labels.length; i++) {
       const label = labels[i];
-      const y = Scale.pushforward(scale, breaks[i]);
+      const y = positions[i];
       const w = Frame.textWidth(frame, label) + 1;
       const h = Frame.textHeight(frame, label) + 1;
 
@@ -61,10 +60,8 @@ export function renderAxisTitle(plot: Plot, axis: `x` | `y`) {
   const frame = frames.base;
   const name = Meta.getName(scale);
   const offset = axis === `x` ? margins[0] : margins[1];
-
   const dim1 = Expanse.unnormalize(scale.codomain, 0.5);
   const dim2 = Expanse.unnormalize(scale.other!.codomain, 0) - (offset * 2) / 3;
-
   if (axis === `x`) Frame.text(frame, dim1, dim2, name);
   if (axis === `y`) Frame.text(frame, dim2, dim1, name, { vertical: true });
 }

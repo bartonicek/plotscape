@@ -1,6 +1,8 @@
+import { Lines } from "../geoms/Lines";
 import { Expanse, Factor, Plot, Scale } from "../main";
 import { Scene } from "../scene/Scene";
 import { Summaries } from "../transformation/Summaries";
+import { defaultParameters } from "../utils/defaultParameters";
 import { Getter } from "../utils/Getter";
 import { Meta } from "../utils/Meta";
 import { Columns } from "../utils/types";
@@ -26,12 +28,23 @@ export function Lineplot<T extends Columns>(
 
   const { scales } = plot;
 
-  scales.y.domain = Expanse.compound(vars.map((x) => Expanse.infer(x)));
-  Scale.train(scales.x, names);
+  const { expandX, expandY } = defaultParameters;
+  const xOpts = { zero: expandX, one: 1 - expandX };
+  const yOpts = { zero: expandY, one: 1 - expandY };
 
-  console.log(Scale.breaks(scales.y));
+  Scale.setDomain(scales.x, Expanse.split(Expanse.point(names, xOpts)));
+  Scale.setCoomain(scales.x, Expanse.split(scales.x.codomain));
 
-  // Plot.addGeom(plot, lines);
+  const domains = vars.map((x) => Expanse.infer(x));
+  Scale.setDomain(scales.y, Expanse.compound(domains, yOpts));
+  Scale.setCoomain(scales.y, Expanse.split(scales.y.codomain));
+
+  Meta.setName(scales.x, `variable`);
+  Meta.setName(scales.y, `value`);
+
+  const [flat, grouped] = coordinates;
+  const lines = Lines.of({ flat, grouped });
+  Plot.addGeom(plot, lines);
 
   return plot;
 }

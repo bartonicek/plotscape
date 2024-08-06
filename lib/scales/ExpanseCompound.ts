@@ -19,18 +19,30 @@ export namespace ExpanseCompound {
     const { zero, one, direction } = base;
     const defaults = { zero, one, direction };
 
-    return { value, type, expanses, ...base, defaults };
+    for (const expanse of expanses) {
+      Object.assign(expanse, { zero, one, direction });
+      Object.assign(expanse.defaults, { zero, one, direction });
+    }
+
+    const expanse = { value, type, expanses, ...base, defaults };
+    Expanse.listen(expanse, `changed`, () => {
+      const { zero, one, direction } = expanse;
+      for (const expanse of expanses) {
+        Object.assign(expanse, { zero, one, direction });
+        Object.assign(expanse.defaults, { zero, one, direction });
+      }
+    });
+
+    return expanse;
   }
 
   export function normalize(expanse: ExpanseCompound, value: any[]) {
     const { expanses } = expanse;
-    if (!Array.isArray(value)) return value;
     return value.map((e, i) => Expanse.normalize(expanses[i], e)) as number[];
   }
 
   export function unnormalize(expanse: ExpanseCompound, value: number[]) {
     const { expanses } = expanse;
-    if (!Array.isArray(value)) return value;
     return value.map((e, i) => Expanse.unnormalize(expanses[i], e)) as any[];
   }
 

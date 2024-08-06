@@ -1,3 +1,4 @@
+import { formatLabels } from "../utils/funs";
 import { Meta } from "../utils/Meta";
 import { Reactive } from "../utils/Reactive";
 import { Expanse } from "./Expanse";
@@ -26,6 +27,16 @@ export namespace Scale {
 
   export const dispatch = Reactive.makeDispatchFn<Scale, EventType>();
   export const listen = Reactive.makeListenFn<Scale, EventType>();
+
+  export function setDomain(scale: Scale, expanse: Expanse) {
+    scale.domain = expanse;
+    Expanse.listen(expanse, `changed`, () => Scale.dispatch(scale, `changed`));
+  }
+
+  export function setCoomain(scale: Scale, expanse: Expanse) {
+    scale.codomain = expanse;
+    Expanse.listen(expanse, `changed`, () => Scale.dispatch(scale, `changed`));
+  }
 
   export function pushforward<T extends Expanse, U extends Expanse>(
     scale: Scale<T, U>,
@@ -79,8 +90,25 @@ export namespace Scale {
     Expanse.restoreDefaults(scale.codomain);
   }
 
-  export function breaks(scale: Scale) {
-    return Expanse.breaks(scale.domain);
+  export function breaks(scale: Scale): {
+    labels: string[];
+    positions: number[];
+  } {
+    const breaks = Expanse.breaks(scale.domain);
+    let labels = formatLabels(breaks);
+
+    if (scale.domain.type === Expanse.Type.Compound) {
+      labels = formatLabels(breaks, { decimals: 1 });
+      const positions = Expanse.unnormalize(scale.codomain, breaks as any);
+      return { labels, positions };
+    } else if (scale.codomain.type === Expanse.Type.Split) {
+      const positions = Scale.pushforward(scale, breaks);
+      return { labels, positions };
+    }
+
+    const positions = breaks.map((x) => Scale.pushforward(scale, x));
+
+    return { labels, positions };
   }
 
   export function move(scale: Scale, amount: number) {

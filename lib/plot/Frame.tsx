@@ -15,7 +15,7 @@ export interface Frame {
 }
 
 type ContextProps<
-  K extends keyof CanvasRenderingContext2D = keyof CanvasRenderingContext2D
+  K extends keyof CanvasRenderingContext2D = keyof CanvasRenderingContext2D,
 > = {
   [key in K]: CanvasRenderingContext2D[key];
 };
@@ -54,7 +54,7 @@ export namespace Frame {
 
   export function setContext<K extends keyof CanvasRenderingContext2D>(
     frame: Frame,
-    props: ContextProps<K>
+    props: ContextProps<K>,
   ) {
     for (const [k, v] of Object.entries(props) as [K, ContextProps<K>[K]][]) {
       frame.contextProps[k] = v;
@@ -117,7 +117,7 @@ export namespace Frame {
     frame: Frame,
     x: number,
     y: number,
-    options?: DrawOptions & { radius?: number }
+    options?: DrawOptions & { radius?: number },
   ) {
     const { context } = frame;
     const height = frame.canvas.clientHeight;
@@ -138,7 +138,7 @@ export namespace Frame {
     x0: number,
     y0: number,
     x1: number,
-    y1: number
+    y1: number,
   ) {
     const { context, height } = frame;
     context.fillRect(x0, height - y0, x1 - x0, y0 - y1);
@@ -150,7 +150,7 @@ export namespace Frame {
     y: number,
     w: number,
     h: number,
-    options?: DrawOptions
+    options?: DrawOptions,
   ) {
     const { context, height } = frame;
     const hAnchor = options?.hAnchor ?? HAnchor.Center;
@@ -165,6 +165,7 @@ export namespace Frame {
   export function line(frame: Frame, x: number[], y: number[]) {
     const { context, height } = frame;
 
+    context.beginPath();
     context.moveTo(x[0], height - y[0]);
 
     for (let i = 0; i < x.length; i++) {
@@ -179,7 +180,7 @@ export namespace Frame {
     x: number,
     y: number,
     label: string,
-    options?: { vertical?: boolean }
+    options?: { vertical?: boolean },
   ) {
     const { context, height } = frame;
 
