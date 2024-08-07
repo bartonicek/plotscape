@@ -560,7 +560,7 @@ function setupEvents(plot: Plot, options?: {}) {
 
     Expanse.set(width.codomain, (e) => (e.max = w), opts);
     Expanse.set(height.codomain, (e) => (e.max = h), opts);
-    Expanse.set(area.codomain, (e) => (e.max = Math.min(w, h)));
+    Expanse.set(area.codomain, (e) => (e.max = Math.min(w, h)), opts);
   });
 
   for (const scale of Object.values(plot.scales)) {

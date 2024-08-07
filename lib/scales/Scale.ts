@@ -2,6 +2,7 @@ import { formatLabels } from "../utils/funs";
 import { Meta } from "../utils/Meta";
 import { Reactive } from "../utils/Reactive";
 import { Expanse } from "./Expanse";
+import { ExpanseContinuous } from "./ExpanseContinuous";
 
 export interface Scale<T extends Expanse = any, U extends Expanse = any>
   extends Reactive {
@@ -94,19 +95,25 @@ export namespace Scale {
     labels: string[];
     positions: number[];
   } {
-    const breaks = Expanse.breaks(scale.domain);
+    const breaks = Expanse.breaks(scale.domain) as any;
     let labels = formatLabels(breaks);
 
     if (scale.domain.type === Expanse.Type.Compound) {
       labels = formatLabels(breaks, { decimals: 1 });
-      const positions = Expanse.unnormalize(scale.codomain, breaks as any);
+      const positions = breaks.map((x: number) =>
+        Expanse.unnormalize(
+          scale.codomain,
+          ExpanseContinuous.normalize(scale.domain, x),
+        ),
+      );
+
       return { labels, positions };
     } else if (scale.codomain.type === Expanse.Type.Split) {
       const positions = Scale.pushforward(scale, breaks);
       return { labels, positions };
     }
 
-    const positions = breaks.map((x) => Scale.pushforward(scale, x));
+    const positions = breaks.map((x: any) => Scale.pushforward(scale, x));
 
     return { labels, positions };
   }

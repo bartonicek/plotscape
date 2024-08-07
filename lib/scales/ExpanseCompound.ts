@@ -1,6 +1,6 @@
-import { seq } from "../utils/funs";
 import { Direction } from "../utils/types";
 import { Expanse } from "./Expanse";
+import { ExpanseContinuous } from "./ExpanseContinuous";
 
 export interface ExpanseCompound<T extends Expanse[] = Expanse[]>
   extends Expanse<any[]> {
@@ -15,7 +15,7 @@ export namespace ExpanseCompound {
     const value = [] as any[];
     const type = Expanse.Type.Compound;
 
-    const base = Expanse.base(options);
+    const base = Expanse.continuous(0, 1, options);
     const { zero, one, direction } = base;
     const defaults = { zero, one, direction };
 
@@ -24,7 +24,7 @@ export namespace ExpanseCompound {
       Object.assign(expanse.defaults, { zero, one, direction });
     }
 
-    const expanse = { value, type, expanses, ...base, defaults };
+    const expanse = { expanses, ...base, value, type, defaults };
     Expanse.listen(expanse, `changed`, () => {
       const { zero, one, direction } = expanse;
       for (const expanse of expanses) {
@@ -60,7 +60,7 @@ export namespace ExpanseCompound {
   }
 
   export function breaks(expanse: ExpanseCompound) {
-    return seq(expanse.zero, expanse.one, 4);
+    return ExpanseContinuous.breaks(expanse as unknown as ExpanseContinuous);
   }
 
   export function restoreDefaults(expanse: ExpanseCompound) {

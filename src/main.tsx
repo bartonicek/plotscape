@@ -1,11 +1,14 @@
 import { MtcarsUntyped, Plot, Reducer, Scene } from "../lib/main";
-import { fetchJSON } from "../lib/utils/funs";
+import { fetchJSON, minmax } from "../lib/utils/funs";
 
 async function mtcarsScene() {
   const app = document.querySelector<HTMLDivElement>("#app")!;
   const mtcars = (await fetchJSON(`../datasets/mtcars.json`)) as MtcarsUntyped;
   mtcars.cyl = mtcars.cyl.map((x) => x.toString());
   mtcars.am = mtcars.am.map((x) => x.toString());
+
+  const [min, max] = minmax(mtcars.wt);
+  mtcars.wt = mtcars.wt.map((x) => (x - min) / (max - min));
 
   const scene = Scene.of(mtcars);
   Scene.append(app, scene);
@@ -14,7 +17,6 @@ async function mtcarsScene() {
   const plot2 = Plot.histo(scene, (d) => [d.mpg]);
   const plot3 = Plot.bar(scene, (d) => [d.cyl, d.mpg], {
     reducer: Reducer.sum,
-    queries: [[(d) => d.am, Reducer.table]],
   });
   const plot4 = Plot.fluct(scene, (d) => [d.cyl, d.am]);
   const plot5 = Plot.line(scene, (d) => [d.wt, d.mpg, d.cyl]);

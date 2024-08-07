@@ -26,8 +26,8 @@ export function Barplot<T extends Columns>(
   const reducer = vals && options?.reducer ? options.reducer : Reducer.sum;
   const values = vals ? [...vals] : () => 1;
 
-  if (!Meta.hasName(values)) Meta.setName(values, `count`);
-  else Meta.setName(values, `${reducer.name} of ${Meta.getName(values)}`);
+  if (!vals) Meta.setName(values, `count`);
+  else Meta.setName(values, `${reducer.name} of ${Meta.getName(vals)}`);
 
   const factor1 = Factor.from(category);
   const factor2 = Factor.product(factor1, marker.factor);
