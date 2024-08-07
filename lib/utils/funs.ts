@@ -307,6 +307,29 @@ export function subset<T>(
 }
 
 /**
+ * Removes an element from an array (mutating in-place)
+ * @param array An array of values
+ * @param value A value in the array
+ */
+export function remove<T>(array: T[], value: T) {
+  array.splice(array.indexOf(value), 1);
+}
+
+export function orderIndices(array: number[]) {
+  const sorted = [...array].sort(diff);
+  const result = Array<number>(array.length);
+  const seen = {} as Record<number, number>;
+
+  for (let i = 0; i < sorted.length; i++) {
+    const value = sorted[i];
+    seen[value] = seen[value] + 1 || 0;
+    result[i] = array.indexOf(value) + seen[value];
+  }
+
+  return result;
+}
+
+/**
  * Find the minimum and maximum of an array.
  * @param array An array of numbers
  * @returns The tuple `[min, max]`

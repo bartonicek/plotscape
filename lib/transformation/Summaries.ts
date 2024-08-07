@@ -1,18 +1,17 @@
 import { Reactive } from "../utils/Reactive";
 import { copyValues, isArray, merge, subset } from "../utils/funs";
 import { PARENTVALUES } from "../utils/symbols";
-import { Columns, Flat, Indexable } from "../utils/types";
+import { Columns, Dataframe, Flat, Indexable } from "../utils/types";
 import { Factor } from "./Factor";
 import { Reduced } from "./Reduced";
 import { Reducer } from "./Reducer";
 
 export namespace Summaries {
   type ReducerTuple<T = any, U = any> = readonly [Indexable<T>, Reducer<T, U>];
-  type Data = Record<string | symbol, Indexable>;
 
   export function of<
     T extends Record<string, ReducerTuple>,
-    U extends readonly Factor[]
+    U extends readonly Factor[],
   >(summaries: T, factors: U) {
     const result = [] as any[];
 
@@ -65,10 +64,10 @@ export namespace Summaries {
     return result as { [key in keyof U]: Flat<U[key]["data"] & Computed> };
   }
 
-  function compute<T extends Data, U extends Record<string, ReducerTuple<T>>>(
-    factor: Factor<T>,
-    summaries: U
-  ) {
+  function compute<
+    T extends Dataframe,
+    U extends Record<string, ReducerTuple<T>>,
+  >(factor: Factor<T>, summaries: U) {
     const computed = {} as Record<string, any>;
 
     for (const [k, v] of Object.entries(summaries)) {
@@ -83,26 +82,26 @@ export namespace Summaries {
     return computed as Computed;
   }
 
-  type TranslateFn<T extends Data = any> = (data: T) => Data;
-  type TranslateFns<T extends readonly Data[]> = T extends readonly [
-    infer U extends Data,
-    ...infer Rest extends readonly Data[]
+  type TranslateFn<T extends Dataframe = any> = (data: T) => Dataframe;
+  type TranslateFns<T extends readonly Dataframe[]> = T extends readonly [
+    infer U extends Dataframe,
+    ...infer Rest extends readonly Dataframe[],
   ]
     ? [TranslateFn<U>, ...TranslateFns<Rest>]
     : [];
 
-  type Translated<T extends TranslateFn[]> = T extends [
+  type TranslatedData<T extends TranslateFn[]> = T extends [
     infer U extends TranslateFn,
-    ...infer Rest extends TranslateFn[]
+    ...infer Rest extends TranslateFn[],
   ]
-    ? [ReturnType<U>, ...Translated<Rest>]
+    ? [ReturnType<U>, ...TranslatedData<Rest>]
     : [];
 
   export function translate<
-    T extends readonly Data[],
-    U extends TranslateFns<T>
+    T extends readonly Dataframe[],
+    U extends TranslateFns<T>,
   >(data: T, translatefns: U) {
-    const result = [];
+    const result = [] as any[];
 
     for (let i = 0; i < data.length; i++) {
       const translated = compute(data[i]);
@@ -118,7 +117,7 @@ export namespace Summaries {
         }
       });
 
-      function compute(data: Data) {
+      function compute(data: Dataframe) {
         const computed = translatefns[i](data);
         const symbols = Object.getOwnPropertySymbols(data);
         for (const s of symbols) computed[s] = data[s];
@@ -126,17 +125,17 @@ export namespace Summaries {
       }
     }
 
-    return result as Translated<U>;
+    return result as TranslatedData<U>;
   }
 
   export function formatQueries<T extends Columns>(
     reducerQueries: [(data: T) => any[], Reducer][],
-    data: T
+    data: T,
   ) {
     return Object.fromEntries(
       reducerQueries?.map(([selectfn, reducer], i) => {
         return [`query${i}`, [selectfn(data), reducer]];
-      }) ?? []
+      }) ?? [],
     );
   }
 }

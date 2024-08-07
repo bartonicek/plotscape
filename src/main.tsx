@@ -1,14 +1,12 @@
-import { MtcarsUntyped, Plot, Reducer, Scene } from "../lib/main";
-import { fetchJSON, minmax } from "../lib/utils/funs";
+import { Factor, MtcarsUntyped, Plot, Reducer, Scene } from "../lib/main";
+import { Summaries } from "../lib/transformation/Summaries";
+import { fetchJSON } from "../lib/utils/funs";
 
 async function mtcarsScene() {
   const app = document.querySelector<HTMLDivElement>("#app")!;
   const mtcars = (await fetchJSON(`../datasets/mtcars.json`)) as MtcarsUntyped;
   mtcars.cyl = mtcars.cyl.map((x) => x.toString());
   mtcars.am = mtcars.am.map((x) => x.toString());
-
-  const [min, max] = minmax(mtcars.wt);
-  mtcars.wt = mtcars.wt.map((x) => (x - min) / (max - min));
 
   const scene = Scene.of(mtcars);
   Scene.append(app, scene);
@@ -35,13 +33,9 @@ async function imdbScene() {
   const scene = Scene.of(imdb);
   Scene.append(app, scene);
 
-  console.log(imdb);
-
   const plot1 = Plot.scatter(scene, (d) => [d.runtime, d.rating]);
   const plot2 = Plot.histo(scene, (d) => [d.votes]);
-  const plot3 = Plot.bar(scene, (d) => [d.director, d.votes], {
-    reducer: Reducer.sum,
-  });
+  const plot3 = Plot.bar(scene, (d) => [d.director]);
   const plot4 = Plot.fluct(scene, (d) => [d.genre1, d.genre2]);
   const plot5 = Plot.line(scene, (d) => [d.runtime, d.votes, d.rating]);
 
@@ -67,3 +61,18 @@ async function diamondsScene() {
 }
 
 mtcarsScene();
+
+const factor1 = Factor.mono(10);
+const factor2 = Factor.product(
+  factor1,
+  Factor.from(Array.from(Array(10), () => Math.random() < 0.5)),
+);
+
+const values = Array.from(Array(10), () => Math.random());
+
+const summaries = Summaries.of({ stat: [values, Reducer.sum] }, [
+  factor1,
+  factor2,
+]);
+
+console.log(summaries);

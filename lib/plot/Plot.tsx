@@ -15,6 +15,7 @@ import {
   invertRange,
   max,
   rangeInverse,
+  remove,
   removeTailwind,
   sqrt,
   square,
@@ -44,17 +45,8 @@ enum MouseButton {
   Right = 2,
 }
 
-type Scales = {
-  x: Scale<Expanse, ExpanseContinuous>;
-  y: Scale<Expanse, ExpanseContinuous>;
-  area: Scale<Expanse, ExpanseContinuous>;
-  size: Scale<Expanse, ExpanseContinuous>;
-  width: Scale<Expanse, ExpanseContinuous>;
-  height: Scale<Expanse, ExpanseContinuous>;
-};
-
 export type Frames = DataLayers & {
-  [key in `base` | `under` | `user` | `xAxis` | `yAxis`]: Frame;
+  [key in `base` | `under` | `over` | `user` | `xAxis` | `yAxis`]: Frame;
 };
 
 type EventType =
@@ -80,7 +72,7 @@ export interface Plot extends Reactive {
   queryDisplay: HTMLElement;
   frames: Frames;
 
-  scales: Scales;
+  scales: Plot.Scales;
   margins: Margins;
 
   renderables: Geom[];
@@ -109,6 +101,15 @@ export namespace Plot {
     Fluct = `fluct`,
     Line = `line`,
   }
+
+  export type Scales = {
+    x: Scale<any, ExpanseContinuous>;
+    y: Scale<any, ExpanseContinuous>;
+    area: Scale<any, ExpanseContinuous>;
+    size: Scale<any, ExpanseContinuous>;
+    width: Scale<any, ExpanseContinuous>;
+    height: Scale<any, ExpanseContinuous>;
+  };
 
   export function of(options?: {
     type?: Type;
@@ -183,9 +184,15 @@ export namespace Plot {
 
   export function addGeom(plot: Plot, geom: Geom) {
     geom.scales = plot.scales;
-    plot.queryables.push(geom);
-    plot.selectables.push(geom);
     plot.renderables.push(geom);
+    plot.selectables.push(geom);
+    plot.queryables.push(geom);
+  }
+
+  export function deleteGeom(plot: Plot, geom: Geom) {
+    remove(plot.renderables, geom);
+    remove(plot.selectables, geom);
+    remove(plot.queryables, geom);
   }
 
   export function checkSelection(plot: Plot) {
@@ -435,16 +442,23 @@ function setupFrames(plot: Plot, options?: {}) {
     textAlign: `center`,
   });
 
-  frames.under = Frame.of(
-    <canvas
-      class={def + ` z-1 border border-b-black border-l-black bg-white`}
-    ></canvas>,
-  );
+  frames.under = Frame.of(<canvas class={def + ` z-1 bg-white`}></canvas>);
 
   frames.under.canvas.style.width = `calc(100% - ${left}px - ${right}px)`;
   frames.under.canvas.style.height = `calc(100% - ${bottom}px - ${top}px)`;
   frames.under.canvas.style.top = top + `px`;
   frames.under.canvas.style.right = right + `px`;
+
+  frames.over = Frame.of(
+    <canvas
+      class={def + `relative z-10 border border-b-black border-l-black`}
+    ></canvas>,
+  );
+
+  frames.over.canvas.style.width = `calc(100% - ${left}px - ${right}px)`;
+  frames.over.canvas.style.height = `calc(100% - ${bottom}px - ${top}px)`;
+  frames.over.canvas.style.top = top + `px`;
+  frames.over.canvas.style.right = right + `px`;
 
   frames.user = Frame.of(<canvas class={def + ` z-10`}></canvas>);
   frames.user.margins = margins;
@@ -550,6 +564,8 @@ function setupEvents(plot: Plot, options?: {}) {
 
     frames.under.canvas.style.width = `calc(100% - ${left}px - ${margins[3]}px)`;
     frames.under.canvas.style.height = `calc(100% - ${bottom}px - ${margins[2]}px)`;
+    frames.over.canvas.style.width = `calc(100% - ${left}px - ${margins[3]}px)`;
+    frames.over.canvas.style.height = `calc(100% - ${bottom}px - ${margins[2]}px)`;
 
     for (const frame of Object.values(frames)) Frame.clip(frame);
 

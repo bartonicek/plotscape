@@ -5,6 +5,7 @@ import {
   isArray,
   last,
   makeGetter,
+  seq,
   subset,
 } from "../utils/funs";
 import { Getter } from "../utils/Getter";
@@ -80,6 +81,17 @@ export namespace Factor {
     return of(type, cardinality, indices, factorData);
   }
 
+  export function mono(n: number) {
+    const cardinality = 1;
+    const indices = Array(n).fill(0);
+    const positions = () => indices;
+
+    const type = Type.Constant;
+    const data = { [POSITIONS]: positions };
+
+    return of(type, cardinality, indices, data);
+  }
+
   /**
    * Creates a factor by coercing values into strings & treating equivalent
    * strings as the same level.
@@ -132,6 +144,7 @@ export namespace Factor {
   ): Factor<{
     binMin: number[];
     binMax: number[];
+    breaks: number[];
     [POSITIONS]: number[][];
   }> {
     function compute() {
@@ -169,9 +182,15 @@ export namespace Factor {
       Meta.setMinMax(binMax, min, max);
       Meta.setName(binMin, `min of ${Meta.getName(array)}`);
       Meta.setName(binMax, `max of ${Meta.getName(array)}`);
+      Meta.setName(breaks, Meta.getName(array));
 
       const type = Type.Surjection;
-      const data = { binMin, binMax, [POSITIONS]: Object.values(positions) };
+      const data = {
+        binMin,
+        binMax,
+        breaks,
+        [POSITIONS]: Object.values(positions),
+      };
 
       return of(type, sorted.length, indices, data);
     }
@@ -215,9 +234,21 @@ export namespace Factor {
         const cardinality = factor2.indices.length;
         const indices = [] as number[];
 
-        return of(type, cardinality, indices, data) as Factor<
-          TaggedUnion<T, U>
-        >;
+        const result = of(type, cardinality, indices, data);
+        result.parent = factor1;
+        result.parentIndices = seq(0, indices.length);
+
+        return result as Factor<TaggedUnion<T, U>>;
+      }
+
+      if (factor1.type === Type.Constant) {
+        const { type, data, cardinality, indices } = factor2;
+
+        const result = of(type, cardinality, indices, data);
+        result.parent = factor1;
+        result.parentIndices = Array(indices.length).fill(0);
+
+        return result as Factor<TaggedUnion<T, U>>;
       }
 
       const k = Math.max(factor1.cardinality, factor2.cardinality) + 1;

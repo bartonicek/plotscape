@@ -1,9 +1,11 @@
+import { Getter } from "../utils/Getter";
 import { Reactive } from "../utils/Reactive";
 import { FACTOR, PARENTVALUES, REDUCER } from "../utils/symbols";
 import { Factor } from "./Factor";
 import { Reducer } from "./Reducer";
 
 export interface Reduced<T = any> extends Array<T>, Reactive {
+  parent?: Array<T>;
   [FACTOR]: Factor;
   [REDUCER]: Reducer<any, T>;
   [PARENTVALUES]: Array<T>;
@@ -20,15 +22,20 @@ export namespace Reduced {
     result[FACTOR] = factor;
     result[REDUCER] = reducer;
     if (parentValues) result[PARENTVALUES] = parentValues;
+
     return result;
   }
 
   export const listen = Reactive.makeListenFn<Reduced, `changed`>();
   export const dispatch = Reactive.makeDispatchFn<Reduced, `changed`>();
 
+  export function parent<T>(reduced: Reduced<T>) {
+    const [factor, reducer, parentValues] = getPointers(reduced);
+    return of(parentValues, factor, reducer);
+  }
+
   export function stack<T>(reduced: Reduced<T>): Reduced<T> {
     const [factor, reducer, parentValues] = getPointers(reduced);
-
     const { parentIndices } = factor;
 
     if (!parentIndices) {
@@ -36,18 +43,18 @@ export namespace Reduced {
     }
 
     const { reducefn, initialfn } = reducer;
-    const stacked = [] as T[];
-    const n = reduced.length;
-    const computed = Array.from(Array<T>(n), () => initialfn()) as Reduced<T>;
+    const [n, stacked] = [reduced.length, [] as T[]];
+    const array = Array.from(Array<T>(n), () => initialfn()) as Reduced<T>;
+    const parentIndex = Getter.of(parentIndices);
 
     for (let i = 0; i < reduced.length; i++) {
-      const index = parentIndices[i];
+      const index = parentIndex(i);
       if (stacked[index] === undefined) stacked[index] = initialfn();
       stacked[index] = reducefn(stacked[index], reduced[i]);
-      computed[i] = stacked[index];
+      array[i] = stacked[index];
     }
 
-    return Reduced.of(computed, factor, reducer, parentValues);
+    return Reduced.of(array, factor, reducer, parentValues);
   }
 
   export function normalize<T>(
@@ -60,12 +67,22 @@ export namespace Reduced {
       throw new Error(`Cannot normalize because of missing parent values`);
     }
 
-    const computed = [...reduced] as Reduced<T>;
+    const array = [...reduced] as Reduced<T>;
     for (let i = 0; i < reduced.length; i++) {
-      computed[i] = normalizefn(computed[i], parentValues[i]);
+      array[i] = normalizefn(array[i], parentValues[i]);
     }
 
-    return Reduced.of(computed, factor, reducer, parentValues);
+    return Reduced.of(array, factor, reducer, parentValues);
+  }
+
+  export function shiftLeft<T>(reduced: Reduced<T>) {
+    const [factor, reducer, parentValues] = getPointers(reduced);
+    const array = [] as T[];
+
+    array.push(reducer.initialfn());
+    for (let i = 0; i < reduced.length - 1; i++) array.push(reduced[i]);
+
+    return Reduced.of(array, factor, reducer, parentValues);
   }
 
   function getPointers(reduced: Reduced) {

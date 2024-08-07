@@ -9,11 +9,14 @@ export interface ExpansePoint extends Expanse<string> {
   type: Expanse.Type.Point;
 
   labels: string[];
+  sorted: boolean;
+
   defaults: {
+    labels: string[];
+    sorted: boolean;
     zero: number;
     one: number;
     direction: Direction;
-    labels: string[];
   };
 }
 
@@ -27,9 +30,10 @@ export namespace ExpansePoint {
 
     const base = Expanse.base(options);
     const { zero, one, direction } = base;
-    const defaults = { labels: [...labels], zero, one, direction };
+    const sorted = false;
+    const defaults = { labels: [...labels], sorted, zero, one, direction };
 
-    return { value, type, labels, ...base, defaults };
+    return { value, type, labels, sorted, ...base, defaults };
   }
 
   export function normalize(expanse: ExpansePoint, value: string) {
@@ -50,7 +54,7 @@ export namespace ExpansePoint {
   }
 
   export function train(
-    expanse: Omit<ExpansePoint, `type`>,
+    expanse: ExpansePoint,
     array: string[],
     options?: { default?: boolean },
   ) {
@@ -59,17 +63,24 @@ export namespace ExpansePoint {
     if (options?.default) copyValues(labels, expanse.defaults.labels);
   }
 
-  export function reorder(
-    expanse: Omit<ExpansePoint, `type`>,
-    indices: number[],
-  ) {
+  export function reorder(expanse: ExpansePoint, indices?: number[]) {
     const { labels } = expanse;
+
+    if (!indices) {
+      labels.sort(compareAlphaNumeric);
+      expanse.sorted = false;
+      Expanse.dispatch(expanse, `changed`);
+      return;
+    }
+
     const temp = Array(labels.length);
     for (let i = 0; i < indices.length; i++) temp[i] = labels[indices[i]];
-    for (let i = 0; i < temp.length; i++) expanse.labels[i] = temp[i];
+    for (let i = 0; i < temp.length; i++) labels[i] = temp[i];
+    expanse.sorted = true;
+    Expanse.dispatch(expanse, `changed`);
   }
 
-  export function breaks(expanse: Omit<ExpansePoint, `type`>) {
+  export function breaks(expanse: ExpansePoint) {
     return expanse.labels;
   }
 }

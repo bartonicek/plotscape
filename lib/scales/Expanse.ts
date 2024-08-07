@@ -78,12 +78,6 @@ export namespace Expanse {
   export const compound = ExpanseCompound.of;
   export const split = ExpanseSplit.of;
 
-  export function infer(values: any[], options = { train: true }) {
-    const expanse = isNumber(values[0]) ? Expanse.continuous() : Expanse.band();
-    if (options.train) Expanse.train(expanse, values);
-    return expanse;
-  }
-
   export function base(options?: {
     zero?: number;
     one?: number;
@@ -108,20 +102,26 @@ export namespace Expanse {
 
     copyProps(temp, expanse);
     if (options?.default) copyProps(temp, expanse.defaults);
+
     if (!options?.silent) Expanse.dispatch(expanse, `changed`);
   }
 
-  export function freeze<T extends Expanse>(
-    expanse: T,
-    properties: (keyof T)[],
-  ) {
-    for (const prop of properties as string[]) {
+  export function infer(values: any[], options = { train: true }) {
+    const expanse = isNumber(values[0])
+      ? Expanse.continuous()
+      : Expanse.point();
+    if (options.train) Expanse.train(expanse, values);
+    return expanse;
+  }
+
+  export function freeze<T extends Expanse>(expanse: T, props: (keyof T)[]) {
+    for (const prop of props as string[]) {
       if (!expanse.frozen.includes(prop)) expanse.frozen.push(prop);
     }
   }
 
   export function linkTo<T extends Expanse>(expanse: T, other: T) {
-    expanse.linked.push(other);
+    if (!expanse.linked.includes(other)) expanse.linked.push(other);
   }
 
   export function restoreDefaults<T extends Expanse>(expanse: T) {

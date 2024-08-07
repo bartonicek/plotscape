@@ -1,4 +1,10 @@
-import { applyDirection } from "../utils/funs";
+import {
+  applyDirection,
+  compareAlphaNumeric,
+  copyValues,
+  cumsum,
+  last,
+} from "../utils/funs";
 import { Direction } from "../utils/types";
 import { Expanse } from "./Expanse";
 import { ExpansePoint } from "./ExpansePoint";
@@ -11,7 +17,8 @@ export interface ExpanseBand extends Expanse<string> {
   type: Expanse.Type.Band;
 
   labels: string[];
-  weights?: number[];
+  weights: number[];
+  cumulativeWeights: number[];
 }
 
 export namespace ExpanseBand {
@@ -29,26 +36,57 @@ export namespace ExpanseBand {
     const base = Expanse.base(options);
     const { zero, one, direction } = base;
     const weights = options?.weights ?? Array(labels.length).fill(1);
+    const cumulativeWeights = cumsum(weights);
 
     const defaults = {
       labels: [...labels],
       weights: [...weights],
+      cumulativeWeights,
       zero,
       one,
       direction,
     };
 
-    return { value, type, labels, weights, ...base, defaults };
+    return {
+      value,
+      type,
+      labels,
+      weights,
+      cumulativeWeights,
+      ...base,
+      defaults,
+    };
+  }
+
+  function getWeights(expanse: ExpanseBand, index: number) {
+    const { cumulativeWeights: cWeights } = expanse;
+    return [cWeights[index - 1] ?? 0, cWeights[index], last(cWeights)];
+  }
+
+  export function setWeights(expanse: ExpanseBand, weights?: number[]) {
+    weights = weights ?? Array(expanse.labels.length).fill(1);
+
+    if (weights.length != expanse.labels.length) {
+      throw new Error(
+        `The length of the weights must match the length of labels`,
+      );
+    }
+
+    const cumulativeWeights = cumsum(weights);
+    copyValues(weights, expanse.weights);
+    copyValues(cumulativeWeights, expanse.cumulativeWeights);
+    Expanse.dispatch(expanse, `changed`);
   }
 
   export function normalize(expanse: ExpanseBand, value: string) {
     const { labels, zero, one, direction } = expanse;
 
     const index = labels.indexOf(value);
-    if (index === -1) return index;
+    if (index === -1) throw new Error(`Label ${value} not found in: ${labels}`);
 
-    const midpoint = (index + (index + 1)) / 2;
-    const pct = zero + (midpoint / labels.length) * (one - zero);
+    const [lower, upper, max] = getWeights(expanse, index);
+    const midpoint = (lower + upper) / 2 / max;
+    const pct = zero + midpoint * (one - zero);
 
     return applyDirection(pct, direction);
   }
@@ -63,7 +101,23 @@ export namespace ExpanseBand {
     return labels[index];
   }
 
-  export const train = ExpansePoint.train;
+  export function train(
+    expanse: ExpansePoint,
+    array: string[],
+    options?: { default?: boolean },
+  ) {
+    const labels = Array.from(new Set(array)).sort(compareAlphaNumeric);
+    const weights = Array(labels.length).fill(1);
+    const cumulativeWeights = cumsum(weights);
+
+    const data = { labels, weights, cumulativeWeights };
+
+    for (const [k, v] of Object.entries(data)) {
+      copyValues(v, (expanse as any)[k]);
+      if (options?.default) copyValues(v, (expanse.defaults as any)[k]);
+    }
+  }
+
   export const breaks = ExpansePoint.breaks;
   export const reorder = ExpansePoint.reorder;
 }

@@ -1,16 +1,34 @@
 import { Rectangles } from "../geoms/Rectangles";
-import { Expanse } from "../main";
+import { Expanse, Scale } from "../main";
 import { Plot } from "../plot/Plot";
-import { Scale } from "../scales/Scale";
 import { Scene } from "../scene/Scene";
 import { Factor } from "../transformation/Factor";
 import { Reduced } from "../transformation/Reduced";
 import { Reducer } from "../transformation/Reducer";
 import { Summaries } from "../transformation/Summaries";
-import { minmax, zero } from "../utils/funs";
+import { minmax, one, zero } from "../utils/funs";
 import { Meta } from "../utils/Meta";
 import { Reactive } from "../utils/Reactive";
-import { Columns } from "../utils/types";
+import { Columns, Dataframe } from "../utils/types";
+
+enum Representation {
+  Absolute,
+  Proportion,
+}
+
+type Summary = {
+  binMin: number[];
+  binMax: number[];
+  breaks: number[];
+  stat: Reduced<number>;
+};
+
+interface Histogram extends Plot {
+  representation: Representation;
+  summaries: readonly [{}, Summary, Summary];
+  coordinates: Dataframe[];
+  rectangles?: Rectangles;
+}
 
 export function Histogram<T extends Columns>(
   scene: Scene<T>,
@@ -21,7 +39,6 @@ export function Histogram<T extends Columns>(
   },
 ) {
   const { data, marker } = scene;
-  const plot = Plot.of({ type: Plot.Type.Histo });
 
   let [binned, vals] = selectfn(data);
   const reducer = vals && options?.reducer ? options.reducer : Reducer.sum;
@@ -32,37 +49,48 @@ export function Histogram<T extends Columns>(
 
   const [min, max] = minmax(binned);
   const range = max - min;
+
   const pars = Reactive.of({ anchor: min, width: range / 15 });
-  Plot.listen(plot, `=`, () => Reactive.set(pars, (p) => (p.width *= 10 / 9)));
-  Plot.listen(plot, `-`, () => Reactive.set(pars, (p) => (p.width *= 9 / 10)));
-  Plot.listen(plot, `'`, () =>
-    Reactive.set(pars, (p) => (p.anchor += range / 10)),
-  );
-  Plot.listen(plot, `;`, () =>
-    Reactive.set(pars, (p) => (p.anchor -= range / 10)),
-  );
 
-  Plot.listen(plot, `r`, () => {
-    Reactive.set(pars, (p) => {
-      p.anchor = min;
-      p.width = range / 15;
-    });
-    Plot.dispatch(plot, `render`);
-  });
-
-  const factor1 = Factor.bin(binned, pars);
+  const factor0 = Factor.mono(binned.length);
+  const factor1 = Factor.product(factor0, Factor.bin(binned, pars));
   const factor2 = Factor.product(factor1, marker.factor);
-  const factors = [factor1, factor2] as const;
+  const factors = [factor0, factor1, factor2] as const;
 
   const qs = Summaries.formatQueries(options?.queries ?? [], data);
 
   const summaries = Summaries.of({ stat: [values, reducer], ...qs }, factors);
+  const representation = Representation.Absolute;
+  const opts = { type: Plot.Type.Histo } as const;
+  const coordinates = [] as Dataframe[];
+  const plot = { representation, ...Plot.of(opts), summaries, coordinates };
+
+  histogram(plot);
+
+  Plot.listen(plot, `=`, () => Reactive.set(pars, (p) => (p.width *= 10 / 9)));
+  Plot.listen(plot, `-`, () => Reactive.set(pars, (p) => (p.width *= 9 / 10)));
+
+  const inc = range / 10;
+  Plot.listen(plot, `'`, () => Reactive.set(pars, (p) => (p.anchor += inc)));
+  Plot.listen(plot, `;`, () => Reactive.set(pars, (p) => (p.anchor -= inc)));
+
+  Plot.listen(plot, `r`, () => {
+    Reactive.set(pars, (p) => ((p.anchor = min), (p.width = range / 15)));
+  });
+
+  return plot;
+}
+
+function histogram(plot: Histogram) {
+  const { summaries } = plot;
   const coordinates = Summaries.translate(summaries, [
+    (d) => d,
     (d) => ({
       x0: d.binMin,
       y0: zero,
       x1: d.binMax,
       y1: d.stat,
+      x: d.breaks,
     }),
     (d) => ({
       x0: d.binMin,
@@ -73,7 +101,7 @@ export function Histogram<T extends Columns>(
   ]);
 
   const { scales } = plot;
-  const [flat, grouped] = coordinates;
+  const [, flat, grouped] = coordinates;
 
   Scale.train(scales.x, flat.x1, { default: true, name: false });
   Scale.train(scales.y, flat.y1, { default: true, ratio: true });
@@ -85,12 +113,52 @@ export function Histogram<T extends Columns>(
 
   Expanse.freeze(scales.y.domain, [`zero`]);
 
-  Meta.setName(scales.x, Meta.getName(binned));
-  Meta.setName(scales.y, Meta.getName(values));
+  Meta.setName(scales.x, Meta.getName(flat.x));
+  Meta.setName(scales.y, Meta.getName(flat.y1));
 
   const rectangles = Rectangles.of({ flat, grouped });
   Plot.addGeom(plot, rectangles);
+}
 
-  const histogram = { ...plot, summaries, coordinates };
-  return histogram;
+function spinogram(plot: Histogram) {
+  const { summaries } = plot;
+
+  const coordinates = Summaries.translate(summaries, [
+    (d) => d,
+    (d) => ({
+      x0: Reduced.shiftLeft(Reduced.stack(d.stat)),
+      y0: zero,
+      x1: Reduced.stack(d.stat),
+      y1: one,
+    }),
+    (d) => ({
+      x0: Reduced.shiftLeft(Reduced.stack(Reduced.parent(d.stat))),
+      y0: zero,
+      x1: Reduced.stack(d.stat),
+      y1: Reduced.normalize(
+        Reduced.stack(Reduced.parent(d.stat)),
+        (x, y) => x / y,
+      ),
+    }),
+  ]);
+
+  console.log(coordinates[2]);
+
+  const { scales } = plot;
+  const [, flat, grouped] = coordinates;
+
+  Scale.train(scales.x, flat.x1, { default: true, name: false });
+  Scale.train(scales.y, [0, 1], { default: true, ratio: true });
+
+  Reactive.listen(flat as any, `changed`, () => {
+    Scale.train(scales.x, flat.x1, { default: true, name: false });
+  });
+
+  Expanse.freeze(scales.y.domain, [`zero`]);
+
+  Meta.setName(scales.x, `cumulative count`);
+  Meta.setName(scales.y, `proportion`);
+
+  const rectangles = Rectangles.of({ flat, grouped });
+  Plot.addGeom(plot, rectangles);
 }
