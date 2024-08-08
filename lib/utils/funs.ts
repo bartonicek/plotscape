@@ -1,6 +1,8 @@
 import { defaultParameters } from "./defaultParameters";
+import { Getter } from "./Getter";
 import { Meta } from "./Meta";
 import {
+  Dataframe,
   Entries,
   Flat,
   Indexable,
@@ -317,16 +319,17 @@ export function remove<T>(array: T[], value: T) {
 
 export function orderIndices(array: number[]) {
   const sorted = [...array].sort(diff);
-  const result = Array<number>(array.length);
+
+  const result = {} as Record<number, number>;
   const seen = {} as Record<number, number>;
 
   for (let i = 0; i < sorted.length; i++) {
-    const value = sorted[i];
+    const value = array[i];
     seen[value] = seen[value] + 1 || 0;
-    result[i] = array.indexOf(value) + seen[value];
+    result[i] = sorted.indexOf(value) + seen[value];
   }
 
-  return result;
+  return Object.values(result);
 }
 
 /**
@@ -838,4 +841,12 @@ export function applyWith<T>(...values: T[]) {
   return function <U>(fn: (...values: T[]) => U) {
     return fn(...values);
   };
+}
+export function row<T extends Dataframe>(data: T, index: number) {
+  const result = {} as any;
+
+  for (const [k, v] of Object.entries(data)) {
+    result[k] = Getter.of(v)(index);
+  }
+  return result;
 }

@@ -1,5 +1,5 @@
 import { Bars } from "../geoms/Bars";
-import { ExpanseBand, ExpansePoint } from "../main";
+import { ExpanseBand } from "../main";
 import { Plot } from "../plot/Plot";
 import { Expanse } from "../scales/Expanse";
 import { Scale } from "../scales/Scale";
@@ -74,11 +74,11 @@ export function Barplot<T extends Columns>(
   return plot;
 }
 
-function sortBars(domain: ExpansePoint, values: number[]) {
+function sortAxis(domain: ExpanseBand, values: number[]) {
   if (!domain.sorted) {
     const indices = orderIndices(values);
-    ExpansePoint.reorder(domain, indices);
-  } else ExpansePoint.reorder(domain);
+    ExpanseBand.reorder(domain, indices);
+  } else ExpanseBand.reorder(domain);
 }
 
 function barplot(plot: Barplot) {
@@ -118,7 +118,7 @@ function barplot(plot: Barplot) {
   Meta.setName(scales.y, Meta.getName(flat.height));
 
   Reactive.removeListeners(plot, `o`);
-  Plot.listen(plot, `o`, () => sortBars(scales.x.domain, flat.height));
+  Plot.listen(plot, `o`, () => sortAxis(scales.x.domain, flat.height));
 
   const bars = Bars.of({ flat, grouped });
   if (plot.bars) Plot.deleteGeom(plot, plot.bars);
@@ -171,7 +171,7 @@ function spineplot(plot: Barplot) {
   Meta.setName(scales.y, `proportion`);
 
   Reactive.removeListeners(plot, `o`);
-  Plot.listen(plot, `o`, () => sortBars(scales.x.domain, flat.width));
+  Plot.listen(plot, `o`, () => sortAxis(scales.x.domain, flat.width));
 
   const bars = Bars.of({ flat, grouped });
   if (plot.bars) Plot.deleteGeom(plot, plot.bars);

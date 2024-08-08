@@ -12,7 +12,7 @@ async function mtcarsScene() {
 
   const plot1 = Plot.scatter(scene, (d) => [d.wt, d.mpg]);
   const plot2 = Plot.histo(scene, (d) => [d.mpg]);
-  const plot3 = Plot.bar(scene, (d) => [d.cyl, d.mpg], {
+  const plot3 = Plot.bar(scene, (d) => [d.carb, d.mpg], {
     reducer: Reducer.sum,
   });
   const plot4 = Plot.fluct(scene, (d) => [d.cyl, d.am]);
@@ -28,6 +28,7 @@ async function mtcarsScene() {
 async function imdbScene() {
   const app = document.querySelector<HTMLDivElement>("#app")!;
   const imdb = await fetchJSON(`../datasets/imdb1000.json`);
+  imdb.director = imdb.director.map(cleanString);
 
   const scene = Scene.of(imdb);
   Scene.append(app, scene);
@@ -43,6 +44,8 @@ async function imdbScene() {
   Scene.addPlot(scene, plot3);
   Scene.addPlot(scene, plot4);
   Scene.addPlot(scene, plot5);
+
+  Scene.setDimensions(scene, 3, 2);
 }
 
 async function diamondsScene() {
@@ -61,14 +64,14 @@ async function diamondsScene() {
   Scene.addPlot(scene, plot3);
 }
 
-diamondsScene();
+imdbScene();
 
-// const f0 = Factor.mono(10);
-// const f1 = Factor.from(Array.from(Array(10), () => Math.random() < 0.5));
-// const f2 = Factor.from([`a`, `a`, `a`, `b`, `b`, `c`, `c`, `c`, `a`, `b`]);
-
-// const factor0 = f0;
-// const factor1 = Factor.product(factor0, f1);
-// const factor2 = Factor.product(factor1, f2);
-
-// console.log([sum, prod].map(applyWith(2, 3)));
+function cleanString(input) {
+  var output = "";
+  for (var i = 0; i < input.length; i++) {
+    if (input.charCodeAt(i) <= 127) {
+      output += input.charAt(i);
+    }
+  }
+  return output;
+}

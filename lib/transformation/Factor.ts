@@ -1,5 +1,6 @@
 import {
   binBreaks,
+  compareAlphaNumeric,
   copyValues,
   diff,
   isArray,
@@ -104,7 +105,7 @@ export namespace Factor {
     labels?: string[],
   ): Factor<{ label: string[]; [POSITIONS]: number[][] }> {
     const arr = array.map((x) => x.toString());
-    labels = labels ?? Array.from(new Set(arr)).sort();
+    labels = labels ?? Array.from(new Set(arr)).sort(compareAlphaNumeric);
 
     if (Meta.hasName(array)) Meta.copy(array, labels);
 

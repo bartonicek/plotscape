@@ -74,7 +74,7 @@ export namespace ExpansePoint {
     }
 
     const temp = Array(labels.length);
-    for (let i = 0; i < indices.length; i++) temp[i] = labels[indices[i]];
+    for (let i = 0; i < indices.length; i++) temp[indices[i]] = labels[i];
     for (let i = 0; i < temp.length; i++) labels[i] = temp[i];
     expanse.sorted = true;
     Expanse.dispatch(expanse, `changed`);

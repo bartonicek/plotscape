@@ -18,6 +18,8 @@ export interface ExpanseBand extends Expanse<string> {
 
   labels: string[];
   weights: number[];
+  sorted: boolean;
+
   cumulativeWeights: number[];
 }
 
@@ -37,10 +39,12 @@ export namespace ExpanseBand {
     const { zero, one, direction } = base;
     const weights = options?.weights ?? Array(labels.length).fill(1);
     const cumulativeWeights = cumsum(weights);
+    const sorted = false;
 
     const defaults = {
       labels: [...labels],
       weights: [...weights],
+      sorted,
       cumulativeWeights,
       zero,
       one,
@@ -52,6 +56,7 @@ export namespace ExpanseBand {
       type,
       labels,
       weights,
+      sorted,
       cumulativeWeights,
       ...base,
       defaults,
@@ -118,6 +123,22 @@ export namespace ExpanseBand {
     }
   }
 
+  export function reorder(expanse: ExpanseBand, indices?: number[]) {
+    const { labels } = expanse;
+
+    if (!indices) {
+      labels.sort(compareAlphaNumeric);
+      expanse.sorted = false;
+      Expanse.dispatch(expanse, `changed`);
+      return;
+    }
+
+    const temp = Array(labels.length);
+    for (let i = 0; i < indices.length; i++) temp[indices[i]] = labels[i];
+    for (let i = 0; i < temp.length; i++) labels[i] = temp[i];
+    expanse.sorted = true;
+    Expanse.dispatch(expanse, `changed`);
+  }
+
   export const breaks = ExpansePoint.breaks;
-  export const reorder = ExpansePoint.reorder;
 }
