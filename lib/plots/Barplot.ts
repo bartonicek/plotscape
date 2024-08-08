@@ -52,7 +52,7 @@ export function Barplot<T extends Columns>(
   const qs = Summaries.formatQueries(options?.queries ?? [], data);
 
   const summaries = Summaries.of({ stat: [values, reducer], ...qs }, factors);
-  const coordinates = [] as Dataframe[];
+  const coordinates = [] as (Dataframe & Reactive)[];
 
   const representation = Representation.Absolute;
   const opts = { type: Plot.Type.Bar, scales: { x: Expanse.Band } } as const;

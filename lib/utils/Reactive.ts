@@ -1,6 +1,6 @@
 import { throttle } from "./funs";
 
-const EVENTTARGET = Symbol(`eventTarget`);
+export const EVENTTARGET = Symbol(`eventTarget`);
 const LISTENERS = Symbol(`listeners`);
 
 declare global {

@@ -81,7 +81,7 @@ export namespace Summaries {
     const result = [] as any[];
 
     for (let i = 0; i < data.length; i++) {
-      const translated = compute(data[i]);
+      const translated = Reactive.of(compute(data[i]));
       result.push(translated);
 
       Reactive.listen(data[i] as any, `changed`, () => {
@@ -92,6 +92,8 @@ export namespace Summaries {
             copyValues(newTranslated[k], translated[k]);
           }
         }
+
+        Reactive.dispatch(translated, `changed`);
       });
 
       function compute(data: Dataframe) {

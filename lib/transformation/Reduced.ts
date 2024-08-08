@@ -6,11 +6,15 @@ import { Factor } from "./Factor";
 import { Reducer } from "./Reducer";
 
 const PARENT = Symbol(`parent`);
+const VALUES = Symbol(`values`);
+const INDICES = Symbol(`indices`);
 
 export interface Reduced<T = any> extends Array<T>, Reactive {
-  [PARENT]?: Reduced<T>;
   [FACTOR]: Factor;
   [REDUCER]: Reducer<any, T>;
+  [VALUES]: T[];
+  [PARENT]?: Reduced<T>;
+  [INDICES]?: number[];
 }
 
 export namespace Reduced {
@@ -21,6 +25,7 @@ export namespace Reduced {
     parent?: Reduced<T>,
   ) {
     const result = reduced as Reduced<T>;
+    result[VALUES] = reduced;
     result[FACTOR] = factor;
     result[REDUCER] = reducer;
     if (parent) setParent(result, parent);
@@ -36,64 +41,84 @@ export namespace Reduced {
   }
 
   export function parent<T>(reduced: Reduced<T>) {
-    const [factor, reducer, parent] = getMetadata(reduced);
+    const [, factor, reducer, parent] = getMetadata(reduced);
     if (!parent) throw new Error(`Parent missing`);
 
     const parentIndices = Factor.parentIndices(getFactor(parent), factor);
-    const parentValues = subset(parent, parentIndices);
+    const array = subset(parent, parentIndices);
 
-    return of(parentValues, factor, reducer, getParent(parent));
+    const result = of(array, getFactor(parent), reducer, getParent(parent));
+    setValues(result, parent);
+    setIndices(result, parentIndices);
+
+    return result;
   }
 
   export function stack<T>(reduced: Reduced<T>): Reduced<T> {
-    const [factor, reducer, parent] = getMetadata(reduced);
+    const [values, factor, reducer, parent, indices] = getMetadata(reduced);
 
     if (!parent) throw new Error(`Cannot stack a without a parent`);
 
     const parentIndices = Factor.parentIndices(getFactor(parent), factor);
 
     const { reducefn, initialfn } = reducer;
-    const [n, stacked] = [reduced.length, [] as T[]];
-    const array = Array.from(Array<T>(n), () => initialfn()) as Reduced<T>;
+    const [n, stack] = [values.length, [] as T[]];
+    const stacked = Array.from(Array<T>(n), () => initialfn());
     const parentIndex = Getter.of(parentIndices);
 
-    for (let i = 0; i < reduced.length; i++) {
+    for (let i = 0; i < values.length; i++) {
       const index = parentIndex(i);
-      if (stacked[index] === undefined) stacked[index] = initialfn();
-      stacked[index] = reducefn(stacked[index], reduced[i]);
-      array[i] = stacked[index];
+      if (stack[index] === undefined) stack[index] = initialfn();
+      stack[index] = reducefn(stack[index], values[i]);
+      stacked[i] = stack[index];
     }
 
-    return Reduced.of(array, factor, reducer, parent);
+    const array = indices ? subset(stacked, indices) : stacked;
+
+    const result = Reduced.of(array, factor, reducer, parent);
+    setValues(result, stacked);
+    if (indices) setIndices(result, indices);
+
+    return result;
   }
 
   export function normalize<T>(
     reduced: Reduced<T>,
     normalizefn: (x: T, y: T) => T,
   ): Reduced<T> {
-    const [factor, reducer, parent] = getMetadata(reduced);
+    const [values, factor, reducer, parent, indices] = getMetadata(reduced);
 
     if (!parent) throw new Error(`Cannot normalize a without a parent`);
 
     const parentIndices = Factor.parentIndices(getFactor(parent), factor);
     const parentValues = subset(parent, parentIndices);
 
-    const array = [...reduced] as Reduced<T>;
+    const normalized = [...values];
     for (let i = 0; i < reduced.length; i++) {
-      array[i] = normalizefn(array[i], parentValues[i]);
+      normalized[i] = normalizefn(normalized[i], parentValues[i]);
     }
 
-    return Reduced.of(array, factor, reducer, parent);
+    const array = indices ? subset(normalized, indices) : normalized;
+    const result = Reduced.of(array, factor, reducer, parent);
+    setValues(result, normalized);
+    if (indices) setIndices(result, indices);
+
+    return result;
   }
 
   export function shiftLeft<T>(reduced: Reduced<T>) {
-    const [factor, reducer, parent] = getMetadata(reduced);
-    const array = [] as T[];
+    const [values, factor, reducer, parent, indices] = getMetadata(reduced);
+    const shifted = [] as T[];
 
-    array.push(reducer.initialfn());
-    for (let i = 0; i < reduced.length - 1; i++) array.push(reduced[i]);
+    shifted.push(reducer.initialfn());
+    for (let i = 0; i < values.length - 1; i++) shifted.push(values[i]);
 
-    return Reduced.of(array, factor, reducer, parent);
+    const array = indices ? subset(shifted, indices) : shifted;
+    const result = Reduced.of(array, factor, reducer, parent);
+    setValues(result, shifted);
+    if (indices) setIndices(result, indices);
+
+    return result;
   }
 
   function getFactor(reduced: Reduced) {
@@ -108,7 +133,21 @@ export namespace Reduced {
     return reduced[PARENT];
   }
 
+  function setValues<T>(reduced: Reduced<T>, values: T[]) {
+    reduced[VALUES] = values;
+  }
+
+  function setIndices(reduced: Reduced, indices: number[]) {
+    reduced[INDICES] = indices;
+  }
+
   function getMetadata(reduced: Reduced) {
-    return [reduced[FACTOR], reduced[REDUCER], reduced[PARENT]] as const;
+    return [
+      reduced[VALUES],
+      reduced[FACTOR],
+      reduced[REDUCER],
+      reduced[PARENT],
+      reduced[INDICES],
+    ] as const;
   }
 }

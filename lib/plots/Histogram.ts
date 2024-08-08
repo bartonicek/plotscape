@@ -25,7 +25,7 @@ type Summary = {
 
 interface Histogram extends Plot {
   representation: Representation;
-  summaries: readonly [{}, Summary, Summary];
+  summaries: readonly [Dataframe, Summary, Summary];
   coordinates: Dataframe[];
   rectangles?: Rectangles;
 }
@@ -62,10 +62,19 @@ export function Histogram<T extends Columns>(
   const summaries = Summaries.of({ stat: [values, reducer], ...qs }, factors);
   const representation = Representation.Absolute;
   const opts = { type: Plot.Type.Histo } as const;
-  const coordinates = [] as Dataframe[];
+  const coordinates = [] as (Dataframe & Reactive)[];
   const plot = { representation, ...Plot.of(opts), summaries, coordinates };
 
-  histogram(plot);
+  Plot.listen(plot, `n`, () => {
+    switch (plot.representation) {
+      case Representation.Absolute:
+        spinogram(plot);
+        break;
+      case Representation.Proportion:
+        histogram(plot);
+        break;
+    }
+  });
 
   Plot.listen(plot, `=`, () => Reactive.set(pars, (p) => (p.width *= 10 / 9)));
   Plot.listen(plot, `-`, () => Reactive.set(pars, (p) => (p.width *= 9 / 10)));
@@ -78,6 +87,7 @@ export function Histogram<T extends Columns>(
     Reactive.set(pars, (p) => ((p.anchor = min), (p.width = range / 15)));
   });
 
+  histogram(plot);
   return plot;
 }
 
@@ -106,6 +116,10 @@ function histogram(plot: Histogram) {
   Scale.train(scales.x, flat.x1, { default: true, name: false });
   Scale.train(scales.y, flat.y1, { default: true, ratio: true });
 
+  for (const c of plot.coordinates) {
+    Reactive.removeListeners(c as any, `changed`);
+  }
+
   Reactive.listen(flat as any, `changed`, () => {
     Scale.train(scales.x, flat.x1, { default: true, name: false });
     Scale.train(scales.y, flat.y1, { default: true, ratio: true });
@@ -116,8 +130,16 @@ function histogram(plot: Histogram) {
   Meta.setName(scales.x, Meta.getName(flat.x));
   Meta.setName(scales.y, Meta.getName(flat.y1));
 
+  if (plot.rectangles) Plot.deleteGeom(plot, plot.rectangles);
   const rectangles = Rectangles.of({ flat, grouped });
   Plot.addGeom(plot, rectangles);
+
+  plot.representation = Representation.Absolute;
+  plot.coordinates = coordinates;
+  plot.rectangles = rectangles;
+
+  Plot.dispatch(plot, `render`);
+  Plot.dispatch(plot, `render-axes`);
 }
 
 function spinogram(plot: Histogram) {
@@ -134,24 +156,24 @@ function spinogram(plot: Histogram) {
     (d) => ({
       x0: Reduced.shiftLeft(Reduced.stack(Reduced.parent(d.stat))),
       y0: zero,
-      x1: Reduced.stack(d.stat),
-      y1: Reduced.normalize(
-        Reduced.stack(Reduced.parent(d.stat)),
-        (x, y) => x / y,
-      ),
+      x1: Reduced.stack(Reduced.parent(d.stat)),
+      y1: Reduced.normalize(Reduced.stack(d.stat), (x, y) => x / y),
     }),
   ]);
-
-  console.log(coordinates[2]);
 
   const { scales } = plot;
   const [, flat, grouped] = coordinates;
 
-  Scale.train(scales.x, flat.x1, { default: true, name: false });
+  Scale.train(scales.x, [0, ...flat.x1], { default: true, name: false });
   Scale.train(scales.y, [0, 1], { default: true, ratio: true });
 
+  for (const c of plot.coordinates) {
+    Reactive.removeListeners(c as any, `changed`);
+  }
+
   Reactive.listen(flat as any, `changed`, () => {
-    Scale.train(scales.x, flat.x1, { default: true, name: false });
+    Scale.train(scales.x, [0, ...flat.x1], { default: true, name: false });
+    Plot.dispatch(plot, `render`);
   });
 
   Expanse.freeze(scales.y.domain, [`zero`]);
@@ -159,6 +181,14 @@ function spinogram(plot: Histogram) {
   Meta.setName(scales.x, `cumulative count`);
   Meta.setName(scales.y, `proportion`);
 
+  if (plot.rectangles) Plot.deleteGeom(plot, plot.rectangles);
   const rectangles = Rectangles.of({ flat, grouped });
   Plot.addGeom(plot, rectangles);
+
+  plot.representation = Representation.Proportion;
+  plot.coordinates = coordinates;
+  plot.rectangles = rectangles;
+
+  Plot.dispatch(plot, `render`);
+  Plot.dispatch(plot, `render-axes`);
 }

@@ -17,7 +17,9 @@ export type IndexableValue<T extends Indexable> =
   T extends Indexable<infer U> ? U : never;
 
 export type Columns = Record<string | symbol, any[]>;
-export type Dataframe = Record<string | symbol, Indexable>;
+
+export type Dataframe = { [key: string | symbol]: Indexable };
+
 export type UntypedColumns<S extends string[]> = { [key in S[number]]: any[] };
 
 export enum Direction {

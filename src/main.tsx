@@ -1,5 +1,5 @@
-import { Factor, MtcarsUntyped, Plot, Reducer, Scene } from "../lib/main";
-import { applyWith, fetchJSON, prod, sum } from "../lib/utils/funs";
+import { MtcarsUntyped, Plot, Reducer, Scene } from "../lib/main";
+import { fetchJSON } from "../lib/utils/funs";
 
 async function mtcarsScene() {
   const app = document.querySelector<HTMLDivElement>("#app")!;
@@ -54,19 +54,21 @@ async function diamondsScene() {
 
   const plot1 = Plot.scatter(scene, (d) => [d.carat, d.price]);
   const plot2 = Plot.bar(scene, (d) => [d.color]);
+  const plot3 = Plot.histo(scene, (d) => [d.price]);
 
   Scene.addPlot(scene, plot1);
   Scene.addPlot(scene, plot2);
+  Scene.addPlot(scene, plot3);
 }
 
-mtcarsScene();
+diamondsScene();
 
-const f0 = Factor.mono(10);
-const f1 = Factor.from(Array.from(Array(10), () => Math.random() < 0.5));
-const f2 = Factor.from([`a`, `a`, `a`, `b`, `b`, `c`, `c`, `c`, `a`, `b`]);
+// const f0 = Factor.mono(10);
+// const f1 = Factor.from(Array.from(Array(10), () => Math.random() < 0.5));
+// const f2 = Factor.from([`a`, `a`, `a`, `b`, `b`, `c`, `c`, `c`, `a`, `b`]);
 
-const factor0 = f0;
-const factor1 = Factor.product(factor0, f1);
-const factor2 = Factor.product(factor1, f2);
+// const factor0 = f0;
+// const factor1 = Factor.product(factor0, f1);
+// const factor2 = Factor.product(factor1, f2);
 
-console.log([sum, prod].map(applyWith(2, 3)));
+// console.log([sum, prod].map(applyWith(2, 3)));
