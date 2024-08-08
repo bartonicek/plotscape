@@ -75,7 +75,7 @@ export function Barplot<T extends Columns>(
 }
 
 function sortAxis(domain: ExpanseBand, values: number[]) {
-  if (!domain.sorted) {
+  if (!domain.ordered) {
     const indices = orderIndices(values);
     ExpanseBand.reorder(domain, indices);
   } else ExpanseBand.reorder(domain);

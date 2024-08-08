@@ -317,6 +317,12 @@ export function remove<T>(array: T[], value: T) {
   array.splice(array.indexOf(value), 1);
 }
 
+export function ordered<T>(array: T[], indices: number[]) {
+  const result = Array(array.length);
+  for (let i = 0; i < indices.length; i++) result[indices[i]] = array[i];
+  return result;
+}
+
 export function orderIndices(array: number[]) {
   const sorted = [...array].sort(diff);
 
@@ -330,6 +336,12 @@ export function orderIndices(array: number[]) {
   }
 
   return Object.values(result);
+}
+
+export function orderBy(array: unknown[], indices: number[]) {
+  const temp = Array(array.length);
+  for (let i = 0; i < array.length; i++) temp[i] = array[indices[i]];
+  for (let i = 0; i < array.length; i++) array[i] = temp[i];
 }
 
 /**

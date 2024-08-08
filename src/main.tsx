@@ -1,5 +1,5 @@
 import { MtcarsUntyped, Plot, Reducer, Scene } from "../lib/main";
-import { fetchJSON } from "../lib/utils/funs";
+import { fetchJSON, orderBy } from "../lib/utils/funs";
 
 async function mtcarsScene() {
   const app = document.querySelector<HTMLDivElement>("#app")!;
@@ -73,3 +73,8 @@ mtcarsScene();
 // console.log(labels.map((x) => Expanse.normalize(exp, x)));
 // ExpanseBand.reorder(exp, [2, 1, 0]);
 // console.log(labels.map((x) => Expanse.normalize(exp, x)));
+
+const arr = [1, 2, 3, 4];
+orderBy(arr, [3, 1, 2, 0]);
+
+console.log(arr);

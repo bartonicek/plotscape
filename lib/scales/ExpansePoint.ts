@@ -8,12 +8,14 @@ import { Expanse } from "./Expanse";
 export interface ExpansePoint extends Expanse<string> {
   type: Expanse.Type.Point;
 
-  sorted: boolean;
+  ordered: boolean;
   labels: string[];
+  order: number[];
 
   defaults: {
-    sorted: boolean;
+    ordered: boolean;
     labels: string[];
+    order: number[];
     zero: number;
     one: number;
     direction: Direction;
@@ -30,15 +32,24 @@ export namespace ExpansePoint {
 
     const base = Expanse.base(options);
     const { zero, one, direction } = base;
-    const sorted = false;
-    const defaults = { labels: [...labels], sorted, zero, one, direction };
+    const order = Array.from(Array(labels.length), (_, i) => i);
+    const ordered = false;
 
-    return { value, type, labels, sorted, ...base, defaults };
+    const defaults = {
+      ordered,
+      labels: [...labels],
+      order: [...order],
+      zero,
+      one,
+      direction,
+    };
+
+    return { value, type, ordered, labels, order, ...base, defaults };
   }
 
   export function normalize(expanse: ExpansePoint, value: string) {
-    const { labels, zero, one, direction } = expanse;
-    const index = labels.indexOf(value);
+    const { labels, order, zero, one, direction } = expanse;
+    const index = order[labels.indexOf(value)];
     if (index === -1) return index;
 
     const pct = zero + (index / (labels.length - 1)) * (one - zero);
@@ -46,11 +57,11 @@ export namespace ExpansePoint {
   }
 
   export function unnormalize(expanse: ExpansePoint, value: number) {
-    const { labels, zero, one, direction } = expanse;
+    const { labels, order, zero, one, direction } = expanse;
     value = applyDirection(value, direction);
     const pct = (value - zero) / (one - zero);
     const index = Math.round(pct * (labels.length - 1));
-    return labels[index];
+    return labels[order[index]];
   }
 
   export function train(
@@ -58,25 +69,31 @@ export namespace ExpansePoint {
     array: string[],
     options?: { default?: boolean },
   ) {
+    const { order } = expanse;
     const labels = Array.from(new Set(array)).sort(compareAlphaNumeric);
+
+    if (!order.length) {
+      for (let i = 0; i < labels.length; i++) order[i] = i;
+      expanse.defaults.order = [...order];
+      expanse.ordered = false;
+    }
+
     copyValues(labels, expanse.labels);
     if (options?.default) copyValues(labels, expanse.defaults.labels);
   }
 
   export function reorder(expanse: ExpansePoint, indices?: number[]) {
-    const { labels } = expanse;
+    const { order, defaults } = expanse;
 
     if (!indices) {
-      labels.sort(compareAlphaNumeric);
-      expanse.sorted = false;
+      copyValues(defaults.order, order);
+      expanse.ordered = false;
       Expanse.dispatch(expanse, `changed`);
       return;
     }
 
-    const temp = Array(labels.length);
-    for (let i = 0; i < indices.length; i++) temp[indices[i]] = labels[i];
-    for (let i = 0; i < temp.length; i++) labels[i] = temp[i];
-    expanse.sorted = true;
+    copyValues(indices, order);
+    expanse.ordered = true;
     Expanse.dispatch(expanse, `changed`);
   }
 
