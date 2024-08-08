@@ -48,7 +48,7 @@ export function Fluctuationplot<T extends Columns>(
       x: d.label,
       y: d.label$,
       height: Reduced.stack(d.stat),
-      width: Reduced.stack(d.stat),
+      width: Reduced.parent(d.stat),
     }),
   ]);
 
@@ -61,11 +61,10 @@ export function Fluctuationplot<T extends Columns>(
   Scale.train(scales.height, flat.height, opts);
   Scale.train(scales.width, flat.width, opts);
 
-  const k = max(new Set(cat1).size, new Set(cat2).size);
-
   scales.width.codomain = scales.area.codomain;
   scales.height.codomain = scales.area.codomain;
 
+  const k = max(new Set(cat1).size, new Set(cat2).size);
   Expanse.set(
     scales.area.codomain,
     (e: ExpanseContinuous) => {
@@ -77,7 +76,13 @@ export function Fluctuationplot<T extends Columns>(
     { default: true },
   );
 
-  const bars = Bars.of({ flat, grouped }, { vAnchor: VAnchor.Middle });
+  const bars = Bars.of(
+    { flat, grouped },
+    {
+      vAnchor: VAnchor.Bottom,
+      postfn: (coords) => (coords[1] -= coords[2] / 2),
+    },
+  );
   Plot.addGeom(plot, bars);
 
   const fluctplot = { ...plot, summaries, coordinates };

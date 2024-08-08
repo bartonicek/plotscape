@@ -1,6 +1,11 @@
 import { ExpanseContinuous, Frame, Scale } from "../main";
 import { LAYER } from "../scene/Marker";
-import { findLength, pointInRect, rectsIntersect } from "../utils/funs";
+import {
+  findLength,
+  identity,
+  pointInRect,
+  rectsIntersect,
+} from "../utils/funs";
 import { Meta } from "../utils/Meta";
 import { POSITIONS } from "../utils/symbols";
 import {
@@ -33,6 +38,9 @@ export interface Bars extends Geom {
   data: { flat: Data & FlatData; grouped: Data & GroupedData };
   scales: Scales;
 
+  postfn: (
+    coords: [x: number, y: number, width: number, height: number],
+  ) => void;
   vAnchor: VAnchor;
   hAnchor: HAnchor;
 }
@@ -41,6 +49,9 @@ export namespace Bars {
   export function of(
     data: { flat: Data; grouped: Data },
     options?: {
+      postfn?: (
+        coords: [x: number, y: number, width: number, height: number],
+      ) => void;
       vAnchor?: VAnchor;
       hAnchor?: HAnchor;
     },
@@ -50,17 +61,18 @@ export namespace Bars {
     const type = Geom.Type.Bars;
     const vAnchor = options?.vAnchor ?? VAnchor.Bottom;
     const hAnchor = options?.hAnchor ?? HAnchor.Center;
+    const postfn = options?.postfn ?? identity;
 
     const typedData = data as {
       flat: Data & FlatData;
       grouped: Data & GroupedData;
     };
 
-    return { type, data: typedData, scales, vAnchor, hAnchor };
+    return { type, data: typedData, scales, postfn, vAnchor, hAnchor };
   }
 
   export function render(bars: Bars, layers: DataLayers) {
-    const { scales, hAnchor, vAnchor } = bars;
+    const { scales, postfn, hAnchor, vAnchor } = bars;
     const data = bars.data.grouped;
 
     const n = findLength(Object.values(data));
@@ -68,18 +80,21 @@ export namespace Bars {
     const [x, y, width, height, layer] = Geom.getters(data, vars);
 
     for (let i = 0; i < n; i++) {
-      const xi = Scale.pushforward(scales.x, x(i));
-      const yi = Scale.pushforward(scales.y, y(i));
-      const wi = Scale.pushforward(scales.width, width(i));
-      const hi = Scale.pushforward(scales.height, height(i));
+      let xi = Scale.pushforward(scales.x, x(i));
+      let yi = Scale.pushforward(scales.y, y(i));
+      let wi = Scale.pushforward(scales.width, width(i));
+      let hi = Scale.pushforward(scales.height, height(i));
       const li = layers[layer(i) as DataLayer];
 
-      Frame.rectangleWH(li, xi, yi, wi, hi, { hAnchor, vAnchor });
+      const coords = [xi, yi, wi, hi] as Rect;
+      postfn(coords);
+
+      Frame.rectangleWH(li, ...coords, { hAnchor, vAnchor });
     }
   }
 
   export function check(bars: Bars, selection: Rect) {
-    const { scales, hAnchor, vAnchor } = bars;
+    const { scales, postfn, hAnchor, vAnchor } = bars;
     const data = bars.data.flat;
 
     const n = findLength(Object.values(data));
@@ -89,19 +104,24 @@ export namespace Bars {
     const selected = [] as number[];
 
     for (let i = 0; i < n; i++) {
-      const xi = Scale.pushforward(scales.x, x(i));
-      const yi = Scale.pushforward(scales.y, y(i));
-      const wi = Scale.pushforward(scales.width, width(i));
-      const hi = Scale.pushforward(scales.height, height(i));
+      let xi = Scale.pushforward(scales.x, x(i));
+      let yi = Scale.pushforward(scales.y, y(i));
+      let wi = Scale.pushforward(scales.width, width(i));
+      let hi = Scale.pushforward(scales.height, height(i));
 
-      const coords = [
+      const coords = [xi, yi, wi, hi] as Rect;
+      postfn(coords);
+
+      [xi, yi, wi, hi] = coords;
+
+      const rectCoords = [
         xi - wi * hAnchor,
         yi - hi * vAnchor,
         xi + wi * hAnchor,
         yi + hi * (1 - vAnchor),
       ] as Rect;
 
-      if (rectsIntersect(selection, coords)) {
+      if (rectsIntersect(selection, rectCoords)) {
         const pos = positions(i);
         for (let j = 0; j < pos.length; j++) selected.push(pos[j]);
       }
@@ -111,7 +131,7 @@ export namespace Bars {
   }
 
   export function query(bars: Bars, position: Point) {
-    const { scales, hAnchor, vAnchor } = bars;
+    const { scales, postfn, hAnchor, vAnchor } = bars;
     const data = bars.data.flat;
 
     const n = findLength(Object.values(data));
@@ -119,19 +139,24 @@ export namespace Bars {
     const [x, y, width, height] = Geom.getters(data, vars);
 
     for (let i = 0; i < n; i++) {
-      const xi = Scale.pushforward(scales.x, x(i));
-      const yi = Scale.pushforward(scales.y, y(i));
-      const wi = Scale.pushforward(scales.width, width(i));
-      const hi = Scale.pushforward(scales.height, height(i));
+      let xi = Scale.pushforward(scales.x, x(i));
+      let yi = Scale.pushforward(scales.y, y(i));
+      let wi = Scale.pushforward(scales.width, width(i));
+      let hi = Scale.pushforward(scales.height, height(i));
 
-      const coords = [
+      const coords = [xi, yi, wi, hi] as Rect;
+      postfn(coords);
+
+      [xi, yi, wi, hi] = coords;
+
+      const rectCoords = [
         xi - wi * hAnchor,
         yi - hi * vAnchor,
         xi + wi * hAnchor,
         yi + hi * (1 - vAnchor),
       ] as Rect;
 
-      if (pointInRect(position, coords)) {
+      if (pointInRect(position, rectCoords)) {
         const result = {} as Record<string, any>;
 
         for (const v of Object.values(data)) {
