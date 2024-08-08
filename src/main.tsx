@@ -1,4 +1,4 @@
-import { MtcarsUntyped, Plot, Reducer, Scene } from "../lib/main";
+import { Expanse, MtcarsUntyped, Plot, Reducer, Scene } from "../lib/main";
 import { fetchJSON, orderBy } from "../lib/utils/funs";
 
 async function mtcarsScene() {
@@ -23,6 +23,10 @@ async function mtcarsScene() {
   Scene.addPlot(scene, plot3);
   Scene.addPlot(scene, plot4);
   Scene.addPlot(scene, plot5);
+
+  console.log(Expanse.unnormalize(plot4.scales.height.codomain, 1));
+  console.log(Expanse.unnormalize(plot4.scales.area.codomain, 1));
+  console.log(plot4.scales.area.codomain);
 }
 
 async function imdbScene() {

@@ -1,16 +1,9 @@
 import { Bars } from "../geoms/Bars";
-import {
-  Expanse,
-  ExpanseContinuous,
-  Factor,
-  Plot,
-  Reducer,
-  Scene,
-} from "../main";
+import { Expanse, Factor, Plot, Reducer, Scene } from "../main";
 import { Scale } from "../scales/Scale";
 import { Reduced } from "../transformation/Reduced";
 import { Summaries } from "../transformation/Summaries";
-import { max, sqrt, square } from "../utils/funs";
+import { max } from "../utils/funs";
 import { Meta } from "../utils/Meta";
 import { Columns, VAnchor } from "../utils/types";
 
@@ -48,7 +41,7 @@ export function Fluctuationplot<T extends Columns>(
       x: d.label,
       y: d.label$,
       height: Reduced.stack(d.stat),
-      width: Reduced.parent(d.stat),
+      width: Reduced.stack(d.stat),
     }),
   ]);
 
@@ -65,24 +58,15 @@ export function Fluctuationplot<T extends Columns>(
   scales.height.codomain = scales.area.codomain;
 
   const k = max(new Set(cat1).size, new Set(cat2).size);
+
   Expanse.set(
     scales.area.codomain,
-    (e: ExpanseContinuous) => {
-      e.scale = 1 / k;
-      e.mult = 0.9;
-      e.trans = square;
-      e.inv = sqrt;
-    },
+    (e) => ((e.scale = 1 / k), (e.mult = 0.9)),
     { default: true },
   );
 
-  const bars = Bars.of(
-    { flat, grouped },
-    {
-      vAnchor: VAnchor.Bottom,
-      postfn: (coords) => (coords[1] -= coords[2] / 2),
-    },
-  );
+  // const postfn = (coords: Rect) => (coords[1] -= coords[2] / 2);
+  const bars = Bars.of({ flat, grouped }, { vAnchor: VAnchor.Middle });
   Plot.addGeom(plot, bars);
 
   const fluctplot = { ...plot, summaries, coordinates };
