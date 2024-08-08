@@ -1,6 +1,5 @@
 import { Factor, MtcarsUntyped, Plot, Reducer, Scene } from "../lib/main";
-import { Summaries } from "../lib/transformation/Summaries";
-import { fetchJSON } from "../lib/utils/funs";
+import { applyWith, fetchJSON, prod, sum } from "../lib/utils/funs";
 
 async function mtcarsScene() {
   const app = document.querySelector<HTMLDivElement>("#app")!;
@@ -62,17 +61,12 @@ async function diamondsScene() {
 
 mtcarsScene();
 
-const factor1 = Factor.mono(10);
-const factor2 = Factor.product(
-  factor1,
-  Factor.from(Array.from(Array(10), () => Math.random() < 0.5)),
-);
+const f0 = Factor.mono(10);
+const f1 = Factor.from(Array.from(Array(10), () => Math.random() < 0.5));
+const f2 = Factor.from([`a`, `a`, `a`, `b`, `b`, `c`, `c`, `c`, `a`, `b`]);
 
-const values = Array.from(Array(10), () => Math.random());
+const factor0 = f0;
+const factor1 = Factor.product(factor0, f1);
+const factor2 = Factor.product(factor1, f2);
 
-const summaries = Summaries.of({ stat: [values, Reducer.sum] }, [
-  factor1,
-  factor2,
-]);
-
-console.log(summaries);
+console.log([sum, prod].map(applyWith(2, 3)));

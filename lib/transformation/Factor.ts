@@ -246,7 +246,7 @@ export namespace Factor {
 
         const result = of(type, cardinality, indices, data);
         result.parent = factor1;
-        result.parentIndices = Array(indices.length).fill(0);
+        result.parentIndices = Array(cardinality).fill(0);
 
         return result as Factor<TaggedUnion<T, U>>;
       }
@@ -340,5 +340,16 @@ export namespace Factor {
     });
 
     return factor;
+  }
+
+  export function parentIndices(parentFactor: Factor, childFactor: Factor) {
+    const result = {} as Record<number, number>;
+
+    for (let i = 0; i < childFactor.indices.length; i++) {
+      result[childFactor.indices[i]] = parentFactor.indices[i];
+      if (Object.keys(result).length >= childFactor.cardinality) break;
+    }
+
+    return Object.values(result);
   }
 }
