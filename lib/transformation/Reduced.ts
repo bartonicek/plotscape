@@ -1,6 +1,6 @@
 import { subset } from "../utils/funs";
 import { Getter } from "../utils/Getter";
-import { FACTOR, REDUCER } from "../utils/Meta";
+import { FACTOR, Meta, REDUCER } from "../utils/Meta";
 import { Reactive } from "../utils/Reactive";
 import { Factor } from "./Factor";
 import { Reducer } from "./Reducer";
@@ -50,6 +50,7 @@ export namespace Reduced {
     const result = of(array, getFactor(parent), reducer, getParent(parent));
     setValues(result, parent);
     setIndices(result, parentIndices);
+    Meta.copyName(reduced, result);
 
     return result;
   }
@@ -78,6 +79,7 @@ export namespace Reduced {
     const result = Reduced.of(array, factor, reducer, parent);
     setValues(result, stacked);
     if (indices) setIndices(result, indices);
+    Meta.copyName(reduced, result);
 
     return result;
   }
@@ -102,6 +104,7 @@ export namespace Reduced {
     const result = Reduced.of(array, factor, reducer, parent);
     setValues(result, normalized);
     if (indices) setIndices(result, indices);
+    Meta.copyName(reduced, result);
 
     return result;
   }
@@ -117,6 +120,7 @@ export namespace Reduced {
     const result = Reduced.of(array, factor, reducer, parent);
     setValues(result, shifted);
     if (indices) setIndices(result, indices);
+    Meta.copyName(reduced, result);
 
     return result;
   }

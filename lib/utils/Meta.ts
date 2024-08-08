@@ -55,6 +55,10 @@ export namespace Meta {
     object[NAME] = value;
   }
 
+  export function copyName(source: Object, target: Object) {
+    target[NAME] = source[NAME];
+  }
+
   export function getLength(object: Object) {
     if (isArray(object)) return object.length;
     return object[LENGTH];

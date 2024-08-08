@@ -28,7 +28,6 @@ async function mtcarsScene() {
 async function imdbScene() {
   const app = document.querySelector<HTMLDivElement>("#app")!;
   const imdb = await fetchJSON(`../datasets/imdb1000.json`);
-  imdb.director = imdb.director.map(cleanString);
 
   const scene = Scene.of(imdb);
   Scene.append(app, scene);
@@ -64,14 +63,13 @@ async function diamondsScene() {
   Scene.addPlot(scene, plot3);
 }
 
-imdbScene();
+mtcarsScene();
 
-function cleanString(input) {
-  var output = "";
-  for (var i = 0; i < input.length; i++) {
-    if (input.charCodeAt(i) <= 127) {
-      output += input.charAt(i);
-    }
-  }
-  return output;
-}
+// const labels = [`a`, `b`, `c`];
+// const weights = [200, 100, 40];
+// const exp = Expanse.band(labels);
+// ExpanseBand.setWeights(exp, weights);
+
+// console.log(labels.map((x) => Expanse.normalize(exp, x)));
+// ExpanseBand.reorder(exp, [2, 1, 0]);
+// console.log(labels.map((x) => Expanse.normalize(exp, x)));

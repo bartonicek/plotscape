@@ -8,12 +8,12 @@ import { Expanse } from "./Expanse";
 export interface ExpansePoint extends Expanse<string> {
   type: Expanse.Type.Point;
 
-  labels: string[];
   sorted: boolean;
+  labels: string[];
 
   defaults: {
-    labels: string[];
     sorted: boolean;
+    labels: string[];
     zero: number;
     one: number;
     direction: Direction;

@@ -170,6 +170,8 @@ function spineplot(plot: Barplot) {
 
   Meta.setName(scales.y, `proportion`);
 
+  console.log(scales.x.domain);
+
   Reactive.removeListeners(plot, `o`);
   Plot.listen(plot, `o`, () => sortAxis(scales.x.domain, flat.width));
 

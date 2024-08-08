@@ -16,11 +16,20 @@ import { ExpansePoint } from "./ExpansePoint";
 export interface ExpanseBand extends Expanse<string> {
   type: Expanse.Type.Band;
 
-  labels: string[];
-  weights: number[];
   sorted: boolean;
-
+  labels: string[];
   cumulativeWeights: number[];
+  weights: number[];
+
+  defaults: {
+    sorted: boolean;
+    labels: string[];
+    weights: number[];
+    cumulativeWeights: number[];
+    zero: number;
+    one: number;
+    direction: Direction;
+  };
 }
 
 export namespace ExpanseBand {
@@ -42,10 +51,10 @@ export namespace ExpanseBand {
     const sorted = false;
 
     const defaults = {
+      sorted,
       labels: [...labels],
       weights: [...weights],
-      sorted,
-      cumulativeWeights,
+      cumulativeWeights: [...cumulativeWeights],
       zero,
       one,
       direction,
@@ -54,9 +63,9 @@ export namespace ExpanseBand {
     return {
       value,
       type,
+      sorted,
       labels,
       weights,
-      sorted,
       cumulativeWeights,
       ...base,
       defaults,
@@ -78,8 +87,12 @@ export namespace ExpanseBand {
     }
 
     const cumulativeWeights = cumsum(weights);
+
     copyValues(weights, expanse.weights);
+    copyValues(weights, expanse.defaults.weights);
     copyValues(cumulativeWeights, expanse.cumulativeWeights);
+    copyValues(cumulativeWeights, expanse.defaults.cumulativeWeights);
+
     Expanse.dispatch(expanse, `changed`);
   }
 
@@ -124,18 +137,33 @@ export namespace ExpanseBand {
   }
 
   export function reorder(expanse: ExpanseBand, indices?: number[]) {
-    const { labels } = expanse;
+    const { labels, weights, cumulativeWeights, defaults } = expanse;
 
     if (!indices) {
-      labels.sort(compareAlphaNumeric);
+      copyValues(defaults.labels, labels);
+      copyValues(defaults.weights, weights);
+      copyValues(defaults.cumulativeWeights, cumulativeWeights);
+
       expanse.sorted = false;
       Expanse.dispatch(expanse, `changed`);
       return;
     }
 
-    const temp = Array(labels.length);
-    for (let i = 0; i < indices.length; i++) temp[indices[i]] = labels[i];
-    for (let i = 0; i < temp.length; i++) labels[i] = temp[i];
+    const n = labels.length;
+    const [tempLabels, tempWeights] = [Array(n), Array(n)];
+
+    for (let i = 0; i < indices.length; i++) {
+      tempLabels[indices[i]] = labels[i];
+      tempWeights[indices[i]] = weights[i];
+    }
+
+    for (let i = 0; i < tempLabels.length; i++) {
+      labels[i] = tempLabels[i];
+      weights[i] = tempWeights[i];
+    }
+
+    copyValues(cumsum(weights), cumulativeWeights);
+
     expanse.sorted = true;
     Expanse.dispatch(expanse, `changed`);
   }

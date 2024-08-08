@@ -152,6 +152,8 @@ function spinogram(plot: Histogram) {
       y0: zero,
       x1: Reduced.stack(d.stat),
       y1: one,
+      query1: d.binMin,
+      query2: d.binMax,
     }),
     (d) => ({
       x0: Reduced.shiftLeft(Reduced.stack(Reduced.parent(d.stat))),
