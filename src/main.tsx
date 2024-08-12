@@ -64,7 +64,7 @@ async function diamondsScene() {
   Scene.addPlot(scene, plot3);
 }
 
-mtcarsScene();
+imdbScene();
 
 // const labels = [`a`, `b`, `c`];
 // const weights = [200, 100, 40];

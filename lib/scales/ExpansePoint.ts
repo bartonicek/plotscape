@@ -1,4 +1,9 @@
-import { applyDirection, compareAlphaNumeric, copyValues } from "../utils/funs";
+import {
+  applyDirection,
+  compareAlphaNumeric,
+  copyValues,
+  ordered,
+} from "../utils/funs";
 import { Direction } from "../utils/types";
 import { Expanse } from "./Expanse";
 
@@ -98,6 +103,6 @@ export namespace ExpansePoint {
   }
 
   export function breaks(expanse: ExpansePoint) {
-    return expanse.labels;
+    return ordered(expanse.labels, expanse.order);
   }
 }
