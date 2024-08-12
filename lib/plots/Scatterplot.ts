@@ -1,8 +1,7 @@
 import { Dataframe, Scene } from "@abartonicek/plotscape5";
 import { Points } from "../geoms/Points";
-import { Plot, Scale } from "../main";
-import { LAYER, Marker } from "../scene/Marker";
-import { POSITIONS } from "../utils/symbols";
+import { Factor, Plot, Scale } from "../main";
+import { Summaries } from "../transformation/Summaries";
 
 export function Scatterplot<T extends Dataframe>(
   scene: Scene<T>,
@@ -18,17 +17,17 @@ export function Scatterplot<T extends Dataframe>(
   Scale.train(scales.y, y, { default: true });
   if (size) Scale.train(scales.size, size, { default: true });
 
-  const layer = Marker.getLayer(marker);
-  const position = (index: number) => [index];
-  const coordinates = {
-    x,
-    y,
-    area: size,
-    [LAYER]: layer,
-    [POSITIONS]: position,
-  };
+  const factor1 = Factor.bijection({ x, y, size: size ?? (() => 0.5) });
+  const factor2 = Factor.product(factor1, marker.factor);
 
-  const points = Points.of({ flat: coordinates, grouped: coordinates });
+  const summaries = Summaries.of({}, [factor1, factor2] as const);
+  const coordinates = Summaries.translate(summaries, [(d) => d, (d) => d]);
+
+  const [flat, grouped] = coordinates;
+
+  Plot.setData(plot, coordinates);
+
+  const points = Points.of({ flat, grouped });
   Plot.addGeom(plot, points);
 
   return plot;

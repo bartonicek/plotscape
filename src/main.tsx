@@ -1,5 +1,6 @@
-import { Expanse, MtcarsUntyped, Plot, Reducer, Scene } from "../lib/main";
+import { MtcarsUntyped, Plot, Reducer, Scene } from "../lib/main";
 import { fetchJSON, orderBy } from "../lib/utils/funs";
+import { Reactive } from "../lib/utils/Reactive";
 
 async function mtcarsScene() {
   const app = document.querySelector<HTMLDivElement>("#app")!;
@@ -23,10 +24,6 @@ async function mtcarsScene() {
   Scene.addPlot(scene, plot3);
   Scene.addPlot(scene, plot4);
   Scene.addPlot(scene, plot5);
-
-  console.log(Expanse.unnormalize(plot4.scales.height.codomain, 1));
-  console.log(Expanse.unnormalize(plot4.scales.area.codomain, 1));
-  console.log(plot4.scales.area.codomain);
 }
 
 async function imdbScene() {
@@ -81,4 +78,10 @@ mtcarsScene();
 const arr = [1, 2, 3, 4];
 orderBy(arr, [3, 1, 2, 0]);
 
-console.log(arr);
+const r1 = Reactive.of({});
+const r2 = Reactive.of({});
+
+Reactive.listen(r1, `changed`, () => Reactive.dispatch(r2, `changed`));
+
+Reactive.listen(r1, `changed`, () => console.log(`foo`));
+Reactive.listen(r2, `changed`, () => console.log(r1));

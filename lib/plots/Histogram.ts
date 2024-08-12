@@ -138,6 +138,8 @@ function histogram(plot: Histogram) {
   plot.coordinates = coordinates;
   plot.rectangles = rectangles;
 
+  Plot.setData(plot, coordinates);
+
   Plot.dispatch(plot, `render`);
   Plot.dispatch(plot, `render-axes`);
 }
@@ -155,12 +157,14 @@ function spinogram(plot: Histogram) {
       query1: d.binMin,
       query2: d.binMax,
     }),
-    (d) => ({
-      x0: Reduced.shiftLeft(Reduced.stack(Reduced.parent(d.stat))),
-      y0: zero,
-      x1: Reduced.stack(Reduced.parent(d.stat)),
-      y1: Reduced.normalize(Reduced.stack(d.stat), (x, y) => x / y),
-    }),
+    (d) => {
+      return {
+        x0: Reduced.shiftLeft(Reduced.stack(Reduced.parent(d.stat))),
+        y0: zero,
+        x1: Reduced.stack(Reduced.parent(d.stat)),
+        y1: Reduced.normalize(Reduced.stack(d.stat), (x, y) => x / y),
+      };
+    },
   ]);
 
   const { scales } = plot;
@@ -175,7 +179,6 @@ function spinogram(plot: Histogram) {
 
   Reactive.listen(flat as any, `changed`, () => {
     Scale.train(scales.x, [0, ...flat.x1], { default: true, name: false });
-    Plot.dispatch(plot, `render`);
   });
 
   Expanse.freeze(scales.y.domain, [`zero`]);
@@ -190,6 +193,8 @@ function spinogram(plot: Histogram) {
   plot.representation = Representation.Proportion;
   plot.coordinates = coordinates;
   plot.rectangles = rectangles;
+
+  Plot.setData(plot, coordinates);
 
   Plot.dispatch(plot, `render`);
   Plot.dispatch(plot, `render-axes`);

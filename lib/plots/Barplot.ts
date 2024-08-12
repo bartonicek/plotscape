@@ -70,7 +70,6 @@ export function Barplot<T extends Columns>(
   });
 
   barplot(plot);
-
   return plot;
 }
 
@@ -126,6 +125,9 @@ function barplot(plot: Barplot) {
 
   plot.bars = bars;
   plot.representation = Representation.Absolute;
+
+  Plot.setData(plot, coordinates);
+
   Plot.dispatch(plot, `render`);
   Plot.dispatch(plot, `render-axes`);
 }
@@ -143,7 +145,6 @@ function spineplot(plot: Barplot) {
   ]);
 
   const [flat, grouped] = coordinates;
-  plot.coordinates = coordinates;
 
   const { scales } = plot;
   const opts = { default: true, ratio: true };
@@ -170,8 +171,6 @@ function spineplot(plot: Barplot) {
 
   Meta.setName(scales.y, `proportion`);
 
-  console.log(scales.x.domain);
-
   Reactive.removeListeners(plot, `o`);
   Plot.listen(plot, `o`, () => sortAxis(scales.x.domain, flat.width));
 
@@ -181,6 +180,10 @@ function spineplot(plot: Barplot) {
 
   plot.bars = bars;
   plot.representation = Representation.Proportion;
+  plot.coordinates = coordinates;
+
+  Plot.setData(plot, coordinates);
+
   Plot.dispatch(plot, `render`);
   Plot.dispatch(plot, `render-axes`);
 }

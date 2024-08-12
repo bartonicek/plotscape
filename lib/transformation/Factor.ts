@@ -6,7 +6,6 @@ import {
   isArray,
   last,
   makeGetter,
-  seq,
   subset,
 } from "../utils/funs";
 import { Getter } from "../utils/Getter";
@@ -26,7 +25,6 @@ export interface Factor<T extends Dataframe = Dataframe> extends Reactive {
   cardinality: number;
   indices: number[];
   parent?: Factor;
-  parentIndices?: number[];
   data: T;
 }
 
@@ -54,10 +52,6 @@ export namespace Factor {
   export function copyFrom<T extends Factor>(source: T, target: T) {
     target.cardinality = source.cardinality;
     copyValues(source.indices, target.indices);
-
-    if (target.parentIndices && source.parentIndices) {
-      copyValues(source.parentIndices, target.parentIndices);
-    }
 
     for (const k of Reflect.ownKeys(source.data)) {
       if (isArray(source.data[k]) && isArray(target.data[k])) {
@@ -237,7 +231,6 @@ export namespace Factor {
 
         const result = of(type, cardinality, indices, data);
         result.parent = factor1;
-        result.parentIndices = seq(0, indices.length);
 
         return result as Factor<TaggedUnion<T, U>>;
       }
@@ -247,7 +240,6 @@ export namespace Factor {
 
         const result = of(type, cardinality, indices, data);
         result.parent = factor1;
-        result.parentIndices = Array(cardinality).fill(0);
 
         return result as Factor<TaggedUnion<T, U>>;
       }
@@ -320,7 +312,6 @@ export namespace Factor {
 
       type Data = TaggedUnion<T, U>;
       const result = of(type, sorted.length, indices, data) as Factor<Data>;
-      result.parentIndices = factor1ParentIndices;
       result.parent = factor1;
 
       return result;

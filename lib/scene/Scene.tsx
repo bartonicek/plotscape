@@ -136,13 +136,8 @@ function setupEvents(scene: Scene) {
     for (const plot of plots) Plot.dispatch(plot, `resize`);
   });
 
-  Marker.listen(marker, `updated`, () => {
-    for (const plot of plots) Plot.dispatch(plot, `render`);
-  });
-
   Marker.listen(marker, `cleared`, () => {
     for (const plot of plots) {
-      Plot.dispatch(plot, `render`);
       Plot.dispatch(plot, `unlock`);
     }
   });

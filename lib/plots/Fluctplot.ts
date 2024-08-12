@@ -69,6 +69,8 @@ export function Fluctuationplot<T extends Columns>(
   const bars = Bars.of({ flat, grouped }, { vAnchor: VAnchor.Middle });
   Plot.addGeom(plot, bars);
 
+  Plot.setData(plot, coordinates);
+
   const fluctplot = { ...plot, summaries, coordinates };
   return fluctplot;
 }

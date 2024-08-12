@@ -13,6 +13,7 @@ import {
   formatLabel,
   getMargins,
   invertRange,
+  last,
   max,
   rangeInverse,
   remove,
@@ -26,6 +27,7 @@ import { React } from "../utils/JSX";
 import { Reactive } from "../utils/Reactive";
 import {
   baseLayers,
+  Dataframe,
   dataLayers,
   DataLayers,
   Margins,
@@ -67,6 +69,7 @@ type EventType =
 
 export interface Plot extends Reactive {
   type: Plot.Type;
+  data: Dataframe[];
 
   container: HTMLElement;
   queryDisplay: HTMLElement;
@@ -125,6 +128,7 @@ export namespace Plot {
 
     container.appendChild(queryDisplay);
 
+    const data = [] as Dataframe[];
     const frames = {} as Frames;
     const scales = {} as Scales;
 
@@ -149,6 +153,7 @@ export namespace Plot {
 
     const plot = Reactive.of({
       type,
+      data,
       container,
       queryDisplay,
       frames,
@@ -180,6 +185,17 @@ export namespace Plot {
   export function append(parent: HTMLElement, plot: Plot) {
     parent.appendChild(plot.container);
     Plot.dispatch(plot, `resize`);
+  }
+
+  export function setData(plot: Plot, data: Dataframe[]) {
+    if (plot.data.length) {
+      Reactive.removeListeners(last(plot.data as any), `changed`);
+    }
+    plot.data.length = 0;
+    for (let i = 0; i < data.length; i++) plot.data.push(data[i]);
+    Reactive.listen(last(data) as any, `changed`, () =>
+      Plot.dispatch(plot, `render`),
+    );
   }
 
   export function addGeom(plot: Plot, geom: Geom) {

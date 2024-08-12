@@ -47,13 +47,14 @@ export namespace Summaries {
       }
 
       Factor.listen(factor, `changed`, () => {
-        const newSummaries = compute(summaries, factor);
+        const newSummarized = compute(summaries, factor);
 
-        for (const k of Object.keys(newSummaries)) {
-          copyValues(newSummaries[k], summarized[k]);
+        for (const k of Object.keys(newSummarized)) {
+          copyValues(newSummarized[k], summarized[k]);
         }
 
-        Reactive.dispatch(data, `changed`);
+        // Need to dispatch after parent values have been updated
+        setTimeout(() => Reactive.dispatch(data, `changed`), 0);
       });
     }
 

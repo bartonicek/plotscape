@@ -133,7 +133,7 @@ export namespace Reduced {
     return reduced[REDUCER];
   }
 
-  function getParent(reduced: Reduced) {
+  export function getParent(reduced: Reduced) {
     return reduced[PARENT];
   }
 

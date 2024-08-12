@@ -46,5 +46,7 @@ export function Lineplot<T extends Columns>(
   const lines = Lines.of({ flat, grouped });
   Plot.addGeom(plot, lines);
 
+  Plot.setData(plot, coordinates);
+
   return plot;
 }
