@@ -6,6 +6,7 @@ import { Summaries } from "../transformation/Summaries";
 export function Scatterplot<T extends Dataframe>(
   scene: Scene<T>,
   selectfn: (data: T) => [any[], any[]] | [any[], any[], any[]],
+  options?: { ratio?: number },
 ) {
   const { data, marker } = scene;
   const plot = Plot.of({ type: Plot.Type.Scatter });
@@ -25,6 +26,8 @@ export function Scatterplot<T extends Dataframe>(
 
   Plot.setData(plot, coordinates);
   Plot.addGeom(plot, Points.of());
+
+  if (options?.ratio) Plot.setRatio(plot, options.ratio);
 
   return plot;
 }

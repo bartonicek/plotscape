@@ -630,7 +630,12 @@ function setupEvents(plot: Plot, options?: {}) {
     Expanse.set(height.codomain, (e) => (e.max = h), opts);
     Expanse.set(area.codomain, (e) => (e.max = Math.min(w, h)), opts);
 
-    if (parameters.ratio) Plot.applyRatio(plot, parameters.ratio);
+    if (parameters.ratio) {
+      const { expandX: ex, expandY: ey } = defaultParameters;
+      Expanse.set(x.domain, (e) => ((e.zero = ex), (e.one = 1 - ex)), opts);
+      Expanse.set(y.domain, (e) => ((e.zero = ey), (e.one = 1 - ey)), opts);
+      Plot.applyRatio(plot, parameters.ratio);
+    }
   });
 
   for (const scale of Object.values(plot.scales)) {
@@ -695,14 +700,13 @@ function setupScales(
   const opts = { default: true, silent: true };
   const { expandX: ex, expandY: ey } = defaultParameters;
 
-  Expanse.set(x.domain, (e) => ((e.zero = ex), (e.one = 1 - ex)), opts);
-  Expanse.set(y.domain, (e) => ((e.zero = ey), (e.one = 1 - ey)), opts);
-
   Expanse.set(area.domain, (e) => (e.ratio = true), opts);
   Expanse.set(size.domain, (e) => (e.ratio = true), opts);
   Expanse.set(area.codomain, (e) => ((e.trans = square), (e.inv = sqrt)), opts);
   Expanse.set(size.codomain, (e) => ((e.trans = square), (e.inv = sqrt)), opts);
 
+  Expanse.set(x.domain, (e) => ((e.zero = ex), (e.one = 1 - ex)), opts);
+  Expanse.set(y.domain, (e) => ((e.zero = ey), (e.one = 1 - ey)), opts);
   Expanse.set(width.domain, (e) => (e.one = 1 - 2 * ex), opts);
   Expanse.set(height.domain, (e) => (e.one = 1 - 2 * ey), opts);
   Expanse.set(area.domain, (e) => (e.one = 1 - 2 * Math.max(ex, ey)), opts);

@@ -71,7 +71,10 @@ async function sacramentoScene() {
   const scene = Scene.of(sacramento);
   Scene.append(app, scene);
 
-  const plot1 = Plot.scatter(scene, (d) => [d.longitude, d.latitude]);
+  const plot1 = Plot.scatter(scene, (d) => [d.longitude, d.latitude], {
+    ratio: 1,
+  });
+
   const plot2 = Plot.bar(scene, (d) => [d.city]);
   const plot3 = Plot.histo(scene, (d) => [d.price]);
   const plot4 = Plot.fluct(scene, (d) => [d.beds, d.baths]);
@@ -81,7 +84,7 @@ async function sacramentoScene() {
   Scene.addPlot(scene, plot3);
   Scene.addPlot(scene, plot4);
 
-  Plot.setRatio(plot1, 1);
+  // Plot.setRatio(plot1, 1);
 }
 
 sacramentoScene();
