@@ -3,7 +3,7 @@ import {
   copyValues,
   invertRange,
   isArray,
-  isNumber,
+  isNumberArray,
 } from "../utils/funs";
 import { Reactive } from "../utils/Reactive";
 import { Direction, Entries } from "../utils/types";
@@ -98,16 +98,20 @@ export namespace Expanse {
   ) {
     const temp = { ...expanse };
     setfn(temp);
+
     for (const k of expanse.frozen) delete temp[k as keyof typeof temp];
+    for (const k of Object.keys(temp) as (keyof typeof temp)[]) {
+      if (temp[k] === expanse[k]) delete temp[k];
+    }
 
     copyProps(temp, expanse);
-    if (options?.default) copyProps(temp, expanse.defaults);
 
+    if (!!options?.default) copyProps(temp, expanse.defaults);
     if (!options?.silent) Expanse.dispatch(expanse, `changed`);
   }
 
   export function infer(values: any[], options = { train: true }) {
-    const expanse = isNumber(values[0])
+    const expanse = isNumberArray(values)
       ? Expanse.continuous()
       : Expanse.point();
     if (options.train) Expanse.train(expanse, values);

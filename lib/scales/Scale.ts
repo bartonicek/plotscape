@@ -77,7 +77,7 @@ export namespace Scale {
     const setName = options?.name ?? true;
     if (setName && Meta.hasName(array)) Meta.copy(array, scale);
 
-    // Automatically coerce expanse to band if array is string
+    // Automatically coerce expanse to band if array is string[]
     if (typeof array[0] === "string" && Expanse.isContinuous(scale.domain)) {
       const labels = Array.from(new Set(array) as Set<string>);
       scale.domain = Expanse.band(labels) as unknown as T;
@@ -120,5 +120,9 @@ export namespace Scale {
 
   export function move(scale: Scale, amount: number) {
     Expanse.move(scale.domain, amount);
+  }
+
+  export function shareCodomain(scale1: Scale, scale2: Scale) {
+    scale2.codomain = scale1.codomain;
   }
 }

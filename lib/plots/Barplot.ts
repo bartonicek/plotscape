@@ -24,7 +24,6 @@ interface Barplot extends Plot {
     { label: string[]; stat: Reduced<number> },
     { label: string[]; stat: Reduced<number> },
   ];
-  bars?: Bars;
 }
 
 export function Barplot<T extends Columns>(
@@ -57,16 +56,7 @@ export function Barplot<T extends Columns>(
   const opts = { type: Plot.Type.Bar, scales: { x: Expanse.Band } } as const;
   const plot = { representation, ...Plot.of(opts), summaries, coordinates };
 
-  Plot.listen(plot, `n`, () => {
-    switch (plot.representation) {
-      case Representation.Absolute:
-        spineplot(plot);
-        break;
-      case Representation.Proportion:
-        barplot(plot);
-        break;
-    }
-  });
+  Plot.listen(plot, `n`, () => switchRepresentation(plot));
 
   barplot(plot);
   Plot.addGeom(plot, Bars.of());
@@ -79,6 +69,11 @@ function sortAxis(domain: ExpanseBand, values: number[]) {
     const indices = orderIndices(values);
     ExpanseBand.reorder(domain, indices);
   } else ExpanseBand.reorder(domain);
+}
+
+function switchRepresentation(plot: Barplot) {
+  if (plot.representation === Representation.Absolute) spineplot(plot);
+  else barplot(plot);
 }
 
 function barplot(plot: Barplot) {

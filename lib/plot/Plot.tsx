@@ -666,6 +666,7 @@ function setupScales(
 
   Expanse.set(width.domain, (e) => (e.one = 1 - 2 * ex), opts);
   Expanse.set(height.domain, (e) => (e.one = 1 - 2 * ey), opts);
+  Expanse.set(area.domain, (e) => (e.one = 1 - 2 * Math.max(ex, ey)), opts);
 
   // Truncate so e.g. bars cannot have negative height
   const trunc0 = (x: number) => Math.max(x, 0);
