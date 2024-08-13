@@ -1,6 +1,7 @@
-import { expect, test, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { Expanse } from "../../scales/Expanse";
 import { ExpanseContinuous } from "../../scales/ExpanseContinuous";
+import { sqrt } from "../../utils/funs";
 
 describe("Expanse continuous", () => {
   const expanse = ExpanseContinuous.of(1, 10);
@@ -24,19 +25,13 @@ describe("Expanse continuous", () => {
   });
 
   test("Normalizing 5 in [1, 10] with [0.1, 0.9] margins returns 0.1 + 4/9 * 0.8", () => {
-    Expanse.set(expanse, () => {
-      expanse.zero = 0.1;
-      expanse.one = 0.9;
-    });
+    Expanse.set(expanse, (e) => ((e.zero = 0.1), (e.one = 0.9)));
     expect(Expanse.normalize(expanse, 5)).toBe(0.1 + (4 / 9) * 0.8);
     Expanse.restoreDefaults(expanse);
   });
 
   test("Normalizing 4 in [1, 16] with square root transformation returns 1/3", () => {
-    Expanse.set(expanse, () => {
-      expanse.max = 16;
-      expanse.trans = Math.sqrt;
-    });
+    Expanse.set(expanse, (e) => ((e.max = 16), (e.trans = sqrt)));
     expect(Expanse.normalize(expanse, 4)).toBe(1 / 3);
     Expanse.restoreDefaults(expanse);
   });

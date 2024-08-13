@@ -16,10 +16,7 @@ describe("Expanse point", () => {
   });
 
   test(`Normalizing "b" in ["a", "b", "c", "d"] with [0.1, 0.9] margins returns 0.1 + 1/3 * 0.8`, () => {
-    Expanse.set(expanse, () => {
-      expanse.zero = 0.1;
-      expanse.one = 0.9;
-    });
+    Expanse.set(expanse, (e) => ((e.zero = 0.1), (e.one = 0.9)));
     expect(Expanse.normalize(expanse, "b")).toBe(0.1 + (1 / 3) * 0.8);
     Expanse.restoreDefaults(expanse);
   });
@@ -38,13 +35,13 @@ describe("Expanse point", () => {
 
   test(`Unnormalizing [1/3, 0, 1, 2/3] in ["a", "b", "c", "d"] returns ["b", "a", "d", "c"]`, () => {
     expect(
-      [1 / 3, 0, 1, 2 / 3].map((x) => Expanse.unnormalize(expanse, x))
+      [1 / 3, 0, 1, 2 / 3].map((x) => Expanse.unnormalize(expanse, x)),
     ).toEqual(["b", "a", "d", "c"]);
   });
 
   test(`Reordering ["a", "b", "c", "d"] with [2, 1, 0, 3] equals ["c", "b", "a", "d"]`, () => {
     ExpansePoint.reorder(expanse, [2, 1, 0, 3]);
-    expect(expanse.labels).toEqual(["c", "b", "a", "d"]);
+    expect(ExpansePoint.breaks(expanse)).toEqual(["c", "b", "a", "d"]);
     expect(Expanse.normalize(expanse, "a")).toBe(2 / 3);
     Expanse.restoreDefaults(expanse);
   });

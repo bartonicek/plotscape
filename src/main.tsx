@@ -1,4 +1,4 @@
-import { MtcarsUntyped, Plot, Reducer, Scene } from "../lib/main";
+import { Expanse, MtcarsUntyped, Plot, Reducer, Scene } from "../lib/main";
 import { fetchJSON, orderBy } from "../lib/utils/funs";
 import { Reactive } from "../lib/utils/Reactive";
 
@@ -85,3 +85,8 @@ Reactive.listen(r1, `changed`, () => Reactive.dispatch(r2, `changed`));
 
 Reactive.listen(r1, `changed`, () => console.log(`foo`));
 Reactive.listen(r2, `changed`, () => console.log(r1));
+
+const exp = Expanse.point(["a", "b", "c", "d"]);
+Expanse.set(exp, (e) => ((e.zero = 0.1), (e.one = 0.9)));
+
+console.log(Expanse.normalize(exp, "b"));

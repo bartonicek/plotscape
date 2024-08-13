@@ -9,7 +9,6 @@ import {
 } from "../utils/funs";
 import { Direction } from "../utils/types";
 import { Expanse } from "./Expanse";
-import { ExpansePoint } from "./ExpansePoint";
 
 /**
  * Converts string labels to the [0, 1] interval and back, such that each
@@ -176,5 +175,7 @@ export namespace ExpanseBand {
     Expanse.dispatch(expanse, `changed`);
   }
 
-  export const breaks = ExpansePoint.breaks;
+  export function breaks(expanse: ExpanseBand) {
+    return ordered(expanse.labels, expanse.order);
+  }
 }

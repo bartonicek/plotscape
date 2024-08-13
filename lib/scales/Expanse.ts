@@ -190,7 +190,7 @@ export namespace Expanse {
   }
 
   export function flip(expanse: Expanse) {
-    Expanse.set(expanse, () => (expanse.direction *= -1));
+    Expanse.set(expanse, (e) => (e.direction *= -1));
   }
 
   export function isContinuous(expanse: Expanse) {
