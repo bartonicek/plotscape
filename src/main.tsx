@@ -100,3 +100,15 @@ mtcarsScene();
 // );
 
 // Reactive.set(r1, (e) => (e.width = 1));
+
+const foo = Symbol(`foo`);
+
+interface A {
+  [foo]: number;
+}
+
+type ZZ = Exclude<symbol, typeof foo>;
+
+// interface B extends A {
+//   [key: Exclude<symbol, typeof foo>]: number[];
+// }

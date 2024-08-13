@@ -34,12 +34,8 @@ export namespace Reactive {
     object2: Reactive,
     options?: { throttle?: number; deferred?: boolean },
   ) {
-    Reactive.listen(
-      object1,
-      `changed`,
-      () => Reactive.dispatch(object2, `changed`),
-      options,
-    );
+    const propagatefn = () => Reactive.dispatch(object2, `changed`);
+    Reactive.listen(object1, `changed`, propagatefn, options);
   }
 
   export function isReactive(
@@ -56,11 +52,16 @@ export namespace Reactive {
     Reactive.dispatch(object, `changed`);
   }
 
-  export function removeListeners(object: Reactive, type: string) {
-    if (!object[LISTENERS][type]) return;
-    for (const cb of object[LISTENERS][type]) {
-      remove(object[LISTENERS][type], cb);
-    }
+  export function removeListeners(object: Object, type: string) {
+    if (!isReactive(object)) return;
+
+    const [listeners, deferred] = [
+      getListeners(object)[type],
+      getDeferred(object)[type],
+    ];
+
+    if (listeners) for (const cb of listeners) remove(listeners, cb);
+    if (deferred) for (const cb of deferred) remove(deferred, cb);
   }
 
   export function makeListenFn<T extends Reactive, E extends string>() {
@@ -70,11 +71,11 @@ export namespace Reactive {
       eventfn: (data: any) => void,
       options?: { throttle?: number; deferred?: boolean },
     ) {
+      if (!isReactive(object)) return;
       if (options?.throttle) eventfn = throttle(eventfn, options.throttle);
 
-      const listeners = options?.deferred
-        ? object[DEFERRED]
-        : object[LISTENERS];
+      const isDeferred = !!options?.deferred;
+      const listeners = isDeferred ? getDeferred(object) : getListeners(object);
 
       if (!listeners[type]) listeners[type] = [];
       if (!listeners[type].includes(eventfn)) listeners[type].push(eventfn);
@@ -83,12 +84,16 @@ export namespace Reactive {
 
   export function makeDispatchFn<T extends Reactive, E extends string>() {
     return function (object: T, type: E, data?: Record<string, any>) {
-      if (!object[LISTENERS][type]) return;
-      for (const cb of object[LISTENERS][type]) cb(data);
+      if (!isReactive(object)) return;
 
+      const [listeners, deferred] = [
+        getListeners(object)[type],
+        getDeferred(object)[type],
+      ];
+
+      if (listeners) for (const cb of listeners) cb(data);
       // Run deferred callbacks only after regular callbacks
-      if (!object[DEFERRED][type]) return;
-      for (const cb of object[DEFERRED][type]) cb(data);
+      if (deferred) for (const cb of deferred) cb(data);
     };
   }
 }

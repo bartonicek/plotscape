@@ -88,6 +88,8 @@ export function Histogram<T extends Columns>(
   });
 
   histogram(plot);
+  Plot.addGeom(plot, Rectangles.of());
+
   return plot;
 }
 
@@ -111,12 +113,12 @@ function histogram(plot: Histogram) {
   ]);
 
   const { scales } = plot;
-  const [, flat, grouped] = coordinates;
+  const [, flat] = coordinates;
 
   Scale.train(scales.x, flat.x1, { default: true, name: false });
   Scale.train(scales.y, flat.y1, { default: true, ratio: true });
 
-  for (const c of plot.coordinates) {
+  for (const c of plot.data) {
     Reactive.removeListeners(c as any, `changed`);
   }
 
@@ -130,14 +132,7 @@ function histogram(plot: Histogram) {
   Meta.setName(scales.x, Meta.getName(flat.x));
   Meta.setName(scales.y, Meta.getName(flat.y1));
 
-  if (plot.rectangles) Plot.deleteGeom(plot, plot.rectangles);
-  const rectangles = Rectangles.of({ flat, grouped });
-  Plot.addGeom(plot, rectangles);
-
   plot.representation = Representation.Absolute;
-  plot.coordinates = coordinates;
-  plot.rectangles = rectangles;
-
   Plot.setData(plot, coordinates);
 
   Plot.dispatch(plot, `render`);
@@ -167,15 +162,13 @@ function spinogram(plot: Histogram) {
     },
   ]);
 
+  Plot.setData(plot, coordinates);
+
   const { scales } = plot;
-  const [, flat, grouped] = coordinates;
+  const [, flat] = coordinates;
 
   Scale.train(scales.x, [0, ...flat.x1], { default: true, name: false });
   Scale.train(scales.y, [0, 1], { default: true, ratio: true });
-
-  for (const c of plot.coordinates) {
-    Reactive.removeListeners(c as any, `changed`);
-  }
 
   Reactive.listen(flat as any, `changed`, () => {
     Scale.train(scales.x, [0, ...flat.x1], { default: true, name: false });
@@ -186,15 +179,7 @@ function spinogram(plot: Histogram) {
   Meta.setName(scales.x, `cumulative count`);
   Meta.setName(scales.y, `proportion`);
 
-  if (plot.rectangles) Plot.deleteGeom(plot, plot.rectangles);
-  const rectangles = Rectangles.of({ flat, grouped });
-  Plot.addGeom(plot, rectangles);
-
   plot.representation = Representation.Proportion;
-  plot.coordinates = coordinates;
-  plot.rectangles = rectangles;
-
-  Plot.setData(plot, coordinates);
 
   Plot.dispatch(plot, `render`);
   Plot.dispatch(plot, `render-axes`);

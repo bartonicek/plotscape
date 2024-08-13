@@ -5,7 +5,7 @@ import { LAYER } from "../scene/Marker";
 import { findLength, rectSegmentIntersect } from "../utils/funs";
 import { POSITIONS } from "../utils/symbols";
 import { DataLayer, DataLayers, Indexable, Point, Rect } from "../utils/types";
-import { FlatData, Geom, GroupedData } from "./Geom";
+import { FactorData, Geom } from "./Geom";
 
 type Data = {
   x: Indexable<any[]>;
@@ -18,30 +18,23 @@ type Scales = {
 };
 
 export interface Lines extends Geom {
-  n?: number;
   type: Geom.Type.Lines;
-  data: { flat: Data & FlatData; grouped: Data & GroupedData };
+  data: (Data & FactorData)[];
   scales: Scales;
 }
 
 export namespace Lines {
-  export function of(
-    data: { flat: Data; grouped: Data },
-    options?: { n?: number },
-  ): Lines {
+  export function of(): Lines {
     const scales = {} as Scales; // Will be definitely assigned when added to Plot
+    const data = [] as (Data & FactorData)[];
     const type = Geom.Type.Lines;
-    const typedData = data as {
-      flat: Data & FlatData;
-      grouped: Data & GroupedData;
-    };
 
-    return { type, data: typedData, scales, n: options?.n };
+    return { type, data, scales };
   }
 
   export function render(lines: Lines, layers: DataLayers) {
     const { scales } = lines;
-    const data = lines.data.grouped;
+    const data = Geom.groupedData(lines);
 
     const n = findLength(Object.values(data));
     const vars = [`x`, `y`, LAYER] as const;
@@ -58,7 +51,7 @@ export namespace Lines {
 
   export function check(lines: Lines, selection: Rect) {
     const { scales } = lines;
-    const data = lines.data.flat;
+    const data = Geom.flatData(lines);
 
     const n = findLength(Object.values(data));
     const vars = [`x`, `y`, POSITIONS] as const;
@@ -84,10 +77,10 @@ export namespace Lines {
   }
 
   export function query(lines: Lines, position: Point) {
-    let { n, scales } = lines;
-    const data = lines.data.flat;
+    let { scales } = lines;
+    const data = Geom.flatData(lines);
 
-    n = n ?? findLength(Object.values(data));
+    const n = findLength(Object.values(data));
     const vars = [`x`, `y`, POSITIONS] as const;
     const [x, y] = Geom.getters(data, vars);
 

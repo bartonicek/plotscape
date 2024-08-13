@@ -4,7 +4,7 @@ import { findLength, pointInRect, rectsIntersect } from "../utils/funs";
 import { Meta } from "../utils/Meta";
 import { POSITIONS } from "../utils/symbols";
 import { DataLayer, DataLayers, Indexable, Point, Rect } from "../utils/types";
-import { FlatData, Geom, GroupedData } from "./Geom";
+import { FactorData, Geom } from "./Geom";
 
 type Data = {
   x0: Indexable;
@@ -20,25 +20,22 @@ type Scales = {
 
 export interface Rectangles extends Geom {
   type: Geom.Type.Rectangles;
-  data: { flat: Data & FlatData; grouped: Data & GroupedData };
+  data: (Data & FactorData)[];
   scales: Scales;
 }
 
 export namespace Rectangles {
-  export function of(data: { flat: Data; grouped: Data }): Rectangles {
+  export function of(): Rectangles {
     const scales = {} as Scales; // Will be definitely assigned when added to Plot
+    const data = [] as (Data & FactorData)[];
     const type = Geom.Type.Rectangles;
-    const typedData = data as {
-      flat: Data & FlatData;
-      grouped: Data & GroupedData;
-    };
 
-    return { type, data: typedData, scales };
+    return { type, data, scales };
   }
 
   export function render(rectangles: Rectangles, layers: DataLayers) {
     const { scales } = rectangles;
-    const data = rectangles.data.grouped;
+    const data = Geom.groupedData(rectangles);
 
     const n = findLength(Object.values(data));
     const vars = [`x0`, `y0`, `x1`, `y1`, LAYER] as const;
@@ -57,7 +54,7 @@ export namespace Rectangles {
 
   export function check(rectangles: Rectangles, selection: Rect) {
     const { scales } = rectangles;
-    const data = rectangles.data.flat;
+    const data = Geom.flatData(rectangles);
 
     const n = findLength(Object.values(data));
     const vars = [`x0`, `y0`, `x1`, `y1`, POSITIONS] as const;
@@ -82,7 +79,7 @@ export namespace Rectangles {
 
   export function query(rectangles: Rectangles, position: Point) {
     const { scales } = rectangles;
-    const data = rectangles.data.flat;
+    const data = Geom.flatData(rectangles);
 
     const n = findLength(Object.values(data));
     const vars = [`x0`, `y0`, `x1`, `y1`] as const;

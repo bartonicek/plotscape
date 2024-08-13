@@ -33,7 +33,7 @@ import {
   Margins,
   Rect,
 } from "../utils/types";
-import { renderAxisLabels, renderAxisTitle } from "./axes";
+import { renderAxisLabels, renderAxisTitles } from "./axes";
 import { Frame } from "./Frame";
 
 enum Mode {
@@ -188,9 +188,7 @@ export namespace Plot {
   }
 
   export function setData(plot: Plot, data: Dataframe[]) {
-    if (plot.data.length) {
-      Reactive.removeListeners(last(plot.data as any), `changed`);
-    }
+    for (const data of plot.data) Reactive.removeListeners(data, `changed`);
     plot.data.length = 0;
     for (let i = 0; i < data.length; i++) plot.data.push(data[i]);
     Reactive.listen(last(data) as any, `changed`, () =>
@@ -200,6 +198,7 @@ export namespace Plot {
 
   export function addGeom(plot: Plot, geom: Geom) {
     geom.scales = plot.scales;
+    geom.data = plot.data as any;
     plot.renderables.push(geom);
     plot.selectables.push(geom);
     plot.queryables.push(geom);
@@ -627,10 +626,8 @@ function setupEvents(plot: Plot, options?: {}) {
       Frame.clear(frames[layer]);
     }
 
-    renderAxisLabels(plot, `x`);
-    renderAxisLabels(plot, `y`);
-    renderAxisTitle(plot, `x`);
-    renderAxisTitle(plot, `y`);
+    renderAxisLabels(plot);
+    renderAxisTitles(plot);
   });
 }
 

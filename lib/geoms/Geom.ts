@@ -21,11 +21,14 @@ export type GroupedData = {
   [LAYER]: Indexable<DataLayer>;
 };
 
-export type GeomData = { flat: Dataframe; grouped: Dataframe };
+export type FactorData = {
+  [POSITIONS]: Indexable<number[]>;
+  [LAYER]: Indexable<DataLayer>;
+};
 
-export interface Geom<T extends GeomData = GeomData> {
+export interface Geom<T extends Dataframe = Dataframe> {
   type: Geom.Type;
-  data: T;
+  data: (T & FactorData)[];
   scales: Record<string, Scale>;
 }
 
@@ -49,6 +52,14 @@ export namespace Geom {
     [Type.Rectangles]: Rectangles,
     [Type.Lines]: Lines,
   };
+
+  export function flatData(geom: Geom) {
+    return geom.data[geom.data.length - 2];
+  }
+
+  export function groupedData(geom: Geom) {
+    return geom.data[geom.data.length - 1];
+  }
 
   export function getter<T extends Indexable>(
     indexable: T,

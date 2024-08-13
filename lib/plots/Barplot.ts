@@ -24,7 +24,6 @@ interface Barplot extends Plot {
     { label: string[]; stat: Reduced<number> },
     { label: string[]; stat: Reduced<number> },
   ];
-  coordinates: Dataframe[];
   bars?: Bars;
 }
 
@@ -70,6 +69,8 @@ export function Barplot<T extends Columns>(
   });
 
   barplot(plot);
+  Plot.addGeom(plot, Bars.of());
+
   return plot;
 }
 
@@ -81,16 +82,13 @@ function sortAxis(domain: ExpanseBand, values: number[]) {
 }
 
 function barplot(plot: Barplot) {
-  const { summaries } = plot;
+  const { summaries, scales } = plot;
   const coordinates = Summaries.translate(summaries, [
     (d) => ({ x: d.label, y: zero, height: d.stat, width: one }),
     (d) => ({ x: d.label, y: zero, height: Reduced.stack(d.stat), width: one }),
   ]);
 
-  const [flat, grouped] = coordinates;
-  plot.coordinates = coordinates;
-
-  const { scales } = plot;
+  const [flat] = coordinates;
   const opts = { default: true, ratio: true };
 
   Scale.train(scales.x, flat.x, opts);
@@ -119,13 +117,7 @@ function barplot(plot: Barplot) {
   Reactive.removeListeners(plot, `o`);
   Plot.listen(plot, `o`, () => sortAxis(scales.x.domain, flat.height));
 
-  const bars = Bars.of({ flat, grouped });
-  if (plot.bars) Plot.deleteGeom(plot, plot.bars);
-  Plot.addGeom(plot, bars);
-
-  plot.bars = bars;
   plot.representation = Representation.Absolute;
-
   Plot.setData(plot, coordinates);
 
   Plot.dispatch(plot, `render`);
@@ -133,7 +125,7 @@ function barplot(plot: Barplot) {
 }
 
 function spineplot(plot: Barplot) {
-  const { summaries } = plot;
+  const { summaries, scales } = plot;
   const coordinates = Summaries.translate(summaries, [
     (d) => ({ x: d.label, y: zero, height: one, width: d.stat }),
     (d) => ({
@@ -144,9 +136,7 @@ function spineplot(plot: Barplot) {
     }),
   ]);
 
-  const [flat, grouped] = coordinates;
-
-  const { scales } = plot;
+  const [flat] = coordinates;
   const opts = { default: true, ratio: true };
 
   Scale.train(scales.x, flat.x, opts);
@@ -174,14 +164,7 @@ function spineplot(plot: Barplot) {
   Reactive.removeListeners(plot, `o`);
   Plot.listen(plot, `o`, () => sortAxis(scales.x.domain, flat.width));
 
-  const bars = Bars.of({ flat, grouped });
-  if (plot.bars) Plot.deleteGeom(plot, plot.bars);
-  Plot.addGeom(plot, bars);
-
-  plot.bars = bars;
   plot.representation = Representation.Proportion;
-  plot.coordinates = coordinates;
-
   Plot.setData(plot, coordinates);
 
   Plot.dispatch(plot, `render`);

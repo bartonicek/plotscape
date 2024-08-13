@@ -17,7 +17,7 @@ import {
   Rect,
   VAnchor,
 } from "../utils/types";
-import { FlatData, Geom, GroupedData } from "./Geom";
+import { FactorData, Geom } from "./Geom";
 
 type Data = {
   x: Indexable;
@@ -35,7 +35,7 @@ type Scales = {
 
 export interface Bars extends Geom {
   type: Geom.Type.Bars;
-  data: { flat: Data & FlatData; grouped: Data & GroupedData };
+  data: (Data & FactorData)[];
   scales: Scales;
 
   postfn: (
@@ -46,34 +46,27 @@ export interface Bars extends Geom {
 }
 
 export namespace Bars {
-  export function of(
-    data: { flat: Data; grouped: Data },
-    options?: {
-      postfn?: (
-        coords: [x: number, y: number, width: number, height: number],
-      ) => void;
-      vAnchor?: VAnchor;
-      hAnchor?: HAnchor;
-    },
-  ): Bars {
+  export function of(options?: {
+    postfn?: (
+      coords: [x: number, y: number, width: number, height: number],
+    ) => void;
+    vAnchor?: VAnchor;
+    hAnchor?: HAnchor;
+  }): Bars {
     const scales = {} as Scales; // Will be definitely assigned when added to Plot
+    const data = [] as (Data & FactorData)[];
 
     const type = Geom.Type.Bars;
     const vAnchor = options?.vAnchor ?? VAnchor.Bottom;
     const hAnchor = options?.hAnchor ?? HAnchor.Center;
     const postfn = options?.postfn ?? identity;
 
-    const typedData = data as {
-      flat: Data & FlatData;
-      grouped: Data & GroupedData;
-    };
-
-    return { type, data: typedData, scales, postfn, vAnchor, hAnchor };
+    return { type, data, scales, postfn, vAnchor, hAnchor };
   }
 
   export function render(bars: Bars, layers: DataLayers) {
     const { scales, postfn, hAnchor, vAnchor } = bars;
-    const data = bars.data.grouped;
+    const data = Geom.groupedData(bars);
 
     const n = findLength(Object.values(data));
     const vars = [`x`, `y`, `width`, `height`, LAYER] as const;
@@ -95,7 +88,7 @@ export namespace Bars {
 
   export function check(bars: Bars, selection: Rect) {
     const { scales, postfn, hAnchor, vAnchor } = bars;
-    const data = bars.data.flat;
+    const data = Geom.flatData(bars);
 
     const n = findLength(Object.values(data));
     const vars = [`x`, `y`, `width`, `height`, POSITIONS] as const;
@@ -132,7 +125,7 @@ export namespace Bars {
 
   export function query(bars: Bars, position: Point) {
     const { scales, postfn, hAnchor, vAnchor } = bars;
-    const data = bars.data.flat;
+    const data = Geom.flatData(bars);
 
     const n = findLength(Object.values(data));
     const vars = [`x`, `y`, `width`, `height`] as const;

@@ -3,7 +3,12 @@ import { getMargins } from "../utils/funs";
 import { Meta } from "../utils/Meta";
 import { Plot } from "./Plot";
 
-export function renderAxisLabels(plot: Plot, axis: `x` | `y`) {
+export function renderAxisLabels(plot: Plot) {
+  renderSingleAxisLabels(plot, `x`);
+  renderSingleAxisLabels(plot, `y`);
+}
+
+function renderSingleAxisLabels(plot: Plot, axis: `x` | `y`) {
   const scale = plot.scales[axis];
   const frame = plot.frames[`${axis}Axis`];
   const { context } = frame;
@@ -54,7 +59,12 @@ export function renderAxisLabels(plot: Plot, axis: `x` | `y`) {
   }
 }
 
-export function renderAxisTitle(plot: Plot, axis: `x` | `y`) {
+export function renderAxisTitles(plot: Plot) {
+  renderSingleAxisTitle(plot, `x`);
+  renderSingleAxisTitle(plot, `y`);
+}
+
+function renderSingleAxisTitle(plot: Plot, axis: `x` | `y`) {
   const { scales, frames, margins } = plot;
   const scale = scales[axis];
   const frame = frames.base;

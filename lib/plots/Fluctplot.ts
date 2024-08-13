@@ -46,7 +46,7 @@ export function Fluctuationplot<T extends Columns>(
   ]);
 
   const { scales } = plot;
-  const [flat, grouped] = coordinates;
+  const [flat] = coordinates;
   const opts = { default: true, ratio: true };
 
   Scale.train(scales.x, flat.x, opts);
@@ -65,11 +65,8 @@ export function Fluctuationplot<T extends Columns>(
     { default: true },
   );
 
-  // const postfn = (coords: Rect) => (coords[1] -= coords[2] / 2);
-  const bars = Bars.of({ flat, grouped }, { vAnchor: VAnchor.Middle });
-  Plot.addGeom(plot, bars);
-
   Plot.setData(plot, coordinates);
+  Plot.addGeom(plot, Bars.of({ vAnchor: VAnchor.Middle }));
 
   const fluctplot = { ...plot, summaries, coordinates };
   return fluctplot;

@@ -18,7 +18,9 @@ export type IndexableValue<T extends Indexable> =
 
 export type Columns = Record<string | symbol, any[]>;
 
-export type Dataframe = { [key: string | symbol]: Indexable };
+export interface Dataframe {
+  [key: string | symbol]: Indexable;
+}
 
 export type UntypedColumns<S extends string[]> = { [key in S[number]]: any[] };
 

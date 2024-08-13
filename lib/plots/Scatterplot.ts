@@ -23,12 +23,8 @@ export function Scatterplot<T extends Dataframe>(
   const summaries = Summaries.of({}, [factor1, factor2] as const);
   const coordinates = Summaries.translate(summaries, [(d) => d, (d) => d]);
 
-  const [flat, grouped] = coordinates;
-
   Plot.setData(plot, coordinates);
-
-  const points = Points.of({ flat, grouped });
-  Plot.addGeom(plot, points);
+  Plot.addGeom(plot, Points.of());
 
   return plot;
 }

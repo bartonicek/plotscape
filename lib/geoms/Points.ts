@@ -5,7 +5,7 @@ import { findLength, pointInRect, rectsIntersect } from "../utils/funs";
 import { Meta } from "../utils/Meta";
 import { POSITIONS } from "../utils/symbols";
 import { DataLayer, DataLayers, Indexable, Point, Rect } from "../utils/types";
-import { FlatData, Geom, GroupedData } from "./Geom";
+import { FactorData, Geom } from "./Geom";
 
 type Data = {
   x: Indexable;
@@ -21,25 +21,20 @@ type Scales = {
 
 export interface Points extends Geom {
   type: Geom.Type.Points;
-  data: { flat: Data & FlatData; grouped: Data & GroupedData };
+  data: (Data & FactorData)[];
   scales: Scales;
 }
 
 export namespace Points {
-  export function of(data: { flat: Data; grouped: Data }): Points {
+  export function of(): Points {
     const scales = {} as Scales; // Will be definitely assigned when added to Plot
-
-    const typedData = data as {
-      flat: Data & FlatData;
-      grouped: Data & GroupedData;
-    };
-
-    return { type: Geom.Type.Points, data: typedData, scales };
+    const data = [] as (Data & FactorData)[];
+    return { type: Geom.Type.Points, data, scales };
   }
 
   export function render(points: Points, layers: DataLayers) {
     const { scales } = points;
-    const data = points.data.grouped;
+    const data = Geom.groupedData(points);
 
     const n = findLength(Object.values(data));
     const vars = [`x`, `y`, `size`, LAYER] as const;
@@ -57,7 +52,7 @@ export namespace Points {
 
   export function check(points: Points, selection: Rect) {
     const { scales } = points;
-    const data = points.data.flat;
+    const data = Geom.flatData(points);
 
     const n = findLength(Object.values(data));
     const vars = [`x`, `y`, `size`, POSITIONS] as const;
@@ -84,7 +79,7 @@ export namespace Points {
 
   export function query(points: Points, position: Point) {
     const { scales } = points;
-    const data = points.data.flat;
+    const data = Geom.flatData(points);
 
     const n = findLength(Object.values(data));
     const vars = [`x`, `y`, `size`] as const;
