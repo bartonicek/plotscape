@@ -101,6 +101,11 @@ export namespace ExpanseContinuous {
     return inv(trans(min) + pct * range) * (scale * mult) + offset;
   }
 
+  export function range(expanse: ExpanseContinuous) {
+    const { min, max } = expanse;
+    return max - min;
+  }
+
   export function train(
     expanse: ExpanseContinuous,
     array: number[],

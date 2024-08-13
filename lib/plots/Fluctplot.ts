@@ -99,6 +99,7 @@ function fluctplot(plot: Fluctplot) {
     (e) => {
       e.scale = 1 / k;
       e.mult = 0.9;
+      e.offset = 0;
     },
     { default: true },
   );
@@ -137,7 +138,7 @@ function pctfluctplot(plot: Fluctplot) {
     (e) => {
       e.scale = 1 / k;
       e.mult = 0.9;
-      e.offset = -5;
+      e.offset = -1;
     },
     { default: true },
   );

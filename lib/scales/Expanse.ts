@@ -197,11 +197,22 @@ export namespace Expanse {
     Expanse.set(expanse, (e) => (e.direction *= -1));
   }
 
-  export function isContinuous(expanse: Expanse) {
+  export function unitRange(expanse: Expanse) {
+    return expanse.one - expanse.zero;
+  }
+
+  export function range(expanse: Expanse) {
+    if (!isContinuous(expanse)) {
+      throw new Error(`Can only compute range on a continuous expanse`);
+    }
+    return ExpanseContinuous.range(expanse);
+  }
+
+  export function isContinuous(expanse: Expanse): expanse is ExpanseContinuous {
     return expanse.type === Expanse.Type.Continuous;
   }
 
-  export function isPoint(expanse: Expanse) {
+  export function isPoint(expanse: Expanse): expanse is ExpansePoint {
     return expanse.type === Expanse.Type.Point;
   }
 }

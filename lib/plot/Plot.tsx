@@ -92,6 +92,7 @@ export interface Plot extends Reactive {
     mousebutton: MouseButton;
     mousecoords: Rect;
     lastkey: string;
+    ratio?: number;
   };
 }
 
@@ -147,6 +148,7 @@ export namespace Plot {
       mode: Mode.Select,
       mousecoords: [0, 0, 0, 0] as Rect,
       lastkey: ``,
+      ratio: undefined,
     };
 
     const margins = getMargins();
@@ -426,6 +428,41 @@ export namespace Plot {
     Plot.dispatch(plot, `clear-transient`);
     Plot.dispatch(plot, `render`);
   }
+
+  export function setRatio(plot: Plot, ratio: number) {
+    const { x, y } = plot.scales;
+    if (!Expanse.isContinuous(x.domain) || !Expanse.isContinuous(y.domain)) {
+      throw new Error(`Both axes need to be continuous to set a ratio`);
+    }
+    plot.parameters.ratio = ratio;
+    Plot.dispatch(plot, `resize`);
+  }
+
+  export function applyRatio(plot: Plot, ratio: number) {
+    const { scales } = plot;
+    const { x, y } = scales;
+
+    const xRatio = Scale.unitRatio(x);
+    const yRatio = Scale.unitRatio(y) * ratio;
+
+    if (xRatio > yRatio) {
+      const r = (yRatio / xRatio) * Expanse.unitRange(y.domain);
+
+      Expanse.set(
+        x.domain,
+        (e) => ((e.zero = (1 - r) / 2), (e.one = (1 + r) / 2)),
+        { default: true },
+      );
+    } else {
+      const r = (xRatio / yRatio) * Expanse.unitRange(x.domain);
+
+      Expanse.set(
+        y.domain,
+        (e) => ((e.zero = (1 - r) / 2), (e.one = (1 + r) / 2)),
+        { default: true },
+      );
+    }
+  }
 }
 
 function setupFrames(plot: Plot, options?: {}) {
@@ -592,6 +629,8 @@ function setupEvents(plot: Plot, options?: {}) {
     Expanse.set(width.codomain, (e) => (e.max = w), opts);
     Expanse.set(height.codomain, (e) => (e.max = h), opts);
     Expanse.set(area.codomain, (e) => (e.max = Math.min(w, h)), opts);
+
+    if (parameters.ratio) Plot.applyRatio(plot, parameters.ratio);
   });
 
   for (const scale of Object.values(plot.scales)) {

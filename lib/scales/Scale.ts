@@ -125,4 +125,25 @@ export namespace Scale {
   export function shareCodomain(scale1: Scale, scale2: Scale) {
     scale2.codomain = scale1.codomain;
   }
+
+  export function domainRange(scale: Scale) {
+    return Expanse.range(scale.domain) / Expanse.unitRange(scale.domain);
+  }
+
+  export function codomainRange(scale: Scale) {
+    return Expanse.range(scale.codomain) * Expanse.unitRange(scale.codomain);
+  }
+
+  export function unitRatio(scale: Scale) {
+    const { domain, codomain } = scale;
+
+    if ([domain, codomain].map(Expanse.isContinuous).includes(false)) {
+      throw new Error(`Both domain and codomain need to be continuous`);
+    }
+
+    const domainRange = Expanse.range(domain);
+    const codomainRange = Expanse.range(codomain) * Expanse.unitRange(codomain);
+
+    return codomainRange / domainRange;
+  }
 }

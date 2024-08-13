@@ -102,7 +102,6 @@ function histogram(plot: Histogram) {
       y0: zero,
       x1: d.binMax,
       y1: d.stat,
-      x: d.breaks,
     }),
     (d) => ({
       x0: d.binMin,
@@ -129,7 +128,7 @@ function histogram(plot: Histogram) {
 
   Expanse.freeze(scales.y.domain, [`zero`]);
 
-  Meta.setName(scales.x, Meta.getName(flat.x));
+  Meta.setName(scales.x, Meta.getName(summaries[1].breaks));
   Meta.setName(scales.y, Meta.getName(flat.y1));
 
   plot.representation = Representation.Absolute;

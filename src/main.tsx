@@ -16,7 +16,7 @@ async function mtcarsScene() {
     reducer: Reducer.sum,
   });
   const plot4 = Plot.fluct(scene, (d) => [d.cyl, d.am]);
-  const plot5 = Plot.line(scene, (d) => [d.wt, d.mpg, d.cyl]);
+  const plot5 = Plot.line(scene, (d) => [d.wt, d.disp, d.drat, d.mpg]);
 
   Scene.addPlot(scene, plot1);
   Scene.addPlot(scene, plot2);
@@ -63,52 +63,32 @@ async function diamondsScene() {
   Scene.addPlot(scene, plot3);
 }
 
-mtcarsScene();
+async function sacramentoScene() {
+  const app = document.querySelector<HTMLDivElement>("#app")!;
+  const sacramento = await fetchJSON(`../datasets/sacramento.json`);
+  sacramento.city = sacramento.city.map((x) => x.toLowerCase());
 
-// const arr = [1, 2, 3, 4];
+  const scene = Scene.of(sacramento);
+  Scene.append(app, scene);
 
-// const r1 = Reactive.of({});
-// const r2 = Reactive.of({});
+  const plot1 = Plot.scatter(scene, (d) => [d.longitude, d.latitude]);
+  const plot2 = Plot.bar(scene, (d) => [d.city]);
+  const plot3 = Plot.histo(scene, (d) => [d.price]);
+  const plot4 = Plot.fluct(scene, (d) => [d.beds, d.baths]);
 
-// Reactive.listen(r1, `changed`, () => Reactive.dispatch(r2, `changed`), {
-//   deferred: true,
-// });
+  Scene.addPlot(scene, plot1);
+  Scene.addPlot(scene, plot2);
+  Scene.addPlot(scene, plot3);
+  Scene.addPlot(scene, plot4);
 
-// Reactive.listen(r1, `changed`, () => console.log(`foo`));
-// Reactive.listen(r2, `changed`, () => console.log(r1));
-
-// Reactive.set(r1, () => {});
-
-// const r1 = Reactive.of({ width: 5 });
-
-// const mtcars = (await fetchJSON(`../datasets/mtcars.json`)) as MtcarsUntyped;
-// const f1 = Factor.bin(mtcars.wt, r1);
-// const f2 = Factor.product(f1, Factor.from(mtcars.cyl));
-
-// const factors = [f1, f2] as const;
-// const summaries = Summaries.of({ stat: [mtcars.mpg, Reducer.sum] }, factors);
-
-// Reactive.listen(f1, `changed`, () => console.log(`f1`));
-// Reactive.listen(f2, `changed`, () => console.log(`f2`));
-
-// Reactive.listen(summaries[0], `changed`, () =>
-//   console.log(`f1 dispatch`, JSON.stringify(summaries[0].stat)),
-// );
-
-// Reactive.listen(summaries[1], `changed`, () =>
-//   console.log(`f2 dispatch`, JSON.stringify(summaries[0].stat)),
-// );
-
-// Reactive.set(r1, (e) => (e.width = 1));
-
-const foo = Symbol(`foo`);
-
-interface A {
-  [foo]: number;
+  Plot.setRatio(plot1, 1);
 }
 
-type ZZ = Exclude<symbol, typeof foo>;
+sacramentoScene();
 
-// interface B extends A {
-//   [key: Exclude<symbol, typeof foo>]: number[];
-// }
+// const s = Scale.of(Expanse.continuous(1, 10), Expanse.continuous(0, 500));
+
+// Expanse.set(s.domain, (e) => ((e.zero = 0.1), (e.one = 0.9)));
+// Expanse.set(s.codomain, (e) => ((e.zero = 0.1), (e.one = 0.9)));
+
+// console.log(Scale.unitRatio(s), (500 * 0.8) / (9 / 0.8));
