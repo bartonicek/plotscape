@@ -1,5 +1,6 @@
-import { Expanse, MtcarsUntyped, Plot, Reducer, Scene } from "../lib/main";
-import { fetchJSON, orderBy } from "../lib/utils/funs";
+import { Factor, MtcarsUntyped, Plot, Reducer, Scene } from "../lib/main";
+import { Summaries } from "../lib/transformation/Summaries";
+import { fetchJSON } from "../lib/utils/funs";
 import { Reactive } from "../lib/utils/Reactive";
 
 async function mtcarsScene() {
@@ -64,29 +65,37 @@ async function diamondsScene() {
   Scene.addPlot(scene, plot3);
 }
 
-imdbScene();
+mtcarsScene();
 
-// const labels = [`a`, `b`, `c`];
-// const weights = [200, 100, 40];
-// const exp = Expanse.band(labels);
-// ExpanseBand.setWeights(exp, weights);
+// const arr = [1, 2, 3, 4];
 
-// console.log(labels.map((x) => Expanse.normalize(exp, x)));
-// ExpanseBand.reorder(exp, [2, 1, 0]);
-// console.log(labels.map((x) => Expanse.normalize(exp, x)));
+// const r1 = Reactive.of({});
+// const r2 = Reactive.of({});
 
-const arr = [1, 2, 3, 4];
-orderBy(arr, [3, 1, 2, 0]);
+// Reactive.listen(r1, `changed`, () => Reactive.dispatch(r2, `changed`), {
+//   deferred: true,
+// });
 
-const r1 = Reactive.of({});
-const r2 = Reactive.of({});
+// Reactive.listen(r1, `changed`, () => console.log(`foo`));
+// Reactive.listen(r2, `changed`, () => console.log(r1));
 
-Reactive.listen(r1, `changed`, () => Reactive.dispatch(r2, `changed`));
+// Reactive.set(r1, () => {});
 
-Reactive.listen(r1, `changed`, () => console.log(`foo`));
-Reactive.listen(r2, `changed`, () => console.log(r1));
+const r1 = Reactive.of({ width: 5 });
 
-const exp = Expanse.point(["a", "b", "c", "d"]);
-Expanse.set(exp, (e) => ((e.zero = 0.1), (e.one = 0.9)));
+const mtcars = (await fetchJSON(`../datasets/mtcars.json`)) as MtcarsUntyped;
+const f1 = Factor.bin(mtcars.wt, r1);
+const f2 = Factor.product(f1, Factor.from(mtcars.cyl));
 
-console.log(Expanse.normalize(exp, "b"));
+const factors = [f1, f2] as const;
+const summaries = Summaries.of({ stat: [mtcars.mpg, Reducer.sum] }, factors);
+
+Reactive.listen(summaries[0], `changed`, () =>
+  console.log(`f1 dispatch`, JSON.stringify(summaries[0].stat)),
+);
+
+Reactive.listen(summaries[1], `changed`, () =>
+  console.log(`f2 dispatch`, JSON.stringify(summaries[0].stat)),
+);
+
+Reactive.set(r1, (e) => (e.width = 1));

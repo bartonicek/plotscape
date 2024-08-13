@@ -52,10 +52,10 @@ export namespace Summaries {
         for (const k of Object.keys(newSummarized)) {
           copyValues(newSummarized[k], summarized[k]);
         }
-
-        // Need to dispatch after parent values have been updated
-        setTimeout(() => Reactive.dispatch(data, `changed`), 0);
       });
+
+      // Need to dispatch only AFTER parent values have been updated
+      Reactive.propagate(factor, data, { deferred: true });
     }
 
     return result as { [key in keyof U]: Flat<U[key]["data"] & Computed<T>> };

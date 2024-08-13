@@ -68,7 +68,7 @@ export namespace Scene {
     });
 
     Plot.listen(plot, `selected`, (e) => {
-      Marker.update(marker, e.detail.selected);
+      Marker.update(marker, e.selected);
     });
 
     Plot.listen(plot, `clear-transient`, () => {

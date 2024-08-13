@@ -322,14 +322,15 @@ export namespace Factor {
     Factor.listen(factor1, `changed`, () => {
       const newFactor = compute();
       Factor.copyFrom(newFactor, factor);
-      Factor.dispatch(factor, `changed`);
     });
 
     Factor.listen(factor2, `changed`, () => {
       const newFactor = compute();
       Factor.copyFrom(newFactor, factor);
-      Factor.dispatch(factor, `changed`);
     });
+
+    Reactive.propagate(factor1, factor, { deferred: true });
+    Reactive.propagate(factor2, factor, { deferred: true });
 
     return factor;
   }
