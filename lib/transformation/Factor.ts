@@ -329,8 +329,8 @@ export namespace Factor {
       Factor.copyFrom(newFactor, factor);
     });
 
-    Reactive.propagate(factor1, factor, { deferred: true });
-    Reactive.propagate(factor2, factor, { deferred: true });
+    Reactive.propagateChange(factor1, factor, { deferred: true });
+    Reactive.propagateChange(factor2, factor, { deferred: true });
 
     return factor;
   }

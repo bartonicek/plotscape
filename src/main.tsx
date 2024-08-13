@@ -1,7 +1,5 @@
-import { Factor, MtcarsUntyped, Plot, Reducer, Scene } from "../lib/main";
-import { Summaries } from "../lib/transformation/Summaries";
+import { MtcarsUntyped, Plot, Reducer, Scene } from "../lib/main";
 import { fetchJSON } from "../lib/utils/funs";
-import { Reactive } from "../lib/utils/Reactive";
 
 async function mtcarsScene() {
   const app = document.querySelector<HTMLDivElement>("#app")!;
@@ -81,21 +79,24 @@ mtcarsScene();
 
 // Reactive.set(r1, () => {});
 
-const r1 = Reactive.of({ width: 5 });
+// const r1 = Reactive.of({ width: 5 });
 
-const mtcars = (await fetchJSON(`../datasets/mtcars.json`)) as MtcarsUntyped;
-const f1 = Factor.bin(mtcars.wt, r1);
-const f2 = Factor.product(f1, Factor.from(mtcars.cyl));
+// const mtcars = (await fetchJSON(`../datasets/mtcars.json`)) as MtcarsUntyped;
+// const f1 = Factor.bin(mtcars.wt, r1);
+// const f2 = Factor.product(f1, Factor.from(mtcars.cyl));
 
-const factors = [f1, f2] as const;
-const summaries = Summaries.of({ stat: [mtcars.mpg, Reducer.sum] }, factors);
+// const factors = [f1, f2] as const;
+// const summaries = Summaries.of({ stat: [mtcars.mpg, Reducer.sum] }, factors);
 
-Reactive.listen(summaries[0], `changed`, () =>
-  console.log(`f1 dispatch`, JSON.stringify(summaries[0].stat)),
-);
+// Reactive.listen(f1, `changed`, () => console.log(`f1`));
+// Reactive.listen(f2, `changed`, () => console.log(`f2`));
 
-Reactive.listen(summaries[1], `changed`, () =>
-  console.log(`f2 dispatch`, JSON.stringify(summaries[0].stat)),
-);
+// Reactive.listen(summaries[0], `changed`, () =>
+//   console.log(`f1 dispatch`, JSON.stringify(summaries[0].stat)),
+// );
 
-Reactive.set(r1, (e) => (e.width = 1));
+// Reactive.listen(summaries[1], `changed`, () =>
+//   console.log(`f2 dispatch`, JSON.stringify(summaries[0].stat)),
+// );
+
+// Reactive.set(r1, (e) => (e.width = 1));

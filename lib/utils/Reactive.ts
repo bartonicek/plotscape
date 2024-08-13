@@ -1,17 +1,19 @@
-import { throttle } from "./funs";
+import { remove, throttle } from "./funs";
 
 const LISTENERS = Symbol(`listeners`);
 const DEFERRED = Symbol(`deferred`);
 
 export interface Reactive<T extends string = string> {
-  [LISTENERS]: Record<string, Set<(data: any) => void>>;
-  [DEFERRED]: Record<string, Set<(data: any) => void>>;
+  [LISTENERS]: Record<string, EventCb[]>;
+  [DEFERRED]: Record<string, EventCb[]>;
 }
+
+type EventCb = (data: any) => void;
 
 export namespace Reactive {
   export function of<T extends Dict<any>>(object: T) {
-    const listeners = {} as Record<string, Set<(data: any) => void>>;
-    const deferred = {} as Record<string, Set<(data: any) => void>>;
+    const listeners = {} as Record<string, EventCb[]>;
+    const deferred = {} as Record<string, EventCb[]>;
 
     return { ...object, [LISTENERS]: listeners, [DEFERRED]: deferred };
   }
@@ -19,7 +21,15 @@ export namespace Reactive {
   export const listen = makeListenFn<Reactive, `changed`>();
   export const dispatch = makeDispatchFn<Reactive, `changed`>();
 
-  export function propagate(
+  export function getListeners(object: Reactive) {
+    return object[LISTENERS];
+  }
+
+  export function getDeferred(object: Reactive) {
+    return object[DEFERRED];
+  }
+
+  export function propagateChange(
     object1: Reactive,
     object2: Reactive,
     options?: { throttle?: number; deferred?: boolean },
@@ -49,7 +59,7 @@ export namespace Reactive {
   export function removeListeners(object: Reactive, type: string) {
     if (!object[LISTENERS][type]) return;
     for (const cb of object[LISTENERS][type]) {
-      object[LISTENERS][type].delete(cb);
+      remove(object[LISTENERS][type], cb);
     }
   }
 
@@ -66,8 +76,8 @@ export namespace Reactive {
         ? object[DEFERRED]
         : object[LISTENERS];
 
-      if (!listeners[type]) listeners[type] = new Set();
-      listeners[type].add(eventfn);
+      if (!listeners[type]) listeners[type] = [];
+      if (!listeners[type].includes(eventfn)) listeners[type].push(eventfn);
     };
   }
 

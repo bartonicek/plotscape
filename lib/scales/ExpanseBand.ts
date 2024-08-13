@@ -161,7 +161,7 @@ export namespace ExpanseBand {
 
     if (!indices) {
       copyValues(defaults.order, order);
-      copyValues(defaults.cumulativeWeights, cumulativeWeights);
+      copyValues(cumsum(ordered(weights, order)), cumulativeWeights);
 
       expanse.ordered = false;
       Expanse.dispatch(expanse, `changed`);
