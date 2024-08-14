@@ -1,5 +1,5 @@
 import { Bars } from "../geoms/Bars";
-import { Plot } from "../plot/Baseplot";
+import { Plot } from "../plot/Plot";
 import { Expanse } from "../scales/Expanse";
 import { ExpanseBand } from "../scales/ExpanseBand";
 import { Scale } from "../scales/Scale";
@@ -63,7 +63,7 @@ export function Barplot<T extends Columns>(
   barplot(plot);
   Plot.addGeom(plot, Bars.of());
 
-  return plot;
+  return plot as unknown as Plot;
 }
 
 function sortAxis(domain: ExpanseBand, values: number[]) {

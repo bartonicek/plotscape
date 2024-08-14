@@ -1,17 +1,17 @@
 import { Points } from "../geoms/Points";
-import { Plot } from "../plot/Baseplot";
+import { Plot } from "../plot/Plot";
 import { Scale } from "../scales/Scale";
 import { Scene } from "../scene/Scene";
 import { Factor } from "../transformation/Factor";
 import { Summaries } from "../transformation/Summaries";
 import { Columns, Indexable } from "../utils/types";
 
-interface Scatterplot extends Plot {
+type Scatterplot = Plot & {
   summaries: readonly [
     { x: Indexable<any>; y: Indexable<any> },
     { x: Indexable<any>; y: Indexable<any> },
   ];
-}
+};
 
 export function Scatterplot<T extends Columns>(
   scene: Scene<T>,
@@ -43,5 +43,5 @@ export function Scatterplot<T extends Columns>(
   Plot.setData(plot, coordinates);
   Plot.addGeom(plot, Points.of());
 
-  return { ...plot, summaries };
+  return { ...plot, summaries } as unknown as Plot;
 }

@@ -1,5 +1,5 @@
 import { Rectangles } from "../geoms/Rectangles";
-import { Plot } from "../plot/Baseplot";
+import { Plot } from "../plot/Plot";
 import { Expanse } from "../scales/Expanse";
 import { Scale } from "../scales/Scale";
 import { Scene } from "../scene/Scene";
@@ -81,7 +81,7 @@ export function Histogram<T extends Columns>(
   histogram(plot);
   Plot.addGeom(plot, Rectangles.of());
 
-  return plot;
+  return plot as unknown as Plot;
 }
 
 function switchRepresentation(plot: Histogram) {

@@ -49,6 +49,15 @@ enum MouseButton {
   Right = 2,
 }
 
+enum PlotType {
+  Unknown = `unknown`,
+  Scatter = `scatter`,
+  Bar = `bar`,
+  Histo = `histo`,
+  Fluct = `fluct`,
+  Line = `line`,
+}
+
 export type Frames = DataLayers & {
   [key in `base` | `under` | `over` | `user` | `xAxis` | `yAxis`]: Frame;
 };
@@ -99,15 +108,6 @@ export interface Plot extends Reactive {
 }
 
 export namespace Plot {
-  export enum Type {
-    Unknown = `unknown`,
-    Scatter = `scatter`,
-    Bar = `bar`,
-    Histo = `histo`,
-    Fluct = `fluct`,
-    Line = `line`,
-  }
-
   export type Scales = {
     x: Scale<any, ExpanseContinuous>;
     y: Scale<any, ExpanseContinuous>;
@@ -116,6 +116,8 @@ export namespace Plot {
     width: Scale<any, ExpanseContinuous>;
     height: Scale<any, ExpanseContinuous>;
   };
+
+  export import Type = PlotType;
 
   export function of(options?: {
     type?: Type;

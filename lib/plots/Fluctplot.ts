@@ -1,5 +1,5 @@
 import { Bars } from "../geoms/Bars";
-import { Plot } from "../plot/Baseplot";
+import { Plot } from "../plot/Plot";
 import { Expanse } from "../scales/Expanse";
 import { Scale } from "../scales/Scale";
 import { Scene } from "../scene/Scene";
@@ -67,7 +67,7 @@ export function Fluctuationplot<T extends Columns>(
   fluctplot(plot);
   Plot.addGeom(plot, Bars.of({ vAnchor: VAnchor.Middle }));
 
-  return plot;
+  return plot as unknown as Plot;
 }
 
 function switchRepresentation(plot: Fluctplot) {

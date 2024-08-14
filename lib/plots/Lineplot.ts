@@ -1,5 +1,5 @@
 import { Lines } from "../geoms/Lines";
-import { Plot } from "../plot/Baseplot";
+import { Plot } from "../plot/Plot";
 import { Expanse } from "../scales/Expanse";
 import { Scale } from "../scales/Scale";
 import { Scene } from "../scene/Scene";
@@ -52,5 +52,5 @@ export function Lineplot<T extends Columns>(
   Plot.setData(plot, coordinates);
   Plot.addGeom(plot, Lines.of());
 
-  return plot;
+  return plot as unknown as Plot;
 }

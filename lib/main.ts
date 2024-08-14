@@ -1,7 +1,7 @@
 import "./index.css";
 
-export * from "./plot/Baseplot";
 export * from "./plot/Frame";
+export * from "./plot/Plot";
 export * from "./scales/Expanse";
 export * from "./scales/ExpanseBand";
 export * from "./scales/ExpanseContinuous";
