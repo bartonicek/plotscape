@@ -11,7 +11,7 @@ export function Lineplot<T extends Columns>(
   scene: Scene<T>,
   selectfn: (data: T) => number[][],
   options?: {
-    queries?: ((data: T) => any[])[];
+    queries?: (data: T) => any[][];
   },
 ) {
   const { data, marker } = scene;
@@ -21,8 +21,9 @@ export function Lineplot<T extends Columns>(
 
   const x = Getter.constant(names);
   const y = Getter.multi(vars);
+  const queries = options?.queries ? options.queries(data) : {};
 
-  const factor1 = Factor.bijection({ x, y });
+  const factor1 = Factor.bijection({ x, y, ...queries });
   const factor2 = Factor.product(factor1, marker.factor);
 
   const summaries = Summaries.of({}, [factor1, factor2] as const);

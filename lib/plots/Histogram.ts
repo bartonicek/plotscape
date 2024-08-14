@@ -35,7 +35,7 @@ export function Histogram<T extends Columns>(
   selectfn: (data: T) => [number[]] | [number[], number[]],
   options?: {
     reducer?: Reducer<number, number>;
-    queries?: [(data: T) => any[], Reducer][];
+    queries?: (data: T) => [any[], Reducer][];
   },
 ) {
   const { data, marker } = scene;
@@ -43,9 +43,6 @@ export function Histogram<T extends Columns>(
   let [binned, vals] = selectfn(data);
   const reducer = vals && options?.reducer ? options.reducer : Reducer.sum;
   const values = vals ? [...vals] : () => 1;
-
-  if (!Meta.hasName(values)) Meta.setName(values, `count`);
-  else Meta.setName(values, `${reducer.name} of ${Meta.getName(values)}`);
 
   const [min, max] = minmax(binned);
   const range = max - min;
@@ -57,29 +54,22 @@ export function Histogram<T extends Columns>(
   const factor2 = Factor.product(factor1, marker.factor);
   const factors = [factor0, factor1, factor2] as const;
 
-  const qs = Summaries.formatQueries(options?.queries ?? [], data);
+  const queries = options?.queries ? options.queries(data) : {};
+  const summaries = Summaries.of(
+    { stat: [values, reducer], ...queries },
+    factors,
+  );
 
-  const summaries = Summaries.of({ stat: [values, reducer], ...qs }, factors);
   const representation = Representation.Absolute;
-  const opts = { type: Plot.Type.Histo } as const;
   const coordinates = [] as (Dataframe & Reactive)[];
+  const opts = { type: Plot.Type.Histo } as const;
   const plot = { representation, ...Plot.of(opts), summaries, coordinates };
 
-  Plot.listen(plot, `n`, () => {
-    switch (plot.representation) {
-      case Representation.Absolute:
-        spinogram(plot);
-        break;
-      case Representation.Proportion:
-        histogram(plot);
-        break;
-    }
-  });
-
-  Plot.listen(plot, `=`, () => Reactive.set(pars, (p) => (p.width *= 10 / 9)));
-  Plot.listen(plot, `-`, () => Reactive.set(pars, (p) => (p.width *= 9 / 10)));
+  Plot.listen(plot, `n`, () => switchRepresentation(plot));
 
   const inc = range / 10;
+  Plot.listen(plot, `=`, () => Reactive.set(pars, (p) => (p.width *= 10 / 9)));
+  Plot.listen(plot, `-`, () => Reactive.set(pars, (p) => (p.width *= 9 / 10)));
   Plot.listen(plot, `'`, () => Reactive.set(pars, (p) => (p.anchor += inc)));
   Plot.listen(plot, `;`, () => Reactive.set(pars, (p) => (p.anchor -= inc)));
 
@@ -91,6 +81,11 @@ export function Histogram<T extends Columns>(
   Plot.addGeom(plot, Rectangles.of());
 
   return plot;
+}
+
+function switchRepresentation(plot: Histogram) {
+  if (plot.representation === Representation.Absolute) spinogram(plot);
+  else histogram(plot);
 }
 
 function histogram(plot: Histogram) {
@@ -161,8 +156,6 @@ function spinogram(plot: Histogram) {
     },
   ]);
 
-  Plot.setData(plot, coordinates);
-
   const { scales } = plot;
   const [, flat] = coordinates;
 
@@ -178,6 +171,7 @@ function spinogram(plot: Histogram) {
   Meta.setName(scales.x, `cumulative count`);
   Meta.setName(scales.y, `proportion`);
 
+  Plot.setData(plot, coordinates);
   plot.representation = Representation.Proportion;
 
   Plot.dispatch(plot, `render`);

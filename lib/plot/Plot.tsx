@@ -169,9 +169,9 @@ export namespace Plot {
       margins,
     });
 
-    setupFrames(plot, options);
+    setupFrames(plot);
     setupScales(plot, options);
-    setupEvents(plot, options); // Need to set up events last
+    setupEvents(plot); // Need to set up events last
 
     return plot;
   }
@@ -466,7 +466,7 @@ export namespace Plot {
   }
 }
 
-function setupFrames(plot: Plot, options?: {}) {
+function setupFrames(plot: Plot) {
   const { container, frames, margins } = plot;
   const [bottom, left, top, right] = margins;
   const dataLayers = [7, 6, 5, 4, 3, 2, 1, 0] as const;
@@ -540,7 +540,7 @@ function setupFrames(plot: Plot, options?: {}) {
   }
 }
 
-function setupEvents(plot: Plot, options?: {}) {
+function setupEvents(plot: Plot) {
   const { container, parameters, frames } = plot;
   const { mousecoords } = parameters;
 

@@ -152,7 +152,14 @@ export namespace Bars {
       if (pointInRect(position, rectCoords)) {
         const result = {} as Record<string, any>;
 
-        for (const v of Object.values(data)) {
+        if (Meta.hasName(data.x)) result[Meta.getName(data.x)] = x(i);
+        if (Meta.hasName(data.y)) result[Meta.getName(data.y)] = y(i);
+        if (Meta.hasName(data.height)) {
+          result[Meta.getName(data.height)] = height(i);
+        }
+
+        for (const [k, v] of Object.entries(data)) {
+          if ([`x`, `y`, `width`, `height`].includes(k)) continue;
           if (v && Meta.hasName(v)) result[Meta.getName(v)] = Geom.getter(v)(i);
         }
 

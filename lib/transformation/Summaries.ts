@@ -1,5 +1,5 @@
 import { Reactive } from "../utils/Reactive";
-import { copyValues, isArray, merge } from "../utils/funs";
+import { copyValues, isArray, isIntegerString, merge } from "../utils/funs";
 import { Columns, Dataframe, Flat, Indexable } from "../utils/types";
 import { Factor } from "./Factor";
 import { Reduced } from "./Reduced";
@@ -99,8 +99,13 @@ export namespace Summaries {
 
       function compute(data: Dataframe) {
         const computed = translatefns[i](data);
-        const symbols = Object.getOwnPropertySymbols(data);
-        for (const s of symbols) computed[s] = data[s];
+        const keys = Reflect.ownKeys(data);
+
+        for (const key of keys) {
+          if (typeof key === `symbol`) computed[key] = data[key];
+          else if (isIntegerString(key)) computed[key] = data[key];
+        }
+
         return computed;
       }
     }

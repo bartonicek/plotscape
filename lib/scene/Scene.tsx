@@ -93,11 +93,11 @@ export namespace Scene {
     Scene.setDimensions(scene, nRows, nCols);
   }
 
-  export function addplotByType<T extends Columns>(
-    scene: Scene<T>,
-    type: Plot.Type,
-    selectfn: (data: T) => any[][],
-  ) {}
+  // export function addplotByType<T extends Columns>(
+  //   scene: Scene<T>,
+  //   type: Plot.Type,
+  //   selectfn: (data: T) => any[][],
+  // ) {}
 
   export function setDimensions(scene: Scene, rows: number, cols: number) {
     const { container } = scene;

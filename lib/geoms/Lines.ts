@@ -3,6 +3,7 @@ import { ExpanseContinuous } from "../scales/ExpanseContinuous";
 import { Scale } from "../scales/Scale";
 import { LAYER } from "../scene/Marker";
 import { findLength, rectSegmentIntersect } from "../utils/funs";
+import { Meta } from "../utils/Meta";
 import { POSITIONS } from "../utils/symbols";
 import { DataLayer, DataLayers, Indexable, Point, Rect } from "../utils/types";
 import { FactorData, Geom } from "./Geom";
@@ -102,6 +103,14 @@ export namespace Lines {
           const result = {} as Record<string, any>;
           const [xiu, yiu] = [x(i), y(i)];
           for (let k = 0; k < xiu.length; k++) result[xiu[k]] = yiu[k];
+
+          for (const [k, v] of Object.entries(data)) {
+            if (k === `x` || k === `y`) continue;
+            if (v && Meta.hasName(v)) {
+              result[Meta.getName(v)] = Geom.getter(v)(i);
+            }
+          }
+
           return result;
         }
       }

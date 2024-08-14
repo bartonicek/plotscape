@@ -129,9 +129,9 @@ export namespace Reduced {
     return reduced[FACTOR];
   }
 
-  function getReducer(reduced: Reduced) {
-    return reduced[REDUCER];
-  }
+  // function getReducer(reduced: Reduced) {
+  //   return reduced[REDUCER];
+  // }
 
   export function getParent(reduced: Reduced) {
     return reduced[PARENT];

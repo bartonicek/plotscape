@@ -1,5 +1,5 @@
 import { MtcarsUntyped, Plot, Reducer, Scene } from "../lib/main";
-import { fetchJSON, formatText } from "../lib/utils/funs";
+import { fetchJSON, formatText, isIntegerString } from "../lib/utils/funs";
 
 async function mtcarsScene() {
   const app = document.querySelector<HTMLDivElement>("#app")!;
@@ -10,13 +10,20 @@ async function mtcarsScene() {
   const scene = Scene.of(mtcars);
   Scene.append(app, scene);
 
-  const plot1 = Plot.scatter(scene, (d) => [d.wt, d.mpg]);
+  const plot1 = Plot.scatter(scene, (d) => [d.wt, d.mpg], {
+    queries: (d) => [d.cyl],
+  });
+
   const plot2 = Plot.histo(scene, (d) => [d.mpg]);
   const plot3 = Plot.bar(scene, (d) => [d.carb, d.mpg], {
     reducer: Reducer.sum,
+    queries: (d) => [[d.wt, Reducer.sum]],
   });
+
   const plot4 = Plot.fluct(scene, (d) => [d.cyl, d.am]);
-  const plot5 = Plot.line(scene, (d) => [d.wt, d.disp, d.drat, d.mpg]);
+  const plot5 = Plot.line(scene, (d) => [d.wt, d.disp, d.drat, d.mpg], {
+    queries: (d) => [d.cyl],
+  });
 
   Scene.addPlot(scene, plot1);
   Scene.addPlot(scene, plot2);
@@ -73,7 +80,7 @@ async function sacramentoScene() {
 
   const plot1 = Plot.scatter(scene, (d) => [d.longitude, d.latitude], {
     ratio: 1,
-    queries: [(d) => d.city, (d) => d.beds],
+    queries: (d) => [d.beds],
   });
 
   const plot2 = Plot.bar(scene, (d) => [d.city]);
@@ -96,3 +103,5 @@ mtcarsScene();
 // Expanse.set(s.codomain, (e) => ((e.zero = 0.1), (e.one = 0.9)));
 
 // console.log(Scale.unitRatio(s), (500 * 0.8) / (9 / 0.8));
+
+console.log(isIntegerString(`12`));

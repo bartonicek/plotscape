@@ -6,6 +6,7 @@ import { Reduced } from "./Reduced";
 
 export type Reducer<T = any, U = any, V = U> = {
   name: string;
+  fallback?: string;
   initialfn: () => U;
   reducefn: (prev: U, next: T) => U;
   afternfn?: (result: U) => V;
@@ -14,6 +15,7 @@ export type Reducer<T = any, U = any, V = U> = {
 export namespace Reducer {
   export const sum: Reducer<number, number> = {
     name: `sum`,
+    fallback: `count`,
     initialfn: () => 0,
     reducefn: (prev: number, next: number) => prev + next,
   };
@@ -58,7 +60,13 @@ export namespace Reducer {
 
     const result = Reduced.of(array, factor, reducer);
     Meta.copy(values as any, result);
+    Meta.setName(result, getName(array, reducer) ?? `[unknown summary]`);
 
     return result;
+  }
+
+  export function getName(reducable: Indexable, reducer: Reducer) {
+    if (!Meta.hasName(reducable)) return reducer.fallback;
+    return `${reducer.name} of ${Meta.getName(reducable)}`;
   }
 }

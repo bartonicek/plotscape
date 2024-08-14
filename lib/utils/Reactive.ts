@@ -1,7 +1,7 @@
 import { remove, throttle } from "./funs";
 
-const LISTENERS = Symbol(`listeners`);
-const DEFERRED = Symbol(`deferred`);
+export const LISTENERS = Symbol(`listeners`);
+export const DEFERRED = Symbol(`deferred`);
 
 export interface Reactive<T extends string = string> {
   [LISTENERS]: Record<string, EventCb[]>;

@@ -31,7 +31,7 @@ export function Barplot<T extends Columns>(
   selectfn: (data: T) => [any[]] | [any[], number[]],
   options?: {
     reducer?: Reducer<number, number>;
-    queries?: [(data: T) => any[], Reducer][];
+    queries?: (data: T) => [any[], Reducer][];
   },
 ) {
   const { data, marker } = scene;
@@ -40,16 +40,15 @@ export function Barplot<T extends Columns>(
   const reducer = vals && options?.reducer ? options.reducer : Reducer.sum;
   const values = vals ? [...vals] : () => 1;
 
-  const name = vals ? `${reducer.name} of ${Meta.getName(vals)}` : `count`;
-  Meta.setName(values, name);
-
   const factor1 = Factor.from(category);
   const factor2 = Factor.product(factor1, marker.factor);
   const factors = [factor1, factor2] as const;
 
-  const qs = Summaries.formatQueries(options?.queries ?? [], data);
-
-  const summaries = Summaries.of({ stat: [values, reducer], ...qs }, factors);
+  const queries = options?.queries ? options.queries(data) : {};
+  const summaries = Summaries.of(
+    { stat: [values, reducer], ...queries },
+    factors,
+  );
   const coordinates = [] as (Dataframe & Reactive)[];
 
   const representation = Representation.Absolute;

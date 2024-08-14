@@ -834,6 +834,10 @@ export function isNumber(x: any): x is number {
   return typeof x === `number`;
 }
 
+export function isIntegerString(x: string) {
+  return /^[0-9]+/.test(x);
+}
+
 /**
  * Checks whether an array is an array of numbers (by checking the first value only)
  * @param array An array

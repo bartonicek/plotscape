@@ -6,12 +6,12 @@ import { Summaries } from "../transformation/Summaries";
 export function Scatterplot<T extends Dataframe>(
   scene: Scene<T>,
   selectfn: (data: T) => [any[], any[]] | [any[], any[], any[]],
-  options?: { ratio?: number; queries?: ((data: T) => any[])[] },
+  options?: { ratio?: number; queries?: (data: T) => any[][] },
 ) {
   const { data, marker } = scene;
 
   const [x, y, size] = selectfn(data);
-  const queries = options?.queries ? options?.queries.map((x) => x(data)) : {};
+  const queries = options?.queries ? options?.queries(data) : {};
   const bijectionData = { x, y, size: size ?? (() => 0.5), ...queries };
 
   const factor1 = Factor.bijection(bijectionData);
