@@ -24,7 +24,7 @@ type EventType = `resize`;
 export namespace Scene {
   export function of<T extends Columns>(data: T): Scene<T> {
     const container = (
-      <div class="relate grid h-full w-full grid-cols-1 grid-rows-1 gap-5 bg-[#deded9] p-5"></div>
+      <div class="relate grid h-full w-full grid-cols-1 grid-rows-1 gap-5 bg-[#deded9] p-5 px-10"></div>
     ) as HTMLDivElement;
 
     const plots = [] as Plot[];

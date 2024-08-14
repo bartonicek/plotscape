@@ -108,7 +108,7 @@ async function sacramentoScene() {
   Plot.setRatio(plot5, 1);
 }
 
-sacramentoScene();
+diamondsScene();
 
 // const s = Scale.of(Expanse.continuous(1, 10), Expanse.continuous(0, 500));
 

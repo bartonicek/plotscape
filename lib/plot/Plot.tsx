@@ -125,7 +125,10 @@ export namespace Plot {
   }): Plot {
     const type = options?.type ?? `unknown`;
     const container = (
-      <div id="plot-container" class="relative h-full w-full"></div>
+      <div
+        id="plot-container"
+        class="relative h-full w-full drop-shadow-md"
+      ></div>
     );
     const queryDisplay = (
       <div class="relative z-30 hidden w-fit border border-black bg-gray-50 p-2"></div>

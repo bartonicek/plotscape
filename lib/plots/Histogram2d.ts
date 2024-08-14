@@ -75,7 +75,6 @@ export function Histogram2d<T extends Columns>(
 
   Plot.listen(plot, `n`, () => switchRepresentation(plot));
 
-  const [inc1, inc2] = [range1, range2].map((x) => x / 10);
   Plot.listen(plot, `=`, () => {
     Reactive.set(pars1, (p) => (p.width *= 10 / 9));
     Reactive.set(pars2, (p) => (p.width *= 10 / 9));
