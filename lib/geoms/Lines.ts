@@ -95,10 +95,14 @@ export namespace Lines {
       const xi = Scale.pushforward(scales.x, x(i)) as unknown as number[];
       const yi = Scale.pushforward(scales.y, y(i)) as unknown as number[];
 
-      for (let j = 1; j < x.length; j++) {
+      for (let j = 1; j < xi.length; j++) {
         const coords = [xi[j - 1], yi[j - 1], xi[j], yi[j]] as Rect;
+
         if (rectSegmentIntersect(pos, coords)) {
-          return { xi, yi };
+          const result = {} as Record<string, any>;
+          const [xiu, yiu] = [x(i), y(i)];
+          for (let k = 0; k < xiu.length; k++) result[xiu[k]] = yiu[k];
+          return result;
         }
       }
     }

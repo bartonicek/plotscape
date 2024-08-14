@@ -10,9 +10,11 @@ import { Columns } from "../utils/types";
 export function Lineplot<T extends Columns>(
   scene: Scene<T>,
   selectfn: (data: T) => number[][],
+  options?: {
+    queries?: ((data: T) => any[])[];
+  },
 ) {
   const { data, marker } = scene;
-  const plot = Plot.of({ type: Plot.Type.Line });
 
   const vars = selectfn(data);
   const names = vars.map(Meta.getName);
@@ -26,11 +28,12 @@ export function Lineplot<T extends Columns>(
   const summaries = Summaries.of({}, [factor1, factor2] as const);
   const coordinates = Summaries.translate(summaries, [(d) => d, (d) => d]);
 
+  const plot = Plot.of({ type: Plot.Type.Line });
   const { scales } = plot;
 
-  const { expandX, expandY } = defaultParameters;
-  const xOpts = { zero: expandX, one: 1 - expandX };
-  const yOpts = { zero: expandY, one: 1 - expandY };
+  const { expandX: ex, expandY: ey } = defaultParameters;
+  const xOpts = { zero: ex, one: 1 - ex };
+  const yOpts = { zero: ey, one: 1 - ey };
 
   Scale.setDomain(scales.x, Expanse.split(Expanse.point(names, xOpts)));
   Scale.setCoomain(scales.x, Expanse.split(scales.x.codomain));
@@ -42,11 +45,8 @@ export function Lineplot<T extends Columns>(
   Meta.setName(scales.x, `variable`);
   Meta.setName(scales.y, `value`);
 
-  const [flat, grouped] = coordinates;
-  const lines = Lines.of({ flat, grouped });
-  Plot.addGeom(plot, lines);
-
   Plot.setData(plot, coordinates);
+  Plot.addGeom(plot, Lines.of());
 
   return plot;
 }

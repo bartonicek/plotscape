@@ -73,7 +73,7 @@ async function sacramentoScene() {
 
   const plot1 = Plot.scatter(scene, (d) => [d.longitude, d.latitude], {
     ratio: 1,
-    queries: (d) => [d.city, d.beds],
+    queries: [(d) => d.city, (d) => d.beds],
   });
 
   const plot2 = Plot.bar(scene, (d) => [d.city]);
@@ -88,7 +88,7 @@ async function sacramentoScene() {
   // Plot.setRatio(plot1, 1);
 }
 
-sacramentoScene();
+mtcarsScene();
 
 // const s = Scale.of(Expanse.continuous(1, 10), Expanse.continuous(0, 500));
 
