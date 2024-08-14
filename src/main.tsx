@@ -1,5 +1,5 @@
 import { MtcarsUntyped, Plot, Reducer, Scene } from "../lib/main";
-import { fetchJSON } from "../lib/utils/funs";
+import { fetchJSON, formatText } from "../lib/utils/funs";
 
 async function mtcarsScene() {
   const app = document.querySelector<HTMLDivElement>("#app")!;
@@ -66,13 +66,14 @@ async function diamondsScene() {
 async function sacramentoScene() {
   const app = document.querySelector<HTMLDivElement>("#app")!;
   const sacramento = await fetchJSON(`../datasets/sacramento.json`);
-  sacramento.city = sacramento.city.map((x) => x.toLowerCase());
+  sacramento.city = sacramento.city.map((x) => formatText(x));
 
   const scene = Scene.of(sacramento);
   Scene.append(app, scene);
 
   const plot1 = Plot.scatter(scene, (d) => [d.longitude, d.latitude], {
     ratio: 1,
+    queries: (d) => [d.city, d.beds],
   });
 
   const plot2 = Plot.bar(scene, (d) => [d.city]);

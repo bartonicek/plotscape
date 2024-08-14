@@ -715,6 +715,17 @@ export function minDecimal(array: number[]) {
   return Math.floor(Math.abs(min)) + 2;
 }
 
+export function formatText(
+  value: string,
+  options = { lowercase: true, capitalize: true, split: true },
+) {
+  if (options?.split) value = value.replace(/_/g, ` `);
+  if (options?.lowercase) value = value.toLocaleLowerCase();
+  if (options?.capitalize) value = capitalize(value);
+
+  return value;
+}
+
 export function formatLabel(label: number | string) {
   if (typeof label != "number") return label;
 

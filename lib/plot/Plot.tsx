@@ -360,7 +360,7 @@ export namespace Plot {
       Scale.restoreDefaults(scale);
     }
     plot.zoomStack.length = 1;
-    Plot.dispatch(plot, `render`);
+    Plot.dispatch(plot, `clear-transient`);
   }
 
   export function setQueryMode(plot: Plot) {
