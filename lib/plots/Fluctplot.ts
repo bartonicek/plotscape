@@ -1,5 +1,5 @@
 import { Bars } from "../geoms/Bars";
-import { Plot } from "../plot/Plot";
+import { Plot } from "../plot/Baseplot";
 import { Expanse } from "../scales/Expanse";
 import { Scale } from "../scales/Scale";
 import { Scene } from "../scene/Scene";
@@ -32,7 +32,7 @@ export function Fluctuationplot<T extends Columns>(
     reducer?: Reducer<number, number>;
     queries?: [(data: T) => any[], Reducer][];
   },
-): Fluctplot {
+) {
   const { data, marker } = scene;
 
   let [cat1, cat2, vals] = selectfn(data);

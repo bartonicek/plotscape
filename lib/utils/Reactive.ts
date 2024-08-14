@@ -1,7 +1,7 @@
 import { remove, throttle } from "./funs";
 
-export const LISTENERS = Symbol(`listeners`);
-export const DEFERRED = Symbol(`deferred`);
+const LISTENERS = Symbol(`listeners`);
+const DEFERRED = Symbol(`deferred`);
 
 export interface Reactive<T extends string = string> {
   [LISTENERS]: Record<string, EventCb[]>;
@@ -11,7 +11,7 @@ export interface Reactive<T extends string = string> {
 type EventCb = (data: any) => void;
 
 export namespace Reactive {
-  export function of<T extends Dict<any>>(object: T) {
+  export function of<T extends Dict<any>>(object: T): T & Reactive {
     const listeners = {} as Record<string, EventCb[]>;
     const deferred = {} as Record<string, EventCb[]>;
 

@@ -11,7 +11,6 @@ import {
 import { Getter } from "../utils/Getter";
 import { Meta } from "../utils/Meta";
 import { Reactive } from "../utils/Reactive";
-import { POSITIONS } from "../utils/symbols";
 import {
   Dataframe,
   Flat,
@@ -19,6 +18,8 @@ import {
   Stringable,
   TaggedUnion,
 } from "../utils/types";
+
+export const POSITIONS = Symbol(`positions`);
 
 export interface Factor<T extends Dataframe = Dataframe> extends Reactive {
   type: Factor.Type;
@@ -76,7 +77,9 @@ export namespace Factor {
     return of(type, cardinality, indices, factorData);
   }
 
-  export function mono(n: number) {
+  export function mono(
+    n: number,
+  ): Factor<{ [POSITIONS]: Indexable<number[]> }> {
     const cardinality = 1;
     const indices = Array(n).fill(0);
     const positions = () => indices;

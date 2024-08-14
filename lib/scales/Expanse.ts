@@ -86,6 +86,7 @@ export namespace Expanse {
     const direction = options?.direction ?? Direction.Forwards;
     const frozen = [] as string[];
     const linked = [] as Expanse[];
+
     return Reactive.of({ zero, one, direction, frozen, linked });
   }
 

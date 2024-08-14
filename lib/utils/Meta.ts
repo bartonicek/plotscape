@@ -5,9 +5,7 @@ const LENGTH = Symbol(`length`);
 const MIN = Symbol(`min`);
 const MAX = Symbol(`max`);
 const QUERYABLE = Symbol(`queryable`);
-export const PARENTVALUES = Symbol(`parentValues`);
-export const FACTOR = Symbol(`factor`);
-export const REDUCER = Symbol(`reducer`);
+const PARENTVALUES = Symbol(`parentValues`);
 
 declare global {
   interface Object {

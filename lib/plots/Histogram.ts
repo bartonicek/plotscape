@@ -1,5 +1,5 @@
 import { Rectangles } from "../geoms/Rectangles";
-import { Plot } from "../plot/Plot";
+import { Plot } from "../plot/Baseplot";
 import { Expanse } from "../scales/Expanse";
 import { Scale } from "../scales/Scale";
 import { Scene } from "../scene/Scene";

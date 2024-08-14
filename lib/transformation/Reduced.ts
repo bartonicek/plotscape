@@ -1,6 +1,6 @@
 import { subset } from "../utils/funs";
 import { Getter } from "../utils/Getter";
-import { FACTOR, Meta, REDUCER } from "../utils/Meta";
+import { Meta } from "../utils/Meta";
 import { Reactive } from "../utils/Reactive";
 import { Factor } from "./Factor";
 import { Reducer } from "./Reducer";
@@ -8,6 +8,8 @@ import { Reducer } from "./Reducer";
 const PARENT = Symbol(`parent`);
 const VALUES = Symbol(`values`);
 const INDICES = Symbol(`indices`);
+const FACTOR = Symbol(`factor`);
+const REDUCER = Symbol(`reducer`);
 
 export interface Reduced<T = any> extends Array<T>, Reactive {
   [FACTOR]: Factor;

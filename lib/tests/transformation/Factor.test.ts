@@ -1,6 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { Factor } from "../../transformation/Factor";
-import { POSITIONS } from "../../utils/symbols";
+import { Factor, POSITIONS } from "../../transformation/Factor";
 
 // The mtcars data comes can be loaded as:
 // const mtcars = await Bun.file(`./datasets/mtcars.json`).json();

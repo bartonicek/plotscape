@@ -2,6 +2,7 @@ import { Frame } from "../plot/Frame";
 import { ExpanseContinuous } from "../scales/ExpanseContinuous";
 import { Scale } from "../scales/Scale";
 import { LAYER } from "../scene/Marker";
+import { POSITIONS } from "../transformation/Factor";
 import {
   findLength,
   identity,
@@ -9,7 +10,6 @@ import {
   rectsIntersect,
 } from "../utils/funs";
 import { Meta } from "../utils/Meta";
-import { POSITIONS } from "../utils/symbols";
 import {
   DataLayer,
   DataLayers,

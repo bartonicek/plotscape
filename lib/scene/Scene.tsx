@@ -1,5 +1,5 @@
+import { Plot } from "../plot/Baseplot";
 import { Frame } from "../plot/Frame";
-import { Plot } from "../plot/Plot";
 import { addIndexed } from "../utils/funs";
 import React from "../utils/JSX";
 import { Meta } from "../utils/Meta";

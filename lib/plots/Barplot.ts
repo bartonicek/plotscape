@@ -1,5 +1,5 @@
 import { Bars } from "../geoms/Bars";
-import { Plot } from "../plot/Plot";
+import { Plot } from "../plot/Baseplot";
 import { Expanse } from "../scales/Expanse";
 import { ExpanseBand } from "../scales/ExpanseBand";
 import { Scale } from "../scales/Scale";
@@ -52,7 +52,10 @@ export function Barplot<T extends Columns>(
   const coordinates = [] as (Dataframe & Reactive)[];
 
   const representation = Representation.Absolute;
-  const opts = { type: Plot.Type.Bar, scales: { x: Expanse.Band } } as const;
+  const opts = {
+    type: Plot.Type.Bar,
+    scales: { x: Expanse.Band },
+  } as const;
   const plot = { representation, ...Plot.of(opts), summaries, coordinates };
 
   Plot.listen(plot, `n`, () => switchRepresentation(plot));

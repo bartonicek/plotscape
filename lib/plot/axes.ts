@@ -2,8 +2,8 @@ import { Expanse } from "../scales/Expanse";
 import { Scale } from "../scales/Scale";
 import { getMargins } from "../utils/funs";
 import { Meta } from "../utils/Meta";
+import { Plot } from "./Baseplot";
 import { Frame } from "./Frame";
-import { Plot } from "./Plot";
 
 export function renderAxisLabels(plot: Plot) {
   renderSingleAxisLabels(plot, `x`);

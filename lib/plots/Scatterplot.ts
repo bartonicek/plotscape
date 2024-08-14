@@ -1,11 +1,19 @@
-import { Dataframe, Scene } from "@abartonicek/plotscape5";
 import { Points } from "../geoms/Points";
-import { Plot } from "../plot/Plot";
+import { Plot } from "../plot/Baseplot";
 import { Scale } from "../scales/Scale";
+import { Scene } from "../scene/Scene";
 import { Factor } from "../transformation/Factor";
 import { Summaries } from "../transformation/Summaries";
+import { Columns, Indexable } from "../utils/types";
 
-export function Scatterplot<T extends Dataframe>(
+interface Scatterplot extends Plot {
+  summaries: readonly [
+    { x: Indexable<any>; y: Indexable<any> },
+    { x: Indexable<any>; y: Indexable<any> },
+  ];
+}
+
+export function Scatterplot<T extends Columns>(
   scene: Scene<T>,
   selectfn: (data: T) => [any[], any[]] | [any[], any[], any[]],
   options?: { ratio?: number; queries?: (data: T) => any[][] },
@@ -22,7 +30,10 @@ export function Scatterplot<T extends Dataframe>(
   const summaries = Summaries.of({}, [factor1, factor2] as const);
   const coordinates = Summaries.translate(summaries, [(d) => d, (d) => d]);
 
-  const plot = Plot.of({ type: Plot.Type.Scatter, ratio: options?.ratio });
+  const plot = Plot.of({
+    type: Plot.Type.Scatter,
+    ratio: options?.ratio,
+  });
   const { scales } = plot;
 
   Scale.train(scales.x, x, { default: true });
@@ -32,5 +43,5 @@ export function Scatterplot<T extends Dataframe>(
   Plot.setData(plot, coordinates);
   Plot.addGeom(plot, Points.of());
 
-  return plot;
+  return { ...plot, summaries };
 }
