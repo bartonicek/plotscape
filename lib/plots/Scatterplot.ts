@@ -9,25 +9,23 @@ export function Scatterplot<T extends Dataframe>(
   options?: { ratio?: number },
 ) {
   const { data, marker } = scene;
-  const plot = Plot.of({ type: Plot.Type.Scatter });
 
   const [x, y, size] = selectfn(data);
-  const { scales } = plot;
-
-  Scale.train(scales.x, x, { default: true });
-  Scale.train(scales.y, y, { default: true });
-  if (size) Scale.train(scales.size, size, { default: true });
-
   const factor1 = Factor.bijection({ x, y, size: size ?? (() => 0.5) });
   const factor2 = Factor.product(factor1, marker.factor);
 
   const summaries = Summaries.of({}, [factor1, factor2] as const);
   const coordinates = Summaries.translate(summaries, [(d) => d, (d) => d]);
 
+  const plot = Plot.of({ type: Plot.Type.Scatter, ratio: options?.ratio });
+  const { scales } = plot;
+
+  Scale.train(scales.x, x, { default: true });
+  Scale.train(scales.y, y, { default: true });
+
+  if (size) Scale.train(scales.size, size, { default: true });
   Plot.setData(plot, coordinates);
   Plot.addGeom(plot, Points.of());
-
-  if (options?.ratio) Plot.setRatio(plot, options.ratio);
 
   return plot;
 }

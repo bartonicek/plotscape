@@ -117,6 +117,7 @@ export namespace Plot {
 
   export function of(options?: {
     type?: Type;
+    ratio?: number;
     scales?: { x?: Expanse.Type.Band; y?: Expanse.Type.Band };
   }): Plot {
     const type = options?.type ?? Type.Unknown;
@@ -148,7 +149,7 @@ export namespace Plot {
       mode: Mode.Select,
       mousecoords: [0, 0, 0, 0] as Rect,
       lastkey: ``,
-      ratio: undefined,
+      ratio: options?.ratio ?? undefined,
     };
 
     const margins = getMargins();
@@ -392,10 +393,10 @@ export namespace Plot {
     const yStretch = rangeInverse(y0, y1);
     const areaStretch = sqrt(max(xStretch, yStretch));
 
-    Expanse.set(scales.width.codomain, (e) => (e.mult *= xStretch));
-    Expanse.set(scales.height.codomain, (e) => (e.mult *= yStretch));
-    Expanse.set(scales.area.codomain, (e) => (e.mult *= areaStretch));
-    Expanse.set(scales.size.codomain, (e) => (e.mult *= areaStretch));
+    Expanse.set(scales.width.codomain, (e) => (e.max *= xStretch));
+    Expanse.set(scales.height.codomain, (e) => (e.max *= yStretch));
+    Expanse.set(scales.area.codomain, (e) => (e.max *= areaStretch));
+    Expanse.set(scales.size.codomain, (e) => (e.max *= areaStretch));
 
     zoomStack.push([x0, y0, x1, y1]);
     Plot.dispatch(plot, `clear-transient`);
@@ -419,10 +420,10 @@ export namespace Plot {
     const yStretch = rangeInverse(iy0, iy1);
     const areaStretch = 1 / sqrt(max(1 / xStretch, 1 / yStretch));
 
-    Expanse.set(scales.width.codomain, (e) => (e.mult *= xStretch));
-    Expanse.set(scales.height.codomain, (e) => (e.mult *= yStretch));
-    Expanse.set(scales.area.codomain, (e) => (e.mult *= areaStretch));
-    Expanse.set(scales.size.codomain, (e) => (e.mult *= areaStretch));
+    Expanse.set(scales.width.codomain, (e) => (e.max *= xStretch));
+    Expanse.set(scales.height.codomain, (e) => (e.max *= yStretch));
+    Expanse.set(scales.area.codomain, (e) => (e.max *= areaStretch));
+    Expanse.set(scales.size.codomain, (e) => (e.max *= areaStretch));
 
     zoomStack.pop();
     Plot.dispatch(plot, `clear-transient`);

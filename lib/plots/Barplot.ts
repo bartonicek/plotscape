@@ -40,8 +40,8 @@ export function Barplot<T extends Columns>(
   const reducer = vals && options?.reducer ? options.reducer : Reducer.sum;
   const values = vals ? [...vals] : () => 1;
 
-  if (!vals) Meta.setName(values, `count`);
-  else Meta.setName(values, `${reducer.name} of ${Meta.getName(vals)}`);
+  const name = vals ? `${reducer.name} of ${Meta.getName(vals)}` : `count`;
+  Meta.setName(values, name);
 
   const factor1 = Factor.from(category);
   const factor2 = Factor.product(factor1, marker.factor);
@@ -138,9 +138,9 @@ function spineplot(plot: Barplot) {
   Scale.train(scales.y, [0, 1], opts);
   Scale.train(scales.width, cumsum(flat.width), opts);
   Scale.train(scales.height, [0, 1], opts);
+
   Expanse.freeze(scales.y.domain, [`zero`]);
   Expanse.freeze(scales.height.domain, [`zero`]);
-
   ExpanseBand.setWeights(scales.x.domain, flat.width);
 
   Expanse.linkTo(scales.y.domain, scales.height.domain);
