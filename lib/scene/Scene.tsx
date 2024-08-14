@@ -1,6 +1,7 @@
-import { Frame, React } from "../main";
+import { Frame } from "../plot/Frame";
 import { Plot } from "../plot/Plot";
 import { addIndexed } from "../utils/funs";
+import React from "../utils/JSX";
 import { Meta } from "../utils/Meta";
 import { Reactive } from "../utils/Reactive";
 import { Columns } from "../utils/types";

@@ -1,5 +1,6 @@
-import { ExpanseContinuous, Scale } from "../main";
 import { Frame } from "../plot/Frame";
+import { ExpanseContinuous } from "../scales/ExpanseContinuous";
+import { Scale } from "../scales/Scale";
 import { LAYER } from "../scene/Marker";
 import { findLength, pointInRect, rectsIntersect } from "../utils/funs";
 import { Meta } from "../utils/Meta";

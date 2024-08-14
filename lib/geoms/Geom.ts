@@ -1,4 +1,4 @@
-import { Scale } from "../main";
+import { Scale } from "../scales/Scale";
 import { LAYER } from "../scene/Marker";
 import { makeGetter } from "../utils/funs";
 import { POSITIONS } from "../utils/symbols";

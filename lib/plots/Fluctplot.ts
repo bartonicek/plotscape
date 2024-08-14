@@ -1,7 +1,11 @@
 import { Bars } from "../geoms/Bars";
-import { Expanse, Factor, Plot, Reducer, Scene } from "../main";
+import { Plot } from "../plot/Plot";
+import { Expanse } from "../scales/Expanse";
 import { Scale } from "../scales/Scale";
+import { Scene } from "../scene/Scene";
+import { Factor } from "../transformation/Factor";
 import { Reduced } from "../transformation/Reduced";
+import { Reducer } from "../transformation/Reducer";
 import { Summaries } from "../transformation/Summaries";
 import { max, one } from "../utils/funs";
 import { Meta } from "../utils/Meta";
@@ -50,7 +54,7 @@ export function Fluctuationplot<T extends Columns>(
   const representation = Representation.Absolute;
   const opts = {
     type: Plot.Type.Fluct,
-    scales: { x: Expanse.Band, y: Expanse.Band },
+    scales: { x: Expanse.Type.Band, y: Expanse.Type.Band },
   } as const;
 
   const plot = { representation, ...Plot.of(opts), summaries, coordinates };

@@ -1,7 +1,7 @@
 import { Bars } from "../geoms/Bars";
-import { ExpanseBand } from "../main";
 import { Plot } from "../plot/Plot";
 import { Expanse } from "../scales/Expanse";
+import { ExpanseBand } from "../scales/ExpanseBand";
 import { Scale } from "../scales/Scale";
 import { Scene } from "../scene/Scene";
 import { Factor } from "../transformation/Factor";

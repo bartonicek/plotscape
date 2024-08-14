@@ -13,8 +13,6 @@ import { ExpanseContinuous } from "./ExpanseContinuous";
 import { ExpansePoint } from "./ExpansePoint";
 import { ExpanseSplit } from "./ExpanseSplit";
 
-export const VALUE = Symbol(`value`);
-
 /** Converts values from some type to the interval [0, 1] and back. */
 export interface Expanse<T = any> extends Reactive {
   readonly value: T; // Only a type-level tag

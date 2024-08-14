@@ -1,10 +1,12 @@
 import { Geom } from "../geoms/Geom";
-import { Expanse, ExpanseContinuous, Scale } from "../main";
 import { Barplot } from "../plots/Barplot";
 import { Fluctuationplot } from "../plots/Fluctplot";
 import { Histogram } from "../plots/Histogram";
 import { Lineplot } from "../plots/Lineplot";
 import { Scatterplot } from "../plots/Scatterplot";
+import { Expanse } from "../scales/Expanse";
+import { ExpanseContinuous } from "../scales/ExpanseContinuous";
+import { Scale } from "../scales/Scale";
 import { colors, defaultParameters } from "../utils/defaultParameters";
 import {
   addTailwind,

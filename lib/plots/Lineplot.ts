@@ -1,6 +1,9 @@
 import { Lines } from "../geoms/Lines";
-import { Expanse, Factor, Plot, Scale } from "../main";
+import { Plot } from "../plot/Plot";
+import { Expanse } from "../scales/Expanse";
+import { Scale } from "../scales/Scale";
 import { Scene } from "../scene/Scene";
+import { Factor } from "../transformation/Factor";
 import { Summaries } from "../transformation/Summaries";
 import { defaultParameters } from "../utils/defaultParameters";
 import { Getter } from "../utils/Getter";

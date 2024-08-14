@@ -1,4 +1,4 @@
-import { Factor } from "../main";
+import { Factor } from "../transformation/Factor";
 import { Reactive } from "../utils/Reactive";
 import { DataLayer, Indexable } from "../utils/types";
 
