@@ -1,11 +1,11 @@
 import { isArray } from "./funs";
 
-const NAME = Symbol(`name`);
-const LENGTH = Symbol(`length`);
-const MIN = Symbol(`min`);
-const MAX = Symbol(`max`);
-const QUERYABLE = Symbol(`queryable`);
-const PARENTVALUES = Symbol(`parentValues`);
+export const NAME = Symbol(`name`);
+export const LENGTH = Symbol(`length`);
+export const MIN = Symbol(`min`);
+export const MAX = Symbol(`max`);
+export const QUERYABLE = Symbol(`queryable`);
+export const PARENTVALUES = Symbol(`parentValues`);
 
 declare global {
   interface Object {

@@ -11,7 +11,7 @@ import { Expanse } from "./Expanse";
  * equidistantly along the interval, and the first label is placed at 0 and the last at 1.
  */
 export interface ExpansePoint extends Expanse<string> {
-  type: Expanse.Type.Point;
+  type: `point`;
 
   ordered: boolean;
   labels: string[];
@@ -33,7 +33,7 @@ export namespace ExpansePoint {
     options?: { zero?: number; one?: number; direction?: Direction },
   ): ExpansePoint {
     const value = ``;
-    const type = Expanse.Type.Point;
+    const type = `point`;
 
     const base = Expanse.base(options);
     const { zero, one, direction } = base;

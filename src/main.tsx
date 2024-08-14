@@ -1,5 +1,11 @@
-import { MtcarsUntyped, Plot, Reducer, Scene } from "../lib/main";
-import { fetchJSON, formatText, isIntegerString } from "../lib/utils/funs";
+import {
+  fetchJSON,
+  formatText,
+  MtcarsUntyped,
+  Plot,
+  Reducer,
+  Scene,
+} from "../lib/main";
 
 async function mtcarsScene() {
   const app = document.querySelector<HTMLDivElement>("#app")!;
@@ -29,7 +35,8 @@ async function mtcarsScene() {
   Scene.addPlot(scene, plot2);
   Scene.addPlot(scene, plot3);
   Scene.addPlot(scene, plot4);
-  Scene.addPlot(scene, plot5);
+
+  Scene.addplotByType(scene, `line`, (d) => [d.drat, d.disp, d.gear]);
 }
 
 async function imdbScene() {
@@ -103,5 +110,3 @@ mtcarsScene();
 // Expanse.set(s.codomain, (e) => ((e.zero = 0.1), (e.one = 0.9)));
 
 // console.log(Scale.unitRatio(s), (500 * 0.8) / (9 / 0.8));
-
-console.log(isIntegerString(`12`));

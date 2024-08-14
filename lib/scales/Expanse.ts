@@ -33,9 +33,9 @@ export interface Expanse<T = any> extends Reactive {
 }
 
 export type ExpanseTypeMap = {
-  [Expanse.Type.Continuous]: ExpanseContinuous;
-  [Expanse.Type.Point]: ExpansePoint;
-  [Expanse.Type.Band]: ExpanseBand;
+  continuous: ExpanseContinuous;
+  point: ExpansePoint;
+  band: ExpanseBand;
 };
 
 type EventType = `changed`;
@@ -48,27 +48,17 @@ type ExpanseMethods = {
 };
 
 export namespace Expanse {
-  export enum Type {
-    Continuous = `continuous`,
-    Point = `point`,
-    Band = `band`,
-    Compound = `compound`,
-    Split = `split`,
-  }
+  export type Type = `continuous` | `point` | `band` | `compound` | `split`;
 
   export const methods: {
     [key in Type]: ExpanseMethods;
   } = {
-    [Expanse.Type.Continuous]: ExpanseContinuous,
-    [Expanse.Type.Point]: ExpansePoint,
-    [Expanse.Type.Band]: ExpanseBand,
-    [Expanse.Type.Compound]: ExpanseCompound,
-    [Expanse.Type.Split]: ExpanseSplit,
+    continuous: ExpanseContinuous,
+    point: ExpansePoint,
+    band: ExpanseBand,
+    compound: ExpanseCompound,
+    split: ExpanseSplit,
   };
-
-  export const Continuous = Type.Continuous;
-  export const Point = Type.Point;
-  export const Band = Type.Band;
 
   export const continuous = ExpanseContinuous.of;
   export const point = ExpansePoint.of;
@@ -208,10 +198,22 @@ export namespace Expanse {
   }
 
   export function isContinuous(expanse: Expanse): expanse is ExpanseContinuous {
-    return expanse.type === Expanse.Type.Continuous;
+    return expanse.type === `continuous`;
   }
 
   export function isPoint(expanse: Expanse): expanse is ExpansePoint {
-    return expanse.type === Expanse.Type.Point;
+    return expanse.type === `point`;
+  }
+
+  export function isBand(expanse: Expanse): expanse is ExpanseBand {
+    return expanse.type === `band`;
+  }
+
+  export function isCompound(expanse: Expanse): expanse is ExpanseCompound {
+    return expanse.type === `compound`;
+  }
+
+  export function isSplit(expanse: Expanse): expanse is ExpanseSplit {
+    return expanse.type === `split`;
   }
 }

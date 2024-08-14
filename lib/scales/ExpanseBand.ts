@@ -15,7 +15,7 @@ import { Expanse } from "./Expanse";
  * label is placed in the middle of its corresponding bin.
  */
 export interface ExpanseBand extends Expanse<string> {
-  type: Expanse.Type.Band;
+  type: `band`;
 
   ordered: boolean;
   labels: string[];
@@ -45,7 +45,7 @@ export namespace ExpanseBand {
 
   export function of(labels: string[] = [], options?: Options): ExpanseBand {
     const value = ``;
-    const type = Expanse.Type.Band;
+    const type = `band`;
 
     const base = Expanse.base(options);
     const { zero, one, direction } = base;

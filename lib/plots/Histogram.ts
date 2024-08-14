@@ -63,7 +63,7 @@ export function Histogram<T extends Columns>(
 
   const representation = Representation.Absolute;
   const coordinates = [] as (Dataframe & Reactive)[];
-  const opts = { type: Plot.Type.Histo } as const;
+  const opts = { type: `histo` } as const;
   const plot = { representation, ...Plot.of(opts), summaries, coordinates };
 
   Plot.listen(plot, `n`, () => switchRepresentation(plot));

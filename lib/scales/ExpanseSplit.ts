@@ -2,14 +2,14 @@ import { isArray } from "../utils/funs";
 import { Expanse } from "./Expanse";
 
 export interface ExpanseSplit<T = any> extends Expanse<T[]> {
-  type: Expanse.Type.Split;
+  type: `split`;
   innerType: Expanse.Type;
 }
 
 export namespace ExpanseSplit {
   export function of<T>(expanse: Expanse<T>): ExpanseSplit<T> {
     const value = [] as T[];
-    const type = Expanse.Type.Split;
+    const type = `split`;
     const innerType = expanse.type;
 
     return { ...expanse, value, type, innerType };

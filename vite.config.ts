@@ -7,7 +7,7 @@ export default defineConfig({
   build: {
     lib: {
       entry: resolve(__dirname, "lib/main.ts"),
-      formats: ["iife"],
+      formats: ["es", "iife"],
       name: "plotscape",
       fileName: "main",
     },

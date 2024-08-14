@@ -52,10 +52,7 @@ export function Barplot<T extends Columns>(
   const coordinates = [] as (Dataframe & Reactive)[];
 
   const representation = Representation.Absolute;
-  const opts = {
-    type: Plot.Type.Bar,
-    scales: { x: Expanse.Band },
-  } as const;
+  const opts = { type: `bar`, scales: { x: `band` } } as const;
   const plot = { representation, ...Plot.of(opts), summaries, coordinates };
 
   Plot.listen(plot, `n`, () => switchRepresentation(plot));

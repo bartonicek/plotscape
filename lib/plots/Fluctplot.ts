@@ -52,11 +52,7 @@ export function Fluctuationplot<T extends Columns>(
   const coordinates = [] as (Dataframe & Reactive)[];
 
   const representation = Representation.Absolute;
-  const opts = {
-    type: Plot.Type.Fluct,
-    scales: { x: Expanse.Type.Band, y: Expanse.Type.Band },
-  } as const;
-
+  const opts = { type: `fluct`, scales: { x: `band`, y: `band` } } as const;
   const plot = { representation, ...Plot.of(opts), summaries, coordinates };
 
   Scale.shareCodomain(plot.scales.area, plot.scales.width);

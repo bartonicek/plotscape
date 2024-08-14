@@ -83,7 +83,7 @@ export namespace Scene {
 
     plots.push(plot);
     plotDict[`plot${plots.length}`] = plot;
-    if (plot.type != Plot.Type.Unknown) {
+    if (plot.type != `unknown`) {
       addIndexed(plotDict, plot.type, plot);
     }
 
@@ -94,11 +94,16 @@ export namespace Scene {
     Scene.setDimensions(scene, nRows, nCols);
   }
 
-  // export function addplotByType<T extends Columns>(
-  //   scene: Scene<T>,
-  //   type: Plot.Type,
-  //   selectfn: (data: T) => any[][],
-  // ) {}
+  export function addplotByType<T extends Columns>(
+    scene: Scene<T>,
+    type: Plot.Type,
+    selectfn: (data: T) => any[][],
+    options?: any,
+  ) {
+    if (type === `unknown`) return;
+    const plot = Plot[type](scene, selectfn as any, options);
+    Scene.addPlot(scene, plot);
+  }
 
   export function setDimensions(scene: Scene, rows: number, cols: number) {
     const { container } = scene;

@@ -49,15 +49,6 @@ enum MouseButton {
   Right = 2,
 }
 
-enum PlotType {
-  Unknown = `unknown`,
-  Scatter = `scatter`,
-  Bar = `bar`,
-  Histo = `histo`,
-  Fluct = `fluct`,
-  Line = `line`,
-}
-
 export type Frames = DataLayers & {
   [key in `base` | `under` | `over` | `user` | `xAxis` | `yAxis`]: Frame;
 };
@@ -117,14 +108,14 @@ export namespace Plot {
     height: Scale<any, ExpanseContinuous>;
   };
 
-  export import Type = PlotType;
+  export type Type = `unknown` | `scatter` | `bar` | `histo` | `fluct` | `line`;
 
   export function of(options?: {
     type?: Type;
     ratio?: number;
-    scales?: { x?: Expanse.Type.Band; y?: Expanse.Type.Band };
+    scales?: { x?: `band` | `point`; y?: `band` | `point` };
   }): Plot {
-    const type = options?.type ?? Type.Unknown;
+    const type = options?.type ?? `unknown`;
     const container = (
       <div id="plot-container" class="relative h-full w-full"></div>
     );
@@ -682,13 +673,13 @@ function setupEvents(plot: Plot) {
 
 function setupScales(
   plot: Plot,
-  options?: { scales?: { x?: Expanse.Type.Band; y?: Expanse.Type.Band } },
+  options?: { scales?: { x?: `band` | `point`; y?: `band` | `point` } },
 ) {
   const { scales, container } = plot;
   const { clientWidth: w, clientHeight: h } = container;
 
-  const xDomain = Expanse[options?.scales?.x ?? Expanse.Type.Continuous]();
-  const yDomain = Expanse[options?.scales?.y ?? Expanse.Type.Continuous]();
+  const xDomain = Expanse[options?.scales?.x ?? `continuous`]();
+  const yDomain = Expanse[options?.scales?.y ?? `continuous`]();
 
   scales.x = Scale.of(xDomain, Expanse.continuous(0, w));
   scales.y = Scale.of(yDomain, Expanse.continuous(0, h));

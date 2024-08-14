@@ -13,7 +13,7 @@ export namespace ExpanseCompound {
     options?: { zero?: number; one?: number; direction?: Direction },
   ): ExpanseCompound<T> {
     const value = [] as any[];
-    const type = Expanse.Type.Compound;
+    const type = `compound` as const;
 
     const base = Expanse.continuous(0, 1, options);
     const { zero, one, direction } = base;

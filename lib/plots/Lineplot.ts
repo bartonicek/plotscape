@@ -32,7 +32,7 @@ export function Lineplot<T extends Columns>(
   const summaries = Summaries.of({}, [factor1, factor2] as const);
   const coordinates = Summaries.translate(summaries, [(d) => d, (d) => d]);
 
-  const plot = Plot.of({ type: Plot.Type.Line });
+  const plot = Plot.of({ type: `line` });
   const { scales } = plot;
 
   const { expandX: ex, expandY: ey } = defaultParameters;

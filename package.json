@@ -1,12 +1,19 @@
 {
-  "name": "ps-dop",
+  "name": "plotscape",
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "main": "./dist/main.js",
+  "types": "./dist/main.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bartonicek/plotscape"
+  },
   "scripts": {
     "dev": "vite",
     "build": "bun test && tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "copy": "cp ./dist/main.iife.js ../plotscaper/inst/htmlwidgets/plotscape"
   },
   "devDependencies": {
     "@types/bun": "^1.1.6",

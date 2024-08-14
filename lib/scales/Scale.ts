@@ -4,7 +4,7 @@ import { Reactive } from "../utils/Reactive";
 import { Expanse } from "./Expanse";
 import { ExpanseContinuous } from "./ExpanseContinuous";
 
-export interface Scale<T extends Expanse = any, U extends Expanse = any>
+export interface Scale<T extends Expanse = Expanse, U extends Expanse = Expanse>
   extends Reactive {
   other?: Scale;
   domain: T;
@@ -98,17 +98,18 @@ export namespace Scale {
     const breaks = Expanse.breaks(scale.domain) as any;
     let labels = formatLabels(breaks);
 
-    if (scale.domain.type === Expanse.Type.Compound) {
+    if (Expanse.isCompound(scale.domain)) {
       labels = formatLabels(breaks, { decimals: 1 });
+
       const positions = breaks.map((x: number) =>
         Expanse.unnormalize(
           scale.codomain,
-          ExpanseContinuous.normalize(scale.domain, x),
+          ExpanseContinuous.normalize(scale.domain as any, x),
         ),
       );
 
       return { labels, positions };
-    } else if (scale.codomain.type === Expanse.Type.Split) {
+    } else if (Expanse.isSplit(scale.codomain)) {
       const positions = Scale.pushforward(scale, breaks);
       return { labels, positions };
     }

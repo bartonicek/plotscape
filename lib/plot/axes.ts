@@ -12,6 +12,8 @@ export function renderAxisLabels(plot: Plot) {
 
 function renderSingleAxisLabels(plot: Plot, axis: `x` | `y`) {
   const scale = plot.scales[axis];
+  if (!scale.other || !Expanse.isContinuous(scale.other.codomain)) return;
+
   const frame = plot.frames[`${axis}Axis`];
   const { context } = frame;
 

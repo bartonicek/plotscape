@@ -13,7 +13,7 @@ import { Expanse } from "./Expanse";
  * Converts numeric values to the [0, 1] interval and back.
  */
 export interface ExpanseContinuous extends Expanse<number> {
-  type: Expanse.Type.Continuous;
+  type: `continuous`;
 
   min: number;
   max: number;
@@ -51,7 +51,7 @@ export namespace ExpanseContinuous {
 
   export function of(min = 0, max = 1, options?: Options): ExpanseContinuous {
     const value = 0;
-    const type = Expanse.Type.Continuous;
+    const type = `continuous`;
 
     const base = Expanse.base(options);
     const [trans, inv] = [identity, identity];
