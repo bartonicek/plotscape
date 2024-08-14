@@ -6,6 +6,7 @@ import {
   Reducer,
   Scene,
 } from "../lib/main";
+import { Histogram2d } from "../lib/plots/Histogram2d";
 
 async function mtcarsScene() {
   const app = document.querySelector<HTMLDivElement>("#app")!;
@@ -31,12 +32,14 @@ async function mtcarsScene() {
     queries: (d) => [d.cyl],
   });
 
+  const plot6 = Histogram2d(scene, (d) => [d.wt, d.mpg], {});
+
   Scene.addPlot(scene, plot1);
   Scene.addPlot(scene, plot2);
   Scene.addPlot(scene, plot3);
   Scene.addPlot(scene, plot4);
-
-  Scene.addplotByType(scene, `line`, (d) => [d.drat, d.disp, d.gear]);
+  Scene.addPlot(scene, plot5);
+  Scene.addPlot(scene, plot6);
 }
 
 async function imdbScene() {
@@ -93,16 +96,19 @@ async function sacramentoScene() {
   const plot2 = Plot.bar(scene, (d) => [d.city]);
   const plot3 = Plot.histo(scene, (d) => [d.price]);
   const plot4 = Plot.fluct(scene, (d) => [d.beds, d.baths]);
+  const plot5 = Plot.histo2d(scene, (d) => [d.longitude, d.latitude], {});
 
   Scene.addPlot(scene, plot1);
   Scene.addPlot(scene, plot2);
   Scene.addPlot(scene, plot3);
   Scene.addPlot(scene, plot4);
+  Scene.addPlot(scene, plot5);
 
-  // Plot.setRatio(plot1, 1);
+  Plot.setRatio(plot1, 1);
+  Plot.setRatio(plot5, 1);
 }
 
-mtcarsScene();
+sacramentoScene();
 
 // const s = Scale.of(Expanse.continuous(1, 10), Expanse.continuous(0, 500));
 

@@ -2,6 +2,7 @@ import { Geom } from "../geoms/Geom";
 import { Barplot } from "../plots/Barplot";
 import { Fluctuationplot } from "../plots/Fluctplot";
 import { Histogram } from "../plots/Histogram";
+import { Histogram2d } from "../plots/Histogram2d";
 import { Lineplot } from "../plots/Lineplot";
 import { Scatterplot } from "../plots/Scatterplot";
 import { Expanse } from "../scales/Expanse";
@@ -108,7 +109,14 @@ export namespace Plot {
     height: Scale<any, ExpanseContinuous>;
   };
 
-  export type Type = `unknown` | `scatter` | `bar` | `histo` | `fluct` | `line`;
+  export type Type =
+    | `unknown`
+    | `scatter`
+    | `bar`
+    | `histo`
+    | `histo2d`
+    | `fluct`
+    | `line`;
 
   export function of(options?: {
     type?: Type;
@@ -178,6 +186,7 @@ export namespace Plot {
   export const bar = Barplot;
   export const fluct = Fluctuationplot;
   export const histo = Histogram;
+  export const histo2d = Histogram2d;
   export const line = Lineplot;
 
   export function append(parent: HTMLElement, plot: Plot) {

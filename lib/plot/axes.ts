@@ -1,6 +1,5 @@
 import { Expanse } from "../scales/Expanse";
 import { Scale } from "../scales/Scale";
-import { getMargins } from "../utils/funs";
 import { Meta } from "../utils/Meta";
 import { Frame } from "./Frame";
 import { Plot } from "./Plot";
@@ -18,7 +17,7 @@ function renderSingleAxisLabels(plot: Plot, axis: `x` | `y`) {
   const { context } = frame;
 
   const { labels, positions } = Scale.breaks(scale);
-  const [bottom, left, top, right] = getMargins();
+  const [bottom, left, top, right] = plot.margins;
   const fontsize = parseInt(context.font.match(/^[0-9]*/)![0], 10);
 
   const base = scale.other!.codomain.min - fontsize / 2;

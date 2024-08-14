@@ -94,7 +94,7 @@ export namespace Scene {
     Scene.setDimensions(scene, nRows, nCols);
   }
 
-  export function addplotByType<T extends Columns>(
+  export function addPlotByType<T extends Columns>(
     scene: Scene<T>,
     type: Plot.Type,
     selectfn: (data: T) => any[][],

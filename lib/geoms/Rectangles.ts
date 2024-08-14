@@ -18,6 +18,7 @@ type Data = {
 type Scales = {
   x: Scale<any, ExpanseContinuous>;
   y: Scale<any, ExpanseContinuous>;
+  area: Scale<any, ExpanseContinuous>;
 };
 
 export interface Rectangles extends Geom {
@@ -40,15 +41,26 @@ export namespace Rectangles {
     const data = Geom.groupedData(rectangles);
 
     const n = findLength(Object.values(data));
-    const vars = [`x0`, `y0`, `x1`, `y1`, LAYER] as const;
-    const [x0, y0, x1, y1, layer] = Geom.getters(data, vars);
+    const vars = [`x0`, `y0`, `x1`, `y1`, `area`, LAYER] as const;
+    const [x0, y0, x1, y1, area, layer] = Geom.getters(data, vars);
 
     for (let i = 0; i < n; i++) {
-      const x0i = Scale.pushforward(scales.x, x0(i));
-      const y0i = Scale.pushforward(scales.y, y0(i));
-      const x1i = Scale.pushforward(scales.x, x1(i));
-      const y1i = Scale.pushforward(scales.y, y1(i));
+      let x0i = Scale.pushforward(scales.x, x0(i));
+      let y0i = Scale.pushforward(scales.y, y0(i));
+      let x1i = Scale.pushforward(scales.x, x1(i));
+      let y1i = Scale.pushforward(scales.y, y1(i));
       const li = layers[layer(i) as DataLayer];
+
+      if (data.area) {
+        const ai = Scale.pushforward(scales.area, area(i));
+        const rxi = x1i - x0i;
+        const ryi = y1i - y0i;
+
+        x0i = x0i + ((1 - ai) / 2) * rxi;
+        x1i = x1i - ((1 - ai) / 2) * rxi;
+        y0i = y0i + ((1 - ai) / 2) * ryi;
+        y1i = y1i - ((1 - ai) / 2) * ryi;
+      }
 
       Frame.rectangleXY(li, x0i, y0i, x1i, y1i);
     }
@@ -59,16 +71,27 @@ export namespace Rectangles {
     const data = Geom.flatData(rectangles);
 
     const n = findLength(Object.values(data));
-    const vars = [`x0`, `y0`, `x1`, `y1`, POSITIONS] as const;
-    const [x0, y0, x1, y1, positions] = Geom.getters(data, vars);
+    const vars = [`x0`, `y0`, `x1`, `y1`, `area`, POSITIONS] as const;
+    const [x0, y0, x1, y1, area, positions] = Geom.getters(data, vars);
 
     const selected = [] as number[];
 
     for (let i = 0; i < n; i++) {
-      const x0i = Scale.pushforward(scales.x, x0(i));
-      const y0i = Scale.pushforward(scales.y, y0(i));
-      const x1i = Scale.pushforward(scales.x, x1(i));
-      const y1i = Scale.pushforward(scales.y, y1(i));
+      let x0i = Scale.pushforward(scales.x, x0(i));
+      let y0i = Scale.pushforward(scales.y, y0(i));
+      let x1i = Scale.pushforward(scales.x, x1(i));
+      let y1i = Scale.pushforward(scales.y, y1(i));
+
+      if (data.area) {
+        const ai = Scale.pushforward(scales.area, area(i));
+        const rxi = x1i - x0i;
+        const ryi = y1i - y0i;
+
+        x0i = x0i + ((1 - ai) / 2) * rxi;
+        x1i = x1i - ((1 - ai) / 2) * rxi;
+        y0i = y0i + ((1 - ai) / 2) * ryi;
+        y1i = y1i - ((1 - ai) / 2) * ryi;
+      }
 
       if (rectsIntersect(selection, [x0i, y0i, x1i, y1i])) {
         const pos = positions(i);
@@ -84,14 +107,25 @@ export namespace Rectangles {
     const data = Geom.flatData(rectangles);
 
     const n = findLength(Object.values(data));
-    const vars = [`x0`, `y0`, `x1`, `y1`] as const;
-    const [x0, y0, x1, y1] = Geom.getters(data, vars);
+    const vars = [`x0`, `y0`, `x1`, `y1`, `area`] as const;
+    const [x0, y0, x1, y1, area] = Geom.getters(data, vars);
 
     for (let i = 0; i < n; i++) {
-      const x0i = Scale.pushforward(scales.x, x0(i));
-      const y0i = Scale.pushforward(scales.y, y0(i));
-      const x1i = Scale.pushforward(scales.x, x1(i));
-      const y1i = Scale.pushforward(scales.y, y1(i));
+      let x0i = Scale.pushforward(scales.x, x0(i));
+      let y0i = Scale.pushforward(scales.y, y0(i));
+      let x1i = Scale.pushforward(scales.x, x1(i));
+      let y1i = Scale.pushforward(scales.y, y1(i));
+
+      if (data.area) {
+        const ai = Scale.pushforward(scales.area, area(i));
+        const rxi = x1i - x0i;
+        const ryi = y1i - y0i;
+
+        x0i = x0i + ((1 - ai) / 2) * rxi;
+        x1i = x1i - ((1 - ai) / 2) * rxi;
+        y0i = y0i + ((1 - ai) / 2) * ryi;
+        y1i = y1i - ((1 - ai) / 2) * ryi;
+      }
 
       if (pointInRect(position, [x0i, y0i, x1i, y1i])) {
         const result = {} as Record<string, any>;
