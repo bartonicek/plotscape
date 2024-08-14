@@ -7,7 +7,7 @@ import { Factor } from "../transformation/Factor";
 import { Reduced } from "../transformation/Reduced";
 import { Reducer } from "../transformation/Reducer";
 import { Summaries } from "../transformation/Summaries";
-import { minmax } from "../utils/funs";
+import { minmax, one } from "../utils/funs";
 import { Meta } from "../utils/Meta";
 import { Reactive } from "../utils/Reactive";
 import { Columns, Dataframe } from "../utils/types";
@@ -73,7 +73,7 @@ export function Histogram2d<T extends Columns>(
   const opts = { type: `histo2d`, ratio: options?.ratio } as const;
   const plot = { representation, ...Plot.of(opts), summaries, coordinates };
 
-  //   Plot.listen(plot, `n`, () => switchRepresentation(plot));
+  Plot.listen(plot, `n`, () => switchRepresentation(plot));
 
   const [inc1, inc2] = [range1, range2].map((x) => x / 10);
   Plot.listen(plot, `=`, () => {
@@ -97,10 +97,10 @@ export function Histogram2d<T extends Columns>(
   return plot as unknown as Plot;
 }
 
-// function switchRepresentation(plot: any) {
-//   if (plot.representation === Representation.Absolute) spinogram(plot);
-//   else histogram(plot);
-// }
+function switchRepresentation(plot: any) {
+  if (plot.representation === Representation.Absolute) spinogram2d(plot);
+  else histogram2d(plot);
+}
 
 function histogram2d(plot: Histogram2D) {
   const { summaries } = plot;
@@ -120,8 +120,6 @@ function histogram2d(plot: Histogram2D) {
       area: Reduced.stack(d.stat),
     }),
   ]);
-
-  console.log(coordinates);
 
   const { scales } = plot;
   const [, flat] = coordinates;
@@ -155,47 +153,52 @@ function histogram2d(plot: Histogram2D) {
   Plot.dispatch(plot, `render-axes`);
 }
 
-// function spinogram(plot: Histogram) {
-//   const { summaries } = plot;
+function spinogram2d(plot: Histogram2D) {
+  const { summaries } = plot;
+  const coordinates = Summaries.translate(summaries, [
+    (d) => ({
+      x0: d.binMin,
+      y0: d.binMin$,
+      x1: d.binMax,
+      y1: d.binMax$,
+      area: one,
+    }),
+    (d) => ({
+      x0: d.binMin,
+      y0: d.binMin$,
+      x1: d.binMax,
+      y1: d.binMax$,
+      area: Reduced.normalize(Reduced.stack(d.stat), (x, y) => x / y),
+    }),
+  ]);
 
-//   const coordinates = Summaries.translate(summaries, [
-//     (d) => d,
-//     (d) => ({
-//       x0: Reduced.shiftLeft(Reduced.stack(d.stat)),
-//       y0: zero,
-//       x1: Reduced.stack(d.stat),
-//       y1: one,
-//       query1: d.binMin,
-//       query2: d.binMax,
-//     }),
-//     (d) => {
-//       return {
-//         x0: Reduced.shiftLeft(Reduced.stack(Reduced.parent(d.stat))),
-//         y0: zero,
-//         x1: Reduced.stack(Reduced.parent(d.stat)),
-//         y1: Reduced.normalize(Reduced.stack(d.stat), (x, y) => x / y),
-//       };
-//     },
-//   ]);
+  const { scales } = plot;
+  const [, flat] = coordinates;
 
-//   const { scales } = plot;
-//   const [, flat] = coordinates;
+  Scale.train(scales.x, flat.x1, { default: true });
+  Scale.train(scales.y, flat.y1, { default: true });
+  Scale.train(scales.area, [0, 1], { default: true });
 
-//   Scale.train(scales.x, [0, ...flat.x1], { default: true, name: false });
-//   Scale.train(scales.y, [0, 1], { default: true, ratio: true });
+  Expanse.set(scales.area.codomain, (e) => ((e.min = 0), (e.max = 1)), {
+    default: true,
+  });
+  Expanse.freeze(scales.area.codomain, [`min`, `max`]);
 
-//   Reactive.listen(flat as any, `changed`, () => {
-//     Scale.train(scales.x, [0, ...flat.x1], { default: true, name: false });
-//   });
+  for (const c of plot.data) {
+    Reactive.removeListeners(c as any, `changed`);
+  }
 
-//   Expanse.freeze(scales.y.domain, [`zero`]);
+  Reactive.listen(flat as any, `changed`, () => {
+    Scale.train(scales.x, flat.x1, { default: true, name: false });
+    Scale.train(scales.y, flat.y1, { default: true, name: false });
+  });
 
-//   Meta.setName(scales.x, `cumulative count`);
-//   Meta.setName(scales.y, `proportion`);
+  plot.representation = Representation.Proportion;
+  Plot.setData(plot, coordinates);
 
-//   Plot.setData(plot, coordinates);
-//   plot.representation = Representation.Proportion;
+  Meta.setName(scales.x, Meta.getName(summaries[1].breaks));
+  Meta.setName(scales.y, Meta.getName(summaries[1].breaks$));
 
-//   Plot.dispatch(plot, `render`);
-//   Plot.dispatch(plot, `render-axes`);
-// }
+  Plot.dispatch(plot, `render`);
+  Plot.dispatch(plot, `render-axes`);
+}
