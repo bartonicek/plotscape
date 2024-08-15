@@ -178,4 +178,12 @@ export namespace ExpanseBand {
   export function breaks(expanse: ExpanseBand) {
     return ordered(expanse.labels, expanse.order);
   }
+
+  export function isContinuous() {
+    return false;
+  }
+
+  export function isDiscrete() {
+    return true;
+  }
 }

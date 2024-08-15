@@ -47,12 +47,6 @@ async function mtcarsScene() {
     type: `set-scale`,
     data: { scale: `y`, max: 400 },
   });
-
-  // WebSocketClient.handleMessage(scene.client!, {
-  //   sender: `session`,
-  //   target: `scene`,
-  //   type: `get-selected`,
-  // });
 }
 
 async function imdbScene() {

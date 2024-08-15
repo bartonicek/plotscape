@@ -11,7 +11,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "bun test && tsc && vite build",
+    "build": "bun test && tsc && vite build && bun run copy",
     "preview": "vite preview",
     "copy": "cp ./dist/main.iife.js ../plotscaper/inst/htmlwidgets/plotscape",
     "countlines": "find ./lib -type f -regex '.*/*.tsx?$' | xargs wc -l"

@@ -706,7 +706,8 @@ function setupEvents(plot: Plot) {
     copyValues([x, y, x, y], mousecoords);
 
     if (!locked && parameters.mode === Mode.Select) {
-      Plot.clearUserFrame(plot);
+      // Need to notify marker & all other plots
+      Plot.dispatch(plot, `clear-transient`);
       Plot.checkSelection(plot);
     }
 

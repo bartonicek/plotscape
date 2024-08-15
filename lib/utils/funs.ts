@@ -284,25 +284,18 @@ export function seq(start: number, end: number, length?: number) {
 }
 
 /**
- * Subsets an array on an array of indices. Can specify start and
- * end to subset on a shorter slice of the index array.
+ * Subsets an array on an array of indices such that the ith
+ * element of the result is `array[indices[i]]`.
  *
  * @param array An array of type `T`
  * @param indices An array of indices
- * @param start The position of the start index (defaults to 0)
- * @param end The position of th end index (defaults to `indices.length`)
- * @returns A new array of type `T`, ordered based on the indices
+ * @returns A new array of the same length as `indices`
  */
-export function subset<T>(
-  array: T[],
-  indices: number[],
-  start = 0,
-  end = indices.length,
-) {
-  const result = Array(end - start) as T[];
+export function subset<T>(array: T[], indices: number[]) {
+  const result = Array(indices.length) as T[];
 
-  for (let i = 0; i < end - start; i++) {
-    result[i] = array[indices[start + i]];
+  for (let i = 0; i < indices.length; i++) {
+    result[i] = array[indices[i]];
   }
 
   return result;
@@ -317,12 +310,30 @@ export function remove<T>(array: T[], value: T) {
   array.splice(array.indexOf(value), 1);
 }
 
+/**
+ * Returns a copy of the array ordered by the indices. Similar to
+ * `subset`, however, instead of ith element of the result being
+ * `array[indices[i]]`, it is instead the case that `result[indices[i]]`
+ * is `array[i]`.
+ *
+ * @param array An array of values
+ * @param indices An array of indices
+ * @returns A new array of the same length as `indices`
+ */
 export function ordered<T>(array: T[], indices: number[]) {
-  const result = Array(array.length);
+  const result = Array<T>(indices.length);
   for (let i = 0; i < indices.length; i++) result[indices[i]] = array[i];
   return result;
 }
 
+/**
+ * Returns order indices of a numeric array, i.e.
+ * for each value it computes the index the value would
+ * be if the array was sorted. Breaks ties in order.
+ *
+ * @param array A numeric array
+ * @returns An array of indices
+ */
 export function orderIndices(array: number[]) {
   const sorted = [...array].sort(diff);
 
@@ -338,12 +349,29 @@ export function orderIndices(array: number[]) {
   return Object.values(result);
 }
 
+/**
+ * Orders an array by an array of indicies, mutating in place.
+ *
+ * @param array An array
+ * @param indices An array of indices
+ */
 export function orderBy(array: unknown[], indices: number[]) {
   const temp = Array(array.length);
   for (let i = 0; i < array.length; i++) temp[i] = array[indices[i]];
   for (let i = 0; i < array.length; i++) array[i] = temp[i];
 }
 
+/**
+ * Returns order indices based on a table of values, i.e.
+ * iterates through an array and for each value, returns the
+ * index that value takes in the table. The array can have repeated
+ * values, and the table can have some unique values
+ * that are not represented in the array.
+ *
+ * @param array An array of values
+ * @param table An array of values of the same type
+ * @returns
+ */
 export function orderIndicesByTable<T>(array: T[], table: T[]) {
   const result = Array(array.length);
 
@@ -879,6 +907,14 @@ export function applyWith<T>(...values: T[]) {
     return fn(...values);
   };
 }
+
+/**
+ * Returns a 'row' of a dataframe (struct of arrays).
+ *
+ * @param data A dictionary with values being arrays of same length
+ * @param index An index representing the row
+ * @returns An object with the same keys as `data` and scalar values
+ */
 export function row<T extends Dataframe>(data: T, index: number) {
   const result = {} as any;
 
@@ -888,12 +924,25 @@ export function row<T extends Dataframe>(data: T, index: number) {
   return result;
 }
 
+/**
+ * Takes in an array of keys and returns a selector function that,
+ * given an object, extract the values of those keys and
+ * returns them as array.
+ *
+ * @param keys An array of keys
+ * @returns A selector function
+ */
 export function keysToSelector(keys: string[]) {
   return function <T extends Record<string, any>>(object: T) {
     return keys.map((x) => object[x]);
   };
 }
 
+/**
+ * Splits a string with numeric suffix into the suffix and non-suffix part.
+ * @param x A string which includes a numeric suffix
+ * @returns A tuple of the suffix and the rest of the string
+ */
 export function splitNumericSuffix(x: string) {
   let index = x.length - 1;
 
@@ -906,6 +955,12 @@ export function splitNumericSuffix(x: string) {
   return [x.substring(0, index), x.substring(index, x.length)];
 }
 
+/**
+ * Returns indices of an array that match a predicate.
+ * @param array An array of values
+ * @param predicate A predicate function
+ * @returns An array of indices
+ */
 export function filterIndices<T>(array: T[], predicate: (value: T) => boolean) {
   const result = [] as number[];
   for (let i = 0; i < array.length; i++) {
@@ -914,7 +969,15 @@ export function filterIndices<T>(array: T[], predicate: (value: T) => boolean) {
   return result;
 }
 
+/**
+ * Checks whether two arrays of strings have matching values.
+ *
+ * @param array1 An array of strings
+ * @param array2 Another array of strings
+ * @returns `true` if the arrays have the exact same elements
+ */
 export function stringArraysMatch(array1: string[], array2: string[]) {
+  if (array1.length !== array2.length) return false;
   const s1 = array1.toSorted(compareAlphaNumeric).join(``);
   const s2 = array2.toSorted(compareAlphaNumeric).join(``);
   return s1 === s2;
