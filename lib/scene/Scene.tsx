@@ -62,7 +62,7 @@ export namespace Scene {
     return scene;
   }
 
-  export type RespondsTo = `resize` | `connected` | `set-dims`;
+  export type RespondsTo = `resize` | `connected` | `set-dims` | `add-plot`;
   export type RespondsWith = ``;
 
   export const listen = Reactive.makeListenFn<Scene, RespondsTo>();
@@ -76,12 +76,12 @@ export namespace Scene {
   export function addPlot(scene: Scene, plot: Plot) {
     const { container, marker, plots, targets } = scene;
 
-    Plot.listen(plot, `activate`, () => {
+    Plot.listen(plot, `activated`, () => {
       for (const p of plots) if (p != plot) Plot.dispatch(p, `deactivate`);
     });
 
-    Plot.listen(plot, `selected`, (e) => {
-      Marker.update(marker, e.selected);
+    Plot.listen(plot, `selected`, (data) => {
+      Marker.update(marker, data.selected);
     });
 
     Plot.listen(plot, `clear-transient`, () => {
@@ -168,6 +168,12 @@ function setupEvents(scene: Scene) {
 
   Scene.listen(scene, `set-dims`, (data) => {
     Scene.setDimensions(scene, data.rows, data.cols);
+  });
+
+  Scene.listen(scene, `add-plot`, (data) => {
+    const { type, variables, options } = data;
+    const selectfn = (data: Columns) => variables.map((x: string) => data[x]);
+    Scene.addPlotByType(scene, type, selectfn);
   });
 }
 

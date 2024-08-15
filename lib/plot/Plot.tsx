@@ -54,22 +54,6 @@ export type Frames = DataLayers & {
   [key in `base` | `under` | `over` | `user` | `xAxis` | `yAxis`]: Frame;
 };
 
-type EventType =
-  | `resize`
-  | `render`
-  | `render-axes`
-  | `mousedown`
-  | `mouseup`
-  | `activate`
-  | `deactivate`
-  | `lock`
-  | `unlock`
-  | `lock-others`
-  | `selected`
-  | `clear-transient`
-  | `set-mode-query`
-  | (string & {});
-
 export interface Plot extends Reactive {
   type: Plot.Type;
   data: Dataframe[];
@@ -193,7 +177,12 @@ export namespace Plot {
     | `clear-transient`
     | `set-mode-query`
     | (string & {});
-  export type RespondsWith = `lock-others` | `selected` | (string & {});
+  export type RespondsWith =
+    | `activated`
+    | `lock-others`
+    | `selected`
+    | `clear-transient`
+    | (string & {});
 
   export const listen = Reactive.makeListenFn<Plot, RespondsTo>();
   export const dispatch = Reactive.makeDispatchFn<Plot, RespondsWith>();
@@ -236,6 +225,7 @@ export namespace Plot {
   export function activate(plot: Plot) {
     addTailwind(plot.container, `outline outline-2 outline-slate-600`);
     plot.parameters.active = true;
+    Plot.dispatch(plot, `activated`);
   }
 
   export function deactivate(plot: Plot) {
@@ -335,7 +325,7 @@ export namespace Plot {
     const { container, parameters } = plot;
     if (!parameters.active || !parameters.mousedown) return;
 
-    Plot.clearUserFrame(plot);
+    Plot.dispatch(plot, `clear-transient`);
 
     const { mousecoords } = parameters;
     const { clientHeight } = container;
@@ -649,8 +639,8 @@ function setupEvents(plot: Plot) {
 
   window.addEventListener(`resize`, () => Plot.resize(plot));
   window.addEventListener(`keydown`, (e) => {
-    if (e.key === `q`) Plot.dispatch(plot, e.key as EventType);
-    else if (parameters.active) Plot.dispatch(plot, e.key as EventType);
+    if (e.key === `q`) Plot.dispatch(plot, e.key as Plot.RespondsTo);
+    else if (parameters.active) Plot.dispatch(plot, e.key as Plot.RespondsTo);
   });
   window.addEventListener(`keyup`, () => {
     parameters.mode = Mode.Select;
@@ -673,12 +663,13 @@ function setupEvents(plot: Plot) {
     const y = container.clientHeight - e.offsetY;
 
     copyValues([x, y, x, y], mousecoords);
+
     if (!locked && parameters.mode === Mode.Select) {
       Plot.clearUserFrame(plot);
       Plot.checkSelection(plot);
     }
 
-    Plot.lock(plot);
+    Plot.unlock(plot);
   });
 
   container.addEventListener(`contextmenu`, (e) => {
@@ -704,7 +695,7 @@ function setupEvents(plot: Plot) {
   );
 
   for (const [k, v] of Object.entries(Plot.keydownHandlers)) {
-    Plot.listen(plot, k as EventType, () => v(plot));
+    Plot.listen(plot, k as Plot.RespondsTo, () => v(plot));
   }
 
   Plot.listen(plot, `resize`, () => Plot.resize(plot));

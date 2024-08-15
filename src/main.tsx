@@ -38,8 +38,8 @@ async function mtcarsScene() {
   WebSocketClient.handleMessage(scene.client!, {
     sender: `session`,
     target: `scene`,
-    type: `set-dims`,
-    data: { rows: 3, cols: 3 },
+    type: `add-plot`,
+    data: { type: `scatter`, variables: [`wt`, `cyl`] },
   });
 }
 
@@ -61,8 +61,6 @@ async function imdbScene() {
   Scene.addPlot(scene, plot3);
   Scene.addPlot(scene, plot4);
   Scene.addPlot(scene, plot5);
-
-  Scene.setDimensions(scene, 3, 2);
 }
 
 async function diamondsScene() {
