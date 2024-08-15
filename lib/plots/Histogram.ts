@@ -130,8 +130,8 @@ function histogram(plot: Histogram) {
   plot.representation = Representation.Absolute;
   Plot.setData(plot, coordinates);
 
-  Plot.dispatch(plot, `render`);
-  Plot.dispatch(plot, `render-axes`);
+  Plot.render(plot);
+  Plot.renderAxes(plot);
 }
 
 function spinogram(plot: Histogram) {
@@ -175,6 +175,6 @@ function spinogram(plot: Histogram) {
   Plot.setData(plot, coordinates);
   plot.representation = Representation.Proportion;
 
-  Plot.dispatch(plot, `render`);
-  Plot.dispatch(plot, `render-axes`);
+  Plot.render(plot);
+  Plot.renderAxes(plot);
 }

@@ -107,7 +107,7 @@ function fluctplot(plot: Fluctplot) {
   Plot.setData(plot, coordinates);
   plot.representation = Representation.Absolute;
 
-  Plot.dispatch(plot, `render`);
+  Plot.render(plot);
 }
 
 function pctfluctplot(plot: Fluctplot) {
@@ -146,5 +146,5 @@ function pctfluctplot(plot: Fluctplot) {
   Plot.setData(plot, coordinates);
   plot.representation = Representation.Proportion;
 
-  Plot.dispatch(plot, `render`);
+  Plot.render(plot);
 }

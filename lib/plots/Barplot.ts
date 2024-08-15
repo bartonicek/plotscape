@@ -114,8 +114,8 @@ function barplot(plot: Barplot) {
   plot.representation = Representation.Absolute;
   Plot.setData(plot, coordinates);
 
-  Plot.dispatch(plot, `render`);
-  Plot.dispatch(plot, `render-axes`);
+  Plot.render(plot);
+  Plot.renderAxes(plot);
 }
 
 function spineplot(plot: Barplot) {
@@ -161,6 +161,6 @@ function spineplot(plot: Barplot) {
   plot.representation = Representation.Proportion;
   Plot.setData(plot, coordinates);
 
-  Plot.dispatch(plot, `render`);
-  Plot.dispatch(plot, `render-axes`);
+  Plot.render(plot);
+  Plot.renderAxes(plot);
 }

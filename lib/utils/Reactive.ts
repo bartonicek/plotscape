@@ -18,8 +18,8 @@ export namespace Reactive {
     return { ...object, [LISTENERS]: listeners, [DEFERRED]: deferred };
   }
 
-  export const listen = makeListenFn<Reactive, `changed`>();
-  export const dispatch = makeDispatchFn<Reactive, `changed`>();
+  export const listen = makeListenFn<Reactive, `changed` | (string & {})>();
+  export const dispatch = makeDispatchFn<Reactive, `changed` | (string & {})>();
 
   export function getListeners(object: Reactive) {
     return object[LISTENERS];

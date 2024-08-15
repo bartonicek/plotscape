@@ -148,8 +148,8 @@ function histogram2d(plot: Histogram2D) {
   Meta.setName(scales.x, Meta.getName(summaries[1].breaks));
   Meta.setName(scales.y, Meta.getName(summaries[1].breaks$));
 
-  Plot.dispatch(plot, `render`);
-  Plot.dispatch(plot, `render-axes`);
+  Plot.render(plot);
+  Plot.renderAxes(plot);
 }
 
 function spinogram2d(plot: Histogram2D) {
@@ -198,6 +198,6 @@ function spinogram2d(plot: Histogram2D) {
   Meta.setName(scales.x, Meta.getName(summaries[1].breaks));
   Meta.setName(scales.y, Meta.getName(summaries[1].breaks$));
 
-  Plot.dispatch(plot, `render`);
-  Plot.dispatch(plot, `render-axes`);
+  Plot.render(plot);
+  Plot.renderAxes(plot);
 }

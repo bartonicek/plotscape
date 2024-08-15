@@ -50,7 +50,7 @@ function renderSingleAxisLabels(plot: Plot, axis: `x` | `y`) {
 
       if (plot.margins[1] / 2 < w) {
         plot.margins[1] = 2 * w;
-        Plot.dispatch(plot, `resize`);
+        Plot.resize(plot);
       }
 
       if (outside(y, bottom, height - top)) continue;

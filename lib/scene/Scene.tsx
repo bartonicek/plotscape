@@ -6,32 +6,36 @@ import { Meta } from "../utils/Meta";
 import { Reactive } from "../utils/Reactive";
 import { Columns } from "../utils/types";
 import { Group, Marker, Transient } from "./Marker";
+import { WebSocketClient } from "./WebsocketClient";
 
 export interface Scene<T extends Columns = Columns> extends Reactive {
   data: T;
   container: HTMLDivElement;
+  client?: WebSocketClient;
 
   rows: number;
   cols: number;
 
   marker: Marker;
   plots: Plot[];
-  plotDict: Record<string, Plot>;
+  targets: Record<string, Scene | Plot>;
 }
 
-type EventType = `resize`;
-
 export namespace Scene {
-  export function of<T extends Columns>(data: T): Scene<T> {
+  export function of<T extends Columns>(
+    data: T,
+    options?: {
+      websocketURL?: string;
+    },
+  ): Scene<T> {
     const container = (
       <div class="relate grid h-full w-full grid-cols-1 grid-rows-1 gap-5 bg-[#deded9] p-5 px-10"></div>
     ) as HTMLDivElement;
 
     const plots = [] as Plot[];
-    const plotDict = {} as Record<string, Plot>;
-    const marker = Marker.of(Object.values(data)[0].length);
-    const dispatch = new EventTarget();
     const [rows, cols] = [1, 1];
+    const marker = Marker.of(Object.values(data)[0].length);
+    const targets = {} as Record<string, Scene | Plot>;
 
     for (const [k, v] of Object.entries(data)) {
       if (!Meta.hasName(v)) Meta.setName(v, k);
@@ -42,27 +46,35 @@ export namespace Scene {
       container,
       rows,
       cols,
-      dispatch,
       marker,
       plots,
-      plotDict,
-    });
+      targets,
+    }) as Scene<T>;
+
+    targets.scene = scene;
+
+    if (options?.websocketURL) {
+      scene.client = WebSocketClient.of(options.websocketURL, targets);
+    }
 
     setupEvents(scene);
 
     return scene;
   }
 
-  export const listen = Reactive.makeListenFn<Scene, EventType>();
-  export const dispatch = Reactive.makeDispatchFn<Scene, EventType>();
+  export type RespondsTo = `resize` | `connected` | `set-dims`;
+  export type RespondsWith = ``;
+
+  export const listen = Reactive.makeListenFn<Scene, RespondsTo>();
+  export const dispatch = Reactive.makeDispatchFn<Scene, RespondsWith>();
 
   export function append(parent: HTMLElement, scene: Scene) {
     parent.appendChild(scene.container);
-    Scene.dispatch(scene, `resize`);
+    Scene.resize(scene);
   }
 
   export function addPlot(scene: Scene, plot: Plot) {
-    const { container, marker, plots, plotDict } = scene;
+    const { container, marker, plots, targets } = scene;
 
     Plot.listen(plot, `activate`, () => {
       for (const p of plots) if (p != plot) Plot.dispatch(p, `deactivate`);
@@ -82,9 +94,14 @@ export namespace Scene {
     });
 
     plots.push(plot);
-    plotDict[`plot${plots.length}`] = plot;
-    if (plot.type != `unknown`) {
-      addIndexed(plotDict, plot.type, plot);
+
+    // Add plot to targets under various pointer names
+    const { type } = plot;
+    targets[`plot${plots.length}`] = plot;
+    if (type != `unknown`) {
+      addIndexed(targets, type, plot);
+      if (type.startsWith(`histo`)) addIndexed(targets, type + `gram`, plot);
+      else addIndexed(targets, type + `plot`, plot);
     }
 
     Plot.append(container, plot);
@@ -111,7 +128,11 @@ export namespace Scene {
     scene.cols = cols;
     container.style.gridTemplateRows = Array(rows).fill(`1fr`).join(` `);
     container.style.gridTemplateColumns = Array(cols).fill(`1fr`).join(` `);
-    Scene.dispatch(scene, `resize`);
+    Scene.resize(scene);
+  }
+
+  export function resize(scene: Scene) {
+    for (const plot of scene.plots) Plot.dispatch(plot, `resize`);
   }
 }
 
@@ -130,22 +151,23 @@ function setupEvents(scene: Scene) {
     Marker.clearAll(scene.marker);
   });
 
-  window.addEventListener(`keydown`, (e) => {
-    keydownHandlers[e.code]?.(scene);
-  });
+  window.addEventListener(`keydown`, (e) => keydownHandlers[e.code]?.(scene));
+  window.addEventListener(`keyup`, () => Marker.setGroup(marker, Transient));
 
-  window.addEventListener(`keyup`, () => {
-    Marker.setGroup(marker, Transient);
-  });
-
-  Scene.listen(scene, `resize`, () => {
-    for (const plot of plots) Plot.dispatch(plot, `resize`);
-  });
+  Scene.listen(scene, `resize`, () => Scene.resize(scene));
 
   Marker.listen(marker, `cleared`, () => {
-    for (const plot of plots) {
-      Plot.dispatch(plot, `unlock`);
-    }
+    for (const plot of plots) Plot.dispatch(plot, `unlock`);
+  });
+
+  // WebSocket Events
+
+  Scene.listen(scene, `connected`, () =>
+    console.log(`Connected to Websocket server on: ${scene.client!.url}`),
+  );
+
+  Scene.listen(scene, `set-dims`, (data) => {
+    Scene.setDimensions(scene, data.rows, data.cols);
   });
 }
 

@@ -182,8 +182,21 @@ export namespace Plot {
     return plot;
   }
 
-  export const dispatch = Reactive.makeDispatchFn<Plot, EventType>();
-  export const listen = Reactive.makeListenFn<Plot, EventType>();
+  export type RespondsTo =
+    | `resize`
+    | `render`
+    | `render-axes`
+    | `activate`
+    | `deactivate`
+    | `lock`
+    | `unlock`
+    | `clear-transient`
+    | `set-mode-query`
+    | (string & {});
+  export type RespondsWith = `lock-others` | `selected` | (string & {});
+
+  export const listen = Reactive.makeListenFn<Plot, RespondsTo>();
+  export const dispatch = Reactive.makeDispatchFn<Plot, RespondsWith>();
 
   export const scatter = Scatterplot;
   export const bar = Barplot;
@@ -194,30 +207,99 @@ export namespace Plot {
 
   export function append(parent: HTMLElement, plot: Plot) {
     parent.appendChild(plot.container);
-    Plot.dispatch(plot, `resize`);
+    Plot.resize(plot);
   }
 
   export function setData(plot: Plot, data: Dataframe[]) {
     for (const data of plot.data) Reactive.removeListeners(data, `changed`);
     plot.data.length = 0;
     for (let i = 0; i < data.length; i++) plot.data.push(data[i]);
-    Reactive.listen(last(data) as any, `changed`, () =>
-      Plot.dispatch(plot, `render`),
-    );
+    Reactive.listen(last(data) as any, `changed`, () => Plot.render(plot));
   }
 
   export function addGeom(plot: Plot, geom: Geom) {
     geom.scales = plot.scales;
     geom.data = plot.data as any;
-    plot.renderables.push(geom);
-    plot.selectables.push(geom);
-    plot.queryables.push(geom);
+    const { renderables, selectables, queryables } = plot;
+    for (const e of [renderables, selectables, queryables]) {
+      e.push(geom);
+    }
   }
 
   export function deleteGeom(plot: Plot, geom: Geom) {
-    remove(plot.renderables, geom);
-    remove(plot.selectables, geom);
-    remove(plot.queryables, geom);
+    const { renderables, selectables, queryables } = plot;
+    for (const e of [renderables, selectables, queryables]) {
+      remove(e, geom);
+    }
+  }
+
+  export function activate(plot: Plot) {
+    addTailwind(plot.container, `outline outline-2 outline-slate-600`);
+    plot.parameters.active = true;
+  }
+
+  export function deactivate(plot: Plot) {
+    removeTailwind(plot.container, `outline outline-2 outline-slate-600`);
+    plot.parameters.active = false;
+  }
+
+  export function lock(plot: Plot) {
+    plot.parameters.locked = true;
+  }
+
+  export function unlock(plot: Plot) {
+    plot.parameters.locked = false;
+  }
+
+  export function render(plot: Plot) {
+    for (const layer of dataLayers) Frame.clear(plot.frames[layer]);
+    for (const geom of plot.renderables) Geom.render(geom, plot.frames);
+  }
+
+  export function renderAxes(plot: Plot) {
+    for (const layer of [`base`, `xAxis`, `yAxis`] as const) {
+      Frame.clear(plot.frames[layer]);
+    }
+    renderAxisLabels(plot);
+    renderAxisTitles(plot);
+  }
+
+  export function clearUserFrame(plot: Plot) {
+    Frame.clear(plot.frames.user);
+  }
+
+  export function resize(plot: Plot) {
+    for (const frame of Object.values(plot.frames)) Frame.resize(frame);
+    const { container, scales, margins, frames, parameters } = plot;
+    const { clientWidth, clientHeight } = container;
+    const { x, y, width, height, area } = scales;
+
+    const [bottom, left] = [margins[0], margins[1]];
+    const [top, right] = [clientHeight - margins[2], clientWidth - margins[3]];
+    const opts = { default: true };
+
+    frames.under.canvas.style.width = `calc(100% - ${left}px - ${margins[3]}px)`;
+    frames.under.canvas.style.height = `calc(100% - ${bottom}px - ${margins[2]}px)`;
+    frames.over.canvas.style.width = `calc(100% - ${left}px - ${margins[3]}px)`;
+    frames.over.canvas.style.height = `calc(100% - ${bottom}px - ${margins[2]}px)`;
+
+    for (const frame of Object.values(frames)) Frame.clip(frame);
+
+    Expanse.set(x.codomain, (e) => ((e.min = left), (e.max = right)), opts);
+    Expanse.set(y.codomain, (e) => ((e.min = bottom), (e.max = top)), opts);
+
+    const [w, h] = [right - left, top - bottom];
+
+    Expanse.set(width.codomain, (e) => (e.max = w), opts);
+    Expanse.set(height.codomain, (e) => (e.max = h), opts);
+    Expanse.set(area.codomain, (e) => (e.max = Math.min(w, h)), opts);
+
+    if (parameters.ratio) {
+      const { expandX: ex, expandY: ey } = defaultParameters;
+      Expanse.set(x.domain, (e) => ((e.zero = ex), (e.one = 1 - ex)), opts);
+      Expanse.set(y.domain, (e) => ((e.zero = ey), (e.one = 1 - ey)), opts);
+      Plot.applyRatio(plot, parameters.ratio);
+    }
   }
 
   export function checkSelection(plot: Plot) {
@@ -235,13 +317,25 @@ export namespace Plot {
     Frame.rectangleXY(frames.user, ...parameters.mousecoords);
   }
 
+  export function setMode(plot: Plot, mode: Mode) {
+    plot.parameters.mode = mode;
+  }
+
+  export function setMousedown(plot: Plot, value: boolean) {
+    plot.parameters.mousedown = value;
+  }
+
+  export function setMouseButton(plot: Plot, button: MouseButton) {
+    plot.parameters.mousebutton = button;
+  }
+
   export const mousemoveHandlers = { select, pan, query };
 
   function select(plot: Plot, event: MouseEvent) {
     const { container, parameters } = plot;
     if (!parameters.active || !parameters.mousedown) return;
 
-    Plot.dispatch(plot, `clear-transient`);
+    Plot.clearUserFrame(plot);
 
     const { mousecoords } = parameters;
     const { clientHeight } = container;
@@ -273,7 +367,7 @@ export namespace Plot {
     mousecoords[0] = x;
     mousecoords[1] = y;
 
-    Plot.dispatch(plot, `clear-transient`);
+    Plot.clearUserFrame(plot);
   }
 
   function query(plot: Plot, event: MouseEvent) {
@@ -350,7 +444,7 @@ export namespace Plot {
       const alpha = frame.context.globalAlpha;
       frame.context.globalAlpha = trunc((alpha * 9) / 10, 0, 1);
     }
-    Plot.dispatch(plot, `render`);
+    Plot.render(plot);
   }
 
   function unfade(plot: Plot) {
@@ -359,7 +453,7 @@ export namespace Plot {
       const alpha = frame.context.globalAlpha;
       frame.context.globalAlpha = trunc((alpha * 10) / 9, 0, 1);
     }
-    Plot.dispatch(plot, `render`);
+    Plot.render(plot);
   }
 
   export function reset(plot: Plot) {
@@ -367,11 +461,11 @@ export namespace Plot {
       Scale.restoreDefaults(scale);
     }
     plot.zoomStack.length = 1;
-    Plot.dispatch(plot, `clear-transient`);
+    Plot.clearUserFrame(plot);
   }
 
   export function setQueryMode(plot: Plot) {
-    Plot.dispatch(plot, `set-mode-query`);
+    Plot.setMode(plot, Mode.Query);
   }
 
   export function zoom(plot: Plot, coords?: Rect) {
@@ -406,8 +500,9 @@ export namespace Plot {
     Expanse.set(scales.size.codomain, (e) => (e.max *= areaStretch));
 
     zoomStack.push([x0, y0, x1, y1]);
-    Plot.dispatch(plot, `clear-transient`);
-    Plot.dispatch(plot, `render`);
+
+    Plot.clearUserFrame(plot);
+    Plot.render(plot);
   }
 
   export function popZoom(plot: Plot) {
@@ -433,8 +528,9 @@ export namespace Plot {
     Expanse.set(scales.size.codomain, (e) => (e.max *= areaStretch));
 
     zoomStack.pop();
-    Plot.dispatch(plot, `clear-transient`);
-    Plot.dispatch(plot, `render`);
+
+    Plot.clearUserFrame(plot);
+    Plot.render(plot);
   }
 
   export function setRatio(plot: Plot, ratio: number) {
@@ -443,7 +539,7 @@ export namespace Plot {
       throw new Error(`Both axes need to be continuous to set a ratio`);
     }
     plot.parameters.ratio = ratio;
-    Plot.dispatch(plot, `resize`);
+    Plot.resize(plot);
   }
 
   export function applyRatio(plot: Plot, ratio: number) {
@@ -551,7 +647,7 @@ function setupEvents(plot: Plot) {
   const { container, parameters, frames } = plot;
   const { mousecoords } = parameters;
 
-  window.addEventListener(`resize`, () => Plot.dispatch(plot, `resize`));
+  window.addEventListener(`resize`, () => Plot.resize(plot));
   window.addEventListener(`keydown`, (e) => {
     if (e.key === `q`) Plot.dispatch(plot, e.key as EventType);
     else if (parameters.active) Plot.dispatch(plot, e.key as EventType);
@@ -566,30 +662,31 @@ function setupEvents(plot: Plot) {
 
     const { locked } = parameters;
 
-    Plot.dispatch(plot, `activate`);
-    parameters.mousedown = true;
-    parameters.mousebutton = e.button;
+    Plot.activate(plot);
+    Plot.setMousedown(plot, true);
+    Plot.setMouseButton(plot, e.button);
 
-    if (e.button === MouseButton.Left) parameters.mode = Mode.Select;
-    else if (e.button === MouseButton.Right) parameters.mode = Mode.Pan;
+    if (e.button === MouseButton.Left) Plot.setMode(plot, Mode.Select);
+    else if (e.button === MouseButton.Right) Plot.setMode(plot, Mode.Pan);
 
     const x = e.offsetX;
     const y = container.clientHeight - e.offsetY;
 
     copyValues([x, y, x, y], mousecoords);
     if (!locked && parameters.mode === Mode.Select) {
-      Plot.dispatch(plot, `clear-transient`);
+      Plot.clearUserFrame(plot);
       Plot.checkSelection(plot);
     }
 
-    Plot.dispatch(plot, `unlock`);
+    Plot.lock(plot);
   });
 
   container.addEventListener(`contextmenu`, (e) => {
     e.preventDefault();
-    parameters.mousedown = true;
-    parameters.mousebutton = MouseButton.Right;
-    parameters.mode = Mode.Pan;
+
+    Plot.setMousedown(plot, true);
+    Plot.setMouseButton(plot, MouseButton.Right);
+    Plot.setMode(plot, Mode.Pan);
 
     parameters.mousecoords[0] = e.offsetX;
     parameters.mousecoords[1] = container.clientHeight - e.offsetY;
@@ -597,9 +694,7 @@ function setupEvents(plot: Plot) {
     Frame.clear(frames.user);
   });
 
-  container.addEventListener(`mouseup`, () => {
-    parameters.mousedown = false;
-  });
+  container.addEventListener(`mouseup`, () => Plot.setMousedown(plot, false));
 
   container.addEventListener(
     `mousemove`,
@@ -612,75 +707,21 @@ function setupEvents(plot: Plot) {
     Plot.listen(plot, k as EventType, () => v(plot));
   }
 
-  Plot.listen(plot, `resize`, () => {
-    for (const frame of Object.values(plot.frames)) Frame.resize(frame);
-    const { scales, margins, frames } = plot;
-    const { clientWidth, clientHeight } = container;
-    const { x, y, width, height, area } = scales;
-
-    const [bottom, left] = [margins[0], margins[1]];
-    const [top, right] = [clientHeight - margins[2], clientWidth - margins[3]];
-    const opts = { default: true };
-
-    frames.under.canvas.style.width = `calc(100% - ${left}px - ${margins[3]}px)`;
-    frames.under.canvas.style.height = `calc(100% - ${bottom}px - ${margins[2]}px)`;
-    frames.over.canvas.style.width = `calc(100% - ${left}px - ${margins[3]}px)`;
-    frames.over.canvas.style.height = `calc(100% - ${bottom}px - ${margins[2]}px)`;
-
-    for (const frame of Object.values(frames)) Frame.clip(frame);
-
-    Expanse.set(x.codomain, (e) => ((e.min = left), (e.max = right)), opts);
-    Expanse.set(y.codomain, (e) => ((e.min = bottom), (e.max = top)), opts);
-
-    const [w, h] = [right - left, top - bottom];
-
-    Expanse.set(width.codomain, (e) => (e.max = w), opts);
-    Expanse.set(height.codomain, (e) => (e.max = h), opts);
-    Expanse.set(area.codomain, (e) => (e.max = Math.min(w, h)), opts);
-
-    if (parameters.ratio) {
-      const { expandX: ex, expandY: ey } = defaultParameters;
-      Expanse.set(x.domain, (e) => ((e.zero = ex), (e.one = 1 - ex)), opts);
-      Expanse.set(y.domain, (e) => ((e.zero = ey), (e.one = 1 - ey)), opts);
-      Plot.applyRatio(plot, parameters.ratio);
-    }
-  });
+  Plot.listen(plot, `resize`, () => Plot.resize(plot));
+  Plot.listen(plot, `activate`, () => Plot.activate(plot));
+  Plot.listen(plot, `deactivate`, () => Plot.deactivate(plot));
+  Plot.listen(plot, `render`, () => Plot.render(plot));
+  Plot.listen(plot, `lock`, () => Plot.lock(plot));
+  Plot.listen(plot, `unlock`, () => Plot.unlock(plot));
+  Plot.listen(plot, `set-mode-query`, () => Plot.setMode(plot, Mode.Query));
+  Plot.listen(plot, `render-axes`, () => Plot.renderAxes(plot));
+  Plot.listen(plot, `clear-transient`, () => Plot.clearUserFrame(plot));
 
   for (const scale of Object.values(plot.scales)) {
     Scale.listen(scale, `changed`, () => {
-      Plot.dispatch(plot, `render`);
-      Plot.dispatch(plot, `render-axes`);
+      Plot.render(plot), Plot.renderAxes(plot);
     });
   }
-
-  Plot.listen(plot, `activate`, () => {
-    addTailwind(container, `outline outline-2 outline-slate-600`);
-    plot.parameters.active = true;
-  });
-
-  Plot.listen(plot, `deactivate`, () => {
-    removeTailwind(container, `outline outline-2 outline-slate-600`);
-    plot.parameters.active = false;
-  });
-
-  Plot.listen(plot, `render`, () => {
-    for (const layer of dataLayers) Frame.clear(frames[layer]);
-    for (const geom of plot.renderables) Geom.render(geom, plot.frames);
-  });
-
-  Plot.listen(plot, `clear-transient`, () => Frame.clear(frames.user));
-  Plot.listen(plot, `lock`, () => (parameters.locked = true));
-  Plot.listen(plot, `unlock`, () => (parameters.locked = false));
-  Plot.listen(plot, `set-mode-query`, () => (parameters.mode = Mode.Query));
-
-  Plot.listen(plot, `render-axes`, () => {
-    for (const layer of [`base`, `xAxis`, `yAxis`] as const) {
-      Frame.clear(frames[layer]);
-    }
-
-    renderAxisLabels(plot);
-    renderAxisTitles(plot);
-  });
 }
 
 function setupScales(
