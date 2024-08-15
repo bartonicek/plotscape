@@ -13,7 +13,8 @@
     "dev": "vite",
     "build": "bun test && tsc && vite build",
     "preview": "vite preview",
-    "copy": "cp ./dist/main.iife.js ../plotscaper/inst/htmlwidgets/plotscape"
+    "copy": "cp ./dist/main.iife.js ../plotscaper/inst/htmlwidgets/plotscape",
+    "countlines": "find ./lib -type f -regex '.*/*.tsx?$' | xargs wc -l"
   },
   "devDependencies": {
     "@types/bun": "^1.1.6",

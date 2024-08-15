@@ -45,6 +45,7 @@ type ExpanseMethods = {
   unnormalize(expanse: unknown, value: unknown): unknown;
   breaks(expanse: unknown): string[] | number[];
   train(expanse: unknown, array: unknown[], options?: {}): void;
+  reorder?(expanse: unknown, indices: number[]): void;
 };
 
 export namespace Expanse {
@@ -85,15 +86,18 @@ export namespace Expanse {
     setfn: (expanse: T & { [key in string]: any }) => void,
     options?: { default?: boolean; silent?: boolean },
   ) {
+    const { linked, frozen } = expanse;
     const temp = { ...expanse };
     setfn(temp);
 
-    for (const k of expanse.frozen) delete temp[k as keyof typeof temp];
+    for (const k of frozen) delete temp[k as keyof typeof temp];
     for (const k of Object.keys(temp) as (keyof typeof temp)[]) {
       if (temp[k] === expanse[k]) delete temp[k];
     }
 
     copyProps(temp, expanse);
+
+    for (const l of linked) Expanse.set(l as T, setfn);
 
     if (!!options?.default) copyProps(temp, expanse.defaults);
     if (!options?.silent) Expanse.dispatch(expanse, `changed`);
@@ -155,7 +159,6 @@ export namespace Expanse {
     const { direction: d } = expanse;
     const amt = amount;
     Expanse.set(expanse, (e) => ((e.zero += d * amt), (e.one += d * amt)));
-    for (const e of expanse.linked) Expanse.move(e, amount);
   }
 
   export function expand(
@@ -186,6 +189,11 @@ export namespace Expanse {
     Expanse.set(expanse, (e) => (e.direction *= -1));
   }
 
+  export function reorder(expanse: Expanse, indices: number[]) {
+    if (!isDiscrete(expanse)) throw new Error(`Expanse must be discrete`);
+    Expanse.methods[expanse.type].reorder!(expanse, indices);
+  }
+
   export function unitRange(expanse: Expanse) {
     return expanse.one - expanse.zero;
   }
@@ -198,11 +206,15 @@ export namespace Expanse {
   }
 
   export function isContinuous(expanse: Expanse): expanse is ExpanseContinuous {
-    return expanse.type === `continuous`;
+    return expanse.type === `continuous` || expanse.type === `split`;
   }
 
   export function isPoint(expanse: Expanse): expanse is ExpansePoint {
     return expanse.type === `point`;
+  }
+
+  export function isDiscrete(expanse: Expanse) {
+    return expanse.type === `point` || expanse.type === `band`;
   }
 
   export function isBand(expanse: Expanse): expanse is ExpanseBand {

@@ -17,18 +17,18 @@ interface Message {
 export interface WebSocketClient {
   url: string;
   socket: WebSocket;
-  targets: Record<Target, Reactive>;
+  targetfn: (id: Target) => Reactive | undefined;
   handlers: Record<string, ((data: any) => void)[]>;
 }
 
 export namespace WebSocketClient {
   export function of(
     url: string,
-    targets: Record<Target, Reactive>,
+    targetfn: (id: Target) => Reactive | undefined,
   ): WebSocketClient {
     const socket = new WebSocket(url);
     const handlers = {} as Record<string, ((data: any) => void)[]>;
-    const client = { url, socket, targets, handlers };
+    const client = { url, socket, targetfn, handlers };
 
     socket.addEventListener(`message`, (msg) => {
       handleMessage(client, JSON.parse(msg.data));
@@ -38,9 +38,10 @@ export namespace WebSocketClient {
   }
 
   export function handleMessage(client: WebSocketClient, message: Message) {
-    const { targets } = client;
-    const { type, target, data } = message;
-    if (target in targets) Reactive.dispatch(targets[target], type, data);
+    const { targetfn } = client;
+    const { type, target: targetId, data } = message;
+    const target = targetfn(targetId);
+    if (target) Reactive.dispatch(target, type, data);
   }
 
   export function send(

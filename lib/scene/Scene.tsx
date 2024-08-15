@@ -1,24 +1,27 @@
 import { Frame } from "../plot/Frame";
 import { Plot } from "../plot/Plot";
-import { addIndexed } from "../utils/funs";
+import {
+  filterIndices,
+  keysToSelector,
+  splitNumericSuffix,
+} from "../utils/funs";
 import React from "../utils/JSX";
 import { Meta } from "../utils/Meta";
 import { Reactive } from "../utils/Reactive";
 import { Columns } from "../utils/types";
 import { Group, Marker, Transient } from "./Marker";
-import { WebSocketClient } from "./WebsocketClient";
 
 export interface Scene<T extends Columns = Columns> extends Reactive {
   data: T;
   container: HTMLDivElement;
-  client?: WebSocketClient;
+  client?: WebSocket;
 
   rows: number;
   cols: number;
 
   marker: Marker;
   plots: Plot[];
-  targets: Record<string, Scene | Plot>;
+  plotsByType: Record<Plot.Type, Plot[]>;
 }
 
 export namespace Scene {
@@ -32,14 +35,17 @@ export namespace Scene {
       <div class="relate grid h-full w-full grid-cols-1 grid-rows-1 gap-5 bg-[#deded9] p-5 px-10"></div>
     ) as HTMLDivElement;
 
-    const plots = [] as Plot[];
     const [rows, cols] = [1, 1];
     const marker = Marker.of(Object.values(data)[0].length);
-    const targets = {} as Record<string, Scene | Plot>;
+    const plots = [] as Plot[];
+    const plotsByType = {} as Record<Plot.Type, Plot[]>;
 
     for (const [k, v] of Object.entries(data)) {
       if (!Meta.hasName(v)) Meta.setName(v, k);
     }
+
+    // Mock interface for just echoing messages back
+    const client = { send: console.log } as WebSocket;
 
     const scene = Reactive.of({
       data,
@@ -47,26 +53,34 @@ export namespace Scene {
       rows,
       cols,
       marker,
+      client,
       plots,
-      targets,
+      plotsByType,
     }) as Scene<T>;
 
-    targets.scene = scene;
-
     if (options?.websocketURL) {
-      scene.client = WebSocketClient.of(options.websocketURL, targets);
+      scene.client = new WebSocket(options.websocketURL);
+      scene.client.addEventListener(`message`, (msg) => {
+        handleMessage(scene, JSON.parse(msg.data));
+      });
     }
 
     setupEvents(scene);
-
     return scene;
   }
 
-  export type RespondsTo = `resize` | `connected` | `set-dims` | `add-plot`;
-  export type RespondsWith = ``;
+  export type EventType =
+    | `resize`
+    | `connected`
+    | `set-dims`
+    | `add-plot`
+    | `select`
+    | `assign`
+    | `selected`
+    | `assigned`;
 
-  export const listen = Reactive.makeListenFn<Scene, RespondsTo>();
-  export const dispatch = Reactive.makeDispatchFn<Scene, RespondsWith>();
+  export const listen = Reactive.makeListenFn<Scene, EventType>();
+  export const dispatch = Reactive.makeDispatchFn<Scene, EventType>();
 
   export function append(parent: HTMLElement, scene: Scene) {
     parent.appendChild(scene.container);
@@ -74,7 +88,7 @@ export namespace Scene {
   }
 
   export function addPlot(scene: Scene, plot: Plot) {
-    const { container, marker, plots, targets } = scene;
+    const { container, marker, plots, plotsByType } = scene;
 
     Plot.listen(plot, `activated`, () => {
       for (const p of plots) if (p != plot) Plot.dispatch(p, `deactivate`);
@@ -95,14 +109,9 @@ export namespace Scene {
 
     plots.push(plot);
 
-    // Add plot to targets under various pointer names
     const { type } = plot;
-    targets[`plot${plots.length}`] = plot;
-    if (type != `unknown`) {
-      addIndexed(targets, type, plot);
-      if (type.startsWith(`histo`)) addIndexed(targets, type + `gram`, plot);
-      else addIndexed(targets, type + `plot`, plot);
-    }
+    if (!plotsByType[type]) plotsByType[type] = [] as Plot[];
+    plotsByType[type].push(plot);
 
     Plot.append(container, plot);
 
@@ -133,6 +142,57 @@ export namespace Scene {
 
   export function resize(scene: Scene) {
     for (const plot of scene.plots) Plot.dispatch(plot, `resize`);
+  }
+
+  export type Target =
+    | `session`
+    | `scene`
+    | `plot${number}`
+    | `${Plot.Type}${number}`
+    | `${Plot.Type}plot${number}`
+    | `${Plot.Type}gram${number}`;
+
+  export interface Message {
+    sender: `session` | `scene`;
+    target: Target;
+    type: string;
+    data?: Record<string, any>;
+  }
+
+  export function getTarget(scene: Scene, targetId: Target) {
+    if (targetId === `scene`) return scene;
+
+    const { plots, plotsByType } = scene;
+    let [type, idString] = splitNumericSuffix(targetId);
+    const id = parseInt(idString, 10) - 1; // 0 based indexing;
+
+    if (type === `plot`) return plots[id];
+
+    // Remove to match e.g. 'barplot' or 'histogram' with 'bar' and 'histo'
+    type = type.replace(`plot`, ``).replace(`gram`, ``);
+
+    if (type in plotsByType) return plotsByType[type as Plot.Type][id];
+  }
+
+  export function handleMessage(scene: Scene, message: Message) {
+    const { client } = scene;
+
+    if (!client) return;
+
+    const { type, target: targetId, data } = message;
+    const target = getTarget(scene, targetId);
+
+    if (target) Reactive.dispatch(target, type, data);
+  }
+
+  export function sendMessage(
+    scene: Scene,
+    type: EventType,
+    data: Record<string, any>,
+  ) {
+    const [sender, target] = [`scene`, `session`];
+    const message = JSON.stringify({ sender, target, type, data });
+    scene.client!.send(message);
   }
 }
 
@@ -172,8 +232,28 @@ function setupEvents(scene: Scene) {
 
   Scene.listen(scene, `add-plot`, (data) => {
     const { type, variables, options } = data;
-    const selectfn = (data: Columns) => variables.map((x: string) => data[x]);
-    Scene.addPlotByType(scene, type, selectfn);
+    const selectfn = keysToSelector(variables);
+    Scene.addPlotByType(scene, type, selectfn, options);
+  });
+
+  Scene.listen(scene, `select`, (data) => {
+    Marker.update(marker, data.cases);
+  });
+
+  Scene.listen(scene, `assign`, (data) => {
+    const group = 7 - Math.min(data.group, 3);
+    Marker.update(marker, data.cases, { group });
+  });
+
+  Scene.listen(scene, `selected`, () => {
+    const cases = filterIndices(marker.indices, Marker.isTransient);
+    Scene.sendMessage(scene, `selected`, { cases });
+  });
+
+  Scene.listen(scene, `assigned`, (data) => {
+    const isGroup = (x: number) => (x | 4) === 7 - Math.min(data.group, 3);
+    const cases = filterIndices(marker.indices, isGroup);
+    Scene.sendMessage(scene, `assigned`, { cases, group: data.group });
   });
 }
 

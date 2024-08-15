@@ -99,13 +99,18 @@ export namespace Marker {
     const { factor, indices } = marker;
     return (i) => factor.data[LAYER][indices[i]] as DataLayer;
   }
+
+  export function isTransient(x: number) {
+    return !(x & 4);
+  }
+
+  function addTransient(x: number) {
+    return x & ~4;
+  }
+
+  function stripTransient(x: number) {
+    return x | 4;
+  }
 }
 
-function addTransient(x: number) {
-  return x & ~4;
-}
-
-function stripTransient(x: number) {
-  return x | 4;
-}
 export const LAYER = Symbol(`layer`);

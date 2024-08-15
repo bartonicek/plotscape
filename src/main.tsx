@@ -6,7 +6,6 @@ import {
   Reducer,
   Scene,
 } from "../lib/main";
-import { WebSocketClient } from "../lib/scene/WebsocketClient";
 
 async function mtcarsScene() {
   const app = document.querySelector<HTMLDivElement>("#app")!;
@@ -14,33 +13,46 @@ async function mtcarsScene() {
   mtcars.cyl = mtcars.cyl.map((x) => x.toString());
   mtcars.am = mtcars.am.map((x) => x.toString());
 
-  const scene = Scene.of(mtcars, { websocketURL: "ws://localhost:8080" });
+  const scene = Scene.of(mtcars, {}); //  websocketURL: "ws://localhost:8080"
   Scene.append(app, scene);
 
   const plot1 = Plot.scatter(scene, (d) => [d.wt, d.mpg]);
   const plot2 = Plot.histo(scene, (d) => [d.mpg]);
-  const plot3 = Plot.bar(scene, (d) => [d.carb, d.mpg], {
+  const plot3 = Plot.bar(scene, (d) => [d.cyl, d.mpg], {
     reducer: Reducer.sum,
     queries: (d) => [[d.wt, Reducer.sum]],
   });
 
   const plot4 = Plot.fluct(scene, (d) => [d.cyl, d.am]);
   const plot5 = Plot.line(scene, (d) => [d.wt, d.disp, d.drat, d.mpg]);
-  const plot6 = Plot.histo2d(scene, (d) => [d.wt, d.mpg], {});
 
   Scene.addPlot(scene, plot1);
   Scene.addPlot(scene, plot2);
   Scene.addPlot(scene, plot3);
   Scene.addPlot(scene, plot4);
   Scene.addPlot(scene, plot5);
-  Scene.addPlot(scene, plot6);
 
-  WebSocketClient.handleMessage(scene.client!, {
+  scene.client!.send = console.log;
+
+  // Scene.handleMessage(scene, {
+  //   sender: `session`,
+  //   target: `scene`,
+  //   type: `assign`,
+  //   data: { cases: [0, 1, 2, 3, 5], group: 1 },
+  // });
+
+  Scene.handleMessage(scene, {
     sender: `session`,
-    target: `scene`,
-    type: `add-plot`,
-    data: { type: `scatter`, variables: [`wt`, `cyl`] },
+    target: `barplot1`,
+    type: `set-scale`,
+    data: { scale: `y`, max: 400 },
   });
+
+  // WebSocketClient.handleMessage(scene.client!, {
+  //   sender: `session`,
+  //   target: `scene`,
+  //   type: `get-selected`,
+  // });
 }
 
 async function imdbScene() {
@@ -108,3 +120,5 @@ async function sacramentoScene() {
 }
 
 mtcarsScene();
+
+console.log((4).toString(2));

@@ -18,11 +18,13 @@ import {
   invertRange,
   last,
   max,
+  orderIndicesByTable,
   rangeInverse,
   remove,
   removeTailwind,
   sqrt,
   square,
+  stringArraysMatch,
   throttle,
   trunc,
 } from "../utils/funs";
@@ -166,7 +168,7 @@ export namespace Plot {
     return plot;
   }
 
-  export type RespondsTo =
+  export type Events =
     | `resize`
     | `render`
     | `render-axes`
@@ -176,16 +178,15 @@ export namespace Plot {
     | `unlock`
     | `clear-transient`
     | `set-mode-query`
-    | (string & {});
-  export type RespondsWith =
     | `activated`
     | `lock-others`
     | `selected`
     | `clear-transient`
+    | `set-scale`
     | (string & {});
 
-  export const listen = Reactive.makeListenFn<Plot, RespondsTo>();
-  export const dispatch = Reactive.makeDispatchFn<Plot, RespondsWith>();
+  export const listen = Reactive.makeListenFn<Plot, Events>();
+  export const dispatch = Reactive.makeDispatchFn<Plot, Events>();
 
   export const scatter = Scatterplot;
   export const bar = Barplot;
@@ -557,6 +558,46 @@ export namespace Plot {
       );
     }
   }
+
+  export function setScale(
+    plot: Plot,
+    options: {
+      scale: `x` | `y`;
+      min?: number;
+      max?: number;
+      labels?: string[];
+      direction?: number;
+    },
+  ) {
+    const domain = plot.scales[options.scale].domain;
+    const { min, max, labels, direction } = options;
+
+    if (min || max) {
+      if (!Expanse.isContinuous(domain)) {
+        throw new Error(`Limits can only be set with a continuous scale`);
+      }
+
+      Expanse.set(domain, (e) => {
+        if (min) e.min = min;
+        if (max) e.max = max;
+      });
+    }
+
+    if (labels) {
+      if (!Expanse.isDiscrete(domain)) {
+        throw new Error(`Labels can be ordered with a discrete scale only`);
+      }
+
+      if (!stringArraysMatch(domain.labels, labels)) {
+        throw new Error(`Labels must match the scale's labels`);
+      }
+
+      const indices = orderIndicesByTable(domain.labels, labels);
+      Expanse.reorder(domain, indices);
+    }
+
+    if (direction) Expanse.set(domain, (e) => (e.direction = direction));
+  }
 }
 
 function setupFrames(plot: Plot) {
@@ -639,8 +680,8 @@ function setupEvents(plot: Plot) {
 
   window.addEventListener(`resize`, () => Plot.resize(plot));
   window.addEventListener(`keydown`, (e) => {
-    if (e.key === `q`) Plot.dispatch(plot, e.key as Plot.RespondsTo);
-    else if (parameters.active) Plot.dispatch(plot, e.key as Plot.RespondsTo);
+    if (e.key === `q`) Plot.dispatch(plot, e.key as Plot.Events);
+    else if (parameters.active) Plot.dispatch(plot, e.key as Plot.Events);
   });
   window.addEventListener(`keyup`, () => {
     parameters.mode = Mode.Select;
@@ -695,7 +736,7 @@ function setupEvents(plot: Plot) {
   );
 
   for (const [k, v] of Object.entries(Plot.keydownHandlers)) {
-    Plot.listen(plot, k as Plot.RespondsTo, () => v(plot));
+    Plot.listen(plot, k as Plot.Events, () => v(plot));
   }
 
   Plot.listen(plot, `resize`, () => Plot.resize(plot));
@@ -707,6 +748,7 @@ function setupEvents(plot: Plot) {
   Plot.listen(plot, `set-mode-query`, () => Plot.setMode(plot, Mode.Query));
   Plot.listen(plot, `render-axes`, () => Plot.renderAxes(plot));
   Plot.listen(plot, `clear-transient`, () => Plot.clearUserFrame(plot));
+  Plot.listen(plot, `set-scale`, (data) => Plot.setScale(plot, data));
 
   for (const scale of Object.values(plot.scales)) {
     Scale.listen(scale, `changed`, () => {

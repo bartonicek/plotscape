@@ -344,6 +344,16 @@ export function orderBy(array: unknown[], indices: number[]) {
   for (let i = 0; i < array.length; i++) array[i] = temp[i];
 }
 
+export function orderIndicesByTable<T>(array: T[], table: T[]) {
+  const result = Array(array.length);
+
+  for (let i = 0; i < array.length; i++) {
+    result[i] = table.indexOf(array[i]);
+  }
+
+  return result;
+}
+
 /**
  * Find the minimum and maximum of an array.
  * @param array An array of numbers
@@ -876,4 +886,36 @@ export function row<T extends Dataframe>(data: T, index: number) {
     result[k] = Getter.of(v)(index);
   }
   return result;
+}
+
+export function keysToSelector(keys: string[]) {
+  return function <T extends Record<string, any>>(object: T) {
+    return keys.map((x) => object[x]);
+  };
+}
+
+export function splitNumericSuffix(x: string) {
+  let index = x.length - 1;
+
+  while (index > 0) {
+    if (!/[0-9]/.test(x[index])) break;
+    index--;
+  }
+
+  index += 1;
+  return [x.substring(0, index), x.substring(index, x.length)];
+}
+
+export function filterIndices<T>(array: T[], predicate: (value: T) => boolean) {
+  const result = [] as number[];
+  for (let i = 0; i < array.length; i++) {
+    if (predicate(array[i])) result.push(i);
+  }
+  return result;
+}
+
+export function stringArraysMatch(array1: string[], array2: string[]) {
+  const s1 = array1.toSorted(compareAlphaNumeric).join(``);
+  const s2 = array2.toSorted(compareAlphaNumeric).join(``);
+  return s1 === s2;
 }
