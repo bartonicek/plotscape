@@ -41,12 +41,19 @@ async function mtcarsScene() {
   //   data: { cases: [0, 1, 2, 3, 5], group: 1 },
   // });
 
-  Scene.handleMessage(scene, {
-    sender: `session`,
-    target: `barplot1`,
-    type: `set-scale`,
-    data: { scale: `y`, max: 400 },
-  });
+  // Scene.handleMessage(scene, {
+  //   sender: `session`,
+  //   target: `scatterplot1`,
+  //   type: `set-scale`,
+  //   data: { scale: `size`, mult: 1 },
+  // });
+
+  // Scene.handleMessage(scene, {
+  //   sender: `session`,
+  //   target: `scatterplot1`,
+  //   type: `zoom`,
+  //   data: { coords: [0.25, 0.25, 0.75, 0.75], units: `pct` },
+  // });
 }
 
 async function imdbScene() {

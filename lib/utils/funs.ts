@@ -335,7 +335,7 @@ export function ordered<T>(array: T[], indices: number[]) {
  * @returns An array of indices
  */
 export function orderIndices(array: number[]) {
-  const sorted = [...array].sort(diff);
+  const sorted = array.toSorted(diff);
 
   const result = {} as Record<number, number>;
   const seen = {} as Record<number, number>;

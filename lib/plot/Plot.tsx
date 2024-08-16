@@ -183,6 +183,7 @@ export namespace Plot {
     | `selected`
     | `clear-transient`
     | `set-scale`
+    | `zoom`
     | (string & {});
 
   export const listen = Reactive.makeListenFn<Plot, Events>();
@@ -459,23 +460,29 @@ export namespace Plot {
     Plot.setMode(plot, Mode.Query);
   }
 
-  export function zoom(plot: Plot, coords?: Rect) {
+  export function zoom(
+    plot: Plot,
+    options?: { coords?: Rect; units?: `abs` | `pct` },
+  ) {
     const { scales, parameters, zoomStack } = plot;
-    let [x0, y0, x1, y1] = coords ?? parameters.mousecoords;
+    let { coords, units } = options ?? {};
 
-    // If zoom area is too small, do nothing
-    if (Math.abs(x1 - x0) < 10 || Math.abs(y1 - y0) < 10) return;
+    units = units ?? `abs`;
+    let [x0, y0, x1, y1] = coords ?? parameters.mousecoords;
 
     const { x, y } = scales;
 
-    [x0, x1] = [x0, x1].map((e) =>
-      trunc(Expanse.normalize(x.codomain, e) as number),
-    );
-    [x0, x1] = [x0, x1].sort(diff);
-    [y0, y1] = [y0, y1].map((e) =>
-      trunc(Expanse.normalize(y.codomain, e) as number),
-    );
+    if (units === `abs`) {
+      // If zoom area is too tiny, do nothing
+      if (Math.abs(x1 - x0) < 10 || Math.abs(y1 - y0) < 10) return;
 
+      x0 = trunc(Expanse.normalize(x.codomain, x0));
+      x1 = trunc(Expanse.normalize(x.codomain, x1));
+      y0 = trunc(Expanse.normalize(y.codomain, y0));
+      y1 = trunc(Expanse.normalize(y.codomain, y1));
+    }
+
+    [x0, x1] = [x0, x1].sort(diff);
     [y0, y1] = [y0, y1].sort(diff);
 
     Scale.expand(scales.x, x0, x1);
@@ -492,7 +499,7 @@ export namespace Plot {
 
     zoomStack.push([x0, y0, x1, y1]);
 
-    Plot.clearUserFrame(plot);
+    Plot.dispatch(plot, `clear-transient`);
     Plot.render(plot);
   }
 
@@ -562,15 +569,21 @@ export namespace Plot {
   export function setScale(
     plot: Plot,
     options: {
-      scale: `x` | `y`;
+      scale: `x` | `y` | `area` | `size`;
       min?: number;
       max?: number;
+      mult?: number;
       labels?: string[];
       direction?: number;
     },
   ) {
-    const domain = plot.scales[options.scale].domain;
-    const { min, max, labels, direction } = options;
+    const { scale, min, max, mult, labels, direction } = options;
+    const domain = plot.scales[scale].domain;
+    const codomain = plot.scales[scale].codomain;
+
+    if (![`x`, `y`, `area`, `size`].includes(scale)) {
+      throw new Error(`Unrecognized scale '${scale}'`);
+    }
 
     if (min || max) {
       if (!Expanse.isContinuous(domain)) {
@@ -597,6 +610,7 @@ export namespace Plot {
     }
 
     if (direction) Expanse.set(domain, (e) => (e.direction = direction));
+    if (mult) Expanse.set(codomain, (e) => (e.mult = mult));
   }
 }
 
@@ -750,6 +764,7 @@ function setupEvents(plot: Plot) {
   Plot.listen(plot, `render-axes`, () => Plot.renderAxes(plot));
   Plot.listen(plot, `clear-transient`, () => Plot.clearUserFrame(plot));
   Plot.listen(plot, `set-scale`, (data) => Plot.setScale(plot, data));
+  Plot.listen(plot, `zoom`, (data) => Plot.zoom(plot, data));
 
   for (const scale of Object.values(plot.scales)) {
     Scale.listen(scale, `changed`, () => {
