@@ -38,7 +38,7 @@ export function Barplot<T extends Columns>(
 
   let [category, vals] = selectfn(data);
   const reducer = vals && options?.reducer ? options.reducer : Reducer.sum;
-  const values = vals ? [...vals] : () => 1;
+  const values = vals ? vals : () => 1;
 
   const factor1 = Factor.from(category);
   const factor2 = Factor.product(factor1, marker.factor);

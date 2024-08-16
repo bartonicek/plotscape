@@ -13,6 +13,8 @@ export type Reducer<T = any, U = any, V = U> = {
 };
 
 export namespace Reducer {
+  export type Name = `sum` | `max` | `product` | `table`;
+
   export const sum: Reducer<number, number> = {
     name: `sum`,
     fallback: `count`,
@@ -40,6 +42,11 @@ export namespace Reducer {
       return prev;
     },
   };
+
+  export function get(value: Name | Reducer) {
+    if (typeof value === `string`) return Reducer[value];
+    return value;
+  }
 
   export function reduce<T, U>(
     values: Indexable<T>,

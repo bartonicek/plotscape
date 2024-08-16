@@ -54,6 +54,18 @@ async function mtcarsScene() {
   //   type: `zoom`,
   //   data: { coords: [0.25, 0.25, 0.75, 0.75], units: `pct` },
   // });
+
+  Scene.handleMessage(scene, {
+    sender: `session`,
+    target: `scene`,
+    type: `add-plot`,
+    data: {
+      type: `bar`,
+      variables: [`carb`, `mpg`],
+      reducer: `sum`,
+      queries: [[`mpg`, `max`]],
+    },
+  });
 }
 
 async function imdbScene() {

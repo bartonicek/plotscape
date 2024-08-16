@@ -64,6 +64,15 @@ export namespace Reactive {
     if (deferred) for (const cb of deferred) remove(deferred, cb);
   }
 
+  export function removeAllListeners(object: Object) {
+    if (!isReactive(object)) return;
+
+    const [listeners, deferred] = [getListeners(object), getDeferred(object)];
+
+    if (listeners) for (const cbs of Object.values(listeners)) cbs.length = 0;
+    if (deferred) for (const cbs of Object.values(deferred)) cbs.length = 0;
+  }
+
   export function makeListenFn<T extends Reactive, E extends string>() {
     return function (
       object: T,

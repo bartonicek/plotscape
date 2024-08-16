@@ -877,12 +877,25 @@ export function isIntegerString(x: string) {
 }
 
 /**
- * Checks whether an array is an array of numbers (by checking the first value only)
+ * Checks whether an array is an array of numbers
+ * (by checking the first and last values only).
+ *
  * @param array An array
- * @returns `true` if the first element is a number
+ * @returns `true` if the first and last element is a number
  */
 export function isNumberArray(array: any[]): array is number[] {
-  return typeof array[0] === "number";
+  return typeof array[0] === `number` && typeof last(array) === `number`;
+}
+
+/**
+ * Checks whether an array is an array of strings
+ * (by checking the first and last values only).
+ *
+ * @param array An array
+ * @returns `true` if the first and last element is a number
+ */
+export function isStringArray(array: any[]): array is string[] {
+  return typeof array[0] === `string` && typeof last(array) === `string`;
 }
 
 /**
@@ -924,6 +937,12 @@ export function row<T extends Dataframe>(data: T, index: number) {
   return result;
 }
 
+export function selector<K extends string>(key: K) {
+  return function (object: Record<string, any> & { [key in K]: any }) {
+    return object[key];
+  };
+}
+
 /**
  * Takes in an array of keys and returns a selector function that,
  * given an object, extract the values of those keys and
@@ -932,7 +951,7 @@ export function row<T extends Dataframe>(data: T, index: number) {
  * @param keys An array of keys
  * @returns A selector function
  */
-export function keysToSelector(keys: string[]) {
+export function keysToSelectors(keys: string[]) {
   return function <T extends Record<string, any>>(object: T) {
     return keys.map((x) => object[x]);
   };

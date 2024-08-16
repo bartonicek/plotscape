@@ -43,7 +43,7 @@ export function Histogram<T extends Columns>(
 
   let [binned, vals] = selectfn(data);
   const reducer = vals && options?.reducer ? options.reducer : Reducer.sum;
-  const values = vals ? [...vals] : () => 1;
+  const values = vals ? vals : () => 1;
 
   const [min, max] = minmax(binned);
   const range = max - min;

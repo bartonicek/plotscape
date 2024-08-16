@@ -47,7 +47,7 @@ export function Histogram2d<T extends Columns>(
 
   let [binned1, binned2, vals] = selectfn(data);
   const reducer = vals && options?.reducer ? options.reducer : Reducer.sum;
-  const values = vals ? [...vals] : () => 1;
+  const values = vals ? vals : () => 1;
 
   const [min1, max1] = minmax(binned1);
   const [min2, max2] = minmax(binned2);

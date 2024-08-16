@@ -1,8 +1,11 @@
+import { Reducer } from "../main";
 import { Frame } from "../plot/Frame";
 import { Plot } from "../plot/Plot";
 import {
   filterIndices,
-  keysToSelector,
+  isStringArray,
+  keysToSelectors,
+  remove,
   splitNumericSuffix,
 } from "../utils/funs";
 import React from "../utils/JSX";
@@ -44,6 +47,8 @@ export namespace Scene {
       if (!Meta.hasName(v)) Meta.setName(v, k);
     }
 
+    console.log(data);
+
     // Mock interface for just echoing messages back
     const client = { send: console.log } as WebSocket;
 
@@ -74,6 +79,8 @@ export namespace Scene {
     | `connected`
     | `set-dims`
     | `add-plot`
+    | `pop-plot`
+    | `remove-plot`
     | `select`
     | `assign`
     | `selected`
@@ -120,14 +127,55 @@ export namespace Scene {
     Scene.setDimensions(scene, nRows, nCols);
   }
 
-  export function addPlotByType<T extends Columns>(
+  export function popPlot(scene: Scene) {
+    const plot = scene.plots.pop();
+    if (plot) _removePlot(scene, plot);
+  }
+
+  export function removePlot(scene: Scene, plotId: Target) {
+    const plot = Scene.getTarget(scene, plotId) as Plot;
+    if (plot) _removePlot(scene, plot);
+  }
+
+  function _removePlot(scene: Scene, plot: Plot) {
+    remove(scene.plotsByType[plot.type], plot);
+    scene.container.removeChild(plot.container);
+    Reactive.removeAllListeners(plot);
+  }
+
+  export function addPlotBySpec<T extends Columns>(
     scene: Scene<T>,
-    type: Plot.Type,
-    selectfn: (data: T) => any[][],
-    options?: any,
+    options?: {
+      type?: Plot.Type;
+      variables?: string[];
+      reducer?: Reducer.Name | Reducer;
+      queries?: string[] | [string, Reducer.Name | Reducer][];
+    },
   ) {
-    if (type === `unknown`) return;
-    const plot = Plot[type](scene, selectfn as any, options);
+    const { type, variables, reducer: r, queries: q } = options ?? {};
+    if (!type || type === `unknown` || !variables) return;
+
+    for (const v of variables) {
+      if (!Object.keys(scene.data).includes(v)) {
+        throw new Error(`Variable '${v}' is not present in the data`);
+      }
+    }
+
+    const selectfn = keysToSelectors(variables);
+    const opts = {} as any;
+
+    if (r) opts.reducer = Reducer.get(r);
+    if (q) {
+      if (isStringArray(q)) opts.queries = keysToSelectors(q);
+      else {
+        const queryfn = (data: any) => {
+          return q.map(([s, r]) => [data[s], Reducer.get(r)]);
+        };
+        opts.queries = queryfn;
+      }
+    }
+
+    const plot = Plot[type](scene, selectfn as any, opts);
     Scene.addPlot(scene, plot);
   }
 
@@ -223,22 +271,20 @@ function setupEvents(scene: Scene) {
   // WebSocket Events
 
   Scene.listen(scene, `connected`, () =>
-    console.log(`Connected to Websocket server on: ${scene.client!.url}`),
+    console.log(`Connected to Websocket server on: ${scene.client?.url}`),
   );
 
   Scene.listen(scene, `set-dims`, (data) => {
     Scene.setDimensions(scene, data.rows, data.cols);
   });
 
-  Scene.listen(scene, `add-plot`, (data) => {
-    const { type, variables, options } = data;
-    const selectfn = keysToSelector(variables);
-    Scene.addPlotByType(scene, type, selectfn, options);
+  Scene.listen(scene, `add-plot`, (data) => Scene.addPlotBySpec(scene, data));
+  Scene.listen(scene, `pop-plot`, () => Scene.popPlot(scene));
+  Scene.listen(scene, `remove-plot`, (data) => {
+    Scene.removePlot(scene, data.id);
   });
 
-  Scene.listen(scene, `select`, (data) => {
-    Marker.update(marker, data.cases);
-  });
+  Scene.listen(scene, `select`, (data) => Marker.update(marker, data.cases));
 
   Scene.listen(scene, `assign`, (data) => {
     const group = 7 - Math.min(data.group, 3);
