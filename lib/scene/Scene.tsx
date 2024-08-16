@@ -65,10 +65,15 @@ export namespace Scene {
     }) as Scene<T>;
 
     if (options?.websocketURL) {
-      scene.client = new WebSocket(options.websocketURL);
-      scene.client.addEventListener(`message`, (msg) => {
+      const client = new WebSocket(options.websocketURL);
+
+      const msg = { sender: `scene`, target: `session`, type: `connected` };
+      client.addEventListener(`open`, () => client.send(JSON.stringify(msg)));
+      client.addEventListener(`message`, (msg) => {
         handleMessage(scene, JSON.parse(msg.data));
       });
+
+      scene.client = client;
     }
 
     setupEvents(scene);
@@ -82,10 +87,10 @@ export namespace Scene {
     | `add-plot`
     | `pop-plot`
     | `remove-plot`
-    | `select`
-    | `assign`
-    | `selected`
-    | `assigned`;
+    | `set-selected`
+    | `set-assigned`
+    | `get-selected`
+    | `get-assigned`;
 
   export const listen = Reactive.makeListenFn<Scene, EventType>();
   export const dispatch = Reactive.makeDispatchFn<Scene, EventType>();
@@ -106,8 +111,8 @@ export namespace Scene {
       for (const p of plots) if (p !== plot) Plot.dispatch(p, `lock`);
     });
 
-    Plot.listen(plot, `selected`, (data) => {
-      Marker.update(marker, data.selected);
+    Plot.listen(plot, `set-selected`, (data) => {
+      Marker.update(marker, data.cases);
     });
 
     Plot.listen(plot, `clear-transient`, () => {
@@ -237,6 +242,8 @@ export namespace Scene {
 
     if (!client) return;
 
+    console.log(message);
+
     const { type, target: targetId, data } = message;
     const target = getTarget(scene, targetId);
 
@@ -294,22 +301,24 @@ function setupEvents(scene: Scene) {
     Scene.removePlot(scene, data.id);
   });
 
-  Scene.listen(scene, `select`, (data) => Marker.update(marker, data.cases));
+  Scene.listen(scene, `set-selected`, (data) =>
+    Marker.update(marker, data.cases),
+  );
 
-  Scene.listen(scene, `assign`, (data) => {
+  Scene.listen(scene, `set-assigned`, (data) => {
     const group = 7 - Math.min(data.group, 3);
     Marker.update(marker, data.cases, { group });
   });
 
-  Scene.listen(scene, `selected`, () => {
+  Scene.listen(scene, `get-selected`, () => {
     const cases = filterIndices(marker.indices, Marker.isTransient);
-    Scene.sendMessage(scene, `selected`, { cases });
+    Scene.sendMessage(scene, `get-selected`, { cases });
   });
 
-  Scene.listen(scene, `assigned`, (data) => {
+  Scene.listen(scene, `get-assigned`, (data) => {
     const isGroup = (x: number) => (x | 4) === 7 - Math.min(data.group, 3);
     const cases = filterIndices(marker.indices, isGroup);
-    Scene.sendMessage(scene, `assigned`, { cases, group: data.group });
+    Scene.sendMessage(scene, `get-assigned`, { cases, group: data.group });
   });
 }
 

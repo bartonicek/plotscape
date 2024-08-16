@@ -178,7 +178,7 @@ export namespace Plot {
     | `set-mode-query`
     | `activated`
     | `lock-others`
-    | `selected`
+    | `set-selected`
     | `clear-transient`
     | `set-scale`
     | `zoom`
@@ -301,7 +301,7 @@ export namespace Plot {
       for (let i = 0; i < selected.length; i++) selectedCases.add(selected[i]);
     }
 
-    Plot.dispatch(plot, `selected`, { selected: Array.from(selectedCases) });
+    Plot.dispatch(plot, `set-selected`, { cases: Array.from(selectedCases) });
     Plot.dispatch(plot, `lock-others`);
     Frame.clear(frames.user);
     Frame.rectangleXY(frames.user, ...parameters.mousecoords);
