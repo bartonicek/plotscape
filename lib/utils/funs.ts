@@ -1010,3 +1010,7 @@ export function stringArraysMatch(array1: string[], array2: string[]) {
   const s2 = array2.toSorted(compareAlphaNumeric).join(``);
   return s1 === s2;
 }
+
+export function clearNodeChildren(node: HTMLElement) {
+  node.innerHTML = ``;
+}

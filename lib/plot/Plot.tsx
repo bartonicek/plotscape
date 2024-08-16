@@ -11,6 +11,7 @@ import { Scale } from "../scales/Scale";
 import { colors, defaultParameters } from "../utils/defaultParameters";
 import {
   addTailwind,
+  clearNodeChildren,
   copyValues,
   diff,
   formatLabel,
@@ -61,7 +62,7 @@ export interface Plot extends Reactive {
   data: Dataframe[];
 
   container: HTMLElement;
-  queryDisplay: HTMLElement;
+  queryTable: HTMLElement;
   frames: Frames;
 
   scales: Plot.Scales;
@@ -113,22 +114,11 @@ export namespace Plot {
     const container = (
       <div id="plot" class="relative h-full w-full drop-shadow-md"></div>
     );
-    const queryDisplay = (
-      <div class="relative z-30 hidden w-fit border border-black bg-gray-50 p-2 shadow-md"></div>
+    const queryTable = (
+      <table class="relative z-30 hidden bg-gray-50 shadow-md"></table>
     );
 
-    // const q2 = (
-    //   <table class="relative z-40 h-20 w-20 bg-red-300">
-    //     <tr>
-    //       <td>foo</td>
-    //       <td>bar</td>
-    //     </tr>
-    //   </table>
-    // );
-
-    // container.appendChild(q2);
-
-    container.appendChild(queryDisplay);
+    container.appendChild(queryTable);
 
     const data = [] as Dataframe[];
     const frames = {} as Frames;
@@ -158,7 +148,7 @@ export namespace Plot {
       type,
       data,
       container,
-      queryDisplay,
+      queryTable,
       frames,
       scales,
       renderables,
@@ -372,10 +362,10 @@ export namespace Plot {
 
   function query(plot: Plot, event: MouseEvent) {
     const { offsetX, offsetY } = event;
-    const { container, queryDisplay, queryables } = plot;
+    const { container, queryTable, queryables } = plot;
     const { clientWidth, clientHeight } = container;
 
-    queryDisplay.style.display = `none`;
+    queryTable.style.display = `none`;
 
     const x = offsetX;
     const y = clientHeight - offsetY;
@@ -388,27 +378,35 @@ export namespace Plot {
 
     if (!result) return;
 
-    let queryString = ``;
+    clearNodeChildren(queryTable);
+
     for (const [k, v] of Object.entries(result)) {
-      queryString += `${k}: ${formatLabel(v)}\n`;
+      const row = (
+        <tr class="border">
+          <td class="border border-gray-600 border-r-gray-400 px-3">{k}</td>
+          <td class="border border-gray-600 border-l-gray-400 px-3 font-mono">
+            {formatLabel(v)}
+          </td>
+        </tr>
+      );
+      queryTable.appendChild(row);
     }
 
-    queryDisplay.innerText = queryString;
-    queryDisplay.style.display = `inline-block`;
+    queryTable.style.display = `inline-block`;
 
-    const queryStyles = getComputedStyle(queryDisplay);
+    const queryStyles = getComputedStyle(queryTable);
     const queryWidth = parseFloat(queryStyles.width.slice(0, -2));
-    const { clientWidth: width } = queryDisplay;
+    const { clientWidth: width } = queryTable;
 
     if (x + queryWidth > clientWidth) {
-      queryDisplay.style.left = `auto`;
-      queryDisplay.style.right = `${width - offsetX + 5}px`;
+      queryTable.style.left = `auto`;
+      queryTable.style.right = `${width - offsetX + 5}px`;
     } else {
-      queryDisplay.style.left = `${x + 5}px`;
-      queryDisplay.style.right = `auto`;
+      queryTable.style.left = `${x + 5}px`;
+      queryTable.style.right = `auto`;
     }
 
-    queryDisplay.style.top = offsetY + `px`;
+    queryTable.style.top = offsetY + `px`;
   }
 
   export const keydownHandlers = {
@@ -707,7 +705,7 @@ function setupEvents(plot: Plot) {
   });
   window.addEventListener(`keyup`, () => {
     parameters.mode = Mode.Select;
-    plot.queryDisplay.style.display = `none`;
+    plot.queryTable.style.display = `none`;
   });
 
   container.addEventListener(`mousedown`, (e) => {
