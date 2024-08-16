@@ -35,7 +35,10 @@ export namespace Scene {
     },
   ): Scene<T> {
     const container = (
-      <div class="relate grid h-full w-full grid-cols-1 grid-rows-1 gap-5 bg-[#deded9] p-5 px-10"></div>
+      <div
+        id="scene"
+        class="relate grid h-full w-full grid-cols-1 grid-rows-1 gap-5 bg-[#deded9] p-5 px-10"
+      ></div>
     ) as HTMLDivElement;
 
     const [rows, cols] = [1, 1];
@@ -46,8 +49,6 @@ export namespace Scene {
     for (const [k, v] of Object.entries(data)) {
       if (!Meta.hasName(v)) Meta.setName(v, k);
     }
-
-    console.log(data);
 
     // Mock interface for just echoing messages back
     const client = { send: console.log } as WebSocket;
@@ -101,17 +102,17 @@ export namespace Scene {
       for (const p of plots) if (p != plot) Plot.dispatch(p, `deactivate`);
     });
 
+    Plot.listen(plot, `lock-others`, () => {
+      for (const p of plots) if (p !== plot) Plot.dispatch(p, `lock`);
+    });
+
     Plot.listen(plot, `selected`, (data) => {
       Marker.update(marker, data.selected);
     });
 
     Plot.listen(plot, `clear-transient`, () => {
-      for (const p of plots) Frame.clear(p.frames.user);
+      for (const p of plots) Plot.clearUserFrame(p);
       Marker.clearTransient(marker);
-    });
-
-    Plot.listen(plot, `lock-others`, () => {
-      for (const p of plots) if (p !== plot) Plot.dispatch(p, `lock`);
     });
 
     plots.push(plot);
@@ -121,26 +122,34 @@ export namespace Scene {
     plotsByType[type].push(plot);
 
     Plot.append(container, plot);
+    updatePlotIds(scene);
 
     const nCols = Math.ceil(Math.sqrt(plots.length));
     const nRows = Math.ceil(plots.length / nCols);
     Scene.setDimensions(scene, nRows, nCols);
   }
 
+  function updatePlotIds(scene: Scene) {
+    for (let i = 0; i < scene.plots.length; i++) {
+      scene.plots[i].container.id = `plot${i + 1}`;
+    }
+  }
+
   export function popPlot(scene: Scene) {
     const plot = scene.plots.pop();
-    if (plot) _removePlot(scene, plot);
+    if (plot) removeSpecificPlot(scene, plot);
   }
 
-  export function removePlot(scene: Scene, plotId: Target) {
-    const plot = Scene.getTarget(scene, plotId) as Plot;
-    if (plot) _removePlot(scene, plot);
+  export function removePlot(scene: Scene, id: PlotId) {
+    const plot = getPlot(scene, id);
+    if (plot) removeSpecificPlot(scene, plot);
   }
 
-  function _removePlot(scene: Scene, plot: Plot) {
+  function removeSpecificPlot(scene: Scene, plot: Plot) {
     remove(scene.plotsByType[plot.type], plot);
     scene.container.removeChild(plot.container);
     Reactive.removeAllListeners(plot);
+    updatePlotIds(scene);
   }
 
   export function addPlotBySpec<T extends Columns>(
@@ -192,9 +201,8 @@ export namespace Scene {
     for (const plot of scene.plots) Plot.dispatch(plot, `resize`);
   }
 
-  export type Target =
-    | `session`
-    | `scene`
+  export type TargetId = `session` | `scene` | PlotId;
+  export type PlotId =
     | `plot${number}`
     | `${Plot.Type}${number}`
     | `${Plot.Type}plot${number}`
@@ -202,24 +210,26 @@ export namespace Scene {
 
   export interface Message {
     sender: `session` | `scene`;
-    target: Target;
+    target: TargetId;
     type: string;
     data?: Record<string, any>;
   }
 
-  export function getTarget(scene: Scene, targetId: Target) {
-    if (targetId === `scene`) return scene;
+  export function getTarget(scene: Scene, id: TargetId) {
+    if (id === `scene`) return scene;
+    else return getPlot(scene, id as PlotId);
+  }
 
+  export function getPlot(scene: Scene, id: PlotId) {
     const { plots, plotsByType } = scene;
-    let [type, idString] = splitNumericSuffix(targetId);
-    const id = parseInt(idString, 10) - 1; // 0 based indexing;
+    let [type, idString] = splitNumericSuffix(id);
+    const index = parseInt(idString, 10) - 1; // 0 based indexing;
 
-    if (type === `plot`) return plots[id];
+    if (type === `plot`) return plots[index];
 
     // Remove to match e.g. 'barplot' or 'histogram' with 'bar' and 'histo'
     type = type.replace(`plot`, ``).replace(`gram`, ``);
-
-    if (type in plotsByType) return plotsByType[type as Plot.Type][id];
+    if (type in plotsByType) return plotsByType[type as Plot.Type][index];
   }
 
   export function handleMessage(scene: Scene, message: Message) {

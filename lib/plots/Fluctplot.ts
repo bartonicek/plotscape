@@ -8,7 +8,6 @@ import { Reduced } from "../transformation/Reduced";
 import { Reducer } from "../transformation/Reducer";
 import { Summaries } from "../transformation/Summaries";
 import { max, one } from "../utils/funs";
-import { Meta } from "../utils/Meta";
 import { Reactive } from "../utils/Reactive";
 import { Columns, Dataframe, VAnchor } from "../utils/types";
 
@@ -38,9 +37,6 @@ export function Fluctuationplot<T extends Columns>(
   let [cat1, cat2, vals] = selectfn(data);
   const reducer = vals && options?.reducer ? options.reducer : Reducer.sum;
   const values = vals ? [...vals] : () => 1;
-
-  if (!Meta.hasName(values)) Meta.setName(values, `count`);
-  else Meta.setName(values, `${reducer.name} of ${Meta.getName(values)}`);
 
   const factor1 = Factor.product(Factor.from(cat1), Factor.from(cat2));
   const factor2 = Factor.product(factor1, marker.factor);

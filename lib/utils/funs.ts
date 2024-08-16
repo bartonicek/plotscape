@@ -764,25 +764,34 @@ export function formatText(
   return value;
 }
 
+/**
+ * Formats a single label.
+ * @param label A string or number
+ * @returns The label, formatted
+ */
 export function formatLabel(label: number | string) {
-  if (typeof label != "number") return label;
-
+  if (typeof label === `string`) return label;
   if (label === 0) return label.toString();
 
   const base = Math.floor(Math.log10(Math.abs(label)));
-  if (base > 4) return round(label).toString();
-  if (base <= 4 && base > 0) return round(label, 4 - base).toString();
-  else return round(label, Math.abs(base) + 2).toString();
+
+  // >= 1000, round to whole numbers
+  if (base > 3) return round(label).toString(); //
+  // <= 0.001: round to 2 significant
+  if (base <= -3) return round(label, -base + 1).toString();
+  // Otherwise round to two decimal places
+  else return round(label, 2).toString();
 }
 
 /**
- * Format plot labels - returns the labels back if they're an array of strings,
- * otherwise rounds numeric labels and converts them to exponential if too big.
+ * Format axis labels: returns the labels back if they're strings,
+ * otherwise rounds numeric labels and converts to exponential form if too big.
+ *
  * @param labels An array of strings or numbers
  * @param options A list of options
  * @returns A formated array of labels
  */
-export function formatLabels(
+export function formatAxisLabels(
   labels: number[] | string[],
   options?: { tens?: number; decimals?: number },
 ): string[] {

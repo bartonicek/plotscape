@@ -1,4 +1,4 @@
-import { formatLabels } from "../utils/funs";
+import { formatAxisLabels } from "../utils/funs";
 import { Meta } from "../utils/Meta";
 import { Reactive } from "../utils/Reactive";
 import { Expanse } from "./Expanse";
@@ -96,10 +96,10 @@ export namespace Scale {
     positions: number[];
   } {
     const breaks = Expanse.breaks(scale.domain) as any;
-    let labels = formatLabels(breaks);
+    let labels = formatAxisLabels(breaks);
 
     if (Expanse.isCompound(scale.domain)) {
-      labels = formatLabels(breaks, { decimals: 1 });
+      labels = formatAxisLabels(breaks, { decimals: 1 });
 
       const positions = breaks.map((x: number) =>
         Expanse.unnormalize(

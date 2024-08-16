@@ -20,7 +20,7 @@ async function mtcarsScene() {
   const plot2 = Plot.histo(scene, (d) => [d.mpg]);
   const plot3 = Plot.bar(scene, (d) => [d.cyl, d.mpg], {
     reducer: Reducer.sum,
-    queries: (d) => [[d.wt, Reducer.sum]],
+    queries: (d) => [[d.wt, Reducer.max]],
   });
 
   const plot4 = Plot.fluct(scene, (d) => [d.cyl, d.am]);
@@ -55,17 +55,17 @@ async function mtcarsScene() {
   //   data: { coords: [0.25, 0.25, 0.75, 0.75], units: `pct` },
   // });
 
-  Scene.handleMessage(scene, {
-    sender: `session`,
-    target: `scene`,
-    type: `add-plot`,
-    data: {
-      type: `bar`,
-      variables: [`carb`, `mpg`],
-      reducer: `sum`,
-      queries: [[`mpg`, `max`]],
-    },
-  });
+  // Scene.handleMessage(scene, {
+  //   sender: `session`,
+  //   target: `scene`,
+  //   type: `add-plot`,
+  //   data: {
+  //     type: `bar`,
+  //     variables: [`carb`, `mpg`],
+  //     reducer: `sum`,
+  //     queries: [[`mpg`, `max`]],
+  //   },
+  // });
 }
 
 async function imdbScene() {
@@ -133,5 +133,3 @@ async function sacramentoScene() {
 }
 
 mtcarsScene();
-
-console.log((4).toString(2));

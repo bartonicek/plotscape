@@ -114,13 +114,16 @@ export namespace Summaries {
   }
 
   export function formatQueries<T extends Columns>(
-    reducerQueries: [(data: T) => any[], Reducer][],
+    queries: [(data: T) => any[], Reducer][],
     data: T,
   ) {
-    return Object.fromEntries(
-      reducerQueries?.map(([selectfn, reducer], i) => {
-        return [`query${i}`, [selectfn(data), reducer]];
-      }) ?? [],
-    );
+    const result = {} as Record<string, any>;
+    let i = 0;
+
+    for (const [selectfn, reducer] of queries) {
+      result[`q${i++}`] = [selectfn(data), reducer];
+    }
+
+    return result;
   }
 }

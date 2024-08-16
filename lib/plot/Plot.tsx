@@ -111,14 +111,22 @@ export namespace Plot {
   }): Plot {
     const type = options?.type ?? `unknown`;
     const container = (
-      <div
-        id="plot-container"
-        class="relative h-full w-full drop-shadow-md"
-      ></div>
+      <div id="plot" class="relative h-full w-full drop-shadow-md"></div>
     );
     const queryDisplay = (
-      <div class="relative z-30 hidden w-fit border border-black bg-gray-50 p-2"></div>
+      <div class="relative z-30 hidden w-fit border border-black bg-gray-50 p-2 shadow-md"></div>
     );
+
+    // const q2 = (
+    //   <table class="relative z-40 h-20 w-20 bg-red-300">
+    //     <tr>
+    //       <td>foo</td>
+    //       <td>bar</td>
+    //     </tr>
+    //   </table>
+    // );
+
+    // container.appendChild(q2);
 
     container.appendChild(queryDisplay);
 
