@@ -10,7 +10,7 @@ export const defaultParameters = {
   axisLabelFontsize: 1,
   axisTitleFontsize: 1.5,
   marginLines: [3.5, 3.5, 1, 1] as Margins,
-  groupColors: ["#984ea3", "#e41a1c", "#4daf4a", "#377eb8"],
+  groupColors: ["#984ea3", "#4daf4a", "#e41a1c", "#377eb8"],
   plotBackground: `#fefffe`,
 };
 
