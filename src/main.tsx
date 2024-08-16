@@ -118,7 +118,7 @@ async function sacramentoScene() {
   });
 
   const plot2 = Plot.bar(scene, (d) => [d.city]);
-  const plot3 = Plot.histo(scene, (d) => [d.price]);
+  const plot3 = Plot.histo(scene, (d) => [d.sqft]);
   const plot4 = Plot.fluct(scene, (d) => [d.beds, d.baths]);
   const plot5 = Plot.histo2d(scene, (d) => [d.longitude, d.latitude], {});
 
@@ -132,4 +132,4 @@ async function sacramentoScene() {
   Plot.setRatio(plot5, 1);
 }
 
-mtcarsScene();
+sacramentoScene();

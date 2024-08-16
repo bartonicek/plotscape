@@ -382,9 +382,9 @@ export namespace Plot {
 
     for (const [k, v] of Object.entries(result)) {
       const row = (
-        <tr class="border">
-          <td class="border border-gray-600 border-r-gray-400 px-3">{k}</td>
-          <td class="border border-gray-600 border-l-gray-400 px-3 font-mono">
+        <tr>
+          <td class="border border-gray-400 px-3">{k}</td>
+          <td class="border border-gray-400 px-3 font-mono">
             {formatLabel(v)}
           </td>
         </tr>

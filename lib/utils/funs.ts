@@ -776,7 +776,7 @@ export function formatLabel(label: number | string) {
   const base = Math.floor(Math.log10(Math.abs(label)));
 
   // >= 1000, round to whole numbers
-  if (base > 3) return round(label).toString(); //
+  if (base >= 3) return round(label).toString(); //
   // <= 0.001: round to 2 significant
   if (base <= -3) return round(label, -base + 1).toString();
   // Otherwise round to two decimal places
