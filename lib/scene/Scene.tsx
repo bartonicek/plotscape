@@ -73,6 +73,10 @@ export namespace Scene {
         handleMessage(scene, JSON.parse(msg.data));
       });
 
+      window.addEventListener(`beforeunload`, () => {
+        client.close();
+      });
+
       scene.client = client;
     }
 
@@ -134,6 +138,43 @@ export namespace Scene {
     Scene.setDimensions(scene, nRows, nCols);
   }
 
+  export function addPlotBySpec<T extends Columns>(
+    scene: Scene<T>,
+    options?: {
+      type?: Plot.Type;
+      variables?: string[];
+      ratio?: number;
+      reducer?: Reducer.Name | Reducer;
+      queries?: string[] | [string, Reducer.Name | Reducer][];
+    },
+  ) {
+    const { type, variables, reducer: r, queries: q } = options ?? {};
+    if (!type || type === `unknown` || !variables) return;
+
+    for (const v of variables) {
+      if (!Object.keys(scene.data).includes(v)) {
+        throw new Error(`Variable '${v}' is not present in the data`);
+      }
+    }
+
+    const selectfn = keysToSelectors(variables);
+    const opts = options as any;
+
+    if (r) opts.reducer = Reducer.get(r);
+    if (q) {
+      if (isStringArray(q)) opts.queries = keysToSelectors(q);
+      else {
+        const queryfn = (data: any) => {
+          return q.map(([s, r]) => [data[s], Reducer.get(r)]);
+        };
+        opts.queries = queryfn;
+      }
+    }
+
+    const plot = Plot[type](scene, selectfn as any, opts);
+    Scene.addPlot(scene, plot);
+  }
+
   function updatePlotIds(scene: Scene) {
     for (let i = 0; i < scene.plots.length; i++) {
       scene.plots[i].container.id = `plot${i + 1}`;
@@ -151,46 +192,11 @@ export namespace Scene {
   }
 
   function removeSpecificPlot(scene: Scene, plot: Plot) {
+    remove(scene.plots, plot);
     remove(scene.plotsByType[plot.type], plot);
     scene.container.removeChild(plot.container);
     Reactive.removeAllListeners(plot);
     updatePlotIds(scene);
-  }
-
-  export function addPlotBySpec<T extends Columns>(
-    scene: Scene<T>,
-    options?: {
-      type?: Plot.Type;
-      variables?: string[];
-      reducer?: Reducer.Name | Reducer;
-      queries?: string[] | [string, Reducer.Name | Reducer][];
-    },
-  ) {
-    const { type, variables, reducer: r, queries: q } = options ?? {};
-    if (!type || type === `unknown` || !variables) return;
-
-    for (const v of variables) {
-      if (!Object.keys(scene.data).includes(v)) {
-        throw new Error(`Variable '${v}' is not present in the data`);
-      }
-    }
-
-    const selectfn = keysToSelectors(variables);
-    const opts = {} as any;
-
-    if (r) opts.reducer = Reducer.get(r);
-    if (q) {
-      if (isStringArray(q)) opts.queries = keysToSelectors(q);
-      else {
-        const queryfn = (data: any) => {
-          return q.map(([s, r]) => [data[s], Reducer.get(r)]);
-        };
-        opts.queries = queryfn;
-      }
-    }
-
-    const plot = Plot[type](scene, selectfn as any, opts);
-    Scene.addPlot(scene, plot);
   }
 
   export function setDimensions(scene: Scene, rows: number, cols: number) {
@@ -242,12 +248,10 @@ export namespace Scene {
 
     if (!client) return;
 
-    console.log(message);
+    const { type, target, data } = message;
+    const t = getTarget(scene, target);
 
-    const { type, target: targetId, data } = message;
-    const target = getTarget(scene, targetId);
-
-    if (target) Reactive.dispatch(target, type, data);
+    if (t) Reactive.dispatch(t, type, data);
   }
 
   export function sendMessage(
