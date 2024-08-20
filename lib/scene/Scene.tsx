@@ -5,6 +5,7 @@ import {
   filterIndices,
   isStringArray,
   keysToSelectors,
+  last,
   remove,
   splitNumericSuffix,
 } from "../utils/funs";
@@ -131,11 +132,25 @@ export namespace Scene {
     plotsByType[type].push(plot);
 
     Plot.append(container, plot);
-    updatePlotIds(scene);
 
-    const nCols = Math.ceil(Math.sqrt(plots.length));
-    const nRows = Math.ceil(plots.length / nCols);
-    Scene.setDimensions(scene, nRows, nCols);
+    updatePlotIds(scene);
+    autoUpdateDimensions(scene);
+
+    Scene.resize(scene);
+  }
+
+  function autoUpdateDimensions(scene: Scene) {
+    const { plots } = scene;
+    if (plots.length === 0) return;
+    const cols = Math.ceil(Math.sqrt(plots.length));
+    const rows = Math.ceil(plots.length / cols);
+    Scene.setDimensions(scene, rows, cols);
+  }
+
+  function updatePlotIds(scene: Scene) {
+    for (let i = 0; i < scene.plots.length; i++) {
+      scene.plots[i].container.id = `plot${i + 1}`;
+    }
   }
 
   export function addPlotBySpec<T extends Columns>(
@@ -175,14 +190,8 @@ export namespace Scene {
     Scene.addPlot(scene, plot);
   }
 
-  function updatePlotIds(scene: Scene) {
-    for (let i = 0; i < scene.plots.length; i++) {
-      scene.plots[i].container.id = `plot${i + 1}`;
-    }
-  }
-
   export function popPlot(scene: Scene) {
-    const plot = scene.plots.pop();
+    const plot = last(scene.plots);
     if (plot) removeSpecificPlot(scene, plot);
   }
 
@@ -194,9 +203,14 @@ export namespace Scene {
   function removeSpecificPlot(scene: Scene, plot: Plot) {
     remove(scene.plots, plot);
     remove(scene.plotsByType[plot.type], plot);
+
     scene.container.removeChild(plot.container);
     Reactive.removeAllListeners(plot);
+
     updatePlotIds(scene);
+    autoUpdateDimensions(scene);
+
+    Scene.resize(scene);
   }
 
   export function setDimensions(scene: Scene, rows: number, cols: number) {

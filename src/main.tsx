@@ -127,12 +127,6 @@ async function sacramentoScene() {
   Scene.addPlot(scene, plot3);
   Scene.addPlot(scene, plot4);
   Scene.addPlot(scene, plot5);
-
-  Scene.removePlot(scene, `plot1`);
-  Scene.removePlot(scene, `plot1`);
-
-  // Plot.setRatio(plot1, 1);
-  // Plot.setRatio(plot5, 1);
 }
 
 sacramentoScene();

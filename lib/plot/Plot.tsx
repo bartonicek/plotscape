@@ -798,9 +798,6 @@ function setupScales(
 
   const { x, y, width, height, size, area } = scales;
 
-  x.other = y;
-  y.other = x;
-
   const opts = { default: true, silent: true };
   const { expandX: ex, expandY: ey } = defaultParameters;
 

@@ -6,7 +6,6 @@ import { ExpanseContinuous } from "./ExpanseContinuous";
 
 export interface Scale<T extends Expanse = Expanse, U extends Expanse = Expanse>
   extends Reactive {
-  other?: Scale;
   domain: T;
   codomain: U;
 }

@@ -11,7 +11,7 @@ export function renderAxisLabels(plot: Plot) {
 
 function renderSingleAxisLabels(plot: Plot, axis: `x` | `y`) {
   const scale = plot.scales[axis];
-  if (!scale.other || !Expanse.isContinuous(scale.other.codomain)) return;
+  const other = axis === `x` ? plot.scales.y : plot.scales.x;
 
   const frame = plot.frames[`${axis}Axis`];
   const { context } = frame;
@@ -20,7 +20,7 @@ function renderSingleAxisLabels(plot: Plot, axis: `x` | `y`) {
   const [bottom, left, top, right] = plot.margins;
   const fontsize = parseInt(context.font.match(/^[0-9]*/)![0], 10);
 
-  const base = scale.other!.codomain.min - fontsize / 2;
+  const base = other!.codomain.min - fontsize / 2;
 
   const { width, height } = frame;
   Frame.clear(frame);
@@ -70,11 +70,15 @@ export function renderAxisTitles(plot: Plot) {
 function renderSingleAxisTitle(plot: Plot, axis: `x` | `y`) {
   const { scales, frames, margins } = plot;
   const scale = scales[axis];
+  const other = axis === `x` ? plot.scales.y : plot.scales.x;
+
   const frame = frames.base;
   const name = Meta.getName(scale);
   const offset = axis === `x` ? margins[0] : margins[1];
+
   const dim1 = Expanse.unnormalize(scale.codomain, 0.5);
-  const dim2 = Expanse.unnormalize(scale.other!.codomain, 0) - (offset * 2) / 3;
+  const dim2 = Expanse.unnormalize(other!.codomain, 0) - (offset * 2) / 3;
+
   if (axis === `x`) Frame.text(frame, dim1, dim2, name);
   if (axis === `y`) Frame.text(frame, dim2, dim1, name, { vertical: true });
 }
