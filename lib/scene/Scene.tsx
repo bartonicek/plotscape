@@ -13,11 +13,13 @@ import React from "../utils/JSX";
 import { Meta } from "../utils/Meta";
 import { Reactive } from "../utils/Reactive";
 import { Columns } from "../utils/types";
+import { keyBindings } from "./Keybindings";
 import { Group, Marker, Transient } from "./Marker";
 
 export interface Scene<T extends Columns = Columns> extends Reactive {
   data: T;
   container: HTMLDivElement;
+  plotContainer: HTMLDivElement;
   client?: WebSocket;
 
   rows: number;
@@ -38,9 +40,17 @@ export namespace Scene {
     const container = (
       <div
         id="scene"
-        class="relate grid h-full w-full grid-cols-1 grid-rows-1 gap-5 bg-[#deded9] p-5 px-10"
-      ></div>
-    ) as HTMLDivElement;
+        class="pr-15 relative flex h-full w-full content-center items-center justify-center bg-[#deded9] p-10"
+      >
+        <div
+          id="plot-container"
+          class="grid h-full w-full grid-cols-1 grid-rows-1 gap-5"
+        ></div>
+        {keyBindings()}
+      </div>
+    );
+
+    const pc = container.querySelector<HTMLDivElement>("#plot-container")!;
 
     const [rows, cols] = [1, 1];
     const marker = Marker.of(Object.values(data)[0].length);
@@ -57,6 +67,7 @@ export namespace Scene {
     const scene = Reactive.of({
       data,
       container,
+      plotContainer: pc,
       rows,
       cols,
       marker,
@@ -74,10 +85,7 @@ export namespace Scene {
         handleMessage(scene, JSON.parse(msg.data));
       });
 
-      window.addEventListener(`beforeunload`, () => {
-        client.close();
-      });
-
+      window.addEventListener(`beforeunload`, () => client.close());
       scene.client = client;
     }
 
@@ -110,7 +118,7 @@ export namespace Scene {
   }
 
   export function addPlot(scene: Scene, plot: Plot) {
-    const { container, marker, plots, plotsByType } = scene;
+    const { plotContainer, marker, plots, plotsByType } = scene;
 
     Plot.listen(plot, `activated`, () => {
       for (const p of plots) if (p != plot) Plot.dispatch(p, `deactivate`);
@@ -135,7 +143,7 @@ export namespace Scene {
     if (!plotsByType[type]) plotsByType[type] = [] as Plot[];
     plotsByType[type].push(plot);
 
-    Plot.append(container, plot);
+    Plot.append(plotContainer, plot);
 
     updatePlotIds(scene);
     autoUpdateDimensions(scene);
@@ -208,7 +216,7 @@ export namespace Scene {
     remove(scene.plots, plot);
     remove(scene.plotsByType[plot.type], plot);
 
-    scene.container.removeChild(plot.container);
+    scene.plotContainer.removeChild(plot.container);
     Reactive.removeAllListeners(plot);
 
     updatePlotIds(scene);
@@ -218,11 +226,11 @@ export namespace Scene {
   }
 
   export function setDimensions(scene: Scene, rows: number, cols: number) {
-    const { container } = scene;
+    const { plotContainer } = scene;
     scene.rows = rows;
     scene.cols = cols;
-    container.style.gridTemplateRows = Array(rows).fill(`1fr`).join(` `);
-    container.style.gridTemplateColumns = Array(cols).fill(`1fr`).join(` `);
+    plotContainer.style.gridTemplateRows = Array(rows).fill(`1fr`).join(` `);
+    plotContainer.style.gridTemplateColumns = Array(cols).fill(`1fr`).join(` `);
     Scene.resize(scene);
   }
 
@@ -293,13 +301,13 @@ export namespace Scene {
 }
 
 function setupEvents(scene: Scene) {
-  const { marker, plots, container } = scene;
+  const { marker, plots, plotContainer } = scene;
 
-  container.addEventListener(`mousedown`, () => {
+  plotContainer.addEventListener(`mousedown`, () => {
     for (const plot of plots) Plot.dispatch(plot, `deactivate`);
   });
 
-  container.addEventListener(`dblclick`, () => {
+  plotContainer.addEventListener(`dblclick`, () => {
     for (const plot of plots) {
       Plot.dispatch(plot, `deactivate`);
       Frame.clear(plot.frames.user);

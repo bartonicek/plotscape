@@ -410,16 +410,25 @@ export namespace Plot {
     queryTable.style.top = offsetY + `px`;
   }
 
-  export const keydownHandlers = {
+  export const keydownHandlers: Record<string, (plot: Plot) => void> = {
     [`r`]: reset,
     [`=`]: grow,
     [`-`]: shrink,
-    [`[`]: fade,
     [`]`]: unfade,
+    [`[`]: fade,
     [`z`]: zoom,
     [`x`]: popZoom,
     [`q`]: setQueryMode,
   };
+
+  reset.description = `Reset the plot`;
+  grow.description = `Increase size`;
+  shrink.description = `Decrease size`;
+  fade.description = `Decrease opacity`;
+  unfade.description = `Increase opacity`;
+  zoom.description = `Zoom`;
+  popZoom.description = `Pop one level of zoom`;
+  setQueryMode.description = `Query`;
 
   function grow(plot: Plot) {
     const { area, size, width } = plot.scales;
@@ -719,8 +728,10 @@ function setupEvents(plot: Plot) {
 
   window.addEventListener(`resize`, () => Plot.resize(plot));
   window.addEventListener(`keydown`, (e) => {
-    if (e.key === `q`) Plot.dispatch(plot, e.key as Plot.Events);
-    else if (parameters.active) Plot.dispatch(plot, e.key as Plot.Events);
+    if (e.key in Plot.keydownHandlers) {
+      const fn = Plot.keydownHandlers[e.key];
+      if (parameters.active || fn === Plot.setQueryMode) fn(plot);
+    }
   });
   window.addEventListener(`keyup`, () => {
     parameters.mode = Mode.Select;
@@ -774,10 +785,6 @@ function setupEvents(plot: Plot) {
       Plot.mousemoveHandlers[parameters.mode](plot, e);
     }, 10),
   );
-
-  for (const [k, v] of Object.entries(Plot.keydownHandlers)) {
-    Plot.listen(plot, k as Plot.Events, () => v(plot));
-  }
 
   Plot.listen(plot, `reset`, () => Plot.reset(plot));
   Plot.listen(plot, `resize`, () => Plot.resize(plot));
