@@ -6,13 +6,17 @@ export function keyBindings() {
     <div>
       <div>
         <div
-          id="modal-inner"
-          class="absolute left-0 top-0 z-50 hidden size-full items-center justify-center bg-slate-800 bg-opacity-80"
+          id="modal"
+          class="absolute left-0 top-0 z-50 hidden size-full flex-col items-center justify-center bg-slate-800 bg-opacity-80"
         >
           <div
             id="bindings"
             class="relative flex h-full w-fit flex-col justify-center"
-          ></div>
+          >
+            <h1 class="relative mb-6 ml-2 text-3xl font-bold text-white">
+              Key bindings
+            </h1>
+          </div>
         </div>
         <button class="absolute right-0 top-0 z-30 rounded-bl-md bg-gray-300 p-1 px-2 text-sm text-white hover:bg-gray-400">
           keybindings
@@ -21,7 +25,7 @@ export function keyBindings() {
     </div>
   );
 
-  const modal = container.querySelector<HTMLDivElement>("#modal-inner")!;
+  const modal = container.querySelector<HTMLDivElement>("#modal")!;
   const bindings = container.querySelector<HTMLDivElement>("#bindings")!;
   const button = container.querySelector<HTMLButtonElement>("button")!;
 
