@@ -10,7 +10,7 @@ import { Getter } from "../utils/Getter";
 import { Meta } from "../utils/Meta";
 import { Columns } from "../utils/types";
 
-export function Lineplot<T extends Columns>(
+export function Pcoordsplot<T extends Columns>(
   scene: Scene<T>,
   selectfn: (data: T) => number[][],
   options?: {
@@ -32,7 +32,7 @@ export function Lineplot<T extends Columns>(
   const summaries = Summaries.of({}, [factor1, factor2] as const);
   const coordinates = Summaries.translate(summaries, [(d) => d, (d) => d]);
 
-  const plot = Plot.of({ type: `line` });
+  const plot = Plot.of({ type: `pcoords` });
   const { scales } = plot;
 
   const { expandX: ex, expandY: ey } = defaultParameters;

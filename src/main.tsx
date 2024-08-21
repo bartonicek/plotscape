@@ -24,7 +24,7 @@ async function mtcarsScene() {
   });
 
   const plot4 = Plot.fluct(scene, (d) => [d.cyl, d.am]);
-  const plot5 = Plot.line(scene, (d) => [d.wt, d.disp, d.drat, d.mpg]);
+  const plot5 = Plot.pcoords(scene, (d) => [d.wt, d.disp, d.drat, d.mpg]);
 
   Scene.addPlot(scene, plot1);
   Scene.addPlot(scene, plot2);
@@ -79,7 +79,7 @@ async function imdbScene() {
   const plot2 = Plot.histo(scene, (d) => [d.votes]);
   const plot3 = Plot.bar(scene, (d) => [d.director]);
   const plot4 = Plot.fluct(scene, (d) => [d.genre1, d.genre2]);
-  const plot5 = Plot.line(scene, (d) => [d.runtime, d.votes, d.rating]);
+  const plot5 = Plot.pcoords(scene, (d) => [d.runtime, d.votes, d.rating]);
 
   Scene.addPlot(scene, plot1);
   Scene.addPlot(scene, plot2);
@@ -127,6 +127,13 @@ async function sacramentoScene() {
   Scene.addPlot(scene, plot3);
   Scene.addPlot(scene, plot4);
   Scene.addPlot(scene, plot5);
+
+  // Scene.handleMessage(scene, {
+  //   sender: `session`,
+  //   target: `plot1`,
+  //   type: `zoom`,
+  //   data: { coords: [-120, 38.5, -122, 38.8] },
+  // });
 }
 
-sacramentoScene();
+mtcarsScene();

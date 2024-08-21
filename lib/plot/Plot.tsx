@@ -3,7 +3,7 @@ import { Barplot } from "../plots/Barplot";
 import { Fluctuationplot } from "../plots/Fluctplot";
 import { Histogram } from "../plots/Histogram";
 import { Histogram2d } from "../plots/Histogram2d";
-import { Lineplot } from "../plots/Lineplot";
+import { Pcoordsplot } from "../plots/Pcoordsplot";
 import { Scatterplot } from "../plots/Scatterplot";
 import { Expanse } from "../scales/Expanse";
 import { ExpanseContinuous } from "../scales/ExpanseContinuous";
@@ -103,7 +103,7 @@ export namespace Plot {
     | `histo`
     | `histo2d`
     | `fluct`
-    | `line`;
+    | `pcoords`;
 
   export function of(options?: {
     type?: Type;
@@ -167,6 +167,7 @@ export namespace Plot {
   }
 
   export type Events =
+    | `reset`
     | `resize`
     | `render`
     | `render-axes`
@@ -192,7 +193,7 @@ export namespace Plot {
   export const fluct = Fluctuationplot;
   export const histo = Histogram;
   export const histo2d = Histogram2d;
-  export const line = Lineplot;
+  export const pcoords = Pcoordsplot;
 
   export function append(parent: HTMLElement, plot: Plot) {
     parent.appendChild(plot.container);
@@ -468,17 +469,31 @@ export namespace Plot {
 
   export function zoom(
     plot: Plot,
-    options?: { coords?: Rect; units?: `abs` | `pct` },
+    options?: { coords?: Rect; units?: `data` | `screen` | `pct` },
   ) {
     const { scales, parameters, zoomStack } = plot;
     let { coords, units } = options ?? {};
 
-    units = units ?? `abs`;
+    units = units ?? `screen`;
     let [x0, y0, x1, y1] = coords ?? parameters.mousecoords;
 
     const { x, y } = scales;
 
-    if (units === `abs`) {
+    // Normalize within data coordinates
+    if (units === `data`) {
+      // Need to first set zero and one to (0, 1) to ensure correct normalization
+      const opts = { silent: true };
+      Expanse.set(x.domain, (e) => ((e.zero = 0), (e.one = 1)), opts);
+      Expanse.set(y.domain, (e) => ((e.zero = 0), (e.one = 1)), opts);
+
+      x0 = Expanse.normalize(x.domain, x0);
+      x1 = Expanse.normalize(x.domain, x1);
+      y0 = Expanse.normalize(y.domain, y0);
+      y1 = Expanse.normalize(y.domain, y1);
+    }
+
+    // Normalize within screen coordinates
+    if (units === `screen`) {
       // If zoom area is too tiny, do nothing
       if (Math.abs(x1 - x0) < 10 || Math.abs(y1 - y0) < 10) return;
 
@@ -581,9 +596,10 @@ export namespace Plot {
       mult?: number;
       labels?: string[];
       direction?: number;
+      default?: boolean;
     },
   ) {
-    const { scale, min, max, mult, labels, direction } = options;
+    let { scale, min, max, mult, labels, direction } = options;
     const domain = plot.scales[scale].domain;
     const codomain = plot.scales[scale].codomain;
 
@@ -591,15 +607,18 @@ export namespace Plot {
       throw new Error(`Unrecognized scale '${scale}'`);
     }
 
+    const opts = { default: options.default ?? false };
+
     if (min || max) {
       if (!Expanse.isContinuous(domain)) {
         throw new Error(`Limits can only be set with a continuous scale`);
       }
 
-      Expanse.set(domain, (e) => {
-        if (min) e.min = min;
-        if (max) e.max = max;
-      });
+      min = min ?? domain.min;
+      max = max ?? domain.max;
+
+      Expanse.set(domain, (e) => ((e.min = min!), (e.max = max!)), opts);
+      plot.parameters.ratio = undefined;
     }
 
     if (labels) {
@@ -615,8 +634,8 @@ export namespace Plot {
       Expanse.reorder(domain, indices);
     }
 
-    if (direction) Expanse.set(domain, (e) => (e.direction = direction));
-    if (mult) Expanse.set(codomain, (e) => (e.mult = mult));
+    if (direction) Expanse.set(domain, (e) => (e.direction = direction), opts);
+    if (mult) Expanse.set(codomain, (e) => (e.mult = mult), opts);
   }
 }
 
@@ -760,6 +779,7 @@ function setupEvents(plot: Plot) {
     Plot.listen(plot, k as Plot.Events, () => v(plot));
   }
 
+  Plot.listen(plot, `reset`, () => Plot.reset(plot));
   Plot.listen(plot, `resize`, () => Plot.resize(plot));
   Plot.listen(plot, `activate`, () => Plot.activate(plot));
   Plot.listen(plot, `deactivate`, () => Plot.deactivate(plot));
@@ -770,7 +790,10 @@ function setupEvents(plot: Plot) {
   Plot.listen(plot, `render-axes`, () => Plot.renderAxes(plot));
   Plot.listen(plot, `clear-transient`, () => Plot.clearUserFrame(plot));
   Plot.listen(plot, `set-scale`, (data) => Plot.setScale(plot, data));
-  Plot.listen(plot, `zoom`, (data) => Plot.zoom(plot, data));
+  Plot.listen(plot, `zoom`, (data) => {
+    data.units = data.units ?? `data`;
+    Plot.zoom(plot, data);
+  });
 
   for (const scale of Object.values(plot.scales)) {
     Scale.listen(scale, `changed`, () => {

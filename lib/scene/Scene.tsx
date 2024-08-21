@@ -86,6 +86,7 @@ export namespace Scene {
   }
 
   export type EventType =
+    | `reset`
     | `resize`
     | `connected`
     | `set-dims`
@@ -95,7 +96,10 @@ export namespace Scene {
     | `set-selected`
     | `set-assigned`
     | `get-selected`
-    | `get-assigned`;
+    | `get-assigned`
+    | `clear-selection`
+    | `set-scale`
+    | `zoom`;
 
   export const listen = Reactive.makeListenFn<Scene, EventType>();
   export const dispatch = Reactive.makeDispatchFn<Scene, EventType>();
@@ -226,6 +230,10 @@ export namespace Scene {
     for (const plot of scene.plots) Plot.dispatch(plot, `resize`);
   }
 
+  export function reset(scene: Scene) {
+    for (const plot of scene.plots) Plot.dispatch(plot, `reset`);
+  }
+
   export type TargetId = `session` | `scene` | PlotId;
   export type PlotId =
     | `plot${number}`
@@ -250,10 +258,15 @@ export namespace Scene {
     let [type, idString] = splitNumericSuffix(id);
     const index = parseInt(idString, 10) - 1; // 0 based indexing;
 
-    if (type === `plot`) return plots[index];
+    if (type === `plot` || type === `p`) return plots[index];
 
     // Remove to match e.g. 'barplot' or 'histogram' with 'bar' and 'histo'
     type = type.replace(`plot`, ``).replace(`gram`, ``);
+    // Match short plot id
+    if (type in Object.keys(plotIdShortDict)) {
+      type = plotIdShortDict[type as keyof typeof plotIdShortDict];
+    }
+
     if (type in plotsByType) return plotsByType[type as Plot.Type][index];
   }
 
@@ -297,13 +310,12 @@ function setupEvents(scene: Scene) {
   window.addEventListener(`keydown`, (e) => keydownHandlers[e.code]?.(scene));
   window.addEventListener(`keyup`, () => Marker.setGroup(marker, Transient));
 
-  Scene.listen(scene, `resize`, () => Scene.resize(scene));
-
   Marker.listen(marker, `cleared`, () => {
     for (const plot of plots) Plot.dispatch(plot, `unlock`);
   });
 
-  // WebSocket Events
+  Scene.listen(scene, `resize`, () => Scene.resize(scene));
+  Scene.listen(scene, `reset`, () => Scene.reset(scene));
 
   Scene.listen(scene, `connected`, () =>
     console.log(`Connected to Websocket server on: ${scene.client?.url}`),
@@ -338,10 +350,31 @@ function setupEvents(scene: Scene) {
     const cases = filterIndices(marker.indices, isGroup);
     Scene.sendMessage(scene, `get-assigned`, { cases, group: data.group });
   });
+
+  Scene.listen(scene, `clear-selection`, () => Marker.clearAll(marker));
+
+  Scene.listen(scene, `set-scale`, (data) => {
+    const plot = Scene.getPlot(scene, data.id);
+    if (plot) Plot.dispatch(plot, `set-scale`, data);
+  });
+
+  Scene.listen(scene, `zoom`, (data) => {
+    const plot = Scene.getPlot(scene, data.id);
+    if (plot) Plot.dispatch(plot, `zoom`, data);
+  });
 }
 
 const keydownHandlers: Record<string, (scene: Scene) => void> = {
   Digit1: (scene) => Marker.setGroup(scene.marker, Group.First),
   Digit2: (scene) => Marker.setGroup(scene.marker, Group.Second),
   Digit3: (scene) => Marker.setGroup(scene.marker, Group.Third),
+};
+
+const plotIdShortDict = {
+  s: `scatter`,
+  b: `bar`,
+  h: `histo`,
+  f: `fluct`,
+  hh: `histo2d`,
+  pc: `pcoords`,
 };
