@@ -448,11 +448,13 @@ function setupEvents(scene: Scene) {
   Scene.listen(scene, `clear-selection`, () => Marker.clearAll(marker));
 
   Scene.listen(scene, `set-scale`, (data) => {
+    if (!data || !data.id) return;
     const plot = Scene.getPlot(scene, data.id);
     if (plot) Plot.dispatch(plot, `set-scale`, data);
   });
 
   Scene.listen(scene, `zoom`, (data) => {
+    if (!data || !data.id) return;
     const plot = Scene.getPlot(scene, data.id);
     if (plot) Plot.dispatch(plot, `zoom`, data);
   });
