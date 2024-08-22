@@ -13,7 +13,8 @@ import React from "../utils/JSX";
 import { Meta } from "../utils/Meta";
 import { Reactive } from "../utils/Reactive";
 import { Columns } from "../utils/types";
-import { keyBindings } from "./Keybindings";
+import { defaultOptions, Options, updateOptions } from "./defaultOptions";
+import { keybindingsMenu } from "./Keybindings";
 import { Group, Marker, Transient } from "./Marker";
 
 export interface Scene<T extends Columns = Columns> extends Reactive {
@@ -26,8 +27,13 @@ export interface Scene<T extends Columns = Columns> extends Reactive {
   cols: number;
 
   marker: Marker;
+
+  activePlot?: Plot;
   plots: Plot[];
   plotsByType: Record<Plot.Type, Plot[]>;
+
+  keybindings: Record<string, Scene.Event | Plot.Event>;
+  options: Options;
 }
 
 export namespace Scene {
@@ -35,20 +41,19 @@ export namespace Scene {
     data: T,
     options?: {
       websocketURL?: string;
-    },
+    } & Partial<Options>,
   ): Scene<T> {
     const container = (
       <div
-        id="scene"
+        id="scene-container"
         class="pr-15 relative flex h-full w-full content-center items-center justify-center bg-[#deded9] p-10"
       >
         <div
           id="plot-container"
           class="grid h-full w-full grid-cols-1 grid-rows-1 gap-5"
         ></div>
-        {keyBindings()}
       </div>
-    );
+    ) as HTMLDivElement;
 
     const pc = container.querySelector<HTMLDivElement>("#plot-container")!;
 
@@ -57,14 +62,19 @@ export namespace Scene {
     const plots = [] as Plot[];
     const plotsByType = {} as Record<Plot.Type, Plot[]>;
 
+    const opts = Object.assign(defaultOptions, options);
+    updateOptions(opts);
+
     for (const [k, v] of Object.entries(data)) {
       if (!Meta.hasName(v)) Meta.setName(v, k);
     }
 
+    const keybindings = { ...Scene.keybindings, ...Plot.keybindings };
+
     // Mock interface for just echoing messages back
     const client = { send: console.log } as WebSocket;
 
-    const scene = Reactive.of({
+    const scene: Scene<T> = Reactive.of({
       data,
       container,
       plotContainer: pc,
@@ -74,7 +84,9 @@ export namespace Scene {
       client,
       plots,
       plotsByType,
-    }) as Scene<T>;
+      options: opts,
+      keybindings,
+    });
 
     if (options?.websocketURL) {
       const client = new WebSocket(options.websocketURL);
@@ -89,11 +101,13 @@ export namespace Scene {
       scene.client = client;
     }
 
+    container.appendChild(keybindingsMenu(scene));
+
     setupEvents(scene);
     return scene;
   }
 
-  export type EventType =
+  export type Event =
     | `reset`
     | `resize`
     | `connected`
@@ -107,10 +121,15 @@ export namespace Scene {
     | `get-assigned`
     | `clear-selection`
     | `set-scale`
-    | `zoom`;
+    | `zoom`
+    | `query-mode`
+    | `group-1`
+    | `group-2`
+    | `group-3`
+    | (string & {});
 
-  export const listen = Reactive.makeListenFn<Scene, EventType>();
-  export const dispatch = Reactive.makeDispatchFn<Scene, EventType>();
+  export const listen = Reactive.makeListenFn<Scene, Event>();
+  export const dispatch = Reactive.makeDispatchFn<Scene, Event>();
 
   export function append(parent: HTMLElement, scene: Scene) {
     parent.appendChild(scene.container);
@@ -122,6 +141,7 @@ export namespace Scene {
 
     Plot.listen(plot, `activated`, () => {
       for (const p of plots) if (p != plot) Plot.dispatch(p, `deactivate`);
+      scene.activePlot = plot;
     });
 
     Plot.listen(plot, `lock-others`, () => {
@@ -151,41 +171,28 @@ export namespace Scene {
     Scene.resize(scene);
   }
 
-  function autoUpdateDimensions(scene: Scene) {
-    const { plots } = scene;
-    if (plots.length === 0) return;
-    const cols = Math.ceil(Math.sqrt(plots.length));
-    const rows = Math.ceil(plots.length / cols);
-    Scene.setDimensions(scene, rows, cols);
-  }
-
-  function updatePlotIds(scene: Scene) {
-    for (let i = 0; i < scene.plots.length; i++) {
-      scene.plots[i].container.id = `plot${i + 1}`;
-    }
-  }
-
   export function addPlotBySpec<T extends Columns>(
     scene: Scene<T>,
-    options?: {
+    spec?: {
       type?: Plot.Type;
-      variables?: string[];
+      variables?: (keyof T)[];
       ratio?: number;
       reducer?: Reducer.Name | Reducer;
       queries?: string[] | [string, Reducer.Name | Reducer][];
     },
   ) {
-    const { type, variables, reducer: r, queries: q } = options ?? {};
+    const { type, variables, reducer: r, queries: q } = spec ?? {};
     if (!type || type === `unknown` || !variables) return;
 
-    for (const v of variables) {
+    for (const v of variables as string[]) {
       if (!Object.keys(scene.data).includes(v)) {
         throw new Error(`Variable '${v}' is not present in the data`);
       }
     }
 
-    const selectfn = keysToSelectors(variables);
-    const opts = options as any;
+    const selectfn = keysToSelectors(variables as string[]);
+
+    const opts = {} as any;
 
     if (r) opts.reducer = Reducer.get(r);
     if (q) {
@@ -200,6 +207,20 @@ export namespace Scene {
 
     const plot = Plot[type](scene, selectfn as any, opts);
     Scene.addPlot(scene, plot);
+  }
+
+  function autoUpdateDimensions(scene: Scene) {
+    const { plots } = scene;
+    if (plots.length === 0) return;
+    const cols = Math.ceil(Math.sqrt(plots.length));
+    const rows = Math.ceil(plots.length / cols);
+    Scene.setDimensions(scene, rows, cols);
+  }
+
+  function updatePlotIds(scene: Scene) {
+    for (let i = 0; i < scene.plots.length; i++) {
+      scene.plots[i].container.id = `plot${i + 1}`;
+    }
   }
 
   export function popPlot(scene: Scene) {
@@ -234,14 +255,6 @@ export namespace Scene {
     Scene.resize(scene);
   }
 
-  export function resize(scene: Scene) {
-    for (const plot of scene.plots) Plot.dispatch(plot, `resize`);
-  }
-
-  export function reset(scene: Scene) {
-    for (const plot of scene.plots) Plot.dispatch(plot, `reset`);
-  }
-
   export type TargetId = `session` | `scene` | PlotId;
   export type PlotId =
     | `plot${number}`
@@ -270,6 +283,7 @@ export namespace Scene {
 
     // Remove to match e.g. 'barplot' or 'histogram' with 'bar' and 'histo'
     type = type.replace(`plot`, ``).replace(`gram`, ``);
+
     // Match short plot id
     if (type in Object.keys(plotIdShortDict)) {
       type = plotIdShortDict[type as keyof typeof plotIdShortDict];
@@ -291,17 +305,68 @@ export namespace Scene {
 
   export function sendMessage(
     scene: Scene,
-    type: EventType,
+    type: Event,
     data: Record<string, any>,
   ) {
     const [sender, target] = [`scene`, `session`];
     const message = JSON.stringify({ sender, target, type, data });
     scene.client!.send(message);
   }
+
+  export function resize(scene: Scene) {
+    for (const plot of scene.plots) Plot.dispatch(plot, `resize`);
+  }
+
+  export function reset(scene: Scene) {
+    for (const plot of scene.plots) Plot.dispatch(plot, `reset`);
+    Marker.clearTransient(scene.marker);
+  }
+
+  export function setQueryMode(scene: Scene) {
+    for (const plot of scene.plots) Plot.dispatch(plot, `query-mode`);
+  }
+
+  export function setGroupFirst(scene: Scene) {
+    Marker.setGroup(scene.marker, Group.First);
+  }
+
+  export function setGroupSecond(scene: Scene) {
+    Marker.setGroup(scene.marker, Group.Second);
+  }
+
+  export function setGroupThird(scene: Scene) {
+    Marker.setGroup(scene.marker, Group.Third);
+  }
+
+  export function setKeyBinding(
+    scene: Scene,
+    key: string,
+    event: Scene.Event | Plot.Event,
+  ) {
+    let oldkey: string | undefined = undefined;
+
+    for (const [k, v] of Object.entries(scene.keybindings)) {
+      if (v === event) {
+        oldkey = k;
+        break;
+      }
+    }
+
+    if (oldkey) delete scene.keybindings[oldkey];
+    scene.keybindings[key] = event;
+  }
+
+  export const keybindings: Record<string, Event> = {
+    r: `reset`,
+    q: `query-mode`,
+    1: `group-1`,
+    2: `group-2`,
+    3: `group-3`,
+  };
 }
 
 function setupEvents(scene: Scene) {
-  const { marker, plots, plotContainer } = scene;
+  const { marker, plots, plotContainer, keybindings } = scene;
 
   plotContainer.addEventListener(`mousedown`, () => {
     for (const plot of plots) Plot.dispatch(plot, `deactivate`);
@@ -313,10 +378,27 @@ function setupEvents(scene: Scene) {
       Frame.clear(plot.frames.user);
     }
     Marker.clearAll(scene.marker);
+    scene.activePlot = undefined;
   });
 
-  window.addEventListener(`keydown`, (e) => keydownHandlers[e.code]?.(scene));
-  window.addEventListener(`keyup`, () => Marker.setGroup(marker, Transient));
+  window.addEventListener(`keydown`, (e) => {
+    const event = keybindings[e.key];
+
+    if (event) {
+      if (scene.activePlot) Plot.dispatch(scene.activePlot, event);
+      Scene.dispatch(scene, event);
+    }
+  });
+
+  window.addEventListener(`keyup`, () => {
+    Marker.setGroup(marker, Transient);
+    for (const p of scene.plots) {
+      p.parameters.mode = Plot.Mode.Select;
+      p.queryTable.style.display = `none`;
+    }
+  });
+
+  window.addEventListener(`resize`, () => Scene.resize(scene));
 
   Marker.listen(marker, `cleared`, () => {
     for (const plot of plots) Plot.dispatch(plot, `unlock`);
@@ -324,6 +406,10 @@ function setupEvents(scene: Scene) {
 
   Scene.listen(scene, `resize`, () => Scene.resize(scene));
   Scene.listen(scene, `reset`, () => Scene.reset(scene));
+  Scene.listen(scene, `query-mode`, () => Scene.setQueryMode(scene));
+  Scene.listen(scene, `group-1`, () => Scene.setGroupFirst(scene));
+  Scene.listen(scene, `group-2`, () => Scene.setGroupSecond(scene));
+  Scene.listen(scene, `group-3`, () => Scene.setGroupThird(scene));
 
   Scene.listen(scene, `connected`, () =>
     console.log(`Connected to Websocket server on: ${scene.client?.url}`),
@@ -371,12 +457,6 @@ function setupEvents(scene: Scene) {
     if (plot) Plot.dispatch(plot, `zoom`, data);
   });
 }
-
-const keydownHandlers: Record<string, (scene: Scene) => void> = {
-  Digit1: (scene) => Marker.setGroup(scene.marker, Group.First),
-  Digit2: (scene) => Marker.setGroup(scene.marker, Group.Second),
-  Digit3: (scene) => Marker.setGroup(scene.marker, Group.Third),
-};
 
 const plotIdShortDict = {
   s: `scatter`,

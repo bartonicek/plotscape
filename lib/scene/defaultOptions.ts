@@ -1,0 +1,36 @@
+import tinycolor from "tinycolor2";
+import { Margins } from "../utils/types";
+
+export const defaultOptions = {
+  radius: 5,
+  expandX: 0.1,
+  expandY: 0.1,
+  gapPct: 0.8,
+  gapPx: 1,
+  axisLabelFontsize: 1,
+  axisTitleFontsize: 1.25,
+  margins: [0, 0, 0, 0] as Margins, // Will get updated
+  colors: [] as string[], // Will get updated
+  marginLines: [3.5, 3.5, 1, 1] as Margins,
+  groupColors: ["#984ea3", "#e41a1c", "#4daf4a", "#377eb8"],
+  plotBackground: `#fefffe`,
+};
+
+updateOptions(defaultOptions);
+
+export type Options = typeof defaultOptions;
+
+export function updateOptions(options: Options) {
+  const k = options.groupColors.length;
+  options.colors.length = 2 * k;
+
+  for (let i = 0; i < k; i++) {
+    const c = options.groupColors[i];
+    options.colors[i] = tinycolor(c).darken(10).saturate(20).toString();
+    options.colors[k + i] = tinycolor(c).lighten(20).saturate(20).toString();
+  }
+
+  const { marginLines, axisTitleFontsize: fs } = options;
+  const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+  options.margins = marginLines.map((x) => x * rem * fs) as Margins;
+}

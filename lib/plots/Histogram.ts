@@ -69,12 +69,18 @@ export function Histogram<T extends Columns>(
   Plot.listen(plot, `n`, () => switchRepresentation(plot));
 
   const inc = range / 10;
-  Plot.listen(plot, `=`, () => Reactive.set(pars, (p) => (p.width *= 10 / 9)));
-  Plot.listen(plot, `-`, () => Reactive.set(pars, (p) => (p.width *= 9 / 10)));
+
+  Plot.listen(plot, `grow`, () =>
+    Reactive.set(pars, (p) => (p.width *= 10 / 9)),
+  );
+  Plot.listen(plot, `shrink`, () =>
+    Reactive.set(pars, (p) => (p.width *= 9 / 10)),
+  );
+
   Plot.listen(plot, `'`, () => Reactive.set(pars, (p) => (p.anchor += inc)));
   Plot.listen(plot, `;`, () => Reactive.set(pars, (p) => (p.anchor -= inc)));
 
-  Plot.listen(plot, `r`, () => {
+  Plot.listen(plot, `reset`, () => {
     Reactive.set(pars, (p) => ((p.anchor = min), (p.width = range / 15)));
   });
 

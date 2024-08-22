@@ -52,6 +52,22 @@ export namespace Reactive {
     Reactive.dispatch(object, `changed`);
   }
 
+  export function removeListener(
+    object: Object,
+    type: string,
+    listener: () => void,
+  ) {
+    if (!isReactive(object)) return;
+
+    const [listeners, deferred] = [
+      getListeners(object)[type],
+      getDeferred(object)[type],
+    ];
+
+    remove(listeners, listener);
+    remove(deferred, listener);
+  }
+
   export function removeListeners(object: Object, type: string) {
     if (!isReactive(object)) return;
 

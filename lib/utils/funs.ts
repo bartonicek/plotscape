@@ -1,4 +1,3 @@
-import { defaultParameters } from "./defaultParameters";
 import { Getter } from "./Getter";
 import { Meta } from "./Meta";
 import {
@@ -6,7 +5,6 @@ import {
   Entries,
   Flat,
   Indexable,
-  Margins,
   Point,
   Primitive,
   Rect,
@@ -575,16 +573,6 @@ export function binBreaks(
 }
 
 /**
- * Get margins by multiplying the number of lines by the font size.
- * @returns An array of margins in pixels
- */
-export function getMargins() {
-  const { marginLines, axisTitleFontsize } = defaultParameters;
-  const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
-  return marginLines.map((x) => x * rem * axisTitleFontsize) as Margins;
-}
-
-/**
  * Adds a list of tailwind classes to an HTML element.
  * @param element An HTML element
  * @param classList A list of tailwind classes (strings)
@@ -960,8 +948,8 @@ export function selector<K extends string>(key: K) {
  * @param keys An array of keys
  * @returns A selector function
  */
-export function keysToSelectors(keys: string[]) {
-  return function <T extends Record<string, any>>(object: T) {
+export function keysToSelectors<K extends string>(keys: K[]) {
+  return function <T extends Record<K, any>>(object: T) {
     return keys.map((x) => object[x]);
   };
 }

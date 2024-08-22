@@ -1,7 +1,8 @@
-import { addTailwind, Plot, removeTailwind } from "../main";
+import { addTailwind, capitalize, removeTailwind } from "../main";
 import React from "../utils/JSX";
+import { Scene } from "./Scene";
 
-export function keyBindings() {
+export function keybindingsMenu(scene: Scene) {
   const container = (
     <div>
       <div>
@@ -9,16 +10,15 @@ export function keyBindings() {
           id="modal"
           class="absolute left-0 top-0 z-50 hidden size-full flex-col items-center justify-center bg-slate-800 bg-opacity-80"
         >
+          <h1 class="relative mb-6 text-3xl font-bold text-white">
+            Key bindings
+          </h1>
           <div
             id="bindings"
-            class="relative flex h-full w-fit flex-col justify-center"
-          >
-            <h1 class="relative mb-6 ml-2 text-3xl font-bold text-white">
-              Key bindings
-            </h1>
-          </div>
+            class="relative flex h-1/2 w-fit flex-col flex-wrap justify-start"
+          ></div>
         </div>
-        <button class="absolute right-0 top-0 z-30 rounded-bl-md bg-gray-300 p-1 px-2 text-sm text-white hover:bg-gray-400">
+        <button class="absolute right-0 top-0 z-30 select-none rounded-bl-md bg-gray-300 p-1 px-2 text-sm text-white hover:bg-gray-400">
           keybindings
         </button>
       </div>
@@ -26,7 +26,8 @@ export function keyBindings() {
   );
 
   const modal = container.querySelector<HTMLDivElement>("#modal")!;
-  const bindings = container.querySelector<HTMLDivElement>("#bindings")!;
+  const bindingsContainer =
+    container.querySelector<HTMLDivElement>("#bindings")!;
   const button = container.querySelector<HTMLButtonElement>("button")!;
 
   let locked = false;
@@ -42,14 +43,16 @@ export function keyBindings() {
   button.addEventListener(`click`, showModal);
   modal.addEventListener(`click`, hideModal);
 
-  for (const [k, fn] of Object.entries(Plot.keydownHandlers)) {
+  const bindings = scene.keybindings;
+
+  for (const [k, v] of Object.entries(bindings)) {
     const node = (
       <span class="m-1 flex flex-row">
         <button class="m-1 w-8 rounded-md bg-gray-400 p-1 px-2 text-center text-white outline-none hover:bg-gray-500">
           {k}
         </button>
         <div class="m-1 p-1 px-2 text-white">
-          {(fn as any).description ?? ``}
+          {capitalize(v.replaceAll(`-`, ` `))}
         </div>
       </span>
     );
@@ -69,11 +72,9 @@ export function keyBindings() {
       const { key } = event;
       const oldKey = button.innerText;
 
-      if (key in Plot.keydownHandlers && key !== oldKey) return;
+      if (key in bindings && key !== oldKey) return;
 
-      Plot.keydownHandlers[event.key] = fn;
-      delete Plot.keydownHandlers[oldKey];
-
+      Scene.setKeyBinding(scene, key, v);
       button.innerText = event.key;
       removeTailwind(button, `text-black bg-slate-200 hover:bg-slate-200`);
 
@@ -81,7 +82,7 @@ export function keyBindings() {
       locked = false;
     };
 
-    bindings.appendChild(node);
+    bindingsContainer.appendChild(node);
   }
 
   return container;

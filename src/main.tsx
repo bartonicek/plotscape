@@ -13,7 +13,7 @@ async function mtcarsScene() {
   mtcars.cyl = mtcars.cyl.map((x) => x.toString());
   mtcars.am = mtcars.am.map((x) => x.toString());
 
-  const scene = Scene.of(mtcars, {}); //  websocketURL: "ws://localhost:8080"
+  const scene = Scene.of(mtcars);
   Scene.append(app, scene);
 
   const plot1 = Plot.scatter(scene, (d) => [d.wt, d.mpg]);
@@ -31,8 +31,6 @@ async function mtcarsScene() {
   Scene.addPlot(scene, plot3);
   Scene.addPlot(scene, plot4);
   Scene.addPlot(scene, plot5);
-
-  scene.client!.send = console.log;
 
   // Scene.handleMessage(scene, {
   //   sender: `session`,

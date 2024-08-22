@@ -1,5 +1,5 @@
-import { defaultParameters } from "../utils/defaultParameters";
-import { HAnchor, Margins, VAnchor } from "../utils/types";
+import { Options } from "../scene/defaultOptions";
+import { HAnchor, MapFn, Margins, VAnchor } from "../utils/types";
 
 export interface Frame {
   canvas: HTMLCanvasElement;
@@ -12,6 +12,8 @@ export interface Frame {
   margins: Margins;
 
   contextProps: Partial<ContextProps>;
+
+  options: Options;
 }
 
 type ContextProps<
@@ -21,7 +23,7 @@ type ContextProps<
 };
 
 export namespace Frame {
-  export function of(canvas: Node): Frame {
+  export function of(canvas: Node, options: Options): Frame {
     if (!isCanvas(canvas)) {
       throw new Error(`Node must be a HTML5 canvas element`);
     }
@@ -44,6 +46,7 @@ export namespace Frame {
       margins,
       scalingFactor,
       contextProps,
+      options,
     };
   }
 
@@ -99,6 +102,14 @@ export namespace Frame {
     frame.context.clearRect(0, 0, frame.width, frame.height);
   }
 
+  export function setAlpha(frame: Frame, setfn: MapFn<number>) {
+    frame.context.globalAlpha = setfn(frame.context.globalAlpha);
+  }
+
+  export function resetAlpha(frame: Frame) {
+    frame.context.globalAlpha = 1;
+  }
+
   export function textWidth(frame: Frame, text: string) {
     return frame.context.measureText(text).width;
   }
@@ -121,7 +132,7 @@ export namespace Frame {
   ) {
     const { context } = frame;
     const height = frame.canvas.clientHeight;
-    const radius = options?.radius ?? defaultParameters.radius;
+    const radius = options?.radius ?? frame.options.radius;
     const hAnchor = options?.hAnchor ?? HAnchor.Center;
     const vAnchor = options?.vAnchor ?? VAnchor.Middle;
 

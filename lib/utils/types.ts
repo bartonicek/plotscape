@@ -16,7 +16,7 @@ export type Indexables = Record<string, Indexable>;
 export type IndexableValue<T extends Indexable> =
   T extends Indexable<infer U> ? U : never;
 
-export type Columns = Record<string | symbol, any[]>;
+export type Columns = Record<string, any[]>;
 
 export interface Dataframe {
   [key: string | symbol]: Indexable;
@@ -55,6 +55,7 @@ export enum MouseButton {
   Left = 0,
   Right = 2,
 }
+
 export const dataLayers = [0, 1, 2, 3, 4, 5, 6, 7] as const;
 export const baseLayers = [4, 5, 6, 7] as const;
 export type DataLayer = (typeof dataLayers)[number];

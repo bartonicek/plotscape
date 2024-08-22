@@ -8,14 +8,13 @@ import { Scatterplot } from "../plots/Scatterplot";
 import { Expanse } from "../scales/Expanse";
 import { ExpanseContinuous } from "../scales/ExpanseContinuous";
 import { Scale } from "../scales/Scale";
-import { colors, defaultParameters } from "../utils/defaultParameters";
+import { defaultOptions, Options } from "../scene/defaultOptions";
 import {
   addTailwind,
   clearNodeChildren,
   copyValues,
   diff,
   formatLabel,
-  getMargins,
   invertRange,
   last,
   max,
@@ -36,22 +35,11 @@ import {
   Dataframe,
   dataLayers,
   DataLayers,
-  Margins,
+  MouseButton,
   Rect,
 } from "../utils/types";
 import { renderAxisLabels, renderAxisTitles } from "./axes";
 import { Frame } from "./Frame";
-
-enum Mode {
-  Select = "select",
-  Pan = "pan",
-  Query = "query",
-}
-
-enum MouseButton {
-  Left = 0,
-  Right = 2,
-}
 
 export type Frames = DataLayers & {
   [key in `base` | `under` | `over` | `user` | `xAxis` | `yAxis`]: Frame;
@@ -66,7 +54,6 @@ export interface Plot extends Reactive {
   frames: Frames;
 
   scales: Plot.Scales;
-  margins: Margins;
 
   renderables: Geom[];
   selectables: Geom[];
@@ -77,16 +64,24 @@ export interface Plot extends Reactive {
   parameters: {
     active: boolean;
     locked: boolean;
-    mode: Mode;
+    mode: Plot.Mode;
     mousedown: boolean;
     mousebutton: MouseButton;
     mousecoords: Rect;
     lastkey: string;
     ratio?: number;
   };
+
+  options: Options;
 }
 
 export namespace Plot {
+  export enum Mode {
+    Select = "select",
+    Pan = "pan",
+    Query = "query",
+  }
+
   export type Scales = {
     x: Scale<any, ExpanseContinuous>;
     y: Scale<any, ExpanseContinuous>;
@@ -105,11 +100,13 @@ export namespace Plot {
     | `fluct`
     | `pcoords`;
 
-  export function of(options?: {
-    type?: Type;
-    ratio?: number;
-    scales?: { x?: `band` | `point`; y?: `band` | `point` };
-  }): Plot {
+  export function of(
+    options?: {
+      type?: Type;
+      ratio?: number;
+      scales?: { x?: `band` | `point`; y?: `band` | `point` };
+    } & Partial<Options>,
+  ): Plot {
     const type = options?.type ?? `unknown`;
     const container = (
       <div id="plot" class="relative h-full w-full drop-shadow-md"></div>
@@ -128,7 +125,8 @@ export namespace Plot {
     const selectables = [] as Geom[];
     const queryables = [] as Geom[];
 
-    const { expandX, expandY } = defaultParameters;
+    const opts = { ...defaultOptions, ...options };
+    const { expandX, expandY } = opts;
     const zoomStack = [[expandX, expandY, 1 - expandX, 1 - expandY]] as Rect[];
 
     const parameters = {
@@ -142,8 +140,6 @@ export namespace Plot {
       ratio: options?.ratio ?? undefined,
     };
 
-    const margins = getMargins();
-
     const plot = Reactive.of({
       type,
       data,
@@ -156,37 +152,43 @@ export namespace Plot {
       queryables,
       zoomStack,
       parameters,
-      margins,
+      options: opts,
     });
 
-    setupFrames(plot);
-    setupScales(plot, options);
+    setupFrames(plot, opts);
+    setupScales(plot, opts);
     setupEvents(plot); // Need to set up events last
 
     return plot;
   }
 
-  export type Events =
+  export type Event =
     | `reset`
     | `resize`
     | `render`
     | `render-axes`
     | `activate`
+    | `activated`
     | `deactivate`
+    | `deactivated`
     | `lock`
     | `unlock`
     | `clear-transient`
-    | `set-mode-query`
-    | `activated`
     | `lock-others`
     | `set-selected`
     | `clear-transient`
     | `set-scale`
+    | `grow`
+    | `shrink`
+    | `fade`
+    | `unfade`
     | `zoom`
+    | `pop-zoom`
+    | `query-mode`
     | (string & {});
 
-  export const listen = Reactive.makeListenFn<Plot, Events>();
-  export const dispatch = Reactive.makeDispatchFn<Plot, Events>();
+  export const listen = Reactive.makeListenFn<Plot, Event>();
+  export const dispatch = Reactive.makeDispatchFn<Plot, Event>();
 
   export const scatter = Scatterplot;
   export const bar = Barplot;
@@ -232,6 +234,7 @@ export namespace Plot {
   export function deactivate(plot: Plot) {
     removeTailwind(plot.container, `outline outline-2 outline-slate-600`);
     plot.parameters.active = false;
+    Plot.dispatch(plot, `deactivated`);
   }
 
   export function lock(plot: Plot) {
@@ -261,9 +264,10 @@ export namespace Plot {
 
   export function resize(plot: Plot) {
     for (const frame of Object.values(plot.frames)) Frame.resize(frame);
-    const { container, scales, margins, frames, parameters } = plot;
+    const { container, scales, frames, parameters, options } = plot;
     const { clientWidth, clientHeight } = container;
     const { x, y, width, height, area } = scales;
+    const { margins } = options;
 
     const [bottom, left] = [margins[0], margins[1]];
     const [top, right] = [clientHeight - margins[2], clientWidth - margins[3]];
@@ -286,7 +290,7 @@ export namespace Plot {
     Expanse.set(area.codomain, (e) => (e.max = Math.min(w, h)), opts);
 
     if (parameters.ratio) {
-      const { expandX: ex, expandY: ey } = defaultParameters;
+      const { expandX: ex, expandY: ey } = defaultOptions;
       Expanse.set(x.domain, (e) => ((e.zero = ex), (e.one = 1 - ex)), opts);
       Expanse.set(y.domain, (e) => ((e.zero = ey), (e.one = 1 - ey)), opts);
       Plot.applyRatio(plot, parameters.ratio);
@@ -410,27 +414,19 @@ export namespace Plot {
     queryTable.style.top = offsetY + `px`;
   }
 
-  export const keydownHandlers: Record<string, (plot: Plot) => void> = {
-    [`r`]: reset,
-    [`=`]: grow,
-    [`-`]: shrink,
-    [`]`]: unfade,
-    [`[`]: fade,
-    [`z`]: zoom,
-    [`x`]: popZoom,
-    [`q`]: setQueryMode,
+  export const keybindings: Record<string, Event> = {
+    [`=`]: `grow`,
+    [`-`]: `shrink`,
+    [`]`]: `unfade`,
+    [`[`]: `fade`,
+    [`z`]: `zoom`,
+    [`x`]: `pop-zoom`,
+    [`o`]: `reorder`,
+    [`;`]: `decrement-anchor`,
+    [`'`]: `increment-anchor`,
   };
 
-  reset.description = `Reset the plot`;
-  grow.description = `Increase size`;
-  shrink.description = `Decrease size`;
-  fade.description = `Decrease opacity`;
-  unfade.description = `Increase opacity`;
-  zoom.description = `Zoom`;
-  popZoom.description = `Pop one level of zoom`;
-  setQueryMode.description = `Query`;
-
-  function grow(plot: Plot) {
+  export function grow(plot: Plot) {
     const { area, size, width } = plot.scales;
     Expanse.set(area.codomain, (e) => ((e.min *= 10 / 9), (e.max *= 10 / 9)));
     Expanse.set(size.codomain, (e) => ((e.min *= 10 / 9), (e.max *= 10 / 9)));
@@ -439,35 +435,35 @@ export namespace Plot {
     );
   }
 
-  function shrink(plot: Plot) {
+  export function shrink(plot: Plot) {
     const { area, width, size } = plot.scales;
     Expanse.set(area.codomain, (e) => ((e.min *= 9 / 10), (e.max *= 9 / 10)));
     Expanse.set(size.codomain, (e) => ((e.min *= 9 / 10), (e.max *= 9 / 10)));
     Expanse.set(width.codomain, (e) => (e.mult *= 9 / 10));
   }
 
-  function fade(plot: Plot) {
+  export function fade(plot: Plot) {
+    const { frames } = plot;
     for (const layer of baseLayers) {
-      const frame = plot.frames[layer];
-      const alpha = frame.context.globalAlpha;
-      frame.context.globalAlpha = trunc((alpha * 9) / 10, 0, 1);
+      Frame.setAlpha(frames[layer], (a) => (a * 9) / 10);
     }
     Plot.render(plot);
   }
 
-  function unfade(plot: Plot) {
+  export function unfade(plot: Plot) {
+    const { frames } = plot;
     for (const layer of baseLayers) {
-      const frame = plot.frames[layer];
-      const alpha = frame.context.globalAlpha;
-      frame.context.globalAlpha = trunc((alpha * 10) / 9, 0, 1);
+      Frame.setAlpha(frames[layer], (a) => (a * 10) / 9);
     }
     Plot.render(plot);
   }
 
   export function reset(plot: Plot) {
-    for (const scale of Object.values(plot.scales)) {
-      Scale.restoreDefaults(scale);
-    }
+    const { frames, scales } = plot;
+
+    for (const layer of baseLayers) Frame.resetAlpha(frames[layer]);
+    for (const scale of Object.values(scales)) Scale.restoreDefaults(scale);
+
     plot.zoomStack.length = 1;
     Plot.clearUserFrame(plot);
   }
@@ -481,6 +477,7 @@ export namespace Plot {
     options?: { coords?: Rect; units?: `data` | `screen` | `pct` },
   ) {
     const { scales, parameters, zoomStack } = plot;
+
     let { coords, units } = options ?? {};
 
     units = units ?? `screen`;
@@ -648,8 +645,10 @@ export namespace Plot {
   }
 }
 
-function setupFrames(plot: Plot) {
-  const { container, frames, margins } = plot;
+function setupFrames(plot: Plot, options: Options) {
+  const { container, frames } = plot;
+  const { margins, colors, axisTitleFontsize } = options;
+
   const [bottom, left, top, right] = margins;
   const dataLayers = [7, 6, 5, 4, 3, 2, 1, 0] as const;
 
@@ -661,7 +660,7 @@ function setupFrames(plot: Plot) {
     // Have to use base CSS - cannot use JavaScript to dynamically generate Tailwind classes
     canvas.style.zIndex = `${7 - layer + 2}`;
 
-    const frame = Frame.of(canvas);
+    const frame = Frame.of(canvas, options);
     const color = colors[layer];
 
     Frame.setContext(frame, { fillStyle: color, strokeStyle: color });
@@ -670,14 +669,21 @@ function setupFrames(plot: Plot) {
     frames[layer] = frame;
   }
 
-  frames.base = Frame.of(<canvas class={def + ` z-0 bg-gray-100`}></canvas>);
+  frames.base = Frame.of(
+    <canvas class={def + ` z-0 bg-gray-100`}></canvas>,
+    options,
+  );
+
   Frame.setContext(frames.base, {
-    font: `${defaultParameters.axisTitleFontsize}rem sans-serif`,
+    font: `${axisTitleFontsize}rem sans-serif`,
     textBaseline: `middle`,
     textAlign: `center`,
   });
 
-  frames.under = Frame.of(<canvas class={def + ` z-1 bg-white`}></canvas>);
+  frames.under = Frame.of(
+    <canvas class={def + ` z-1 bg-white`}></canvas>,
+    options,
+  );
 
   frames.under.canvas.style.width = `calc(100% - ${left}px - ${right}px)`;
   frames.under.canvas.style.height = `calc(100% - ${bottom}px - ${top}px)`;
@@ -688,6 +694,7 @@ function setupFrames(plot: Plot) {
     <canvas
       class={def + `relative z-10 border border-b-black border-l-black`}
     ></canvas>,
+    options,
   );
 
   frames.over.canvas.style.width = `calc(100% - ${left}px - ${right}px)`;
@@ -695,24 +702,24 @@ function setupFrames(plot: Plot) {
   frames.over.canvas.style.top = top + `px`;
   frames.over.canvas.style.right = right + `px`;
 
-  frames.user = Frame.of(<canvas class={def + ` z-10`}></canvas>);
+  frames.user = Frame.of(<canvas class={def + ` z-10`}></canvas>, options);
   frames.user.margins = margins;
   Frame.setContext(frames.user, { globalAlpha: 1 / 15 });
 
-  frames.xAxis = Frame.of(<canvas class={def}></canvas>);
+  frames.xAxis = Frame.of(<canvas class={def}></canvas>, options);
   Frame.setContext(frames.xAxis, {
     fillStyle: `#3B4854`,
     textBaseline: `top`,
     textAlign: `center`,
-    font: `${defaultParameters.axisLabelFontsize}rem serif`,
+    font: `${defaultOptions.axisLabelFontsize}rem serif`,
   });
 
-  frames.yAxis = Frame.of(<canvas class={def}></canvas>);
+  frames.yAxis = Frame.of(<canvas class={def}></canvas>, options);
   Frame.setContext(frames.yAxis, {
     fillStyle: `#3B4854`,
     textBaseline: `middle`,
     textAlign: `right`,
-    font: `${defaultParameters.axisLabelFontsize}rem serif`,
+    font: `${defaultOptions.axisLabelFontsize}rem serif`,
   });
 
   for (let [k, v] of Object.entries(frames)) {
@@ -726,17 +733,9 @@ function setupEvents(plot: Plot) {
   const { container, parameters, frames } = plot;
   const { mousecoords } = parameters;
 
-  window.addEventListener(`resize`, () => Plot.resize(plot));
-  window.addEventListener(`keydown`, (e) => {
-    if (e.key in Plot.keydownHandlers) {
-      const fn = Plot.keydownHandlers[e.key];
-      if (parameters.active || fn === Plot.setQueryMode) fn(plot);
-    }
-  });
-  window.addEventListener(`keyup`, () => {
-    parameters.mode = Mode.Select;
-    plot.queryTable.style.display = `none`;
-  });
+  for (const [k, v] of Object.entries(Plot.keybindings)) {
+    Plot.listen(plot, k, () => Plot.dispatch(plot, v));
+  }
 
   container.addEventListener(`mousedown`, (e) => {
     e.stopPropagation();
@@ -747,15 +746,18 @@ function setupEvents(plot: Plot) {
     Plot.setMousedown(plot, true);
     Plot.setMouseButton(plot, e.button);
 
-    if (e.button === MouseButton.Left) Plot.setMode(plot, Mode.Select);
-    else if (e.button === MouseButton.Right) Plot.setMode(plot, Mode.Pan);
+    if (e.button === MouseButton.Left) {
+      Plot.setMode(plot, Plot.Mode.Select);
+    } else if (e.button === MouseButton.Right) {
+      Plot.setMode(plot, Plot.Mode.Pan);
+    }
 
     const x = e.offsetX;
     const y = container.clientHeight - e.offsetY;
 
     copyValues([x, y, x, y], mousecoords);
 
-    if (!locked && parameters.mode === Mode.Select) {
+    if (!locked && parameters.mode === Plot.Mode.Select) {
       // Need to notify marker & all other plots
       Plot.dispatch(plot, `clear-transient`);
       Plot.checkSelection(plot);
@@ -769,7 +771,7 @@ function setupEvents(plot: Plot) {
 
     Plot.setMousedown(plot, true);
     Plot.setMouseButton(plot, MouseButton.Right);
-    Plot.setMode(plot, Mode.Pan);
+    Plot.setMode(plot, Plot.Mode.Pan);
 
     parameters.mousecoords[0] = e.offsetX;
     parameters.mousecoords[1] = container.clientHeight - e.offsetY;
@@ -793,14 +795,16 @@ function setupEvents(plot: Plot) {
   Plot.listen(plot, `render`, () => Plot.render(plot));
   Plot.listen(plot, `lock`, () => Plot.lock(plot));
   Plot.listen(plot, `unlock`, () => Plot.unlock(plot));
-  Plot.listen(plot, `set-mode-query`, () => Plot.setMode(plot, Mode.Query));
+  Plot.listen(plot, `query-mode`, () => Plot.setMode(plot, Plot.Mode.Query));
   Plot.listen(plot, `render-axes`, () => Plot.renderAxes(plot));
   Plot.listen(plot, `clear-transient`, () => Plot.clearUserFrame(plot));
   Plot.listen(plot, `set-scale`, (data) => Plot.setScale(plot, data));
-  Plot.listen(plot, `zoom`, (data) => {
-    data.units = data.units ?? `data`;
-    Plot.zoom(plot, data);
-  });
+  Plot.listen(plot, `grow`, () => Plot.grow(plot));
+  Plot.listen(plot, `shrink`, () => Plot.shrink(plot));
+  Plot.listen(plot, `fade`, () => Plot.fade(plot));
+  Plot.listen(plot, `unfade`, () => Plot.unfade(plot));
+  Plot.listen(plot, `zoom`, (data) => Plot.zoom(plot, data));
+  Plot.listen(plot, `pop-zoom`, () => Plot.popZoom(plot));
 
   for (const scale of Object.values(plot.scales)) {
     Scale.listen(scale, `changed`, () => {
@@ -829,7 +833,7 @@ function setupScales(
   const { x, y, width, height, size, area } = scales;
 
   const opts = { default: true, silent: true };
-  const { expandX: ex, expandY: ey } = defaultParameters;
+  const { expandX: ex, expandY: ey } = defaultOptions;
 
   Expanse.set(area.domain, (e) => (e.ratio = true), opts);
   Expanse.set(size.domain, (e) => (e.ratio = true), opts);

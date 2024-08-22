@@ -108,8 +108,8 @@ function barplot(plot: Barplot) {
 
   Meta.setName(scales.y, Meta.getName(flat.height));
 
-  Reactive.removeListeners(plot, `o`);
-  Plot.listen(plot, `o`, () => sortAxis(scales.x.domain, flat.height));
+  Reactive.removeListeners(plot, `reorder`);
+  Plot.listen(plot, `reorder`, () => sortAxis(scales.x.domain, flat.height));
 
   plot.representation = Representation.Absolute;
   Plot.setData(plot, coordinates);
@@ -155,8 +155,8 @@ function spineplot(plot: Barplot) {
 
   Meta.setName(scales.y, `proportion`);
 
-  Reactive.removeListeners(plot, `o`);
-  Plot.listen(plot, `o`, () => sortAxis(scales.x.domain, flat.width));
+  Reactive.removeListeners(plot, `reorder`);
+  Plot.listen(plot, `reorder`, () => sortAxis(scales.x.domain, flat.width));
 
   plot.representation = Representation.Proportion;
   Plot.setData(plot, coordinates);

@@ -10,14 +10,17 @@ export function renderAxisLabels(plot: Plot) {
 }
 
 function renderSingleAxisLabels(plot: Plot, axis: `x` | `y`) {
-  const scale = plot.scales[axis];
-  const other = axis === `x` ? plot.scales.y : plot.scales.x;
+  const { frames, scales, options } = plot;
+  const { margins } = options;
 
-  const frame = plot.frames[`${axis}Axis`];
+  const scale = scales[axis];
+  const other = axis === `x` ? scales.y : scales.x;
+  const frame = frames[`${axis}Axis`];
+
   const { context } = frame;
 
   const { labels, positions } = Scale.breaks(scale);
-  const [bottom, left, top, right] = plot.margins;
+  const [bottom, left, top, right] = margins;
   const fontsize = parseInt(context.font.match(/^[0-9]*/)![0], 10);
 
   const base = other!.codomain.min - fontsize / 2;
@@ -48,10 +51,7 @@ function renderSingleAxisLabels(plot: Plot, axis: `x` | `y`) {
       const w = Frame.textWidth(frame, label) + 1;
       const h = Frame.textHeight(frame, label) + 1;
 
-      if (plot.margins[1] / 2 < w) {
-        plot.margins[1] = 2 * w;
-        Plot.resize(plot);
-      }
+      if (margins[1] / 2 < w) (margins[1] = 2 * w), Plot.resize(plot);
 
       if (outside(y, bottom, height - top)) continue;
       if (overlap(lastY, y, lastH, h)) continue;
@@ -68,7 +68,8 @@ export function renderAxisTitles(plot: Plot) {
 }
 
 function renderSingleAxisTitle(plot: Plot, axis: `x` | `y`) {
-  const { scales, frames, margins } = plot;
+  const { scales, frames, options } = plot;
+  const { margins } = options;
   const scale = scales[axis];
   const other = axis === `x` ? plot.scales.y : plot.scales.x;
 

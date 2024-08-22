@@ -5,7 +5,6 @@ import { Scale } from "../scales/Scale";
 import { Scene } from "../scene/Scene";
 import { Factor } from "../transformation/Factor";
 import { Summaries } from "../transformation/Summaries";
-import { defaultParameters } from "../utils/defaultParameters";
 import { Getter } from "../utils/Getter";
 import { Meta } from "../utils/Meta";
 import { Columns } from "../utils/types";
@@ -35,7 +34,7 @@ export function Pcoordsplot<T extends Columns>(
   const plot = Plot.of({ type: `pcoords` });
   const { scales } = plot;
 
-  const { expandX: ex, expandY: ey } = defaultParameters;
+  const { expandX: ex, expandY: ey } = scene.options;
   const xOpts = { zero: ex, one: 1 - ex };
   const yOpts = { zero: ey, one: 1 - ey };
 
