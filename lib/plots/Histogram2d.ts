@@ -75,17 +75,17 @@ export function Histogram2d<T extends Columns>(
 
   Plot.listen(plot, `normalize`, () => switchRepresentation(plot));
 
-  Plot.listen(plot, `=`, () => {
+  Plot.listen(plot, `grow`, () => {
     Reactive.set(pars1, (p) => (p.width *= 10 / 9));
     Reactive.set(pars2, (p) => (p.width *= 10 / 9));
   });
 
-  Plot.listen(plot, `-`, () => {
+  Plot.listen(plot, `shrink`, () => {
     Reactive.set(pars1, (p) => (p.width *= 9 / 10));
     Reactive.set(pars2, (p) => (p.width *= 9 / 10));
   });
 
-  Plot.listen(plot, `r`, () => {
+  Plot.listen(plot, `reset`, () => {
     Reactive.set(pars1, (p) => ((p.anchor = min1), (p.width = range1 / 15)));
     Reactive.set(pars2, (p) => ((p.anchor = min2), (p.width = range2 / 15)));
   });
