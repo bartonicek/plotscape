@@ -53,3 +53,5 @@ Finally, launch the development server:
 ```bash
 bun run dev    # Or "npm run dev"
 ```
+
+![plotscape figure showing a scatterplot, a barplot, a histogram, and a fluctuation diagram]()
