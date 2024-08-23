@@ -54,4 +54,4 @@ Finally, launch the development server:
 bun run dev    # Or "npm run dev"
 ```
 
-![plotscape figure showing a scatterplot, a barplot, a histogram, and a fluctuation diagram]()
+![plotscape figure showing a scatterplot, a barplot, a histogram, and a fluctuation diagram](https://github.com/bartonicek/plotscape/blob/67409cbd6009d5a96f6eaf4bd545c3c3ba55cd7c/screenshot.png)
