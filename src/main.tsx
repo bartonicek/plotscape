@@ -90,7 +90,9 @@ async function diamondsScene() {
   const app = document.querySelector<HTMLDivElement>("#app")!;
   const diamonds = await fetchJSON(`../datasets/diamonds.json`);
 
-  const scene = Scene.of(diamonds);
+  const scene = await Scene.ofAsync(
+    `https://raw.githubusercontent.com/bartonicek/ps-dop/master/datasets/diamonds.json?token=GHSAT0AAAAAACWONCCBNNKPPLVIBHQPTDMWZWHJ66A`,
+  );
   Scene.append(app, scene);
 
   const plot1 = Plot.scatter(scene, (d) => [d.carat, d.price]);
@@ -134,4 +136,4 @@ async function sacramentoScene() {
   // });
 }
 
-mtcarsScene();
+diamondsScene();

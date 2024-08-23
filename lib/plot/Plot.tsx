@@ -615,7 +615,7 @@ export namespace Plot {
 
     const opts = { default: options.default ?? false };
 
-    if (min || max) {
+    if (min !== undefined || max !== undefined) {
       if (!Expanse.isContinuous(domain)) {
         throw new Error(`Limits can only be set with a continuous scale`);
       }
@@ -647,7 +647,7 @@ export namespace Plot {
 
 function setupFrames(plot: Plot, options: Options) {
   const { container, frames } = plot;
-  const { margins, colors, axisTitleFontsize } = options;
+  const { margins, colors, axisTitleSize: axisTitleFontsize } = options;
 
   const [bottom, left, top, right] = margins;
   const dataLayers = [7, 6, 5, 4, 3, 2, 1, 0] as const;
@@ -711,7 +711,7 @@ function setupFrames(plot: Plot, options: Options) {
     fillStyle: `#3B4854`,
     textBaseline: `top`,
     textAlign: `center`,
-    font: `${defaultOptions.axisLabelFontsize}rem serif`,
+    font: `${defaultOptions.axisLabelSize}rem serif`,
   });
 
   frames.yAxis = Frame.of(<canvas class={def}></canvas>, options);
@@ -719,7 +719,7 @@ function setupFrames(plot: Plot, options: Options) {
     fillStyle: `#3B4854`,
     textBaseline: `middle`,
     textAlign: `right`,
-    font: `${defaultOptions.axisLabelFontsize}rem serif`,
+    font: `${defaultOptions.axisLabelSize}rem serif`,
   });
 
   for (let [k, v] of Object.entries(frames)) {
@@ -815,7 +815,9 @@ function setupEvents(plot: Plot) {
 
 function setupScales(
   plot: Plot,
-  options?: { scales?: { x?: `band` | `point`; y?: `band` | `point` } },
+  options: {
+    scales?: { x?: `band` | `point`; y?: `band` | `point` };
+  } & Options,
 ) {
   const { scales, container } = plot;
   const { clientWidth: w, clientHeight: h } = container;
@@ -828,7 +830,10 @@ function setupScales(
   scales.height = Scale.of(Expanse.continuous(), Expanse.continuous(0, h));
   scales.width = Scale.of(Expanse.continuous(), Expanse.continuous(0, w));
   scales.area = Scale.of(Expanse.continuous(), Expanse.continuous());
-  scales.size = Scale.of(Expanse.continuous(), Expanse.continuous(0, 10));
+  scales.size = Scale.of(
+    Expanse.continuous(),
+    Expanse.continuous(0, options.size),
+  );
 
   const { x, y, width, height, size, area } = scales;
 

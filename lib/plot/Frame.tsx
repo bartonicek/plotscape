@@ -132,7 +132,7 @@ export namespace Frame {
   ) {
     const { context } = frame;
     const height = frame.canvas.clientHeight;
-    const radius = options?.radius ?? frame.options.radius;
+    const radius = options?.radius ?? frame.options.size;
     const hAnchor = options?.hAnchor ?? HAnchor.Center;
     const vAnchor = options?.vAnchor ?? VAnchor.Middle;
 

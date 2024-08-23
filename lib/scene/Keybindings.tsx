@@ -15,7 +15,7 @@ export function keybindingsMenu(scene: Scene) {
           </h1>
           <div
             id="bindings"
-            class="relative flex h-1/2 w-fit flex-col flex-wrap justify-start"
+            class="relative flex h-1/2 w-fit columns-2 flex-col flex-wrap justify-start"
           ></div>
         </div>
         <button class="absolute right-0 top-0 z-30 select-none rounded-bl-md bg-gray-300 p-1 px-2 text-sm text-white hover:bg-gray-400">
@@ -28,6 +28,7 @@ export function keybindingsMenu(scene: Scene) {
   const modal = container.querySelector<HTMLDivElement>("#modal")!;
   const bindingsContainer =
     container.querySelector<HTMLDivElement>("#bindings")!;
+  bindingsContainer.style.columnFill = `auto`;
   const button = container.querySelector<HTMLButtonElement>("button")!;
 
   let locked = false;

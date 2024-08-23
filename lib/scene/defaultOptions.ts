@@ -2,13 +2,13 @@ import tinycolor from "tinycolor2";
 import { Margins } from "../utils/types";
 
 export const defaultOptions = {
-  radius: 5,
+  size: 10,
   expandX: 0.1,
   expandY: 0.1,
   gapPct: 0.8,
   gapPx: 1,
-  axisLabelFontsize: 1,
-  axisTitleFontsize: 1.25,
+  axisLabelSize: 1,
+  axisTitleSize: 1.25,
   margins: [0, 0, 0, 0] as Margins, // Will get updated
   colors: [] as string[], // Will get updated
   marginLines: [3.5, 3.5, 1, 1] as Margins,
@@ -30,7 +30,7 @@ export function updateOptions(options: Options) {
     options.colors[k + i] = tinycolor(c).lighten(20).saturate(20).toString();
   }
 
-  const { marginLines, axisTitleFontsize: fs } = options;
+  const { marginLines, axisTitleSize: ats } = options;
   const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
-  options.margins = marginLines.map((x) => x * rem * fs) as Margins;
+  options.margins = marginLines.map((x) => x * rem * ats) as Margins;
 }

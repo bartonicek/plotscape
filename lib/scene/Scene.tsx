@@ -2,6 +2,7 @@ import { Reducer } from "../main";
 import { Frame } from "../plot/Frame";
 import { Plot } from "../plot/Plot";
 import {
+  fetchJSON,
   filterIndices,
   isStringArray,
   keysToSelectors,
@@ -105,6 +106,16 @@ export namespace Scene {
 
     setupEvents(scene);
     return scene;
+  }
+
+  export async function ofAsync(
+    url: string,
+    options?: {
+      websocketURL?: string;
+    } & Partial<Options>,
+  ) {
+    const data = await fetchJSON(url);
+    return Scene.of(data, options);
   }
 
   export type Event =
