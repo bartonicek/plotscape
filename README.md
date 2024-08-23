@@ -19,43 +19,36 @@ bun i @abartonicek/plotscape
 
 (if you prefer Node over Bun, you can achieve the same with `npm create vite@latest my-new-figure` and `npm i @abartonicek/plotscape`)
 
-Now you should be ready to create your first interactive figure with plotscape. Copy the following code into your `index.ts`/`main.ts`:
+Now you should be ready to create your first interactive figure with plotscape. Copy the following code into `src/index.ts`:
 
 ```typescript
+import { fetchJSON, formatText, Plot, Scene } from "@abartonicek/plotscape";
+
 // Where you want to mount your figure
 const app = document.querySelector<HTMLDivElement>("#app")!;
-
-const URL = `https://raw.githubusercontent.com/bartonicek/plotscape/master/packages/plotscape/datasets/sacramento.json`;
+const URL = `https://raw.githubusercontent.com/bartonicek/plotscape/master/datasets/sacramento.json`;
 const sacramento = await fetchJSON(URL);
 
-const scene = newScene(app, sacramentoData);
+sacramento.city = sacramento.city.map((x) => formatText(x));
 
-const plot1 = Scatterplot.from(scene, (d) => ({
-  v1: d.longitude,
-  v2: d.latitude,
-  v3: d.price,
-}));
+const scene = Scene.of(sacramento);
+Scene.append(app, scene);
 
-const plot2 = Fluctplot.from(scene, (d) => ({ v1: d.beds, v2: d.baths }));
-const plot3 = Barplot.from(scene, (d) => ({ v1: d.city }));
+const plot1 = Plot.scatter(scene, (d) => [d.longitude, d.latitude], {
+  ratio: 1,
+});
 
-const opts = { reducer: maxReducer };
-const plot4 = Histogram.from(scene, (d) => ({ v1: d.sqft, v2: d.price }), opts);
-const plot5 = Histogram2D.from(scene, (d) => ({ v1: d.sqft, v2: d.price }));
-const plot6 = Noteplot.from(scene);
+const plot2 = Plot.bar(scene, (d) => [d.city]);
+const plot3 = Plot.histo(scene, (d) => [d.sqft]);
+const plot4 = Plot.fluct(scene, (d) => [d.beds, d.baths]);
 
-const plot7 = PCoordsplot.from(scene, (d) =>
-  Object.fromEntries(Object.entries(d).map(([_, v], i) => [`v${i}`, v])),
-);
-
-scene.setLayout([
-  [1, 1, 2, 3],
-  [1, 1, 4, 5],
-  [6, 7, 7, 7],
-]);
+Scene.addPlot(scene, plot1);
+Scene.addPlot(scene, plot2);
+Scene.addPlot(scene, plot3);
+Scene.addPlot(scene, plot4);
 ```
 
-Finally, launch a development server:
+Finally, launch the development server:
 
 ```bash
 bun run dev    # Or "npm run dev"
