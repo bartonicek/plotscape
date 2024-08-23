@@ -54,4 +54,10 @@ Finally, launch the development server:
 bun run dev    # Or "npm run dev"
 ```
 
-![plotscape figure showing a scatterplot, a barplot, a histogram, and a fluctuation diagram](https://github.com/bartonicek/plotscape/blob/67409cbd6009d5a96f6eaf4bd545c3c3ba55cd7c/screenshot.png)
+You should now see the following figure:
+
+![plotscape figure showing a scatterplot, a barplot, a histogram, and a fluctuation diagram](https://github.com/bartonicek/plotscape/blob/master/images/screenshot.png?raw=true)
+
+Your version will be fully interactive (the above above is just a snapshot, since Github doesn't allow JavaScript in README.md files). Try clicking and dragging to select some points in the scatterplot on in the top left.
+
+Happy data exploration!
