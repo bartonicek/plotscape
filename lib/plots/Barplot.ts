@@ -55,7 +55,7 @@ export function Barplot<T extends Columns>(
   const opts = { type: `bar`, scales: { x: `band` } } as const;
   const plot = { representation, ...Plot.of(opts), summaries, coordinates };
 
-  Plot.listen(plot, `n`, () => switchRepresentation(plot));
+  Plot.listen(plot, `normalize`, () => switchRepresentation(plot));
 
   barplot(plot);
   Plot.addGeom(plot, Bars.of());

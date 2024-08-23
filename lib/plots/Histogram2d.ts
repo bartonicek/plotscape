@@ -73,7 +73,7 @@ export function Histogram2d<T extends Columns>(
   const opts = { type: `histo2d`, ratio: options?.ratio } as const;
   const plot = { representation, ...Plot.of(opts), summaries, coordinates };
 
-  Plot.listen(plot, `n`, () => switchRepresentation(plot));
+  Plot.listen(plot, `normalize`, () => switchRepresentation(plot));
 
   Plot.listen(plot, `=`, () => {
     Reactive.set(pars1, (p) => (p.width *= 10 / 9));

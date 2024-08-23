@@ -66,7 +66,7 @@ export function Histogram<T extends Columns>(
   const opts = { type: `histo` } as const;
   const plot = { representation, ...Plot.of(opts), summaries, coordinates };
 
-  Plot.listen(plot, `n`, () => switchRepresentation(plot));
+  Plot.listen(plot, `normalize`, () => switchRepresentation(plot));
 
   const inc = range / 10;
 
@@ -77,8 +77,12 @@ export function Histogram<T extends Columns>(
     Reactive.set(pars, (p) => (p.width *= 9 / 10)),
   );
 
-  Plot.listen(plot, `'`, () => Reactive.set(pars, (p) => (p.anchor += inc)));
-  Plot.listen(plot, `;`, () => Reactive.set(pars, (p) => (p.anchor -= inc)));
+  Plot.listen(plot, `increment-anchor`, () =>
+    Reactive.set(pars, (p) => (p.anchor += inc)),
+  );
+  Plot.listen(plot, `decrement-anchor`, () =>
+    Reactive.set(pars, (p) => (p.anchor -= inc)),
+  );
 
   Plot.listen(plot, `reset`, () => {
     Reactive.set(pars, (p) => ((p.anchor = min), (p.width = range / 15)));

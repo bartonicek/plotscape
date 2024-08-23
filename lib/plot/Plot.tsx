@@ -424,6 +424,7 @@ export namespace Plot {
     [`o`]: `reorder`,
     [`;`]: `decrement-anchor`,
     [`'`]: `increment-anchor`,
+    [`n`]: `normalize`,
   };
 
   export function grow(plot: Plot) {

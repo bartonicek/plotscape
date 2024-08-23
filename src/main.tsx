@@ -114,26 +114,16 @@ async function sacramentoScene() {
 
   const plot1 = Plot.scatter(scene, (d) => [d.longitude, d.latitude], {
     ratio: 1,
-    queries: (d) => [d.beds],
   });
 
   const plot2 = Plot.bar(scene, (d) => [d.city]);
   const plot3 = Plot.histo(scene, (d) => [d.sqft]);
   const plot4 = Plot.fluct(scene, (d) => [d.beds, d.baths]);
-  const plot5 = Plot.histo2d(scene, (d) => [d.longitude, d.latitude], {});
 
   Scene.addPlot(scene, plot1);
   Scene.addPlot(scene, plot2);
   Scene.addPlot(scene, plot3);
   Scene.addPlot(scene, plot4);
-  Scene.addPlot(scene, plot5);
-
-  // Scene.handleMessage(scene, {
-  //   sender: `session`,
-  //   target: `plot1`,
-  //   type: `zoom`,
-  //   data: { coords: [-120, 38.5, -122, 38.8] },
-  // });
 }
 
-diamondsScene();
+sacramentoScene();
