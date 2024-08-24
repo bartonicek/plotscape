@@ -52,7 +52,7 @@ function renderSingleAxisLabels(plot: Plot, axis: `x` | `y`) {
       const h = Frame.textHeight(frame, label) + 1;
 
       // Enforce a gap between labels and title
-      if (margins[1] / 2 < w + fontsize / 2) {
+      if (margins[1] / 2 < w + h) {
         (margins[1] *= 1.05), Plot.resize(plot);
       }
 
