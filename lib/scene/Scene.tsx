@@ -188,7 +188,7 @@ export namespace Scene {
       type?: Plot.Type;
       variables?: (keyof T)[];
       ratio?: number;
-      reducer?: Reducer.Name | Reducer;
+      reducer?: Reducer.Name | Reducer | Reducer.Stringified;
       queries?: string[] | [string, Reducer.Name | Reducer][];
     },
   ) {
@@ -205,12 +205,12 @@ export namespace Scene {
 
     const opts = {} as any;
 
-    if (r) opts.reducer = Reducer.get(r);
+    if (r) opts.reducer = Reducer.parse(r);
     if (q) {
       if (isStringArray(q)) opts.queries = keysToSelectors(q);
       else {
         const queryfn = (data: any) => {
-          return q.map(([s, r]) => [data[s], Reducer.get(r)]);
+          return q.map(([s, r]) => [data[s], Reducer.parse(r)]);
         };
         opts.queries = queryfn;
       }

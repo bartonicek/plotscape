@@ -51,7 +51,10 @@ function renderSingleAxisLabels(plot: Plot, axis: `x` | `y`) {
       const w = Frame.textWidth(frame, label) + 1;
       const h = Frame.textHeight(frame, label) + 1;
 
-      if (margins[1] / 2 < w) (margins[1] = 2 * w), Plot.resize(plot);
+      // Enforce a gap between labels and title
+      if (margins[1] / 2 < w + fontsize) {
+        (margins[1] *= 1.05), Plot.resize(plot);
+      }
 
       if (outside(y, bottom, height - top)) continue;
       if (overlap(lastY, y, lastH, h)) continue;

@@ -14,6 +14,13 @@ export type Reducer<T = any, U = any, V = U> = {
 
 export namespace Reducer {
   export type Name = `sum` | `max` | `product` | `table`;
+  export type Stringified = {
+    name: string;
+    initialfn: string;
+    reducefn: string;
+  };
+
+  export type Like = Name | Reducer | Stringified;
 
   export const sum: Reducer<number, number> = {
     name: `sum`,
@@ -43,8 +50,18 @@ export namespace Reducer {
     },
   };
 
-  export function get(value: Name | Reducer) {
+  export function parse(value: Name | Reducer | Stringified) {
     if (typeof value === `string`) return Reducer[value];
+    if (
+      typeof value.initialfn === `string` &&
+      typeof value.reducefn === `string`
+    ) {
+      const parsed = { name: value.name } as Reducer;
+      parsed.initialfn = eval(value.initialfn);
+      parsed.reducefn = eval(value.reducefn);
+      return parsed;
+    }
+
     return value;
   }
 
