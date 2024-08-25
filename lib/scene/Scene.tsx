@@ -377,13 +377,13 @@ export namespace Scene {
 }
 
 function setupEvents(scene: Scene) {
-  const { marker, plots, plotContainer, keybindings } = scene;
+  const { marker, plots, container, keybindings } = scene;
 
-  plotContainer.addEventListener(`mousedown`, () => {
+  container.addEventListener(`mousedown`, () => {
     for (const plot of plots) Plot.dispatch(plot, `deactivate`);
   });
 
-  plotContainer.addEventListener(`dblclick`, () => {
+  container.addEventListener(`dblclick`, () => {
     for (const plot of plots) {
       Plot.dispatch(plot, `deactivate`);
       Frame.clear(plot.frames.user);
