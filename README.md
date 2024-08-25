@@ -60,6 +60,6 @@ You should now see the following figure:
 
 Your version will be fully interactive (the above above is just a snapshot, since Github doesn't allow JavaScript in README.md files).
 
-Try clicking and dragging to select some points in the scatterplot on in the top left.
+Try clicking and dragging to select some points in the scatterplot in the top left corner of the the figure.
 
 Happy data exploration!
