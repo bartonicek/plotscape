@@ -47,7 +47,7 @@ export namespace Scene {
     const container = (
       <div
         id="scene-container"
-        class="pr-15 relative flex h-full w-full content-center items-center justify-center bg-[#deded9] p-10"
+        class="tailwind pr-15 relative flex h-full w-full content-center items-center justify-center bg-[#deded9] p-10"
       >
         <div
           id="plot-container"
