@@ -8,14 +8,11 @@ export function keybindingsMenu(scene: Scene) {
       <div>
         <div
           id="modal"
-          class="absolute left-0 top-0 z-50 hidden size-full flex-col items-center justify-center bg-slate-800 bg-opacity-80"
+          class="tailwind absolute left-0 top-0 z-50 hidden size-full flex-col bg-slate-800 bg-opacity-80 p-10"
         >
-          <h1 class="relative mb-6 text-3xl font-bold text-white">
-            Key bindings
-          </h1>
           <div
             id="bindings"
-            class="relative flex h-1/2 w-fit columns-2 flex-col flex-wrap justify-start"
+            class="relative flex h-full w-fit flex-col flex-wrap justify-start py-10"
           ></div>
         </div>
         <button class="absolute right-0 top-0 z-30 select-none rounded-bl-md bg-gray-300 p-1 px-2 text-sm text-white hover:bg-gray-400">
