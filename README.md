@@ -2,6 +2,8 @@
 
 Plotscape is a library for creating interactive figures for data exploration. All plots in `plotscape` support linked selection by default, as well as wide variety of other interactions, including, zooming, panning, reordering, and parameter manipulation.
 
+Plotscape is written in (mostly) vanilla TypeScript and uses no external framework for reactivity.
+
 If you're looking for the corresponding R package, go to [plotscaper](https://github.com/bartonicek/plotscaper).
 
 # Quick start
