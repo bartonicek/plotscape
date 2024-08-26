@@ -10,7 +10,8 @@
   },
   "files": [
     "./dist/main.js",
-    "./dist/main.d.ts"
+    "./dist/main.d.ts",
+    "./dist/main.css"
   ],
   "license": "MIT",
   "repository": {
