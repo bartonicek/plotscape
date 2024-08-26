@@ -8,6 +8,7 @@
     "name": "Adam Bartonicek",
     "email": "bartonicek@gmail.com"
   },
+  "files": ["./dist/*"],
   "license": "MIT",
   "repository": {
     "type": "git",
