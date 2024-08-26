@@ -30,9 +30,13 @@ import { fetchJSON, formatText, Plot, Scene } from "@abartonicek/plotscape";
 
 // Where you want to mount your figure
 const app = document.querySelector<HTMLDivElement>("#app")!;
+
+// Update app width and height if not set (Vite default)
+if (!app.style.width) app.style.width = `800px`;
+if (!app.style.height) app.style.height = `500px`;
+
 const URL = `https://raw.githubusercontent.com/bartonicek/plotscape/master/datasets/sacramento.json`;
 const sacramento = await fetchJSON(URL);
-
 sacramento.city = sacramento.city.map((x) => formatText(x));
 
 const scene = Scene.of(sacramento);
