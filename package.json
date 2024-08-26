@@ -1,14 +1,17 @@
 {
   "name": "@abartonicek/plotscape",
   "type": "module",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "main": "./dist/main.js",
   "types": "./dist/main.d.ts",
   "author": {
     "name": "Adam Bartonicek",
     "email": "bartonicek@gmail.com"
   },
-  "files": ["./dist/main.js", "./dist/main.d.ts"],
+  "files": [
+    "./dist/main.js",
+    "./dist/main.d.ts"
+  ],
   "license": "MIT",
   "repository": {
     "type": "git",
