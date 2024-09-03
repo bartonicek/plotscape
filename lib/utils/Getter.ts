@@ -9,7 +9,7 @@ export namespace Getter {
     if (typeof indexable === `function`) return indexable;
     else if (isArray(indexable)) {
       const getter = (index: number) => indexable[index];
-      Meta.setLength(getter, indexable.length);
+      Meta.set(getter, `length`, indexable.length);
       return getter;
     } else {
       return () => indexable;
@@ -27,14 +27,14 @@ export namespace Getter {
     const getter = Getter.of(indexable);
     const proxyGetter = (index: number) => getter(indices[index]);
     Meta.copy(indexable, proxyGetter);
-    Meta.setLength(proxyGetter, indices.length);
+    Meta.set(proxyGetter, `length`, indices.length);
     return proxyGetter;
   }
 
   export function multi<T extends Indexable[]>(indexables: T): Getter<any[]> {
     const getters = indexables.map(Getter.of);
     const getter = (index: number) => getters.map((x) => x(index));
-    Meta.setLength(getter, Meta.getLength(indexables[0])!);
+    Meta.copy(getter, indexables[0], [`length`]);
     return getter;
   }
 }

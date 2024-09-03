@@ -96,13 +96,13 @@ export namespace Points {
 
       if (pointInRect(position, coords)) {
         const result = {} as Record<string, any>;
-        result[Meta.getName(data.x)] = x(i);
-        result[Meta.getName(data.y)] = y(i);
+        result[Meta.get(data.x, `name`)] = x(i);
+        result[Meta.get(data.y, `name`)] = y(i);
 
         for (const [k, v] of Object.entries(data)) {
           if (k === `x` || k === `y`) continue;
-          if (v && Meta.hasName(v)) {
-            result[Meta.getName(v)] = Geom.getter(v)(i);
+          if (v && Meta.has(v, `name`)) {
+            result[Meta.get(v, `name`)] = Geom.getter(v)(i);
           }
         }
 

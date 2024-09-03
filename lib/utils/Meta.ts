@@ -1,11 +1,9 @@
-import { isArray } from "./funs";
-
-export const NAME = Symbol(`name`);
-export const LENGTH = Symbol(`length`);
-export const MIN = Symbol(`min`);
-export const MAX = Symbol(`max`);
-export const QUERYABLE = Symbol(`queryable`);
-export const PARENTVALUES = Symbol(`parentValues`);
+const NAME = Symbol(`name`);
+const LENGTH = Symbol(`length`);
+const MIN = Symbol(`min`);
+const MAX = Symbol(`max`);
+const QUERYABLE = Symbol(`queryable`);
+const PARENTVALUES = Symbol(`parentValues`);
 
 declare global {
   interface Object {
@@ -18,7 +16,7 @@ declare global {
   }
 }
 
-export const metaProps = {
+const keyToSymbolMap = {
   name: NAME,
   length: LENGTH,
   min: MIN,
@@ -27,63 +25,55 @@ export const metaProps = {
   parent: PARENTVALUES,
 } as const;
 
-export type MetaProp = keyof typeof metaProps;
+type Prop = keyof typeof keyToSymbolMap;
+type PropValue = {
+  [key in keyof typeof keyToSymbolMap]: Object[(typeof keyToSymbolMap)[key]];
+};
+type MapValues<T extends Prop[]> = T extends [
+  infer U extends Prop,
+  ...infer Rest extends Prop[],
+]
+  ? [PropValue[U], ...MapValues<Rest>]
+  : [];
 
 export namespace Meta {
-  export function copy(source: Object, target: Object, props?: MetaProp[]) {
-    const keys = props ?? Object.keys(metaProps);
-    for (const key of keys as MetaProp[]) {
-      target[metaProps[key]] = source[metaProps[key]];
+  export function has(object: Object, prop: Prop) {
+    return !!object[keyToSymbolMap[prop]];
+  }
+
+  export function get(object: Object, prop: Prop) {
+    if (prop === `length` && Array.isArray(object)) return object.length;
+    return object[keyToSymbolMap[prop]];
+  }
+
+  export function getN<const T extends Prop[]>(object: Object, props: T) {
+    const result = [];
+    for (let i = 0; i < props.length; i++) result.push(get(object, props[i]));
+    return result as MapValues<T>;
+  }
+
+  export function set<T extends Prop>(
+    object: Object,
+    prop: T,
+    value: PropValue[T],
+  ) {
+    object[keyToSymbolMap[prop]] = value;
+  }
+
+  export function setN<const T extends Prop[]>(
+    object: Object,
+    props: T,
+    values: MapValues<T>,
+  ) {
+    for (let i = 0; i < props.length; i++) {
+      set(object, props[i], values[i]);
     }
   }
 
-  export function has(object: Object, prop: MetaProp) {
-    return !!object[metaProps[prop]];
-  }
-
-  export function hasName(object: Object) {
-    return !!object[NAME];
-  }
-
-  export function getName(object: Object) {
-    return object[NAME] ?? `unknown`;
-  }
-
-  export function setName(object: Object, value: string) {
-    object[NAME] = value;
-  }
-
-  export function copyName(source: Object, target: Object) {
-    target[NAME] = source[NAME];
-  }
-
-  export function getLength(object: Object) {
-    if (isArray(object)) return object.length;
-    return object[LENGTH];
-  }
-
-  export function setLength(object: Object, value: number) {
-    object[LENGTH] = value;
-  }
-
-  export function hasMinMax(array: number[]) {
-    return !!array[MIN] && !!array[MAX];
-  }
-
-  export function getMinMax(array: number[]): [number, number] | undefined {
-    return hasMinMax(array) ? [array[MIN]!, array[MAX]!] : undefined;
-  }
-
-  export function setMinMax(array: number[], min: number, max: number) {
-    array[MIN] = min;
-    array[MAX] = max;
-  }
-
-  export function isQueryable(object: Object) {
-    return object[QUERYABLE];
-  }
-
-  export function setQueryable(object: Object, value: boolean) {
-    object[QUERYABLE] = value;
+  export function copy(source: Object, target: Object, props?: Prop[]) {
+    const keys = props ?? Object.keys(keyToSymbolMap);
+    for (const key of keys as Prop[]) {
+      target[keyToSymbolMap[key]] = source[keyToSymbolMap[key]];
+    }
   }
 }

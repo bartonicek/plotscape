@@ -52,7 +52,7 @@ export namespace Reduced {
     const result = of(array, getFactor(parent), reducer, getParent(parent));
     setValues(result, parent);
     setIndices(result, parentIndices);
-    Meta.copyName(reduced, result);
+    Meta.copy(reduced, result, [`name`]);
 
     return result;
   }
@@ -81,7 +81,7 @@ export namespace Reduced {
     const result = Reduced.of(array, factor, reducer, parent);
     setValues(result, stacked);
     if (indices) setIndices(result, indices);
-    Meta.copyName(reduced, result);
+    Meta.copy(reduced, result, [`name`]);
 
     return result;
   }
@@ -106,7 +106,7 @@ export namespace Reduced {
     const result = Reduced.of(array, factor, reducer, parent);
     setValues(result, normalized);
     if (indices) setIndices(result, indices);
-    Meta.copyName(reduced, result);
+    Meta.copy(reduced, result, [`name`]);
 
     return result;
   }
@@ -122,7 +122,7 @@ export namespace Reduced {
     const result = Reduced.of(array, factor, reducer, parent);
     setValues(result, shifted);
     if (indices) setIndices(result, indices);
-    Meta.copyName(reduced, result);
+    Meta.copy(reduced, result, [`name`]);
 
     return result;
   }
@@ -130,10 +130,6 @@ export namespace Reduced {
   function getFactor(reduced: Reduced) {
     return reduced[FACTOR];
   }
-
-  // function getReducer(reduced: Reduced) {
-  //   return reduced[REDUCER];
-  // }
 
   export function getParent(reduced: Reduced) {
     return reduced[PARENT];

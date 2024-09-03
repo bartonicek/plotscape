@@ -145,8 +145,8 @@ function histogram2d(plot: Histogram2D) {
   plot.representation = Representation.Absolute;
   Plot.setData(plot, coordinates);
 
-  Meta.setName(scales.x, Meta.getName(summaries[1].breaks));
-  Meta.setName(scales.y, Meta.getName(summaries[1].breaks$));
+  Meta.copy(scales.x, summaries[1].breaks, [`name`]);
+  Meta.copy(scales.y, summaries[1].breaks$, [`name`]);
 
   Plot.render(plot);
   Plot.renderAxes(plot);
@@ -195,8 +195,8 @@ function spinogram2d(plot: Histogram2D) {
   plot.representation = Representation.Proportion;
   Plot.setData(plot, coordinates);
 
-  Meta.setName(scales.x, Meta.getName(summaries[1].breaks));
-  Meta.setName(scales.y, Meta.getName(summaries[1].breaks$));
+  Meta.copy(scales.x, summaries[1].breaks, [`name`]);
+  Meta.copy(scales.y, summaries[1].breaks$, [`name`]);
 
   Plot.render(plot);
   Plot.renderAxes(plot);

@@ -68,7 +68,7 @@ export namespace Scene {
     updateOptions(opts);
 
     for (const [k, v] of Object.entries(data)) {
-      if (!Meta.hasName(v)) Meta.setName(v, k);
+      if (!Meta.has(v, `name`)) Meta.set(v, `name`, k);
     }
 
     const keybindings = { ...Scene.keybindings, ...Plot.keybindings };

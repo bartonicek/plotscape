@@ -74,7 +74,7 @@ export namespace Scale {
     },
   ) {
     const setName = options?.name ?? true;
-    if (setName && Meta.hasName(array)) Meta.copy(array, scale);
+    if (setName && Meta.has(array, `name`)) Meta.copy(array, scale, [`name`]);
 
     // Automatically coerce expanse to band if array is string[]
     if (typeof array[0] === "string" && Expanse.isContinuous(scale.domain)) {

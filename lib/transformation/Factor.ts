@@ -104,7 +104,7 @@ export namespace Factor {
     const arr = array.map((x) => x.toString());
     labels = labels ?? Array.from(new Set(arr)).sort(compareAlphaNumeric);
 
-    if (Meta.hasName(array)) Meta.copy(array, labels);
+    if (Meta.has(array, `name`)) Meta.copy(array, labels, [`name`]);
 
     const indices = [] as number[];
     const positions = {} as Record<number, number[]>;
@@ -176,11 +176,11 @@ export namespace Factor {
       }
 
       const [min, max] = [breaks[sorted[0]], breaks[last(sorted) + 1]];
-      Meta.setMinMax(binMin, min, max);
-      Meta.setMinMax(binMax, min, max);
-      Meta.setName(binMin, `min of ${Meta.getName(array)}`);
-      Meta.setName(binMax, `max of ${Meta.getName(array)}`);
-      Meta.setName(breaks, Meta.getName(array));
+      Meta.setN(binMin, [`min`, `max`], [min, max]);
+      Meta.setN(binMax, [`min`, `max`], [min, max]);
+      Meta.set(binMin, `name`, `min of ${Meta.get(array, `name`)}`);
+      Meta.set(binMax, `name`, `max of ${Meta.get(array, `name`)}`);
+      Meta.copy(breaks, array, [`name`]);
 
       const type = Type.Surjection;
       const data = {

@@ -106,7 +106,7 @@ function barplot(plot: Barplot) {
     { default: true },
   );
 
-  Meta.setName(scales.y, Meta.getName(flat.height));
+  Meta.copy(scales.y, flat.height, [`name`]);
 
   Reactive.removeListeners(plot, `reorder`);
   Plot.listen(plot, `reorder`, () => sortAxis(scales.x.domain, flat.height));
@@ -153,7 +153,7 @@ function spineplot(plot: Barplot) {
     { default: true },
   );
 
-  Meta.setName(scales.y, `proportion`);
+  Meta.set(scales.y, `name`, `proportion`);
 
   Reactive.removeListeners(plot, `reorder`);
   Plot.listen(plot, `reorder`, () => sortAxis(scales.x.domain, flat.width));

@@ -84,13 +84,13 @@ export namespace Reducer {
 
     const result = Reduced.of(array, factor, reducer);
     Meta.copy(values as any, result);
-    Meta.setName(result, getName(array, reducer) ?? `[unknown summary]`);
+    Meta.set(result, `name`, getName(array, reducer) ?? `[unknown summary]`);
 
     return result;
   }
 
   export function getName(reducable: Indexable, reducer: Reducer) {
-    if (!Meta.hasName(reducable)) return reducer.fallback;
-    return `${reducer.name} of ${Meta.getName(reducable)}`;
+    if (!Meta.has(reducable, `name`)) return reducer.fallback;
+    return `${reducer.name} of ${Meta.get(reducable, `name`)}`;
   }
 }

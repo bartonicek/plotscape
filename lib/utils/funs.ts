@@ -905,7 +905,7 @@ export function isStringArray(array: any[]): array is string[] {
 export function findLength(indexables: (Indexable | undefined)[]) {
   for (const indexable of indexables) {
     if (!indexable) continue;
-    const length = Meta.getLength(indexable);
+    const length = Meta.get(indexable, `length`);
     if (length) return length;
   }
 

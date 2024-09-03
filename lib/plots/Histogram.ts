@@ -134,8 +134,8 @@ function histogram(plot: Histogram) {
 
   Expanse.freeze(scales.y.domain, [`zero`]);
 
-  Meta.setName(scales.x, Meta.getName(summaries[1].breaks));
-  Meta.setName(scales.y, Meta.getName(flat.y1));
+  Meta.copy(scales.x, summaries[1].breaks, [`name`]);
+  Meta.copy(scales.y, flat.y1, [`name`]);
 
   plot.representation = Representation.Absolute;
   Plot.setData(plot, coordinates);
@@ -179,8 +179,8 @@ function spinogram(plot: Histogram) {
 
   Expanse.freeze(scales.y.domain, [`zero`]);
 
-  Meta.setName(scales.x, `cumulative count`);
-  Meta.setName(scales.y, `proportion`);
+  Meta.set(scales.x, `name`, `cumulative count`);
+  Meta.set(scales.y, `name`, `proportion`);
 
   Plot.setData(plot, coordinates);
   plot.representation = Representation.Proportion;

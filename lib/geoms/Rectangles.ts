@@ -131,7 +131,9 @@ export namespace Rectangles {
         const result = {} as Record<string, any>;
 
         for (const v of Object.values(data)) {
-          if (v && Meta.hasName(v)) result[Meta.getName(v)] = Geom.getter(v)(i);
+          if (v && Meta.has(v, `name`)) {
+            result[Meta.get(v, `name`)] = Geom.getter(v)(i);
+          }
         }
 
         return result;
