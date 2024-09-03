@@ -26,7 +26,7 @@ export namespace Getter {
   ): Getter<T> {
     const getter = Getter.of(indexable);
     const proxyGetter = (index: number) => getter(indices[index]);
-    Meta.copy(indexable, proxyGetter);
+    Meta.copy(proxyGetter, indexable);
     Meta.set(proxyGetter, `length`, indices.length);
     return proxyGetter;
   }

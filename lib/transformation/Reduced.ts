@@ -1,7 +1,6 @@
 import { subset } from "../utils/funs";
 import { Getter } from "../utils/Getter";
 import { Meta } from "../utils/Meta";
-import { Reactive } from "../utils/Reactive";
 import { Factor } from "./Factor";
 import { Reducer } from "./Reducer";
 
@@ -11,7 +10,7 @@ const INDICES = Symbol(`indices`);
 const FACTOR = Symbol(`factor`);
 const REDUCER = Symbol(`reducer`);
 
-export interface Reduced<T = any> extends Array<T>, Reactive {
+export interface Reduced<T = any> extends Array<T> {
   [FACTOR]: Factor;
   [REDUCER]: Reducer<any, T>;
   [VALUES]: T[];
@@ -35,9 +34,6 @@ export namespace Reduced {
     return result;
   }
 
-  export const listen = Reactive.makeListenFn<Reduced, `changed`>();
-  export const dispatch = Reactive.makeDispatchFn<Reduced, `changed`>();
-
   export function setParent<T>(child: Reduced<T>, parent: Reduced<T>) {
     child[PARENT] = parent;
   }
@@ -52,7 +48,7 @@ export namespace Reduced {
     const result = of(array, getFactor(parent), reducer, getParent(parent));
     setValues(result, parent);
     setIndices(result, parentIndices);
-    Meta.copy(reduced, result, [`name`]);
+    Meta.copy(result, reduced, [`name`]);
 
     return result;
   }
@@ -81,7 +77,7 @@ export namespace Reduced {
     const result = Reduced.of(array, factor, reducer, parent);
     setValues(result, stacked);
     if (indices) setIndices(result, indices);
-    Meta.copy(reduced, result, [`name`]);
+    Meta.copy(result, reduced, [`name`]);
 
     return result;
   }
@@ -106,7 +102,7 @@ export namespace Reduced {
     const result = Reduced.of(array, factor, reducer, parent);
     setValues(result, normalized);
     if (indices) setIndices(result, indices);
-    Meta.copy(reduced, result, [`name`]);
+    Meta.copy(result, reduced, [`name`]);
 
     return result;
   }
@@ -122,7 +118,7 @@ export namespace Reduced {
     const result = Reduced.of(array, factor, reducer, parent);
     setValues(result, shifted);
     if (indices) setIndices(result, indices);
-    Meta.copy(reduced, result, [`name`]);
+    Meta.copy(result, reduced, [`name`]);
 
     return result;
   }

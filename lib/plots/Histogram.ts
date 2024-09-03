@@ -48,7 +48,7 @@ export function Histogram<T extends Columns>(
   const [min, max] = minmax(binned);
   const range = max - min;
 
-  const pars = Reactive.of({ anchor: min, width: range / 15 });
+  const pars = Reactive.of2()({ anchor: min, width: range / 15 });
 
   const factor0 = Factor.mono(binned.length);
   const factor1 = Factor.product(factor0, Factor.bin(binned, pars));
@@ -66,25 +66,25 @@ export function Histogram<T extends Columns>(
   const opts = { type: `histo` } as const;
   const plot = { representation, ...Plot.of(opts), summaries, coordinates };
 
-  Plot.listen(plot, `normalize`, () => switchRepresentation(plot));
+  Reactive.listen2(plot, `normalize`, () => switchRepresentation(plot));
 
   const inc = range / 10;
 
-  Plot.listen(plot, `grow`, () =>
+  Reactive.listen2(plot, `grow`, () =>
     Reactive.set(pars, (p) => (p.width *= 10 / 9)),
   );
-  Plot.listen(plot, `shrink`, () =>
+  Reactive.listen2(plot, `shrink`, () =>
     Reactive.set(pars, (p) => (p.width *= 9 / 10)),
   );
 
-  Plot.listen(plot, `increment-anchor`, () =>
+  Reactive.listen2(plot, `increment-anchor`, () =>
     Reactive.set(pars, (p) => (p.anchor += inc)),
   );
-  Plot.listen(plot, `decrement-anchor`, () =>
+  Reactive.listen2(plot, `decrement-anchor`, () =>
     Reactive.set(pars, (p) => (p.anchor -= inc)),
   );
 
-  Plot.listen(plot, `reset`, () => {
+  Reactive.listen2(plot, `reset`, () => {
     Reactive.set(pars, (p) => ((p.anchor = min), (p.width = range / 15)));
   });
 
@@ -124,10 +124,10 @@ function histogram(plot: Histogram) {
   Scale.train(scales.y, flat.y1, { default: true, ratio: true });
 
   for (const c of plot.data) {
-    Reactive.removeListeners(c as any, `changed`);
+    Reactive.removeAll(c as any, `changed`);
   }
 
-  Reactive.listen(flat as any, `changed`, () => {
+  Reactive.listen2(flat as any, `changed`, () => {
     Scale.train(scales.x, flat.x1, { default: true, name: false });
     Scale.train(scales.y, flat.y1, { default: true, ratio: true });
   });
@@ -173,7 +173,7 @@ function spinogram(plot: Histogram) {
   Scale.train(scales.x, [0, ...flat.x1], { default: true, name: false });
   Scale.train(scales.y, [0, 1], { default: true, ratio: true });
 
-  Reactive.listen(flat as any, `changed`, () => {
+  Reactive.listen2(flat as any, `changed`, () => {
     Scale.train(scales.x, [0, ...flat.x1], { default: true, name: false });
   });
 

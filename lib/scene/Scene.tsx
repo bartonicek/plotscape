@@ -19,7 +19,8 @@ import { defaultOptions, Options, updateOptions } from "./defaultOptions";
 import { keybindingsMenu } from "./Keybindings";
 import { Group, Marker, Transient } from "./Marker";
 
-export interface Scene<T extends Columns = Columns> extends Reactive {
+export interface Scene<T extends Columns = Columns>
+  extends Reactive<Scene.Event> {
   data: T;
   container: HTMLDivElement;
   plotContainer: HTMLDivElement;
@@ -39,6 +40,27 @@ export interface Scene<T extends Columns = Columns> extends Reactive {
 }
 
 export namespace Scene {
+  export type Event =
+    | `reset`
+    | `resize`
+    | `connected`
+    | `set-dims`
+    | `add-plot`
+    | `pop-plot`
+    | `remove-plot`
+    | `set-selected`
+    | `set-assigned`
+    | `get-selected`
+    | `get-assigned`
+    | `clear-selection`
+    | `set-scale`
+    | `zoom`
+    | `query-mode`
+    | `group-1`
+    | `group-2`
+    | `group-3`
+    | (string & {});
+
   export function of<T extends Columns>(
     data: T,
     options?: {
@@ -76,7 +98,7 @@ export namespace Scene {
     // Mock interface for just echoing messages back
     const client = { send: console.log } as WebSocket;
 
-    const scene: Scene<T> = Reactive.of({
+    const scene = Reactive.of2()({
       data,
       container,
       plotContainer: pc,
@@ -119,30 +141,6 @@ export namespace Scene {
     return Scene.of(data, options);
   }
 
-  export type Event =
-    | `reset`
-    | `resize`
-    | `connected`
-    | `set-dims`
-    | `add-plot`
-    | `pop-plot`
-    | `remove-plot`
-    | `set-selected`
-    | `set-assigned`
-    | `get-selected`
-    | `get-assigned`
-    | `clear-selection`
-    | `set-scale`
-    | `zoom`
-    | `query-mode`
-    | `group-1`
-    | `group-2`
-    | `group-3`
-    | (string & {});
-
-  export const listen = Reactive.makeListenFn<Scene, Event>();
-  export const dispatch = Reactive.makeDispatchFn<Scene, Event>();
-
   export function append(parent: HTMLElement, scene: Scene) {
     parent.appendChild(scene.container);
     Scene.resize(scene);
@@ -151,20 +149,20 @@ export namespace Scene {
   export function addPlot(scene: Scene, plot: Plot) {
     const { plotContainer, marker, plots, plotsByType } = scene;
 
-    Plot.listen(plot, `activated`, () => {
-      for (const p of plots) if (p != plot) Plot.dispatch(p, `deactivate`);
+    Reactive.listen2(plot, `activated`, () => {
+      for (const p of plots) if (p != plot) Reactive.dispatch2(p, `deactivate`);
       scene.activePlot = plot;
     });
 
-    Plot.listen(plot, `lock-others`, () => {
-      for (const p of plots) if (p !== plot) Plot.dispatch(p, `lock`);
+    Reactive.listen2(plot, `lock-others`, () => {
+      for (const p of plots) if (p !== plot) Reactive.dispatch2(p, `lock`);
     });
 
-    Plot.listen(plot, `set-selected`, (data) => {
-      Marker.update(marker, data.cases);
+    Reactive.listen2(plot, `set-selected`, (data) => {
+      Marker.update(marker, data!.cases);
     });
 
-    Plot.listen(plot, `clear-transient`, () => {
+    Reactive.listen2(plot, `clear-transient`, () => {
       for (const p of plots) Plot.clearUserFrame(p);
       Marker.clearTransient(marker);
     });
@@ -297,22 +295,20 @@ export namespace Scene {
     type = type.replace(`plot`, ``).replace(`gram`, ``);
 
     // Match short plot id
-    if (type in Object.keys(plotIdShortDict)) {
-      type = plotIdShortDict[type as keyof typeof plotIdShortDict];
+    if (type in Object.keys(plotIdShort)) {
+      type = plotIdShort[type as keyof typeof plotIdShort];
     }
 
     if (type in plotsByType) return plotsByType[type as Plot.Type][index];
   }
 
   export function handleMessage(scene: Scene, message: Message) {
-    const { client } = scene;
+    if (!scene.client) return;
 
-    if (!client) return;
+    const { type, target: targetId, data } = message;
+    const target = getTarget(scene, targetId);
 
-    const { type, target, data } = message;
-    const t = getTarget(scene, target);
-
-    if (t) Reactive.dispatch(t, type, data);
+    if (target) Reactive.dispatch2(target, type, data);
   }
 
   export function sendMessage(
@@ -326,16 +322,16 @@ export namespace Scene {
   }
 
   export function resize(scene: Scene) {
-    for (const plot of scene.plots) Plot.dispatch(plot, `resize`);
+    for (const plot of scene.plots) Reactive.dispatch2(plot, `resize`);
   }
 
   export function reset(scene: Scene) {
-    for (const plot of scene.plots) Plot.dispatch(plot, `reset`);
+    for (const plot of scene.plots) Reactive.dispatch2(plot, `reset`);
     Marker.clearTransient(scene.marker);
   }
 
   export function setQueryMode(scene: Scene) {
-    for (const plot of scene.plots) Plot.dispatch(plot, `query-mode`);
+    for (const plot of scene.plots) Reactive.dispatch2(plot, `query-mode`);
   }
 
   export function setGroupFirst(scene: Scene) {
@@ -381,12 +377,12 @@ function setupEvents(scene: Scene) {
   const { marker, plots, container, keybindings } = scene;
 
   container.addEventListener(`mousedown`, () => {
-    for (const plot of plots) Plot.dispatch(plot, `deactivate`);
+    for (const plot of plots) Reactive.dispatch2(plot, `deactivate`);
   });
 
   container.addEventListener(`dblclick`, () => {
     for (const plot of plots) {
-      Plot.dispatch(plot, `deactivate`);
+      Reactive.dispatch2(plot, `deactivate`);
       Frame.clear(plot.frames.user);
     }
     Marker.clearAll(scene.marker);
@@ -395,11 +391,9 @@ function setupEvents(scene: Scene) {
 
   window.addEventListener(`keydown`, (e) => {
     const event = keybindings[e.key];
-
-    if (event) {
-      if (scene.activePlot) Plot.dispatch(scene.activePlot, event);
-      Scene.dispatch(scene, event);
-    }
+    if (!event) return;
+    if (scene.activePlot) Reactive.dispatch2(scene.activePlot, event);
+    Reactive.dispatch2(scene, event);
   });
 
   window.addEventListener(`keyup`, () => {
@@ -412,67 +406,70 @@ function setupEvents(scene: Scene) {
 
   window.addEventListener(`resize`, () => Scene.resize(scene));
 
-  Marker.listen(marker, `cleared`, () => {
-    for (const plot of plots) Plot.dispatch(plot, `unlock`);
+  Reactive.listen2(marker, `cleared`, () => {
+    for (const plot of plots) Reactive.dispatch2(plot, `unlock`);
   });
 
-  Scene.listen(scene, `resize`, () => Scene.resize(scene));
-  Scene.listen(scene, `reset`, () => Scene.reset(scene));
-  Scene.listen(scene, `query-mode`, () => Scene.setQueryMode(scene));
-  Scene.listen(scene, `group-1`, () => Scene.setGroupFirst(scene));
-  Scene.listen(scene, `group-2`, () => Scene.setGroupSecond(scene));
-  Scene.listen(scene, `group-3`, () => Scene.setGroupThird(scene));
+  Reactive.listen2(scene, `resize`, () => Scene.resize(scene));
+  Reactive.listen2(scene, `reset`, () => Scene.reset(scene));
+  Reactive.listen2(scene, `query-mode`, () => Scene.setQueryMode(scene));
+  Reactive.listen2(scene, `group-1`, () => Scene.setGroupFirst(scene));
+  Reactive.listen2(scene, `group-2`, () => Scene.setGroupSecond(scene));
+  Reactive.listen2(scene, `group-3`, () => Scene.setGroupThird(scene));
 
-  Scene.listen(scene, `connected`, () =>
+  Reactive.listen2(scene, `connected`, () =>
     console.log(`Connected to Websocket server on: ${scene.client?.url}`),
   );
 
-  Scene.listen(scene, `set-dims`, (data) => {
-    Scene.setDimensions(scene, data.rows, data.cols);
+  Reactive.listen2(scene, `set-dims`, (data) => {
+    Scene.setDimensions(scene, data!.rows, data!.cols);
   });
 
-  Scene.listen(scene, `add-plot`, (data) => Scene.addPlotBySpec(scene, data));
-  Scene.listen(scene, `pop-plot`, () => Scene.popPlot(scene));
-  Scene.listen(scene, `remove-plot`, (data) => {
-    Scene.removePlot(scene, data.id);
-  });
-
-  Scene.listen(scene, `set-selected`, (data) =>
-    Marker.update(marker, data.cases),
+  Reactive.listen2(scene, `add-plot`, (data) =>
+    Scene.addPlotBySpec(scene, data),
   );
 
-  Scene.listen(scene, `set-assigned`, (data) => {
-    const group = 7 - Math.min(data.group, 3);
-    Marker.update(marker, data.cases, { group });
+  Reactive.listen2(scene, `pop-plot`, () => Scene.popPlot(scene));
+  Reactive.listen2(scene, `remove-plot`, (data) => {
+    Scene.removePlot(scene, data!.id);
   });
 
-  Scene.listen(scene, `get-selected`, () => {
+  Reactive.listen2(scene, `set-selected`, (data) =>
+    Marker.update(marker, data!.cases),
+  );
+
+  Reactive.listen2(scene, `set-assigned`, (data) => {
+    const group = 7 - Math.min(data!.group, 3);
+    Marker.update(marker, data!.cases, { group });
+  });
+
+  Reactive.listen2(scene, `get-selected`, () => {
     const cases = filterIndices(marker.indices, Marker.isTransient);
     Scene.sendMessage(scene, `get-selected`, { cases });
   });
 
-  Scene.listen(scene, `get-assigned`, (data) => {
-    const isGroup = (x: number) => (x | 4) === 7 - Math.min(data.group, 3);
+  Reactive.listen2(scene, `get-assigned`, (data) => {
+    const isGroup = (x: number) => (x | 4) === 7 - Math.min(data!.group, 3);
     const cases = filterIndices(marker.indices, isGroup);
-    Scene.sendMessage(scene, `get-assigned`, { cases, group: data.group });
+    Scene.sendMessage(scene, `get-assigned`, { cases, group: data!.group });
   });
 
-  Scene.listen(scene, `clear-selection`, () => Marker.clearAll(marker));
+  Reactive.listen2(scene, `clear-selection`, () => Marker.clearAll(marker));
 
-  Scene.listen(scene, `set-scale`, (data) => {
+  Reactive.listen2(scene, `set-scale`, (data) => {
     if (!data || !data.id) return;
     const plot = Scene.getPlot(scene, data.id);
-    if (plot) Plot.dispatch(plot, `set-scale`, data);
+    if (plot) Reactive.dispatch2(plot, `set-scale`, data);
   });
 
-  Scene.listen(scene, `zoom`, (data) => {
+  Reactive.listen2(scene, `zoom`, (data) => {
     if (!data || !data.id) return;
     const plot = Scene.getPlot(scene, data.id);
-    if (plot) Plot.dispatch(plot, `zoom`, data);
+    if (plot) Reactive.dispatch2(plot, `zoom`, data);
   });
 }
 
-const plotIdShortDict = {
+const plotIdShort = {
   s: `scatter`,
   b: `bar`,
   h: `histo`,

@@ -38,8 +38,6 @@ export type ExpanseTypeMap = {
   band: ExpanseBand;
 };
 
-type EventType = `changed`;
-
 type ExpanseMethods = {
   normalize(expanse: unknown, value: unknown): unknown;
   unnormalize(expanse: unknown, value: unknown): unknown;
@@ -78,7 +76,7 @@ export namespace Expanse {
     const frozen = [] as string[];
     const linked = [] as Expanse[];
 
-    return Reactive.of({ zero, one, direction, frozen, linked });
+    return Reactive.of2()({ zero, one, direction, frozen, linked });
   }
 
   export function set<T extends Expanse>(
@@ -100,7 +98,7 @@ export namespace Expanse {
     for (const l of linked) Expanse.set(l as T, setfn);
 
     if (!!options?.default) copyProps(temp, expanse.defaults);
-    if (!options?.silent) Expanse.dispatch(expanse, `changed`);
+    if (!options?.silent) Reactive.dispatch2(expanse, `changed`);
   }
 
   export function infer(values: any[], options = { train: true }) {
@@ -129,11 +127,8 @@ export namespace Expanse {
       else expanse[k] = v;
     }
 
-    Expanse.dispatch(expanse, `changed`);
+    Reactive.dispatch2(expanse, `changed`);
   }
-
-  export const dispatch = Reactive.makeDispatchFn<Expanse, EventType>();
-  export const listen = Reactive.makeListenFn<Expanse, EventType>();
 
   export function normalize<T extends Expanse>(expanse: T, value: T[`value`]) {
     return methods[expanse.type].normalize(expanse, value) as number;

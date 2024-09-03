@@ -4,6 +4,7 @@ import {
   copyValues,
   ordered,
 } from "../utils/funs";
+import { Reactive } from "../utils/Reactive";
 import { Direction } from "../utils/types";
 import { Expanse } from "./Expanse";
 
@@ -93,13 +94,13 @@ export namespace ExpansePoint {
     if (!indices) {
       copyValues(defaults.order, order);
       expanse.ordered = false;
-      Expanse.dispatch(expanse, `changed`);
+      Reactive.dispatch2(expanse, `changed`);
       return;
     }
 
     copyValues(indices, order);
     expanse.ordered = true;
-    Expanse.dispatch(expanse, `changed`);
+    Reactive.dispatch2(expanse, `changed`);
   }
 
   export function breaks(expanse: ExpansePoint) {

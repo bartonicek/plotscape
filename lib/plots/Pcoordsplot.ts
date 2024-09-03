@@ -19,7 +19,7 @@ export function Pcoordsplot<T extends Columns>(
   const { data, marker } = scene;
 
   const vars = selectfn(data);
-  const names = vars.map(Meta.getName);
+  const names = vars.map((x) => Meta.get(x, `name`));
 
   const x = Getter.constant(names);
   const y = Getter.multi(vars);

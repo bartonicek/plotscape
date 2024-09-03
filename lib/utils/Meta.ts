@@ -70,10 +70,11 @@ export namespace Meta {
     }
   }
 
-  export function copy(source: Object, target: Object, props?: Prop[]) {
+  export function copy(target: Object, source: Object, props?: Prop[]) {
     const keys = props ?? Object.keys(keyToSymbolMap);
     for (const key of keys as Prop[]) {
-      target[keyToSymbolMap[key]] = source[keyToSymbolMap[key]];
+      // Need to use get() here in case e.g. `length`
+      target[keyToSymbolMap[key]] = get(source, key);
     }
   }
 }

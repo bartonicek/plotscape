@@ -44,11 +44,8 @@ export namespace Factor {
     indices: number[],
     data: T,
   ): Factor<T> {
-    return Reactive.of({ type, cardinality, indices, data });
+    return Reactive.of2()({ type, cardinality, indices, data });
   }
-
-  export const listen = Reactive.makeListenFn<Factor, EventType>();
-  export const dispatch = Reactive.makeDispatchFn<Factor, EventType>();
 
   export function copyFrom<T extends Factor>(source: T, target: T) {
     target.cardinality = source.cardinality;
@@ -57,7 +54,7 @@ export namespace Factor {
     for (const k of Reflect.ownKeys(source.data)) {
       if (isArray(source.data[k]) && isArray(target.data[k])) {
         copyValues(source.data[k], target.data[k]);
-        Meta.copy(source.data[k], target.data[k]);
+        Meta.copy(target.data[k], source.data[k]);
       } else {
         target.data[k] = source.data[k];
       }
@@ -104,7 +101,7 @@ export namespace Factor {
     const arr = array.map((x) => x.toString());
     labels = labels ?? Array.from(new Set(arr)).sort(compareAlphaNumeric);
 
-    if (Meta.has(array, `name`)) Meta.copy(array, labels, [`name`]);
+    if (Meta.has(array, `name`)) Meta.copy(labels, array, [`name`]);
 
     const indices = [] as number[];
     const positions = {} as Record<number, number[]>;
@@ -194,11 +191,11 @@ export namespace Factor {
     }
 
     const factor = compute();
-    if (options && Reactive.isReactive(options)) {
-      Reactive.listen(options, `changed`, () => {
+    if (options && Reactive.is(options)) {
+      Reactive.listen2(options, `changed`, () => {
         const newFactor = compute();
         Factor.copyFrom(newFactor, factor);
-        Factor.dispatch(factor, `changed`);
+        Reactive.dispatch2(factor, `changed`);
       });
     }
 
@@ -288,26 +285,32 @@ export namespace Factor {
       const data = {} as Dataframe;
 
       // Copy over parent data from factor 1
-      for (let k of Reflect.ownKeys(factor1.data)) {
-        let newK = k as string;
-        if (typeof k === "string") while (newK in data) k += `$`;
+      for (let key of Reflect.ownKeys(factor1.data)) {
+        let newKey = key as string;
+        if (typeof key === "string") while (newKey in data) key += `$`;
 
-        const [d, inds] = [factor1.data[k], factor1ParentIndices];
+        const [oldCol, inds] = [factor1.data[key], factor1ParentIndices];
 
-        const col = isArray(d) ? subset(d, inds) : Getter.proxy(d, inds);
-        Meta.copy(d, col);
-        data[newK] = col;
+        const newCol = isArray(oldCol)
+          ? subset(oldCol, inds)
+          : Getter.proxy(oldCol, inds);
+
+        Meta.copy(newCol, oldCol);
+        data[newKey] = newCol;
       }
 
       // Copy over parent data from factor 2
-      for (let k of Reflect.ownKeys(factor2.data)) {
-        let newK = k as string;
-        if (typeof k === "string") while (newK in data) newK += `$`;
-        const [d, inds] = [factor2.data[k], factor2ParentIndices];
+      for (let key of Reflect.ownKeys(factor2.data)) {
+        let newKey = key as string;
+        if (typeof key === "string") while (newKey in data) newKey += `$`;
+        const [oldCol, inds] = [factor2.data[key], factor2ParentIndices];
 
-        const col = isArray(d) ? subset(d, inds) : Getter.proxy(d, inds);
-        Meta.copy(d, col);
-        data[newK] = col;
+        const newCol = isArray(oldCol)
+          ? subset(oldCol, inds)
+          : Getter.proxy(oldCol, inds);
+
+        Meta.copy(newCol, oldCol);
+        data[newKey] = newCol;
       }
 
       const type = Type.Surjection;
@@ -322,18 +325,18 @@ export namespace Factor {
 
     const factor = compute();
 
-    Factor.listen(factor1, `changed`, () => {
+    Reactive.listen2(factor1, `changed`, () => {
       const newFactor = compute();
       Factor.copyFrom(newFactor, factor);
     });
 
-    Factor.listen(factor2, `changed`, () => {
+    Reactive.listen2(factor2, `changed`, () => {
       const newFactor = compute();
       Factor.copyFrom(newFactor, factor);
     });
 
-    Reactive.propagateChange(factor1, factor, { deferred: true });
-    Reactive.propagateChange(factor2, factor, { deferred: true });
+    Reactive.propagate(factor1, factor, `changed`);
+    Reactive.propagate(factor2, factor, `changed`);
 
     return factor;
   }

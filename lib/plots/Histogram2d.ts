@@ -53,8 +53,8 @@ export function Histogram2d<T extends Columns>(
   const [min2, max2] = minmax(binned2);
   const [range1, range2] = [max1 - min1, max2 - min2];
 
-  const pars1 = Reactive.of({ anchor: min1, width: range1 / 15 });
-  const pars2 = Reactive.of({ anchor: min2, width: range2 / 15 });
+  const pars1 = Reactive.of2()({ anchor: min1, width: range1 / 15 });
+  const pars2 = Reactive.of2()({ anchor: min2, width: range2 / 15 });
 
   const factor1 = Factor.bin(binned1, pars1);
   const factor2 = Factor.bin(binned2, pars2);
@@ -73,19 +73,19 @@ export function Histogram2d<T extends Columns>(
   const opts = { type: `histo2d`, ratio: options?.ratio } as const;
   const plot = { representation, ...Plot.of(opts), summaries, coordinates };
 
-  Plot.listen(plot, `normalize`, () => switchRepresentation(plot));
+  Reactive.listen2(plot, `normalize`, () => switchRepresentation(plot));
 
-  Plot.listen(plot, `grow`, () => {
+  Reactive.listen2(plot, `grow`, () => {
     Reactive.set(pars1, (p) => (p.width *= 10 / 9));
     Reactive.set(pars2, (p) => (p.width *= 10 / 9));
   });
 
-  Plot.listen(plot, `shrink`, () => {
+  Reactive.listen2(plot, `shrink`, () => {
     Reactive.set(pars1, (p) => (p.width *= 9 / 10));
     Reactive.set(pars2, (p) => (p.width *= 9 / 10));
   });
 
-  Plot.listen(plot, `reset`, () => {
+  Reactive.listen2(plot, `reset`, () => {
     Reactive.set(pars1, (p) => ((p.anchor = min1), (p.width = range1 / 15)));
     Reactive.set(pars2, (p) => ((p.anchor = min2), (p.width = range2 / 15)));
   });
@@ -133,10 +133,10 @@ function histogram2d(plot: Histogram2D) {
   Expanse.freeze(scales.area.codomain, [`min`, `max`]);
 
   for (const c of plot.data) {
-    Reactive.removeListeners(c as any, `changed`);
+    Reactive.removeAll(c as any, `changed`);
   }
 
-  Reactive.listen(flat as any, `changed`, () => {
+  Reactive.listen2(flat as any, `changed`, () => {
     Scale.train(scales.x, flat.x1, { default: true, name: false });
     Scale.train(scales.y, flat.y1, { default: true, name: false });
     Scale.train(scales.area, flat.area, { default: true });
@@ -184,10 +184,10 @@ function spinogram2d(plot: Histogram2D) {
   Expanse.freeze(scales.area.codomain, [`min`, `max`]);
 
   for (const c of plot.data) {
-    Reactive.removeListeners(c as any, `changed`);
+    Reactive.removeAll(c as any, `changed`);
   }
 
-  Reactive.listen(flat as any, `changed`, () => {
+  Reactive.listen2(flat as any, `changed`, () => {
     Scale.train(scales.x, flat.x1, { default: true, name: false });
     Scale.train(scales.y, flat.y1, { default: true, name: false });
   });

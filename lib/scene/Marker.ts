@@ -18,16 +18,16 @@ export enum Group {
 
 type GroupType = Group | Transient;
 
-export interface Marker extends Reactive {
+export interface Marker extends Reactive<Marker.Event> {
   group: GroupType;
   indices: number[];
   transientIndices: number[];
   factor: Factor<{ [LAYER]: number[] }>;
 }
 
-type EventType = `updated` | `cleared`;
-
 export namespace Marker {
+  export type Event = `updated` | `cleared`;
+
   export function of(n: number): Marker {
     const group = Transient;
     const indices = Array<number>(n).fill(Group.Base);
@@ -37,15 +37,23 @@ export namespace Marker {
       [LAYER]: [0, 1, 2, 3, 4, 5, 6, 7],
     });
 
-    const marker = Reactive.of({ group, indices, transientIndices, factor });
-    Marker.listen(marker, `updated`, () => Factor.dispatch(factor, `changed`));
-    Marker.listen(marker, `cleared`, () => Factor.dispatch(factor, `changed`));
+    const marker = Reactive.of2<Event>()({
+      group,
+      indices,
+      transientIndices,
+      factor,
+    });
+
+    Reactive.listen2(marker, `updated`, () =>
+      Reactive.dispatch2(factor, `changed`),
+    );
+
+    Reactive.listen2(marker, `cleared`, () =>
+      Reactive.dispatch2(factor, `changed`),
+    );
 
     return marker;
   }
-
-  export const listen = Reactive.makeListenFn<Marker, EventType>();
-  export const dispatch = Reactive.makeDispatchFn<Marker, EventType>();
 
   export function setGroup(marker: Marker, group: GroupType) {
     marker.group = group;
@@ -72,7 +80,7 @@ export namespace Marker {
       }
     }
 
-    if (!options?.silent) Marker.dispatch(marker, `updated`);
+    if (!options?.silent) Reactive.dispatch2(marker, `updated`);
   }
 
   export function clearAll(marker: Marker, options?: { silent?: boolean }) {
@@ -80,7 +88,7 @@ export namespace Marker {
       marker.indices[i] = Group.Base;
     }
 
-    if (!options?.silent) Marker.dispatch(marker, `cleared`);
+    if (!options?.silent) Reactive.dispatch2(marker, `cleared`);
   }
 
   export function clearTransient(
@@ -92,7 +100,7 @@ export namespace Marker {
       marker.indices[index] = stripTransient(marker.indices[index]);
     }
 
-    if (!options?.silent) Marker.dispatch(marker, `cleared`);
+    if (!options?.silent) Reactive.dispatch2(marker, `cleared`);
   }
 
   export function getLayer(marker: Marker): Indexable<DataLayer> {

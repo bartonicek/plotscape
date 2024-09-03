@@ -1,3 +1,4 @@
+import { Reactive } from "../utils/Reactive";
 import { Direction } from "../utils/types";
 import { Expanse } from "./Expanse";
 import { ExpanseContinuous } from "./ExpanseContinuous";
@@ -25,7 +26,7 @@ export namespace ExpanseCompound {
     }
 
     const expanse = { expanses, ...base, value, type, defaults };
-    Expanse.listen(expanse, `changed`, () => {
+    Reactive.listen2(expanse, `changed`, () => {
       const { zero, one, direction } = expanse;
       for (const expanse of expanses) {
         Object.assign(expanse, { zero, one, direction });

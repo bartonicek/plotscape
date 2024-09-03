@@ -83,7 +83,7 @@ export namespace Reducer {
     }
 
     const result = Reduced.of(array, factor, reducer);
-    Meta.copy(values as any, result);
+    Meta.copy(result, values as any);
     Meta.set(result, `name`, getName(array, reducer) ?? `[unknown summary]`);
 
     return result;

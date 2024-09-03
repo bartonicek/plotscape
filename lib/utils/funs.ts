@@ -305,7 +305,8 @@ export function subset<T>(array: T[], indices: number[]) {
  * @param value A value in the array
  */
 export function remove<T>(array: T[], value: T) {
-  array.splice(array.indexOf(value), 1);
+  const index = array.indexOf(value);
+  if (index !== -1) array.splice(index, 1);
 }
 
 /**

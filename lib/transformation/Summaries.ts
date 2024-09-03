@@ -35,7 +35,7 @@ export namespace Summaries {
     for (let i = 0; i < factors.length; i++) {
       const factor = factors[i];
       const summarized = compute(summaries, factor);
-      const data = Reactive.of(merge(summarized, factor.data));
+      const data = Reactive.of2()(merge(summarized, factor.data));
 
       result.push(data);
 
@@ -46,7 +46,7 @@ export namespace Summaries {
         }
       }
 
-      Factor.listen(factor, `changed`, () => {
+      Reactive.listen2(factor, `changed`, () => {
         const newSummarized = compute(summaries, factor);
 
         for (const k of Object.keys(newSummarized)) {
@@ -55,7 +55,7 @@ export namespace Summaries {
       });
 
       // Need to dispatch only AFTER parent values have been updated
-      Reactive.propagateChange(factor, data, { deferred: true });
+      Reactive.propagate(factor, data, `changed`);
     }
 
     return result as { [key in keyof U]: Flat<U[key]["data"] & Computed<T>> };
@@ -82,10 +82,10 @@ export namespace Summaries {
     const result = [] as any[];
 
     for (let i = 0; i < data.length; i++) {
-      const translated = Reactive.of(compute(data[i]));
+      const translated = Reactive.of2()(compute(data[i]));
       result.push(translated);
 
-      Reactive.listen(data[i] as any, `changed`, () => {
+      Reactive.listen2(data[i] as any, `changed`, () => {
         const newTranslated = compute(data[i]);
 
         for (const k of Reflect.ownKeys(newTranslated)) {
@@ -94,7 +94,7 @@ export namespace Summaries {
           }
         }
 
-        Reactive.dispatch(translated, `changed`);
+        Reactive.dispatch2(translated, `changed`);
       });
 
       function compute(data: Dataframe) {

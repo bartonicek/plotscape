@@ -10,32 +10,26 @@ export interface Scale<T extends Expanse = Expanse, U extends Expanse = Expanse>
   codomain: U;
 }
 
-type EventType = `changed`;
-
 export namespace Scale {
   export function of<T extends Expanse, U extends Expanse>(
     domain: T,
     codomain: U,
   ): Scale<T, U> {
-    const scale = Reactive.of({ domain, codomain });
-
-    Expanse.listen(domain, `changed`, () => Scale.dispatch(scale, `changed`));
-    Expanse.listen(codomain, `changed`, () => Scale.dispatch(scale, `changed`));
+    const scale = Reactive.of2()({ domain, codomain });
+    Reactive.propagate(domain, scale, `changed`);
+    Reactive.propagate(codomain, scale, `changed`);
 
     return scale;
   }
 
-  export const dispatch = Reactive.makeDispatchFn<Scale, EventType>();
-  export const listen = Reactive.makeListenFn<Scale, EventType>();
-
   export function setDomain(scale: Scale, expanse: Expanse) {
     scale.domain = expanse;
-    Expanse.listen(expanse, `changed`, () => Scale.dispatch(scale, `changed`));
+    Reactive.propagate(scale.domain, scale, `changed`);
   }
 
   export function setCoomain(scale: Scale, expanse: Expanse) {
     scale.codomain = expanse;
-    Expanse.listen(expanse, `changed`, () => Scale.dispatch(scale, `changed`));
+    Reactive.propagate(scale.codomain, scale, `changed`);
   }
 
   export function pushforward<T extends Expanse, U extends Expanse>(
@@ -74,7 +68,7 @@ export namespace Scale {
     },
   ) {
     const setName = options?.name ?? true;
-    if (setName && Meta.has(array, `name`)) Meta.copy(array, scale, [`name`]);
+    if (setName && Meta.has(array, `name`)) Meta.copy(scale, array, [`name`]);
 
     // Automatically coerce expanse to band if array is string[]
     if (typeof array[0] === "string" && Expanse.isContinuous(scale.domain)) {
