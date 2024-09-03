@@ -192,10 +192,10 @@ export namespace Factor {
 
     const factor = compute();
     if (options && Reactive.is(options)) {
-      Reactive.listen2(options, `changed`, () => {
+      Reactive.listen(options, `changed`, () => {
         const newFactor = compute();
         Factor.copyFrom(newFactor, factor);
-        Reactive.dispatch2(factor, `changed`);
+        Reactive.dispatch(factor, `changed`);
       });
     }
 
@@ -325,12 +325,12 @@ export namespace Factor {
 
     const factor = compute();
 
-    Reactive.listen2(factor1, `changed`, () => {
+    Reactive.listen(factor1, `changed`, () => {
       const newFactor = compute();
       Factor.copyFrom(newFactor, factor);
     });
 
-    Reactive.listen2(factor2, `changed`, () => {
+    Reactive.listen(factor2, `changed`, () => {
       const newFactor = compute();
       Factor.copyFrom(newFactor, factor);
     });

@@ -98,7 +98,7 @@ export namespace Expanse {
     for (const l of linked) Expanse.set(l as T, setfn);
 
     if (!!options?.default) copyProps(temp, expanse.defaults);
-    if (!options?.silent) Reactive.dispatch2(expanse, `changed`);
+    if (!options?.silent) Reactive.dispatch(expanse, `changed`);
   }
 
   export function infer(values: any[], options = { train: true }) {
@@ -127,7 +127,7 @@ export namespace Expanse {
       else expanse[k] = v;
     }
 
-    Reactive.dispatch2(expanse, `changed`);
+    Reactive.dispatch(expanse, `changed`);
   }
 
   export function normalize<T extends Expanse>(expanse: T, value: T[`value`]) {

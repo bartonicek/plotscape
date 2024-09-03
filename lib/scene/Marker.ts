@@ -44,12 +44,12 @@ export namespace Marker {
       factor,
     });
 
-    Reactive.listen2(marker, `updated`, () =>
-      Reactive.dispatch2(factor, `changed`),
+    Reactive.listen(marker, `updated`, () =>
+      Reactive.dispatch(factor, `changed`),
     );
 
-    Reactive.listen2(marker, `cleared`, () =>
-      Reactive.dispatch2(factor, `changed`),
+    Reactive.listen(marker, `cleared`, () =>
+      Reactive.dispatch(factor, `changed`),
     );
 
     return marker;
@@ -80,7 +80,7 @@ export namespace Marker {
       }
     }
 
-    if (!options?.silent) Reactive.dispatch2(marker, `updated`);
+    if (!options?.silent) Reactive.dispatch(marker, `updated`);
   }
 
   export function clearAll(marker: Marker, options?: { silent?: boolean }) {
@@ -88,7 +88,7 @@ export namespace Marker {
       marker.indices[i] = Group.Base;
     }
 
-    if (!options?.silent) Reactive.dispatch2(marker, `cleared`);
+    if (!options?.silent) Reactive.dispatch(marker, `cleared`);
   }
 
   export function clearTransient(
@@ -100,7 +100,7 @@ export namespace Marker {
       marker.indices[index] = stripTransient(marker.indices[index]);
     }
 
-    if (!options?.silent) Reactive.dispatch2(marker, `cleared`);
+    if (!options?.silent) Reactive.dispatch(marker, `cleared`);
   }
 
   export function getLayer(marker: Marker): Indexable<DataLayer> {

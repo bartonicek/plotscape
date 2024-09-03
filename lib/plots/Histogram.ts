@@ -66,25 +66,25 @@ export function Histogram<T extends Columns>(
   const opts = { type: `histo` } as const;
   const plot = { representation, ...Plot.of(opts), summaries, coordinates };
 
-  Reactive.listen2(plot, `normalize`, () => switchRepresentation(plot));
+  Reactive.listen(plot, `normalize`, () => switchRepresentation(plot));
 
   const inc = range / 10;
 
-  Reactive.listen2(plot, `grow`, () =>
+  Reactive.listen(plot, `grow`, () =>
     Reactive.set(pars, (p) => (p.width *= 10 / 9)),
   );
-  Reactive.listen2(plot, `shrink`, () =>
+  Reactive.listen(plot, `shrink`, () =>
     Reactive.set(pars, (p) => (p.width *= 9 / 10)),
   );
 
-  Reactive.listen2(plot, `increment-anchor`, () =>
+  Reactive.listen(plot, `increment-anchor`, () =>
     Reactive.set(pars, (p) => (p.anchor += inc)),
   );
-  Reactive.listen2(plot, `decrement-anchor`, () =>
+  Reactive.listen(plot, `decrement-anchor`, () =>
     Reactive.set(pars, (p) => (p.anchor -= inc)),
   );
 
-  Reactive.listen2(plot, `reset`, () => {
+  Reactive.listen(plot, `reset`, () => {
     Reactive.set(pars, (p) => ((p.anchor = min), (p.width = range / 15)));
   });
 
@@ -127,7 +127,7 @@ function histogram(plot: Histogram) {
     Reactive.removeAll(c as any, `changed`);
   }
 
-  Reactive.listen2(flat as any, `changed`, () => {
+  Reactive.listen(flat as any, `changed`, () => {
     Scale.train(scales.x, flat.x1, { default: true, name: false });
     Scale.train(scales.y, flat.y1, { default: true, ratio: true });
   });
@@ -173,7 +173,7 @@ function spinogram(plot: Histogram) {
   Scale.train(scales.x, [0, ...flat.x1], { default: true, name: false });
   Scale.train(scales.y, [0, 1], { default: true, ratio: true });
 
-  Reactive.listen2(flat as any, `changed`, () => {
+  Reactive.listen(flat as any, `changed`, () => {
     Scale.train(scales.x, [0, ...flat.x1], { default: true, name: false });
   });
 

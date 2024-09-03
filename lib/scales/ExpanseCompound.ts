@@ -26,7 +26,7 @@ export namespace ExpanseCompound {
     }
 
     const expanse = { expanses, ...base, value, type, defaults };
-    Reactive.listen2(expanse, `changed`, () => {
+    Reactive.listen(expanse, `changed`, () => {
       const { zero, one, direction } = expanse;
       for (const expanse of expanses) {
         Object.assign(expanse, { zero, one, direction });

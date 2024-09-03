@@ -46,7 +46,7 @@ export namespace Summaries {
         }
       }
 
-      Reactive.listen2(factor, `changed`, () => {
+      Reactive.listen(factor, `changed`, () => {
         const newSummarized = compute(summaries, factor);
 
         for (const k of Object.keys(newSummarized)) {
@@ -85,7 +85,7 @@ export namespace Summaries {
       const translated = Reactive.of2()(compute(data[i]));
       result.push(translated);
 
-      Reactive.listen2(data[i] as any, `changed`, () => {
+      Reactive.listen(data[i] as any, `changed`, () => {
         const newTranslated = compute(data[i]);
 
         for (const k of Reflect.ownKeys(newTranslated)) {
@@ -94,7 +94,7 @@ export namespace Summaries {
           }
         }
 
-        Reactive.dispatch2(translated, `changed`);
+        Reactive.dispatch(translated, `changed`);
       });
 
       function compute(data: Dataframe) {

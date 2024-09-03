@@ -55,7 +55,7 @@ export function Barplot<T extends Columns>(
   const opts = { type: `bar`, scales: { x: `band` } } as const;
   const plot = { representation, ...Plot.of(opts), summaries, coordinates };
 
-  Reactive.listen2(plot, `normalize`, () => switchRepresentation(plot));
+  Reactive.listen(plot, `normalize`, () => switchRepresentation(plot));
 
   barplot(plot);
   Plot.addGeom(plot, Bars.of());
@@ -109,7 +109,7 @@ function barplot(plot: Barplot) {
   Meta.copy(scales.y, flat.height, [`name`]);
 
   Reactive.removeAll(plot, `reorder`);
-  Reactive.listen2(plot, `reorder`, () =>
+  Reactive.listen(plot, `reorder`, () =>
     sortAxis(scales.x.domain, flat.height),
   );
 
@@ -158,9 +158,7 @@ function spineplot(plot: Barplot) {
   Meta.set(scales.y, `name`, `proportion`);
 
   Reactive.removeAll(plot, `reorder`);
-  Reactive.listen2(plot, `reorder`, () =>
-    sortAxis(scales.x.domain, flat.width),
-  );
+  Reactive.listen(plot, `reorder`, () => sortAxis(scales.x.domain, flat.width));
 
   plot.representation = Representation.Proportion;
   Plot.setData(plot, coordinates);

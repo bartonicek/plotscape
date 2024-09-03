@@ -22,7 +22,7 @@ export namespace Reactive {
     };
   }
 
-  export function listen2<T extends Reactive<any>>(
+  export function listen<T extends Reactive<any>>(
     object: T,
     type: EventOf<T>,
     listenfn: EventCallback,
@@ -34,7 +34,7 @@ export namespace Reactive {
     if (!listeners[type].includes(listenfn)) listeners[type].push(listenfn);
   }
 
-  export function dispatch2<T extends Reactive<any>>(
+  export function dispatch<T extends Reactive<any>>(
     object: T,
     type: EventOf<T>,
     data?: Record<string, any>,
@@ -54,8 +54,8 @@ export namespace Reactive {
     T extends Reactive<E>,
     U extends Reactive<E>,
   >(object1: T, object2: U, type: E) {
-    const propagatefn = () => Reactive.dispatch2(object2, type);
-    Reactive.listen2(object1, type, propagatefn, { defer: true });
+    const propagatefn = () => Reactive.dispatch(object2, type);
+    Reactive.listen(object1, type, propagatefn, { defer: true });
   }
 
   export function propagateChange(
@@ -63,8 +63,8 @@ export namespace Reactive {
     object2: Reactive,
     options?: { throttle?: number; deferred?: boolean },
   ) {
-    const propagatefn = () => Reactive.dispatch2(object2, `changed`);
-    Reactive.listen2(object1, `changed`, propagatefn, options);
+    const propagatefn = () => Reactive.dispatch(object2, `changed`);
+    Reactive.listen(object1, `changed`, propagatefn, options);
   }
 
   export function is(object: Record<PropertyKey, any>): object is Reactive {
@@ -76,7 +76,7 @@ export namespace Reactive {
     setfn: (object: T) => void,
   ) {
     setfn(object);
-    Reactive.dispatch2(object, `changed`);
+    Reactive.dispatch(object, `changed`);
   }
 
   export function remove<T extends Reactive<any>>(

@@ -54,7 +54,7 @@ export function Fluctuationplot<T extends Columns>(
   Scale.shareCodomain(plot.scales.area, plot.scales.width);
   Scale.shareCodomain(plot.scales.area, plot.scales.height);
 
-  Reactive.listen2(plot, `normalize`, () => switchRepresentation(plot));
+  Reactive.listen(plot, `normalize`, () => switchRepresentation(plot));
 
   fluctplot(plot);
   Plot.addGeom(plot, Bars.of({ vAnchor: VAnchor.Middle }));

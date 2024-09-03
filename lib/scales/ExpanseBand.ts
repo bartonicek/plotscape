@@ -107,7 +107,7 @@ export namespace ExpanseBand {
     copyValues(cumulativeWeights, expanse.cumulativeWeights);
     copyValues(cumulativeWeights, expanse.defaults.cumulativeWeights);
 
-    Reactive.dispatch2(expanse, `changed`);
+    Reactive.dispatch(expanse, `changed`);
   }
 
   export function normalize(expanse: ExpanseBand, value: string) {
@@ -165,7 +165,7 @@ export namespace ExpanseBand {
       copyValues(cumsum(ordered(weights, order)), cumulativeWeights);
 
       expanse.ordered = false;
-      Reactive.dispatch2(expanse, `changed`);
+      Reactive.dispatch(expanse, `changed`);
       return;
     }
 
@@ -173,7 +173,7 @@ export namespace ExpanseBand {
     copyValues(cumsum(ordered(weights, indices)), cumulativeWeights);
 
     expanse.ordered = true;
-    Reactive.dispatch2(expanse, `changed`);
+    Reactive.dispatch(expanse, `changed`);
   }
 
   export function breaks(expanse: ExpanseBand) {

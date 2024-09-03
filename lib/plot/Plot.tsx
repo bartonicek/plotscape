@@ -207,7 +207,7 @@ export namespace Plot {
 
     plot.data.length = 0;
     for (let i = 0; i < data.length; i++) plot.data.push(data[i]);
-    Reactive.listen2(last(data) as any, `changed`, () => Plot.render(plot));
+    Reactive.listen(last(data) as any, `changed`, () => Plot.render(plot));
   }
 
   export function addGeom(plot: Plot, geom: Geom) {
@@ -229,13 +229,13 @@ export namespace Plot {
   export function activate(plot: Plot) {
     addTailwind(plot.container, `outline outline-2 outline-slate-600`);
     plot.parameters.active = true;
-    Reactive.dispatch2(plot, `activated`);
+    Reactive.dispatch(plot, `activated`);
   }
 
   export function deactivate(plot: Plot) {
     removeTailwind(plot.container, `outline outline-2 outline-slate-600`);
     plot.parameters.active = false;
-    Reactive.dispatch2(plot, `deactivated`);
+    Reactive.dispatch(plot, `deactivated`);
   }
 
   export function lock(plot: Plot) {
@@ -307,10 +307,10 @@ export namespace Plot {
       for (let i = 0; i < selected.length; i++) selectedCases.add(selected[i]);
     }
 
-    Reactive.dispatch2(plot, `set-selected`, {
+    Reactive.dispatch(plot, `set-selected`, {
       cases: Array.from(selectedCases),
     });
-    Reactive.dispatch2(plot, `lock-others`);
+    Reactive.dispatch(plot, `lock-others`);
     Frame.clear(frames.user);
     Frame.rectangleXY(frames.user, ...parameters.mousecoords);
   }
@@ -333,7 +333,7 @@ export namespace Plot {
     const { container, parameters } = plot;
     if (!parameters.active || !parameters.mousedown) return;
 
-    Reactive.dispatch2(plot, `clear-transient`);
+    Reactive.dispatch(plot, `clear-transient`);
 
     const { mousecoords } = parameters;
     const { clientHeight } = container;
@@ -530,7 +530,7 @@ export namespace Plot {
 
     zoomStack.push([x0, y0, x1, y1]);
 
-    Reactive.dispatch2(plot, `clear-transient`);
+    Reactive.dispatch(plot, `clear-transient`);
     Plot.render(plot);
   }
 
@@ -738,7 +738,7 @@ function setupEvents(plot: Plot) {
   const { mousecoords } = parameters;
 
   for (const [k, v] of Object.entries(Plot.keybindings)) {
-    Reactive.listen2(plot, k, () => Reactive.dispatch2(plot, v));
+    Reactive.listen(plot, k, () => Reactive.dispatch(plot, v));
   }
 
   container.addEventListener(`mousedown`, (e) => {
@@ -763,7 +763,7 @@ function setupEvents(plot: Plot) {
 
     if (!locked && parameters.mode === Plot.Mode.Select) {
       // Need to notify marker & all other plots
-      Reactive.dispatch2(plot, `clear-transient`);
+      Reactive.dispatch(plot, `clear-transient`);
       Plot.checkSelection(plot);
     }
 
@@ -792,31 +792,31 @@ function setupEvents(plot: Plot) {
     }, 10),
   );
 
-  Reactive.listen2(plot, `reset`, () => Plot.reset(plot));
-  Reactive.listen2(plot, `resize`, () => Plot.resize(plot));
-  Reactive.listen2(plot, `activate`, () => Plot.activate(plot));
-  Reactive.listen2(plot, `deactivate`, () => Plot.deactivate(plot));
-  Reactive.listen2(plot, `render`, () => Plot.render(plot));
-  Reactive.listen2(plot, `lock`, () => Plot.lock(plot));
-  Reactive.listen2(plot, `unlock`, () => Plot.unlock(plot));
-  Reactive.listen2(plot, `query-mode`, () =>
+  Reactive.listen(plot, `reset`, () => Plot.reset(plot));
+  Reactive.listen(plot, `resize`, () => Plot.resize(plot));
+  Reactive.listen(plot, `activate`, () => Plot.activate(plot));
+  Reactive.listen(plot, `deactivate`, () => Plot.deactivate(plot));
+  Reactive.listen(plot, `render`, () => Plot.render(plot));
+  Reactive.listen(plot, `lock`, () => Plot.lock(plot));
+  Reactive.listen(plot, `unlock`, () => Plot.unlock(plot));
+  Reactive.listen(plot, `query-mode`, () =>
     Plot.setMode(plot, Plot.Mode.Query),
   );
-  Reactive.listen2(plot, `render-axes`, () => Plot.renderAxes(plot));
-  Reactive.listen2(plot, `clear-transient`, () => Plot.clearUserFrame(plot));
-  Reactive.listen2(plot, `set-scale`, (data) =>
+  Reactive.listen(plot, `render-axes`, () => Plot.renderAxes(plot));
+  Reactive.listen(plot, `clear-transient`, () => Plot.clearUserFrame(plot));
+  Reactive.listen(plot, `set-scale`, (data) =>
     Plot.setScale(plot, data as any),
   );
 
-  Reactive.listen2(plot, `grow`, () => Plot.grow(plot));
-  Reactive.listen2(plot, `shrink`, () => Plot.shrink(plot));
-  Reactive.listen2(plot, `fade`, () => Plot.fade(plot));
-  Reactive.listen2(plot, `unfade`, () => Plot.unfade(plot));
-  Reactive.listen2(plot, `zoom`, (data) => Plot.zoom(plot, data));
-  Reactive.listen2(plot, `pop-zoom`, () => Plot.popZoom(plot));
+  Reactive.listen(plot, `grow`, () => Plot.grow(plot));
+  Reactive.listen(plot, `shrink`, () => Plot.shrink(plot));
+  Reactive.listen(plot, `fade`, () => Plot.fade(plot));
+  Reactive.listen(plot, `unfade`, () => Plot.unfade(plot));
+  Reactive.listen(plot, `zoom`, (data) => Plot.zoom(plot, data));
+  Reactive.listen(plot, `pop-zoom`, () => Plot.popZoom(plot));
 
   for (const scale of Object.values(plot.scales)) {
-    Reactive.listen2(scale, `changed`, () => {
+    Reactive.listen(scale, `changed`, () => {
       Plot.render(plot), Plot.renderAxes(plot);
     });
   }

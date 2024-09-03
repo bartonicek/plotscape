@@ -43,6 +43,7 @@ export namespace Scene {
   export type Event =
     | `reset`
     | `resize`
+    | `set-layout`
     | `connected`
     | `set-dims`
     | `add-plot`
@@ -149,20 +150,20 @@ export namespace Scene {
   export function addPlot(scene: Scene, plot: Plot) {
     const { plotContainer, marker, plots, plotsByType } = scene;
 
-    Reactive.listen2(plot, `activated`, () => {
-      for (const p of plots) if (p != plot) Reactive.dispatch2(p, `deactivate`);
+    Reactive.listen(plot, `activated`, () => {
+      for (const p of plots) if (p != plot) Reactive.dispatch(p, `deactivate`);
       scene.activePlot = plot;
     });
 
-    Reactive.listen2(plot, `lock-others`, () => {
-      for (const p of plots) if (p !== plot) Reactive.dispatch2(p, `lock`);
+    Reactive.listen(plot, `lock-others`, () => {
+      for (const p of plots) if (p !== plot) Reactive.dispatch(p, `lock`);
     });
 
-    Reactive.listen2(plot, `set-selected`, (data) => {
+    Reactive.listen(plot, `set-selected`, (data) => {
       Marker.update(marker, data!.cases);
     });
 
-    Reactive.listen2(plot, `clear-transient`, () => {
+    Reactive.listen(plot, `clear-transient`, () => {
       for (const p of plots) Plot.clearUserFrame(p);
       Marker.clearTransient(marker);
     });
@@ -219,14 +220,6 @@ export namespace Scene {
     Scene.addPlot(scene, plot);
   }
 
-  function autoUpdateDimensions(scene: Scene) {
-    const { plots } = scene;
-    if (plots.length === 0) return;
-    const cols = Math.ceil(Math.sqrt(plots.length));
-    const rows = Math.ceil(plots.length / cols);
-    Scene.setDimensions(scene, rows, cols);
-  }
-
   function updatePlotIds(scene: Scene) {
     for (let i = 0; i < scene.plots.length; i++) {
       scene.plots[i].container.id = `plot${i + 1}`;
@@ -256,6 +249,14 @@ export namespace Scene {
     Scene.resize(scene);
   }
 
+  function autoUpdateDimensions(scene: Scene) {
+    const { plots } = scene;
+    if (plots.length === 0) return;
+    const cols = Math.ceil(Math.sqrt(plots.length));
+    const rows = Math.ceil(plots.length / cols);
+    Scene.setDimensions(scene, rows, cols);
+  }
+
   export function setDimensions(scene: Scene, rows: number, cols: number) {
     const { plotContainer } = scene;
     scene.rows = rows;
@@ -263,6 +264,31 @@ export namespace Scene {
     plotContainer.style.gridTemplateRows = Array(rows).fill(`1fr`).join(` `);
     plotContainer.style.gridTemplateColumns = Array(cols).fill(`1fr`).join(` `);
     Scene.resize(scene);
+  }
+
+  export function setLayout(scene: Scene, layout: number[][]) {
+    const { plotContainer, plots } = scene;
+
+    for (let i = 0; i < plots.length; i++) {
+      plots[i].container.style.gridArea = `plot${i + 1}`;
+    }
+
+    let layoutString = ``;
+    for (const line of layout) {
+      layoutString += `"${line.map((x) => `plot${x}`).join(` `)}" `;
+    }
+
+    plotContainer.style.gridTemplateAreas = layoutString;
+    plotContainer.style.gridTemplateRows = `auto`;
+    plotContainer.style.gridTemplateColumns = `auto`;
+
+    Scene.resize(scene);
+  }
+
+  export function clearLayout(scene: Scene) {
+    scene.plotContainer.style.gridTemplateAreas = ``;
+    for (const plot of scene.plots) plot.container.style.gridArea = `auto`;
+    autoUpdateDimensions(scene);
   }
 
   export type TargetId = `session` | `scene` | PlotId;
@@ -308,7 +334,7 @@ export namespace Scene {
     const { type, target: targetId, data } = message;
     const target = getTarget(scene, targetId);
 
-    if (target) Reactive.dispatch2(target, type, data);
+    if (target) Reactive.dispatch(target, type, data);
   }
 
   export function sendMessage(
@@ -322,16 +348,16 @@ export namespace Scene {
   }
 
   export function resize(scene: Scene) {
-    for (const plot of scene.plots) Reactive.dispatch2(plot, `resize`);
+    for (const plot of scene.plots) Reactive.dispatch(plot, `resize`);
   }
 
   export function reset(scene: Scene) {
-    for (const plot of scene.plots) Reactive.dispatch2(plot, `reset`);
+    for (const plot of scene.plots) Reactive.dispatch(plot, `reset`);
     Marker.clearTransient(scene.marker);
   }
 
   export function setQueryMode(scene: Scene) {
-    for (const plot of scene.plots) Reactive.dispatch2(plot, `query-mode`);
+    for (const plot of scene.plots) Reactive.dispatch(plot, `query-mode`);
   }
 
   export function setGroupFirst(scene: Scene) {
@@ -377,12 +403,12 @@ function setupEvents(scene: Scene) {
   const { marker, plots, container, keybindings } = scene;
 
   container.addEventListener(`mousedown`, () => {
-    for (const plot of plots) Reactive.dispatch2(plot, `deactivate`);
+    for (const plot of plots) Reactive.dispatch(plot, `deactivate`);
   });
 
   container.addEventListener(`dblclick`, () => {
     for (const plot of plots) {
-      Reactive.dispatch2(plot, `deactivate`);
+      Reactive.dispatch(plot, `deactivate`);
       Frame.clear(plot.frames.user);
     }
     Marker.clearAll(scene.marker);
@@ -392,8 +418,8 @@ function setupEvents(scene: Scene) {
   window.addEventListener(`keydown`, (e) => {
     const event = keybindings[e.key];
     if (!event) return;
-    if (scene.activePlot) Reactive.dispatch2(scene.activePlot, event);
-    Reactive.dispatch2(scene, event);
+    if (scene.activePlot) Reactive.dispatch(scene.activePlot, event);
+    Reactive.dispatch(scene, event);
   });
 
   window.addEventListener(`keyup`, () => {
@@ -406,66 +432,66 @@ function setupEvents(scene: Scene) {
 
   window.addEventListener(`resize`, () => Scene.resize(scene));
 
-  Reactive.listen2(marker, `cleared`, () => {
-    for (const plot of plots) Reactive.dispatch2(plot, `unlock`);
+  Reactive.listen(marker, `cleared`, () => {
+    for (const plot of plots) Reactive.dispatch(plot, `unlock`);
   });
 
-  Reactive.listen2(scene, `resize`, () => Scene.resize(scene));
-  Reactive.listen2(scene, `reset`, () => Scene.reset(scene));
-  Reactive.listen2(scene, `query-mode`, () => Scene.setQueryMode(scene));
-  Reactive.listen2(scene, `group-1`, () => Scene.setGroupFirst(scene));
-  Reactive.listen2(scene, `group-2`, () => Scene.setGroupSecond(scene));
-  Reactive.listen2(scene, `group-3`, () => Scene.setGroupThird(scene));
+  Reactive.listen(scene, `resize`, () => Scene.resize(scene));
+  Reactive.listen(scene, `reset`, () => Scene.reset(scene));
+  Reactive.listen(scene, `query-mode`, () => Scene.setQueryMode(scene));
+  Reactive.listen(scene, `group-1`, () => Scene.setGroupFirst(scene));
+  Reactive.listen(scene, `group-2`, () => Scene.setGroupSecond(scene));
+  Reactive.listen(scene, `group-3`, () => Scene.setGroupThird(scene));
 
-  Reactive.listen2(scene, `connected`, () =>
+  Reactive.listen(scene, `connected`, () =>
     console.log(`Connected to Websocket server on: ${scene.client?.url}`),
   );
 
-  Reactive.listen2(scene, `set-dims`, (data) => {
+  Reactive.listen(scene, `set-dims`, (data) => {
     Scene.setDimensions(scene, data!.rows, data!.cols);
   });
 
-  Reactive.listen2(scene, `add-plot`, (data) =>
+  Reactive.listen(scene, `add-plot`, (data) =>
     Scene.addPlotBySpec(scene, data),
   );
 
-  Reactive.listen2(scene, `pop-plot`, () => Scene.popPlot(scene));
-  Reactive.listen2(scene, `remove-plot`, (data) => {
+  Reactive.listen(scene, `pop-plot`, () => Scene.popPlot(scene));
+  Reactive.listen(scene, `remove-plot`, (data) => {
     Scene.removePlot(scene, data!.id);
   });
 
-  Reactive.listen2(scene, `set-selected`, (data) =>
+  Reactive.listen(scene, `set-selected`, (data) =>
     Marker.update(marker, data!.cases),
   );
 
-  Reactive.listen2(scene, `set-assigned`, (data) => {
+  Reactive.listen(scene, `set-assigned`, (data) => {
     const group = 7 - Math.min(data!.group, 3);
     Marker.update(marker, data!.cases, { group });
   });
 
-  Reactive.listen2(scene, `get-selected`, () => {
+  Reactive.listen(scene, `get-selected`, () => {
     const cases = filterIndices(marker.indices, Marker.isTransient);
     Scene.sendMessage(scene, `get-selected`, { cases });
   });
 
-  Reactive.listen2(scene, `get-assigned`, (data) => {
+  Reactive.listen(scene, `get-assigned`, (data) => {
     const isGroup = (x: number) => (x | 4) === 7 - Math.min(data!.group, 3);
     const cases = filterIndices(marker.indices, isGroup);
     Scene.sendMessage(scene, `get-assigned`, { cases, group: data!.group });
   });
 
-  Reactive.listen2(scene, `clear-selection`, () => Marker.clearAll(marker));
+  Reactive.listen(scene, `clear-selection`, () => Marker.clearAll(marker));
 
-  Reactive.listen2(scene, `set-scale`, (data) => {
+  Reactive.listen(scene, `set-scale`, (data) => {
     if (!data || !data.id) return;
     const plot = Scene.getPlot(scene, data.id);
-    if (plot) Reactive.dispatch2(plot, `set-scale`, data);
+    if (plot) Reactive.dispatch(plot, `set-scale`, data);
   });
 
-  Reactive.listen2(scene, `zoom`, (data) => {
+  Reactive.listen(scene, `zoom`, (data) => {
     if (!data || !data.id) return;
     const plot = Scene.getPlot(scene, data.id);
-    if (plot) Reactive.dispatch2(plot, `zoom`, data);
+    if (plot) Reactive.dispatch(plot, `zoom`, data);
   });
 }
 

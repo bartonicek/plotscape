@@ -94,13 +94,13 @@ export namespace ExpansePoint {
     if (!indices) {
       copyValues(defaults.order, order);
       expanse.ordered = false;
-      Reactive.dispatch2(expanse, `changed`);
+      Reactive.dispatch(expanse, `changed`);
       return;
     }
 
     copyValues(indices, order);
     expanse.ordered = true;
-    Reactive.dispatch2(expanse, `changed`);
+    Reactive.dispatch(expanse, `changed`);
   }
 
   export function breaks(expanse: ExpansePoint) {
