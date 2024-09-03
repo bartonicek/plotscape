@@ -112,7 +112,7 @@ export namespace Plot {
       <div id="plot" class="relative h-full w-full drop-shadow-md"></div>
     );
     const queryTable = (
-      <table class="relative z-30 hidden bg-gray-50 shadow-md"></table>
+      <table class="relative z-30 bg-gray-50 shadow-md"></table>
     );
 
     container.appendChild(queryTable);

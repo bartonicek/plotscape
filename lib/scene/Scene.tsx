@@ -1,6 +1,7 @@
 import { Reducer } from "../main";
 import { Frame } from "../plot/Frame";
 import { Plot } from "../plot/Plot";
+import { DOM } from "../utils/DOM";
 import {
   fetchJSON,
   filterIndices,
@@ -47,16 +48,16 @@ export namespace Scene {
     const container = (
       <div
         id="scene-container"
-        class="tailwind pr-15 relative flex h-full w-full content-center items-center justify-center bg-[#deded9] p-10"
+        class="pr-15 tailwind relative flex h-full w-full content-center items-center justify-center bg-[#deded9] p-10"
       >
         <div
-          id="plot-container"
+          id="plots-container"
           class="grid h-full w-full grid-cols-1 grid-rows-1 gap-5"
         ></div>
       </div>
     ) as HTMLDivElement;
 
-    const pc = container.querySelector<HTMLDivElement>("#plot-container")!;
+    const pc = DOM.select<HTMLDivElement>(container, `#plots-container`)!;
 
     const [rows, cols] = [1, 1];
     const marker = Marker.of(Object.values(data)[0].length);
