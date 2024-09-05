@@ -781,8 +781,8 @@ function setupEvents(plot: Plot) {
     Plot.setMouseButton(plot, MouseButton.Right);
     Plot.setMode(plot, Plot.Mode.Pan);
 
-    parameters.mousecoords[0] = e.offsetX;
-    parameters.mousecoords[1] = container.clientHeight - e.offsetY;
+    mousecoords[0] = e.offsetX;
+    mousecoords[1] = container.clientHeight - e.offsetY;
 
     Frame.clear(frames.user);
   });
