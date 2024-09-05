@@ -18,9 +18,9 @@ export const defaultOptions = {
 
 updateOptions(defaultOptions);
 
-export type Options = typeof defaultOptions;
+export type GraphicalOptions = typeof defaultOptions;
 
-export function updateOptions(options: Options) {
+export function updateOptions(options: GraphicalOptions) {
   const k = options.groupColors.length;
   options.colors.length = 2 * k;
 

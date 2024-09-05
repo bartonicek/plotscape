@@ -8,7 +8,7 @@ import { Scatterplot } from "../plots/Scatterplot";
 import { Expanse } from "../scales/Expanse";
 import { ExpanseContinuous } from "../scales/ExpanseContinuous";
 import { Scale } from "../scales/Scale";
-import { defaultOptions, Options } from "../scene/defaultOptions";
+import { defaultOptions, GraphicalOptions } from "../scene/defaultOptions";
 import {
   addTailwind,
   clearNodeChildren,
@@ -45,6 +45,9 @@ export type Frames = DataLayers & {
   [key in `base` | `under` | `over` | `user` | `xAxis` | `yAxis`]: Frame;
 };
 
+/**
+ * A generic plot object which handles rendering data and reacting to DOM events.
+ */
 export interface Plot extends Reactive<Plot.Event> {
   type: Plot.Type;
   data: Dataframe[];
@@ -72,7 +75,7 @@ export interface Plot extends Reactive<Plot.Event> {
     ratio?: number;
   };
 
-  options: Options;
+  options: GraphicalOptions;
 }
 
 export namespace Plot {
@@ -105,7 +108,7 @@ export namespace Plot {
       type?: Type;
       ratio?: number;
       scales?: { x?: `band` | `point`; y?: `band` | `point` };
-    } & Partial<Options>,
+    } & Partial<GraphicalOptions>,
   ): Plot {
     const type = options?.type ?? `unknown`;
     const container = (
@@ -653,7 +656,7 @@ export namespace Plot {
   }
 }
 
-function setupFrames(plot: Plot, options: Options) {
+function setupFrames(plot: Plot, options: GraphicalOptions) {
   const { container, frames } = plot;
   const { margins, colors, axisTitleSize: axisTitleFontsize } = options;
 
@@ -830,7 +833,7 @@ function setupScales(
   plot: Plot,
   options: {
     scales?: { x?: `band` | `point`; y?: `band` | `point` };
-  } & Options,
+  } & GraphicalOptions,
 ) {
   const { scales, container } = plot;
   const { clientWidth: w, clientHeight: h } = container;

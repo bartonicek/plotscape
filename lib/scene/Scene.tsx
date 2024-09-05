@@ -9,13 +9,19 @@ import {
   keysToSelectors,
   last,
   remove,
+  seq,
   splitNumericSuffix,
+  throttle,
 } from "../utils/funs";
 import React from "../utils/JSX";
 import { Meta } from "../utils/Meta";
 import { Reactive } from "../utils/Reactive";
 import { Columns } from "../utils/types";
-import { defaultOptions, Options, updateOptions } from "./defaultOptions";
+import {
+  defaultOptions,
+  GraphicalOptions,
+  updateOptions,
+} from "./defaultOptions";
 import { keybindingsMenu } from "./Keybindings";
 import { Group, Marker, Transient } from "./Marker";
 
@@ -36,7 +42,7 @@ export interface Scene<T extends Columns = Columns>
   plotsByType: Record<Plot.Type, Plot[]>;
 
   keybindings: Record<string, Scene.Event | Plot.Event>;
-  options: Options;
+  options: GraphicalOptions;
 }
 
 export namespace Scene {
@@ -65,8 +71,9 @@ export namespace Scene {
   export function of<T extends Columns>(
     data: T,
     options?: {
+      id?: string;
       websocketURL?: string;
-    } & Partial<Options>,
+    } & Partial<GraphicalOptions>,
   ): Scene<T> {
     const container = (
       <div
@@ -96,7 +103,7 @@ export namespace Scene {
 
     const keybindings = { ...Scene.keybindings, ...Plot.keybindings };
 
-    // Mock interface for just echoing messages back
+    // Mock for just echoing messages back if websocket URL is not provided
     const client = { send: console.log } as WebSocket;
 
     const scene = Reactive.of()({
@@ -136,7 +143,7 @@ export namespace Scene {
     url: string,
     options?: {
       websocketURL?: string;
-    } & Partial<Options>,
+    } & Partial<GraphicalOptions>,
   ) {
     const data = await fetchJSON(url);
     return Scene.of(data, options);
@@ -258,19 +265,31 @@ export namespace Scene {
   }
 
   export function setDimensions(scene: Scene, rows: number, cols: number) {
-    const { plotContainer } = scene;
+    const { plotContainer: pc } = scene;
     scene.rows = rows;
     scene.cols = cols;
-    plotContainer.style.gridTemplateRows = Array(rows).fill(`1fr`).join(` `);
-    plotContainer.style.gridTemplateColumns = Array(cols).fill(`1fr`).join(` `);
+    pc.style.gridTemplateRows = Array(rows).fill(`1fr`).join(` `);
+    pc.style.gridTemplateColumns = Array(cols).fill(`1fr`).join(` `);
     Scene.resize(scene);
   }
 
   export function setLayout(scene: Scene, layout: number[][]) {
     const { plotContainer, plots } = scene;
 
+    const s1 = new Set(layout.flat());
+    const s2 = new Set(seq(0, plots.length - 1));
+    for (const e of s1) s2.delete(e);
+
+    if (s2.size > 0) {
+      alert(
+        `Warning: the following plots exist in the scene ` +
+          `but are not included in the layout matrix: ${Array.from(s2)}.` +
+          `\n\nThis may result in poor layout.`,
+      );
+    }
+
     for (let i = 0; i < plots.length; i++) {
-      plots[i].container.style.gridArea = `plot${i + 1}`;
+      plots[i].container.style.gridArea = `plot${i}`;
     }
 
     let layoutString = ``;
@@ -278,9 +297,11 @@ export namespace Scene {
       layoutString += `"${line.map((x) => `plot${x}`).join(` `)}" `;
     }
 
+    const [nrow, ncol] = [layout.length, layout[0].length];
+
     plotContainer.style.gridTemplateAreas = layoutString;
-    plotContainer.style.gridTemplateRows = `auto`;
-    plotContainer.style.gridTemplateColumns = `auto`;
+    plotContainer.style.gridTemplateRows = Array(nrow).fill(`1fr`).join(` `);
+    plotContainer.style.gridTemplateColumns = Array(ncol).fill(`1fr`).join(` `);
 
     Scene.resize(scene);
   }
@@ -430,9 +451,10 @@ function setupEvents(scene: Scene) {
     }
   });
 
-  Reactive.listen(window, `resize`, () => Scene.resize(scene), {
-    throttle: 10,
-  });
+  window.addEventListener(
+    `resize`,
+    throttle(() => Scene.resize(scene), 10),
+  );
 
   Reactive.listen(marker, `cleared`, () => {
     for (const plot of plots) Reactive.dispatch(plot, `unlock`);

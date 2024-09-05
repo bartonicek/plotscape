@@ -6,27 +6,53 @@ const DEFERRED = Symbol(`deferred`);
 
 type EventCallback = (data?: Record<string, any>) => void;
 
-export interface Reactive<T extends string = `changed`> {
+/**
+ * A reactive object (Observer pattern).
+ */
+export interface Reactive<T extends string = string> {
   [EVENTS]: T;
   [LISTENERS]: Record<string, EventCallback[]>;
   [DEFERRED]: Record<string, EventCallback[]>;
 }
 
-type EventOf<T extends Reactive<any> | EventTarget> = T extends Reactive
-  ? T[typeof EVENTS]
-  : T extends EventTarget
-    ? Parameters<T[`addEventListener`]>[0]
-    : string;
+type EventOf<T extends Reactive> = T[typeof EVENTS];
 
 export namespace Reactive {
+  /**
+   * Makes an object `Reactive`. The function is curried so that
+   * the generic `Event` type can be provided manually, if needed.
+   * @returns A shallow copy of the object with listener symbol props.
+   */
   export function of<E extends string = `changed`>() {
     return function <T extends Object>(object: T) {
-      // Need to copy so that e.g. translated data gets assigned a new pointer
+      // Need to copy so that e.g. translated data gets assigned a new Reactive pointer
       return { ...object, [LISTENERS]: {}, [DEFERRED]: {} } as T & Reactive<E>;
     };
   }
 
-  export function listen<T extends Reactive<any> | EventTarget>(
+  /**
+   * Check whether an object is `Reactive`.
+   * @param object An object
+   * @returns `true` if the object is `Reactive`
+   */
+  export function is(object: Record<PropertyKey, any>): object is Reactive {
+    return object[LISTENERS] !== undefined;
+  }
+
+  /**
+   * Listen for events of a specific type on an object using a callback.
+   * Can be 'deferred', meaning that the callback gets added to a second
+   * array of listeners that only runs after the first has finished running
+   * (useful if e.g. we want to propagate updates to another object but want to
+   * make sure all of the updates on the first object run first). The callback can
+   * also be throttled.
+   *
+   * @param object A `Reactive` object
+   * @param type The event type (string)
+   * @param listenfn A callback
+   * @param options A list of options
+   */
+  export function listen<T extends Reactive>(
     object: T,
     type: EventOf<T>,
     listenfn: EventCallback,
@@ -34,28 +60,22 @@ export namespace Reactive {
   ) {
     if (options?.throttle) listenfn = funs.throttle(listenfn, options.throttle);
 
-    // Listen on native DOM EventTarget
-    if (funs.isEventTarget(object)) {
-      object.addEventListener(type, listenfn);
-      return;
-    }
-
     const listeners = options?.defer ? object[DEFERRED] : object[LISTENERS];
     if (!listeners[type]) listeners[type] = [];
     if (!listeners[type].includes(listenfn)) listeners[type].push(listenfn);
   }
 
-  export function dispatch<T extends Reactive<any> | EventTarget>(
-    object: T | EventTarget,
+  /**
+   * Dispatch an event.
+   * @param object A `Reactive` object
+   * @param type The event type (string)
+   * @param data An optional dictionary with additional data
+   */
+  export function dispatch<T extends Reactive>(
+    object: T,
     type: EventOf<T>,
     data?: Record<string, any>,
   ) {
-    // Dispatch on native DOM EventTarget
-    if (funs.isEventTarget(object)) {
-      object.dispatchEvent(new CustomEvent(type, { detail: data }));
-      return;
-    }
-
     const [listeners, deferred] = [
       object[LISTENERS][type],
       object[DEFERRED][type],
@@ -66,28 +86,26 @@ export namespace Reactive {
     if (deferred) for (const cb of deferred) cb(data);
   }
 
-  export function propagate<
-    E extends string,
-    T extends Reactive<E>,
-    U extends Reactive<E>,
-  >(object1: T, object2: U, type: E) {
-    const propagatefn = () => Reactive.dispatch(object2, type as EventOf<U>);
-    Reactive.listen(object1, type as EventOf<T>, propagatefn, { defer: true });
-  }
-
-  export function propagateChange(
-    object1: Reactive,
-    object2: Reactive,
-    options?: { throttle?: number; deferred?: boolean },
+  /**
+   * Propagate event from one object to another.
+   * @param object1 A `Reactive` object
+   * @param object2 Another `Reactive` object
+   * @param type The type of event to propagate (string)
+   */
+  export function propagate<T extends Reactive, U extends Reactive>(
+    object1: T,
+    object2: U,
+    type: EventOf<T>,
   ) {
-    const propagatefn = () => Reactive.dispatch(object2, `changed`);
-    Reactive.listen(object1, `changed`, propagatefn, options);
+    const propagatefn = () => Reactive.dispatch(object2, type);
+    Reactive.listen(object1, type, propagatefn, { defer: true });
   }
 
-  export function is(object: Record<PropertyKey, any>): object is Reactive {
-    return object[LISTENERS] !== undefined;
-  }
-
+  /**
+   * Sets properties on an object and dispatches a generic `changed` event.
+   * @param object A `Reactive` object
+   * @param setfn A functions which sets some properties on the object
+   */
   export function set<T extends Reactive>(
     object: T,
     setfn: (object: T) => void,
@@ -96,7 +114,13 @@ export namespace Reactive {
     Reactive.dispatch(object, `changed` as EventOf<T>);
   }
 
-  export function remove<T extends Reactive<any>>(
+  /**
+   * Remove a listener listening for a specific event from an object.
+   * @param object A `Reactive` object
+   * @param type The event type (string)
+   * @param listener A callback
+   */
+  export function remove<T extends Reactive>(
     object: T,
     type: EventOf<T>,
     listener: EventCallback,
@@ -110,10 +134,12 @@ export namespace Reactive {
     if (deferred) funs.remove(deferred, listener);
   }
 
-  export function removeAll<T extends Reactive<any>>(
-    object: T,
-    type: EventOf<T>,
-  ) {
+  /**
+   * Remove all listeners listening for a specific event from an object.
+   * @param object A `Reactive` object
+   * @param type The event type (string)
+   */
+  export function removeAll<T extends Reactive>(object: T, type: EventOf<T>) {
     const [listeners, deferred] = [
       object[LISTENERS][type],
       object[DEFERRED][type],
@@ -123,7 +149,11 @@ export namespace Reactive {
     if (deferred) for (const cb of deferred) funs.remove(deferred, cb);
   }
 
-  export function removeAllListeners<T extends Reactive<any>>(object: T) {
+  /**
+   * Remove all listeners from an object.
+   * @param object A `Reactive` object
+   */
+  export function removeAllListeners<T extends Reactive>(object: T) {
     const [listeners, deferred] = [object[LISTENERS], object[DEFERRED]];
 
     if (listeners) for (const cbs of Object.values(listeners)) cbs.length = 0;

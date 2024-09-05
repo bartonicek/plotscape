@@ -36,8 +36,6 @@ export namespace Factor {
     Surjection,
   }
 
-  type EventType = `changed`;
-
   export function of<T extends Dataframe>(
     type: Type,
     cardinality: number,

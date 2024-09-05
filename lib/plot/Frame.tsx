@@ -1,4 +1,4 @@
-import { Options } from "../scene/defaultOptions";
+import { GraphicalOptions } from "../scene/defaultOptions";
 import { HAnchor, MapFn, Margins, VAnchor } from "../utils/types";
 
 export interface Frame {
@@ -13,7 +13,7 @@ export interface Frame {
 
   contextProps: Partial<ContextProps>;
 
-  options: Options;
+  options: GraphicalOptions;
 }
 
 type ContextProps<
@@ -23,7 +23,7 @@ type ContextProps<
 };
 
 export namespace Frame {
-  export function of(canvas: Node, options: Options): Frame {
+  export function of(canvas: Node, options: GraphicalOptions): Frame {
     if (!isCanvas(canvas)) {
       throw new Error(`Node must be a HTML5 canvas element`);
     }
