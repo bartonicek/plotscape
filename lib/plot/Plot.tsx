@@ -793,11 +793,11 @@ function setupEvents(plot: Plot) {
     `mousemove`,
     throttle((e) => {
       Plot.mousemoveHandlers[parameters.mode](plot, e);
-    }, 10),
+    }, 20),
   );
 
   Reactive.listen(plot, `reset`, () => Plot.reset(plot));
-  Reactive.listen(plot, `resize`, () => Plot.resize(plot), { throttle: 20 });
+  Reactive.listen(plot, `resize`, () => Plot.resize(plot), { throttle: 10 });
   Reactive.listen(plot, `activate`, () => Plot.activate(plot));
   Reactive.listen(plot, `deactivate`, () => Plot.deactivate(plot));
   Reactive.listen(plot, `render`, () => Plot.render(plot));
