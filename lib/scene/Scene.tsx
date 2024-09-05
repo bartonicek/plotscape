@@ -50,6 +50,7 @@ export namespace Scene {
     | `reset`
     | `resize`
     | `set-layout`
+    | `clear-layout`
     | `connected`
     | `set-dims`
     | `add-plot`
@@ -123,7 +124,7 @@ export namespace Scene {
     if (options?.websocketURL) {
       const client = new WebSocket(options.websocketURL);
 
-      const msg = { sender: `scene`, target: `session`, type: `connected` };
+      const msg = { sender: `scene`, target: `server`, type: `connected` };
       client.addEventListener(`open`, () => client.send(JSON.stringify(msg)));
       client.addEventListener(`message`, (msg) => {
         handleMessage(scene, JSON.parse(msg.data));
@@ -282,9 +283,7 @@ export namespace Scene {
 
     if (s2.size > 0) {
       alert(
-        `Warning: the following plots exist in the scene ` +
-          `but are not included in the layout matrix: ${Array.from(s2)}.` +
-          `\n\nThis may result in poor layout.`,
+        `Warning: Some plots are not included in the layout and will be hidden.`,
       );
     }
 
@@ -312,7 +311,7 @@ export namespace Scene {
     autoUpdateDimensions(scene);
   }
 
-  export type TargetId = `session` | `scene` | PlotId;
+  export type TargetId = `server` | `scene` | PlotId;
   export type PlotId =
     | `plot${number}`
     | `${Plot.Type}${number}`
@@ -320,7 +319,7 @@ export namespace Scene {
     | `${Plot.Type}gram${number}`;
 
   export interface Message {
-    sender: `session` | `scene`;
+    sender: `server` | `scene`;
     target: TargetId;
     type: string;
     data?: Record<string, any>;
@@ -363,7 +362,7 @@ export namespace Scene {
     type: Event,
     data: Record<string, any>,
   ) {
-    const [sender, target] = [`scene`, `session`];
+    const [sender, target] = [`scene`, `server`];
     const message = JSON.stringify({ sender, target, type, data });
     scene.client!.send(message);
   }
@@ -513,6 +512,12 @@ function setupEvents(scene: Scene) {
 
   Reactive.listen(scene, `clear-selection`, () => Marker.clearAll(marker));
 
+  Reactive.listen(scene, `get-scale`, (data) => {
+    if (!data || !data.id) return;
+    const plot = Scene.getPlot(scene, data.id);
+    if (plot) Reactive.dispatch(plot, `get-scale`, data);
+  });
+
   Reactive.listen(scene, `set-scale`, (data) => {
     if (!data || !data.id) return;
     const plot = Scene.getPlot(scene, data.id);
@@ -529,6 +534,8 @@ function setupEvents(scene: Scene) {
     if (!data || !data.layout) return;
     Scene.setLayout(scene, data.layout);
   });
+
+  Reactive.listen(scene, `clear-layout`, () => Scene.clearLayout(scene));
 }
 
 const plotIdShort = {

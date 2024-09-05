@@ -16,6 +16,7 @@ import {
   diff,
   formatLabel,
   invertRange,
+  isDefined,
   last,
   max,
   orderIndicesByTable,
@@ -305,7 +306,7 @@ export namespace Plot {
   }
 
   export function checkSelection(plot: Plot) {
-    const { selectables, parameters, frames } = plot;
+    const { selectables, parameters } = plot;
     const selectedCases = new Set<number>();
 
     for (const geom of selectables) {
@@ -316,9 +317,6 @@ export namespace Plot {
     Reactive.dispatch(plot, `set-selected`, {
       cases: Array.from(selectedCases),
     });
-    Reactive.dispatch(plot, `lock-others`);
-    Frame.clear(frames.user);
-    Frame.rectangleXY(frames.user, ...parameters.mousecoords);
   }
 
   export function setMode(plot: Plot, mode: Mode) {
@@ -336,7 +334,7 @@ export namespace Plot {
   export const mousemoveHandlers = { select, pan, query };
 
   function select(plot: Plot, event: MouseEvent) {
-    const { container, parameters } = plot;
+    const { container, parameters, frames } = plot;
     if (!parameters.active || !parameters.mousedown) return;
 
     Reactive.dispatch(plot, `clear-transient`);
@@ -350,6 +348,9 @@ export namespace Plot {
     mousecoords[3] = y;
 
     Plot.checkSelection(plot);
+    Reactive.dispatch(plot, `lock-others`);
+    Frame.clear(frames.user);
+    Frame.rectangleXY(frames.user, ...parameters.mousecoords);
   }
 
   function pan(plot: Plot, event: MouseEvent) {
@@ -604,29 +605,43 @@ export namespace Plot {
     }
   }
 
+  export function getScale(plot: Plot, scale: keyof Plot.Scales) {
+    return plot.scales[scale].domain;
+  }
+
   export function setScale(
     plot: Plot,
+    scale: keyof Plot.Scales,
     options: {
-      scale: `x` | `y` | `area` | `size`;
       min?: number;
       max?: number;
-      mult?: number;
       labels?: string[];
+      zero?: number;
+      one?: number;
+      mult?: number;
       direction?: number;
       default?: boolean;
     },
   ) {
-    let { scale, min, max, mult, labels, direction } = options;
+    let { min, max, zero, one, mult, labels, direction } = options;
     const domain = plot.scales[scale].domain;
     const codomain = plot.scales[scale].codomain;
 
-    if (![`x`, `y`, `area`, `size`].includes(scale)) {
+    if (!Object.keys(plot.scales).includes(scale)) {
       throw new Error(`Unrecognized scale '${scale}'`);
     }
 
     const opts = { default: options.default ?? false };
 
-    if (min !== undefined || max !== undefined) {
+    if ([zero, one].some(isDefined)) {
+      zero = zero ?? domain.zero;
+      max = max ?? domain.max;
+
+      Expanse.set(domain, (e) => ((e.zero = zero), (e.one = one)), opts);
+      plot.parameters.ratio = undefined;
+    }
+
+    if ([min, max].some(isDefined)) {
       if (!Expanse.isContinuous(domain)) {
         throw new Error(`Limits can only be set with a continuous scale`);
       }
@@ -811,9 +826,16 @@ function setupEvents(plot: Plot) {
   );
   Reactive.listen(plot, `render-axes`, () => Plot.renderAxes(plot));
   Reactive.listen(plot, `clear-transient`, () => Plot.clearUserFrame(plot));
-  Reactive.listen(plot, `set-scale`, (data) =>
-    Plot.setScale(plot, data as any),
-  );
+
+  Reactive.listen(plot, `get-scale`, (data) => {
+    if (!data || !data.scale) return;
+    return Plot.getScale(plot, data.scale);
+  });
+
+  Reactive.listen(plot, `set-scale`, (data) => {
+    if (!data || !data.scale) return;
+    Plot.setScale(plot, data.scale, data);
+  });
 
   Reactive.listen(plot, `grow`, () => Plot.grow(plot));
   Reactive.listen(plot, `shrink`, () => Plot.shrink(plot));
