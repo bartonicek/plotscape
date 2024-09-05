@@ -141,7 +141,7 @@ export namespace Plot {
       ratio: options?.ratio ?? undefined,
     };
 
-    const plot = Reactive.of2()({
+    const plot = Reactive.of()({
       type,
       data,
       container,
@@ -797,7 +797,7 @@ function setupEvents(plot: Plot) {
   );
 
   Reactive.listen(plot, `reset`, () => Plot.reset(plot));
-  Reactive.listen(plot, `resize`, () => Plot.resize(plot), { throttle: 10 });
+  Reactive.listen(plot, `resize`, () => Plot.resize(plot));
   Reactive.listen(plot, `activate`, () => Plot.activate(plot));
   Reactive.listen(plot, `deactivate`, () => Plot.deactivate(plot));
   Reactive.listen(plot, `render`, () => Plot.render(plot));

@@ -53,8 +53,8 @@ export function Histogram2d<T extends Columns>(
   const [min2, max2] = minmax(binned2);
   const [range1, range2] = [max1 - min1, max2 - min2];
 
-  const pars1 = Reactive.of2()({ anchor: min1, width: range1 / 15 });
-  const pars2 = Reactive.of2()({ anchor: min2, width: range2 / 15 });
+  const pars1 = Reactive.of()({ anchor: min1, width: range1 / 15 });
+  const pars2 = Reactive.of()({ anchor: min2, width: range2 / 15 });
 
   const factor1 = Factor.bin(binned1, pars1);
   const factor2 = Factor.bin(binned2, pars2);

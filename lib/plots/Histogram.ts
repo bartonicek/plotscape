@@ -48,7 +48,7 @@ export function Histogram<T extends Columns>(
   const [min, max] = minmax(binned);
   const range = max - min;
 
-  const pars = Reactive.of2()({ anchor: min, width: range / 15 });
+  const pars = Reactive.of()({ anchor: min, width: range / 15 });
 
   const factor0 = Factor.mono(binned.length);
   const factor1 = Factor.product(factor0, Factor.bin(binned, pars));

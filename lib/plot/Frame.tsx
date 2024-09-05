@@ -128,11 +128,11 @@ export namespace Frame {
     frame: Frame,
     x: number,
     y: number,
-    options?: DrawOptions & { radius?: number },
+    radius: number = frame.options.size,
+    options?: DrawOptions,
   ) {
     const { context } = frame;
     const height = frame.canvas.clientHeight;
-    const radius = options?.radius ?? frame.options.size;
     const hAnchor = options?.hAnchor ?? HAnchor.Center;
     const vAnchor = options?.vAnchor ?? VAnchor.Middle;
 

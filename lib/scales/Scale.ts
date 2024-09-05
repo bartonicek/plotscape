@@ -15,7 +15,7 @@ export namespace Scale {
     domain: T,
     codomain: U,
   ): Scale<T, U> {
-    const scale = Reactive.of2()({ domain, codomain });
+    const scale = Reactive.of()({ domain, codomain });
     Reactive.propagate(domain, scale, `changed`);
     Reactive.propagate(codomain, scale, `changed`);
 

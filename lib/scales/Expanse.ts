@@ -76,7 +76,7 @@ export namespace Expanse {
     const frozen = [] as string[];
     const linked = [] as Expanse[];
 
-    return Reactive.of2()({ zero, one, direction, frozen, linked });
+    return Reactive.of()({ zero, one, direction, frozen, linked });
   }
 
   export function set<T extends Expanse>(

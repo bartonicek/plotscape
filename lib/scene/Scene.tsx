@@ -99,7 +99,7 @@ export namespace Scene {
     // Mock interface for just echoing messages back
     const client = { send: console.log } as WebSocket;
 
-    const scene = Reactive.of2()({
+    const scene = Reactive.of()({
       data,
       container,
       plotContainer: pc,
@@ -430,7 +430,9 @@ function setupEvents(scene: Scene) {
     }
   });
 
-  window.addEventListener(`resize`, () => Scene.resize(scene));
+  Reactive.listen(window, `resize`, () => Scene.resize(scene), {
+    throttle: 10,
+  });
 
   Reactive.listen(marker, `cleared`, () => {
     for (const plot of plots) Reactive.dispatch(plot, `unlock`);
@@ -448,25 +450,31 @@ function setupEvents(scene: Scene) {
   );
 
   Reactive.listen(scene, `set-dims`, (data) => {
+    if (!data || !data.rows || !data.columns) return;
     Scene.setDimensions(scene, data!.rows, data!.cols);
   });
 
-  Reactive.listen(scene, `add-plot`, (data) =>
-    Scene.addPlotBySpec(scene, data),
-  );
+  Reactive.listen(scene, `add-plot`, (data) => {
+    if (!data) return;
+    Scene.addPlotBySpec(scene, data);
+  });
 
   Reactive.listen(scene, `pop-plot`, () => Scene.popPlot(scene));
+
   Reactive.listen(scene, `remove-plot`, (data) => {
+    if (!data || !data.id) return;
     Scene.removePlot(scene, data!.id);
   });
 
-  Reactive.listen(scene, `set-selected`, (data) =>
-    Marker.update(marker, data!.cases),
-  );
+  Reactive.listen(scene, `set-selected`, (data) => {
+    if (!data || !data.cases) return;
+    Marker.update(marker, data.cases);
+  });
 
   Reactive.listen(scene, `set-assigned`, (data) => {
-    const group = 7 - Math.min(data!.group, 3);
-    Marker.update(marker, data!.cases, { group });
+    if (!data || !data.group) return;
+    const group = 7 - Math.min(data.group, 3);
+    Marker.update(marker, data.cases, { group });
   });
 
   Reactive.listen(scene, `get-selected`, () => {
@@ -475,9 +483,10 @@ function setupEvents(scene: Scene) {
   });
 
   Reactive.listen(scene, `get-assigned`, (data) => {
-    const isGroup = (x: number) => (x | 4) === 7 - Math.min(data!.group, 3);
+    if (!data || !data.group) return;
+    const isGroup = (x: number) => (x | 4) === 7 - Math.min(data.group, 3);
     const cases = filterIndices(marker.indices, isGroup);
-    Scene.sendMessage(scene, `get-assigned`, { cases, group: data!.group });
+    Scene.sendMessage(scene, `get-assigned`, { cases, group: data.group });
   });
 
   Reactive.listen(scene, `clear-selection`, () => Marker.clearAll(marker));
@@ -492,6 +501,11 @@ function setupEvents(scene: Scene) {
     if (!data || !data.id) return;
     const plot = Scene.getPlot(scene, data.id);
     if (plot) Reactive.dispatch(plot, `zoom`, data);
+  });
+
+  Reactive.listen(scene, `set-layout`, (data) => {
+    if (!data || !data.layout) return;
+    Scene.setLayout(scene, data.layout);
   });
 }
 

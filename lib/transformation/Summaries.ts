@@ -35,7 +35,7 @@ export namespace Summaries {
     for (let i = 0; i < factors.length; i++) {
       const factor = factors[i];
       const summarized = compute(summaries, factor);
-      const data = Reactive.of2()(merge(summarized, factor.data));
+      const data = Reactive.of()(merge(summarized, factor.data));
 
       result.push(data);
 
@@ -82,7 +82,7 @@ export namespace Summaries {
     const result = [] as any[];
 
     for (let i = 0; i < data.length; i++) {
-      const translated = Reactive.of2()(compute(data[i]));
+      const translated = Reactive.of()(compute(data[i]));
       result.push(translated);
 
       Reactive.listen(data[i] as any, `changed`, () => {

@@ -47,7 +47,7 @@ export namespace Points {
       const ri = Scale.pushforward(scales.size, radius(i));
       const li = layers[layer(i) as DataLayer];
 
-      Frame.point(li, xi, yi, { radius: ri });
+      Frame.point(li, xi, yi, ri);
     }
   }
 

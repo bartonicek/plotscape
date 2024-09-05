@@ -44,7 +44,7 @@ export namespace Factor {
     indices: number[],
     data: T,
   ): Factor<T> {
-    return Reactive.of2()({ type, cardinality, indices, data });
+    return Reactive.of()({ type, cardinality, indices, data });
   }
 
   export function copyFrom<T extends Factor>(source: T, target: T) {

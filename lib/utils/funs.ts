@@ -897,6 +897,15 @@ export function isStringArray(array: any[]): array is string[] {
 }
 
 /**
+ * Check whether an object implements the `EventTarget` interface.
+ * @param object Any object
+ * @returns `true` if object implements `EventTarget`
+ */
+export function isEventTarget(object: Object): object is EventTarget {
+  return `addEventListener` in object;
+}
+
+/**
  * Finds the length across a list of `Indexable`s. The function just loops
  * through the list, until it finds an an array and then it returns its length.
  * If it doesn't find one (all indexables are functions), then it throws an error.
