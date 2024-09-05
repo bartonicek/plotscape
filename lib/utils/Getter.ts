@@ -1,19 +1,28 @@
-import { isArray } from "./funs";
+import { isArray, isObject, isTypedArray } from "./funs";
 import { Meta } from "./Meta";
-import { Indexable } from "./types";
+import { Indexable, TypedArray } from "./types";
 
 type Getter<T> = (index: number) => T;
 
 export namespace Getter {
-  export function of<T>(indexable: Indexable<T>): Getter<T> {
+  export function of(indexable: TypedArray): (index: number) => number;
+  export function of<T>(indexable: Indexable<T>): (index: number) => T;
+  export function of(indexable: Indexable | TypedArray) {
     if (typeof indexable === `function`) return indexable;
-    else if (isArray(indexable)) {
+
+    if (isArray(indexable)) {
       const getter = (index: number) => indexable[index];
       Meta.set(getter, `length`, indexable.length);
       return getter;
-    } else {
-      return () => indexable;
     }
+
+    if (isTypedArray(indexable)) {
+      const getter = (index: number) => indexable[index];
+      Meta.set(getter, `length`, indexable.length);
+      return getter;
+    }
+
+    return () => indexable;
   }
 
   export function constant<T>(value: T): Getter<T> {
@@ -22,11 +31,14 @@ export namespace Getter {
 
   export function proxy<T>(
     indexable: Indexable<T>,
-    indices: number[],
+    indices: number[] | Uint32Array,
   ): Getter<T> {
     const getter = Getter.of(indexable);
     const proxyGetter = (index: number) => getter(indices[index]);
-    Meta.copy(proxyGetter, indexable);
+    if (isObject(indexable)) {
+      Meta.copy(proxyGetter, indexable);
+    }
+
     Meta.set(proxyGetter, `length`, indices.length);
     return proxyGetter;
   }

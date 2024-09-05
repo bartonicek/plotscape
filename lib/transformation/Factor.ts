@@ -2,10 +2,10 @@ import {
   binBreaks,
   compareAlphaNumeric,
   copyValues,
+  copyValuesTyped,
   diff,
   isArray,
   last,
-  makeGetter,
   subset,
 } from "../utils/funs";
 import { Getter } from "../utils/Getter";
@@ -24,7 +24,7 @@ export const POSITIONS = Symbol(`positions`);
 export interface Factor<T extends Dataframe = Dataframe> extends Reactive {
   type: Factor.Type;
   cardinality: number;
-  indices: number[];
+  indices: Uint32Array;
   parent?: Factor;
   data: T;
 }
@@ -39,7 +39,7 @@ export namespace Factor {
   export function of<T extends Dataframe>(
     type: Type,
     cardinality: number,
-    indices: number[],
+    indices: Uint32Array,
     data: T,
   ): Factor<T> {
     return Reactive.of()({ type, cardinality, indices, data });
@@ -47,7 +47,7 @@ export namespace Factor {
 
   export function copyFrom<T extends Factor>(source: T, target: T) {
     target.cardinality = source.cardinality;
-    copyValues(source.indices, target.indices);
+    copyValuesTyped(source.indices, target.indices);
 
     for (const k of Reflect.ownKeys(source.data)) {
       if (isArray(source.data[k]) && isArray(target.data[k])) {
@@ -59,11 +59,18 @@ export namespace Factor {
     }
   }
 
+  function checkMatchingLength(factor1: Factor, factor2: Factor) {
+    if ([factor1, factor2].some((x) => x.type === Type.Bijection)) return true;
+    if (factor1.indices.length !== factor2.indices.length) {
+      throw new Error(`Factors do not have matching length`);
+    }
+  }
+
   export function bijection<T extends Dataframe>(
     data: T,
   ): Factor<Flat<T & { [POSITIONS]: Indexable<number[]> }>> {
     const cardinality = Infinity;
-    const indices = [] as number[];
+    const indices = new Uint32Array();
     const positions = (index: number) => [index];
 
     const type = Type.Bijection;
@@ -76,8 +83,8 @@ export namespace Factor {
     n: number,
   ): Factor<{ [POSITIONS]: Indexable<number[]> }> {
     const cardinality = 1;
-    const indices = Array(n).fill(0);
-    const positions = () => indices;
+    const indices = new Uint32Array(n).fill(0);
+    const positions = () => Array.from(indices);
 
     const type = Type.Constant;
     const data = { [POSITIONS]: positions };
@@ -101,14 +108,14 @@ export namespace Factor {
 
     if (Meta.has(array, `name`)) Meta.copy(labels, array, [`name`]);
 
-    const indices = [] as number[];
+    const indices = new Uint32Array(array.length);
     const positions = {} as Record<number, number[]>;
 
     for (let i = 0; i < arr.length; i++) {
       const index = labels.indexOf(arr[i]);
       if (!positions[index]) positions[index] = [];
 
-      indices.push(index);
+      indices[i] = index;
       positions[index].push(i);
     }
 
@@ -144,7 +151,7 @@ export namespace Factor {
       const breaks = options?.breaks ?? binBreaks(array, options);
 
       const uniqueIndices = new Set<number>();
-      const indices = [] as number[];
+      const indices = new Uint32Array(array.length);
       const positions = {} as Record<number, number[]>;
 
       for (let i = 0; i < array.length; i++) {
@@ -152,7 +159,7 @@ export namespace Factor {
         const index = breaks!.findIndex((br) => br >= array[i]) - 1;
         if (!positions[index]) positions[index] = [];
 
-        indices.push(index);
+        indices[i] = index;
         positions[index].push(i);
         uniqueIndices.add(index);
       }
@@ -211,6 +218,8 @@ export namespace Factor {
     factor1: Factor<T>,
     factor2: Factor<U>,
   ): Factor<TaggedUnion<T, U>> {
+    checkMatchingLength(factor1, factor2);
+
     function compute() {
       if (factor1.type === Type.Bijection) {
         const data = {} as Dataframe;
@@ -225,7 +234,7 @@ export namespace Factor {
 
         const type = Type.Bijection;
         const cardinality = factor2.indices.length;
-        const indices = [] as number[];
+        const indices = new Uint32Array(factor1.indices.length);
 
         const result = of(type, cardinality, indices, data);
         result.parent = factor1;
@@ -245,14 +254,14 @@ export namespace Factor {
       const k = Math.max(factor1.cardinality, factor2.cardinality) + 1;
 
       const uniqueIndices = new Set<number>();
-      const indices = [] as number[];
+      const indices = new Uint32Array(factor1.indices.length);
       const positions = {} as Record<number, number[]>;
 
       const factor1Map = {} as Record<number, number>;
       const factor2Map = {} as Record<number, number>;
 
-      const f1Index = makeGetter(factor1.indices);
-      const f2Index = makeGetter(factor2.indices);
+      const f1Index = Getter.of(factor1.indices);
+      const f2Index = Getter.of(factor2.indices);
 
       for (let i = 0; i < factor1.indices.length; i++) {
         const [f1level, f2level] = [f1Index(i), f2Index(i)];
@@ -265,7 +274,7 @@ export namespace Factor {
           positions[index] = [];
         }
 
-        indices.push(index);
+        indices[i] = index;
         positions[index].push(i);
         uniqueIndices.add(index);
       }
@@ -322,6 +331,8 @@ export namespace Factor {
     }
 
     const factor = compute();
+
+    console.log(factor);
 
     Reactive.listen(factor1, `changed`, () => {
       const newFactor = compute();

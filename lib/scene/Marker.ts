@@ -20,7 +20,7 @@ type GroupType = Group | Transient;
 
 export interface Marker extends Reactive<Marker.Event> {
   group: GroupType;
-  indices: number[];
+  indices: Uint32Array;
   transientIndices: number[];
   factor: Factor<{ [LAYER]: number[] }>;
 }
@@ -30,7 +30,7 @@ export namespace Marker {
 
   export function of(n: number): Marker {
     const group = Transient;
-    const indices = Array<number>(n).fill(Group.Base);
+    const indices = new Uint32Array(n).fill(Group.Base);
     const transientIndices: number[] = [];
     const type = Factor.Type.Surjection;
     const factor = Factor.of(type, 8, indices, {

@@ -1,7 +1,7 @@
 import { Scale } from "../scales/Scale";
 import { LAYER } from "../scene/Marker";
 import { POSITIONS } from "../transformation/Factor";
-import { makeGetter } from "../utils/funs";
+import { Getter } from "../utils/Getter";
 import {
   Dataframe,
   DataLayer,
@@ -65,7 +65,7 @@ export namespace Geom {
     indexable: T,
     fallback: (index: number) => any = () => 0.5,
   ) {
-    return makeGetter(indexable ?? fallback);
+    return Getter.of(indexable ?? fallback);
   }
 
   export function getters<T extends Dataframe, U extends readonly (keyof T)[]>(

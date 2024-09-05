@@ -8,6 +8,7 @@ import {
   Point,
   Primitive,
   Rect,
+  TypedArray,
 } from "./types";
 
 /**
@@ -479,8 +480,12 @@ export function merge<
  */
 export function copyValues<T>(source: T[], target: T[]) {
   if (source === target) return;
-  target.length = 0;
-  for (let i = 0; i < source.length; i++) target.push(source[i]);
+  target.length = source.length;
+  for (let i = 0; i < source.length; i++) target[i] = source[i];
+}
+
+export function copyValuesTyped<T extends TypedArray>(source: T, target: T) {
+  target.set(source);
 }
 
 /**
@@ -622,12 +627,6 @@ export function timeExecution(callbackfn: () => void) {
   callbackfn();
   const t2 = performance.now();
   return t2 - t1;
-}
-
-export function makeGetter<T>(indexable: Indexable<T>): (index: number) => T {
-  if (typeof indexable === `function`) return indexable;
-  else if (isArray(indexable)) return (index: number) => indexable[index];
-  else return () => indexable;
 }
 
 type Segment = Rect;
@@ -874,6 +873,14 @@ export function isPrimitive(value: any): value is Primitive {
  * Checks whether an object is an array. Exported from `Array`.
  */
 export const isArray = Array.isArray;
+
+export function isObject(x: any): x is Object {
+  return typeof x === `object` && x !== null;
+}
+
+export function isTypedArray(x: any): x is TypedArray {
+  return ArrayBuffer.isView(x);
+}
 
 export function isNumber(x: any): x is number {
   return typeof x === `number`;

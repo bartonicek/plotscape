@@ -1,4 +1,4 @@
-import { makeGetter } from "../utils/funs";
+import { Getter } from "../utils/Getter";
 import { Meta } from "../utils/Meta";
 import { Indexable } from "../utils/types";
 import { Factor } from "./Factor";
@@ -75,11 +75,12 @@ export namespace Reducer {
 
     const array = Array.from(Array(n), () => initialfn());
 
-    const index = makeGetter(indices);
-    const value = makeGetter(values);
+    const index = Getter.of(indices);
+    const value = Getter.of(values);
 
     for (let i = 0; i < indices.length; i++) {
-      array[index(i)] = reducefn(array[index(i)], value(i));
+      const ii = index(i);
+      array[ii] = reducefn(array[ii], value(i));
     }
 
     const result = Reduced.of(array, factor, reducer);

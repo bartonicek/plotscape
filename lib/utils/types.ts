@@ -11,10 +11,8 @@ export type ReduceFn<T, U> = (prev: U, next: T) => U;
 
 export type Stringable = { toString(): string };
 
-export type Indexable<T = any> = T[] | ((index: number) => T);
+export type Indexable<T = any> = T | ((index: number) => T) | T[];
 export type Indexables = Record<string, Indexable>;
-export type IndexableValue<T extends Indexable> =
-  T extends Indexable<infer U> ? U : never;
 
 export type Columns = Record<string, any[]>;
 
@@ -75,3 +73,14 @@ export type TaggedUnion<
             : key]: U[key];
         }
       >;
+
+export type TypedArray =
+  | Int8Array
+  | Uint8Array
+  | Uint8ClampedArray
+  | Int16Array
+  | Uint16Array
+  | Int32Array
+  | Uint32Array
+  | Float32Array
+  | Float64Array;

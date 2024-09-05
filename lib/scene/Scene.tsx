@@ -509,14 +509,14 @@ function setupEvents(scene: Scene) {
   });
 
   Reactive.listen(scene, `get-selected`, () => {
-    const cases = filterIndices(marker.indices, Marker.isTransient);
+    const cases = filterIndices(Array.from(marker.indices), Marker.isTransient);
     Scene.sendMessage(scene, `get-selected`, { cases });
   });
 
   Reactive.listen(scene, `get-assigned`, (data) => {
     if (!data || !data.group) return;
     const isGroup = (x: number) => (x | 4) === 7 - Math.min(data.group, 3);
-    const cases = filterIndices(marker.indices, isGroup);
+    const cases = filterIndices(Array.from(marker.indices), isGroup);
     Scene.sendMessage(scene, `get-assigned`, { cases, group: data.group });
   });
 
