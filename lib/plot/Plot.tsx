@@ -272,7 +272,6 @@ export namespace Plot {
 
     const [bottom, left] = [margins[0], margins[1]];
     const [top, right] = [clientHeight - margins[2], clientWidth - margins[3]];
-    const opts = { default: true };
 
     frames.under.canvas.style.width = `calc(100% - ${left}px - ${margins[3]}px)`;
     frames.under.canvas.style.height = `calc(100% - ${bottom}px - ${margins[2]}px)`;
@@ -281,6 +280,7 @@ export namespace Plot {
 
     for (const frame of Object.values(frames)) Frame.clip(frame);
 
+    const opts = { default: true, silent: true }; // Silent to avoid re-renders
     Expanse.set(x.codomain, (e) => ((e.min = left), (e.max = right)), opts);
     Expanse.set(y.codomain, (e) => ((e.min = bottom), (e.max = top)), opts);
 
@@ -296,6 +296,9 @@ export namespace Plot {
       Expanse.set(y.domain, (e) => ((e.zero = ey), (e.one = 1 - ey)), opts);
       Plot.applyRatio(plot, parameters.ratio);
     }
+
+    Plot.render(plot);
+    Plot.renderAxes(plot);
   }
 
   export function checkSelection(plot: Plot) {
@@ -577,6 +580,7 @@ export namespace Plot {
 
     const xRatio = Scale.unitRatio(x);
     const yRatio = Scale.unitRatio(y) * ratio;
+    const opts = { default: true, silent: true };
 
     if (xRatio > yRatio) {
       const r = (yRatio / xRatio) * Expanse.unitRange(y.domain);
@@ -584,7 +588,7 @@ export namespace Plot {
       Expanse.set(
         x.domain,
         (e) => ((e.zero = (1 - r) / 2), (e.one = (1 + r) / 2)),
-        { default: true },
+        opts,
       );
     } else {
       const r = (xRatio / yRatio) * Expanse.unitRange(x.domain);
@@ -592,7 +596,7 @@ export namespace Plot {
       Expanse.set(
         y.domain,
         (e) => ((e.zero = (1 - r) / 2), (e.one = (1 + r) / 2)),
-        { default: true },
+        opts,
       );
     }
   }
@@ -793,7 +797,7 @@ function setupEvents(plot: Plot) {
   );
 
   Reactive.listen(plot, `reset`, () => Plot.reset(plot));
-  Reactive.listen(plot, `resize`, () => Plot.resize(plot));
+  Reactive.listen(plot, `resize`, () => Plot.resize(plot), { throttle: 20 });
   Reactive.listen(plot, `activate`, () => Plot.activate(plot));
   Reactive.listen(plot, `deactivate`, () => Plot.deactivate(plot));
   Reactive.listen(plot, `render`, () => Plot.render(plot));
