@@ -29,7 +29,7 @@ export interface Scene<T extends Columns = Columns>
   extends Reactive<Scene.Event> {
   data: T;
   container: HTMLDivElement;
-  plotContainer: HTMLDivElement;
+  plotsContainer: HTMLDivElement;
   client?: WebSocket;
 
   rows: number;
@@ -39,7 +39,7 @@ export interface Scene<T extends Columns = Columns>
 
   activePlot?: Plot;
   plots: Plot[];
-  plotsByType: Record<Plot.Type, Plot[]>;
+  plotsByType: Record<Plot.Type, number[]>;
 
   keybindings: Record<string, Scene.Event | Plot.Event>;
   options: GraphicalOptions;
@@ -93,7 +93,7 @@ export namespace Scene {
     const [rows, cols] = [1, 1];
     const marker = Marker.of(Object.values(data)[0].length);
     const plots = [] as Plot[];
-    const plotsByType = {} as Record<Plot.Type, Plot[]>;
+    const plotsByType = {} as Record<Plot.Type, number[]>;
 
     const opts = Object.assign(defaultOptions, options);
     updateOptions(opts);
@@ -110,7 +110,7 @@ export namespace Scene {
     const scene = Reactive.of()({
       data,
       container,
-      plotContainer: pc,
+      plotsContainer: pc,
       rows,
       cols,
       marker,
@@ -156,7 +156,7 @@ export namespace Scene {
   }
 
   export function addPlot(scene: Scene, plot: Plot) {
-    const { plotContainer, marker, plots, plotsByType } = scene;
+    const { plotsContainer: plotContainer, marker, plots, plotsByType } = scene;
 
     Reactive.listen(plot, `activated`, () => {
       for (const p of plots) if (p != plot) Reactive.dispatch(p, `deactivate`);
@@ -176,11 +176,10 @@ export namespace Scene {
       Marker.clearTransient(marker);
     });
 
-    plots.push(plot);
-
     const { type } = plot;
-    if (!plotsByType[type]) plotsByType[type] = [] as Plot[];
-    plotsByType[type].push(plot);
+    if (!plotsByType[type]) plotsByType[type] = [];
+    plotsByType[type].push(plots.length);
+    plots.push(plot);
 
     Plot.append(plotContainer, plot);
 
@@ -245,16 +244,50 @@ export namespace Scene {
   }
 
   function removeSpecificPlot(scene: Scene, plot: Plot) {
-    remove(scene.plots, plot);
-    remove(scene.plotsByType[plot.type], plot);
+    const { plots, plotsByType, plotsContainer: plotContainer } = scene;
 
-    scene.plotContainer.removeChild(plot.container);
+    const index = plots.indexOf(plot);
+    for (const ps of Object.values(plotsByType)) {
+      if (ps.indexOf(index) !== -1) {
+        remove(ps, index);
+        break;
+      }
+    }
+
+    remove(plots, plot);
+
+    plotContainer.removeChild(plot.container);
     Reactive.removeAllListeners(plot);
 
     updatePlotIds(scene);
     autoUpdateDimensions(scene);
 
     Scene.resize(scene);
+  }
+
+  export function getTarget(scene: Scene, id: TargetId) {
+    if (id === `scene`) return scene;
+    else return getPlot(scene, id as PlotId);
+  }
+
+  export function getPlot(scene: Scene, id: PlotId) {
+    const { plots, plotsByType } = scene;
+    let [type, idString] = splitNumericSuffix(id);
+    const index = parseInt(idString, 10) - 1; // 0 based indexing;
+
+    if (type === `plot` || type === `p`) return plots[index];
+
+    // Remove to match e.g. 'barplot' or 'histogram' with 'bar' and 'histo'
+    type = type.replace(`plot`, ``).replace(`gram`, ``);
+
+    // Match short plot id
+    if (type in Object.keys(plotIdShort)) {
+      type = plotIdShort[type as keyof typeof plotIdShort];
+    }
+
+    if (type in plotsByType) {
+      return plots[plotsByType[type as Plot.Type][index]];
+    }
   }
 
   function autoUpdateDimensions(scene: Scene) {
@@ -266,7 +299,7 @@ export namespace Scene {
   }
 
   export function setDimensions(scene: Scene, rows: number, cols: number) {
-    const { plotContainer: pc } = scene;
+    const { plotsContainer: pc } = scene;
     scene.rows = rows;
     scene.cols = cols;
     pc.style.gridTemplateRows = Array(rows).fill(`1fr`).join(` `);
@@ -275,7 +308,7 @@ export namespace Scene {
   }
 
   export function setLayout(scene: Scene, layout: number[][]) {
-    const { plotContainer, plots } = scene;
+    const { plotsContainer: plotContainer, plots } = scene;
 
     const s1 = new Set(layout.flat());
     const s2 = new Set(seq(0, plots.length - 1));
@@ -306,7 +339,7 @@ export namespace Scene {
   }
 
   export function clearLayout(scene: Scene) {
-    scene.plotContainer.style.gridTemplateAreas = ``;
+    scene.plotsContainer.style.gridTemplateAreas = ``;
     for (const plot of scene.plots) plot.container.style.gridArea = `auto`;
     autoUpdateDimensions(scene);
   }
@@ -323,29 +356,6 @@ export namespace Scene {
     target: TargetId;
     type: string;
     data?: Record<string, any>;
-  }
-
-  export function getTarget(scene: Scene, id: TargetId) {
-    if (id === `scene`) return scene;
-    else return getPlot(scene, id as PlotId);
-  }
-
-  export function getPlot(scene: Scene, id: PlotId) {
-    const { plots, plotsByType } = scene;
-    let [type, idString] = splitNumericSuffix(id);
-    const index = parseInt(idString, 10) - 1; // 0 based indexing;
-
-    if (type === `plot` || type === `p`) return plots[index];
-
-    // Remove to match e.g. 'barplot' or 'histogram' with 'bar' and 'histo'
-    type = type.replace(`plot`, ``).replace(`gram`, ``);
-
-    // Match short plot id
-    if (type in Object.keys(plotIdShort)) {
-      type = plotIdShort[type as keyof typeof plotIdShort];
-    }
-
-    if (type in plotsByType) return plotsByType[type as Plot.Type][index];
   }
 
   export function handleMessage(scene: Scene, message: Message) {
