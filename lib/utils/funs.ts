@@ -478,14 +478,13 @@ export function merge<
  * @param source The source array
  * @param target The target array
  */
-export function copyValues<T>(source: T[], target: T[]) {
+export function copyValues<T extends any[] | TypedArray>(source: T, target: T) {
   if (source === target) return;
-  target.length = source.length;
-  for (let i = 0; i < source.length; i++) target[i] = source[i];
-}
-
-export function copyValuesTyped<T extends TypedArray>(source: T, target: T) {
-  target.set(source);
+  if (isTypedArray(source) && isTypedArray(target)) target.set(source);
+  else if (isArray(source) && isArray(target)) {
+    target.length = source.length;
+    for (let i = 0; i < source.length; i++) target[i] = source[i];
+  }
 }
 
 /**

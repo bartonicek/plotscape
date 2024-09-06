@@ -621,6 +621,7 @@ export namespace Plot {
       mult?: number;
       direction?: number;
       default?: boolean;
+      unfreeze?: boolean;
     },
   ) {
     let { min, max, zero, one, mult, labels, direction } = options;
@@ -631,7 +632,10 @@ export namespace Plot {
       throw new Error(`Unrecognized scale '${scale}'`);
     }
 
-    const opts = { default: options.default ?? false };
+    const opts = {
+      default: options.default ?? false,
+      unfreeze: options.unfreeze ?? false,
+    };
 
     if ([zero, one].some(isDefined)) {
       zero = zero ?? domain.zero;

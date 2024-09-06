@@ -2,7 +2,6 @@ import {
   binBreaks,
   compareAlphaNumeric,
   copyValues,
-  copyValuesTyped,
   diff,
   isArray,
   last,
@@ -47,7 +46,7 @@ export namespace Factor {
 
   export function copyFrom<T extends Factor>(source: T, target: T) {
     target.cardinality = source.cardinality;
-    copyValuesTyped(source.indices, target.indices);
+    copyValues(source.indices, target.indices);
 
     for (const k of Reflect.ownKeys(source.data)) {
       if (isArray(source.data[k]) && isArray(target.data[k])) {

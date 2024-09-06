@@ -82,22 +82,26 @@ export namespace Expanse {
   export function set<T extends Expanse>(
     expanse: T,
     setfn: (expanse: T & { [key in string]: any }) => void,
-    options?: { default?: boolean; silent?: boolean },
+    options?: { default?: boolean; silent?: boolean; unfreeze?: boolean },
   ) {
     const { linked, frozen } = expanse;
-    const temp = { ...expanse };
-    setfn(temp);
+    const modified = { ...expanse };
+    setfn(modified);
 
-    for (const k of frozen) delete temp[k as keyof typeof temp];
-    for (const k of Object.keys(temp) as (keyof typeof temp)[]) {
-      if (temp[k] === expanse[k]) delete temp[k];
+    if (!options?.unfreeze) {
+      // Frozen properties don't get copied
+      for (const k of frozen as (keyof T)[]) delete modified[k];
     }
 
-    copyProps(temp, expanse);
+    for (const k of Object.keys(modified) as (keyof T)[]) {
+      if (modified[k] === expanse[k]) delete modified[k];
+    }
+
+    copyProps(modified, expanse);
 
     for (const l of linked) Expanse.set(l as T, setfn);
 
-    if (!!options?.default) copyProps(temp, expanse.defaults);
+    if (!!options?.default) copyProps(modified, expanse.defaults);
     if (!options?.silent) Reactive.dispatch(expanse, `changed`);
   }
 
