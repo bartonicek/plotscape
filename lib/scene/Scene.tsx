@@ -534,6 +534,12 @@ function setupEvents(scene: Scene) {
     if (plot) Reactive.dispatch(plot, `set-scale`, data);
   });
 
+  Reactive.listen(scene, `normalize`, (data) => {
+    if (!data || !data.id) return;
+    const plot = Scene.getPlot(scene, data.id);
+    if (plot) Reactive.dispatch(plot, `normalize`);
+  });
+
   Reactive.listen(scene, `zoom`, (data) => {
     if (!data || !data.id) return;
     const plot = Scene.getPlot(scene, data.id);
@@ -543,6 +549,12 @@ function setupEvents(scene: Scene) {
   Reactive.listen(scene, `set-layout`, (data) => {
     if (!data || !data.layout) return;
     Scene.setLayout(scene, data.layout);
+  });
+
+  Reactive.listen(scene, `set-parameters`, (data) => {
+    if (!data || !data.id) return;
+    const plot = Scene.getPlot(scene, data.id);
+    if (plot) Reactive.dispatch(plot, `set-parameters`, data);
   });
 
   Reactive.listen(scene, `clear-layout`, () => Scene.clearLayout(scene));

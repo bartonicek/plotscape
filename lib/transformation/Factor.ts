@@ -331,8 +331,6 @@ export namespace Factor {
 
     const factor = compute();
 
-    console.log(factor);
-
     Reactive.listen(factor1, `changed`, () => {
       const newFactor = compute();
       Factor.copyFrom(newFactor, factor);

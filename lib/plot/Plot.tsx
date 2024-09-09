@@ -190,6 +190,8 @@ export namespace Plot {
     | `zoom`
     | `pop-zoom`
     | `query-mode`
+    | `normalize`
+    | `set-parameters`
     | (string & {});
 
   export const scatter = Scatterplot;

@@ -70,9 +70,16 @@ export function Histogram<T extends Columns>(
 
   const inc = range / 10;
 
+  Reactive.listen(plot, `set-parameters`, (data) => {
+    if (!data) return;
+    if (data.width) Reactive.set(pars, (p) => (p.width = data.width));
+    if (data.anchor) Reactive.set(pars, (p) => (p.anchor = data.anchor));
+  });
+
   Reactive.listen(plot, `grow`, () =>
     Reactive.set(pars, (p) => (p.width *= 10 / 9)),
   );
+
   Reactive.listen(plot, `shrink`, () =>
     Reactive.set(pars, (p) => (p.width *= 9 / 10)),
   );
@@ -80,6 +87,7 @@ export function Histogram<T extends Columns>(
   Reactive.listen(plot, `increment-anchor`, () =>
     Reactive.set(pars, (p) => (p.anchor += inc)),
   );
+
   Reactive.listen(plot, `decrement-anchor`, () =>
     Reactive.set(pars, (p) => (p.anchor -= inc)),
   );
