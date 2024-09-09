@@ -1,4 +1,4 @@
-import { GraphicalOptions } from "../scene/defaultOptions";
+import { addTailwind } from "../main";
 import { HAnchor, MapFn, Margins, VAnchor } from "../utils/types";
 
 export interface Frame {
@@ -12,8 +12,6 @@ export interface Frame {
   margins: Margins;
 
   contextProps: Partial<ContextProps>;
-
-  options: GraphicalOptions;
 }
 
 type ContextProps<
@@ -23,20 +21,28 @@ type ContextProps<
 };
 
 export namespace Frame {
-  export function of(canvas: Node, options: GraphicalOptions): Frame {
-    if (!isCanvas(canvas)) {
-      throw new Error(`Node must be a HTML5 canvas element`);
+  export function of(options: {
+    classes?: string;
+    margins?: [number, number, number, number];
+    zIndex?: number;
+    canvasStyles?: Partial<CSSStyleDeclaration>;
+    contextProps?: Partial<ContextProps>;
+  }): Frame {
+    const canvas = document.createElement(`canvas`);
+    const context = canvas.getContext("2d")!;
+
+    addTailwind(canvas, options.classes ?? ``);
+    for (const [k, v] of Object.entries(options.canvasStyles ?? {}) as any[]) {
+      canvas.style[k] = v;
     }
 
-    const context = canvas.getContext("2d")!;
     const { clientWidth, clientHeight, clientLeft, clientTop } = canvas;
 
     const width = clientWidth - clientLeft;
     const height = clientHeight - clientTop;
     const scalingFactor = 2;
-    const margins = [0, 0, 0, 0] as Margins;
-
-    const contextProps = {};
+    const margins = options.margins ?? ([0, 0, 0, 0] as Margins);
+    const contextProps = options.contextProps ?? {};
 
     return {
       canvas,
@@ -46,13 +52,13 @@ export namespace Frame {
       margins,
       scalingFactor,
       contextProps,
-      options,
     };
   }
 
   export function append(frame: Frame, container: HTMLElement) {
     container.appendChild(frame.canvas);
     frame.parent = container;
+    Frame.resize(frame);
   }
 
   export function setContext<K extends keyof CanvasRenderingContext2D>(
@@ -128,7 +134,7 @@ export namespace Frame {
     frame: Frame,
     x: number,
     y: number,
-    radius: number = frame.options.size,
+    radius: number,
     options?: DrawOptions,
   ) {
     const { context } = frame;

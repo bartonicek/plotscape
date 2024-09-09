@@ -583,7 +583,7 @@ export function binBreaks(
  * @param classList A list of tailwind classes (strings)
  */
 export function addTailwind(element: HTMLElement, classList: string) {
-  for (const c of classList.split(" ")) element.classList.add(c);
+  for (const c of classList.trim().split(/\s+/)) element.classList.add(c);
 }
 
 /**
@@ -593,7 +593,7 @@ export function addTailwind(element: HTMLElement, classList: string) {
  */
 
 export function removeTailwind(element: HTMLElement, classList: string) {
-  for (const c of classList.split(" ")) element.classList.remove(c);
+  for (const c of classList.trim().split(/\s+/)) element.classList.remove(c);
 }
 
 /**

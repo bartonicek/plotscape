@@ -679,80 +679,61 @@ export namespace Plot {
 
 function setupFrames(plot: Plot, options: GraphicalOptions) {
   const { container, frames } = plot;
-  const { margins, colors, axisTitleSize: axisTitleFontsize } = options;
+  const { margins, colors, axisLabelSize: ls, axisTitleSize: ts } = options;
 
   const [bottom, left, top, right] = margins;
   const dataLayers = [7, 6, 5, 4, 3, 2, 1, 0] as const;
 
-  // Default Tailwind classes
-  const def = `absolute top-0 right-0 w-full h-full`;
+  const classes = `absolute top-0 right-0 w-full h-full `; // Default Tailwind classes
 
   for (const layer of dataLayers) {
-    const canvas = <canvas class={def}></canvas>;
-    // Have to use base CSS - cannot use JavaScript to dynamically generate Tailwind classes
-    canvas.style.zIndex = `${7 - layer + 2}`;
-
-    const frame = Frame.of(canvas, options);
+    // Have to use base CSS: Tailwind classes cannnot be generated dynamically
+    const canvasStyles = { zIndex: `${7 - layer + 2}` };
     const color = colors[layer];
+    const contextProps = { fillStyle: color, strokeStyle: color };
 
-    Frame.setContext(frame, { fillStyle: color, strokeStyle: color });
-    frame.margins = margins;
-
+    const frame = Frame.of({ classes, contextProps, canvasStyles, margins });
     frames[layer] = frame;
   }
 
-  frames.base = Frame.of(
-    <canvas class={def + ` z-0 bg-gray-100`}></canvas>,
-    options,
-  );
-
-  Frame.setContext(frames.base, {
-    font: `${axisTitleFontsize}rem sans-serif`,
+  const base = Frame.of({ classes: classes + `bg-gray-100` });
+  Frame.setContext(base, {
+    font: `${ts}rem sans-serif`,
     textBaseline: `middle`,
     textAlign: `center`,
   });
 
-  frames.under = Frame.of(
-    <canvas class={def + ` z-1 bg-white`}></canvas>,
-    options,
-  );
+  // Have to use base CSS here too (because of dynamic variables)
+  const width = `calc(100% - ${left}px - ${right}px)`;
+  const height = `calc(100% - ${bottom}px - ${top}px)`;
+  const canvasStyles = { width, height, top: top + `px`, right: right + `px` };
+  const under = Frame.of({ classes: classes + `z-1 bg-white`, canvasStyles });
 
-  frames.under.canvas.style.width = `calc(100% - ${left}px - ${right}px)`;
-  frames.under.canvas.style.height = `calc(100% - ${bottom}px - ${top}px)`;
-  frames.under.canvas.style.top = top + `px`;
-  frames.under.canvas.style.right = right + `px`;
+  const overClasses = `z-10 border border-b-black border-l-black`;
+  const over = Frame.of({ classes: classes + overClasses, canvasStyles });
 
-  frames.over = Frame.of(
-    <canvas
-      class={def + `relative z-10 border border-b-black border-l-black`}
-    ></canvas>,
-    options,
-  );
+  const user = Frame.of({ classes: classes + `z-10`, margins });
+  Frame.setContext(user, { globalAlpha: 1 / 15 });
 
-  frames.over.canvas.style.width = `calc(100% - ${left}px - ${right}px)`;
-  frames.over.canvas.style.height = `calc(100% - ${bottom}px - ${top}px)`;
-  frames.over.canvas.style.top = top + `px`;
-  frames.over.canvas.style.right = right + `px`;
+  const fillStyle = `#3B4854`;
 
-  frames.user = Frame.of(<canvas class={def + ` z-10`}></canvas>, options);
-  frames.user.margins = margins;
-  Frame.setContext(frames.user, { globalAlpha: 1 / 15 });
-
-  frames.xAxis = Frame.of(<canvas class={def}></canvas>, options);
-  Frame.setContext(frames.xAxis, {
-    fillStyle: `#3B4854`,
+  const xAxis = Frame.of({ classes: classes });
+  Frame.setContext(xAxis, {
+    fillStyle,
     textBaseline: `top`,
     textAlign: `center`,
-    font: `${defaultOptions.axisLabelSize}rem serif`,
+    font: `${ls}rem serif`,
   });
 
-  frames.yAxis = Frame.of(<canvas class={def}></canvas>, options);
-  Frame.setContext(frames.yAxis, {
+  const yAxis = Frame.of({ classes: classes });
+  Frame.setContext(yAxis, {
     fillStyle: `#3B4854`,
     textBaseline: `middle`,
     textAlign: `right`,
-    font: `${defaultOptions.axisLabelSize}rem serif`,
+    font: `${ls}rem serif`,
   });
+
+  Object.assign(frames, { base, under, over, user, xAxis, yAxis });
 
   for (let [k, v] of Object.entries(frames)) {
     if (!isNaN(parseFloat(k))) k = `data-` + k;

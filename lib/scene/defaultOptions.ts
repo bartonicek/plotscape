@@ -30,7 +30,7 @@ export function updateOptions(options: GraphicalOptions) {
     options.colors[k + i] = tinycolor(c).lighten(20).saturate(20).toString();
   }
 
-  const { marginLines, axisTitleSize: ats } = options;
+  const { marginLines, axisTitleSize: ts } = options;
   const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
-  options.margins = marginLines.map((x) => x * rem * ats) as Margins;
+  options.margins = marginLines.map((x) => x * rem * ts) as Margins;
 }
