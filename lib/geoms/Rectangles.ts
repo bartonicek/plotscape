@@ -43,8 +43,8 @@ export namespace Rectangles {
       [data.area, scales.areaPct],
     ]);
 
-    const layer = Geom.layer(n, data[LAYER], layers);
-    Frame.rectanglesXY(layer, x0, y0, x1, y1, area);
+    const frames = Geom.frames(n, data[LAYER], layers);
+    Frame.rectanglesXY(frames, x0, y0, x1, y1, area);
   }
 
   export function check(rectangles: Rectangles, selection: Rect) {

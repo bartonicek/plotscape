@@ -62,8 +62,8 @@ export namespace Bars {
       [data.height, scales.height],
     ]);
 
-    const layer = Geom.layer(n, data[LAYER], layers);
-    Frame.rectanglesWH(layer, x, y, width, height, { hAnchor, vAnchor });
+    const frames = Geom.frames(n, data[LAYER], layers);
+    Frame.rectanglesWH(frames, x, y, width, height, { hAnchor, vAnchor });
   }
 
   export function check(bars: Bars, selection: Rect) {

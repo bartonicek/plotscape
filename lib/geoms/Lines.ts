@@ -43,8 +43,8 @@ export namespace Lines {
       [data.y, scales.y],
     ]);
 
-    const layer = Geom.layer(n, data[LAYER], layers);
-    Frame.lines(layer, x, y);
+    const frames = Geom.frames(n, data[LAYER], layers);
+    Frame.lines(frames, x, y);
   }
 
   export function check(lines: Lines, selection: Rect) {

@@ -77,7 +77,7 @@ export namespace Geom {
     return keys.map((x) => Geom.getter(data[x], fallback));
   }
 
-  export function layer(
+  export function frames(
     length: number,
     layerId: Indexable<DataLayer>,
     layers: DataLayers,

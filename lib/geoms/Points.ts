@@ -44,8 +44,8 @@ export namespace Points {
       [data.size, scales.size],
     ]);
 
-    const layer = Geom.layer(n, data[LAYER], layers);
-    Frame.points(layer, x, y, radius);
+    const frames = Geom.frames(n, data[LAYER], layers);
+    Frame.points(frames, x, y, radius);
   }
 
   export function check(points: Points, selection: Rect) {
