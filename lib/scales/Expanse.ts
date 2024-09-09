@@ -41,8 +41,8 @@ export type ExpanseTypeMap = {
 type ExpanseMethods = {
   normalize(expanse: unknown, value: unknown): unknown;
   unnormalize(expanse: unknown, value: unknown): unknown;
-  breaks(expanse: unknown): string[] | number[];
-  train(expanse: unknown, array: unknown[], options?: {}): void;
+  breaks?(expanse: unknown): string[] | number[];
+  train?(expanse: unknown, array: unknown[], options?: {}): void;
   reorder?(expanse: unknown, indices: number[]): void;
 };
 
@@ -147,11 +147,11 @@ export namespace Expanse {
     array: T[`value`][],
     options?: { default?: boolean; ratio?: boolean },
   ) {
-    return methods[expanse.type].train(expanse, array as any, options);
+    methods[expanse.type].train?.(expanse, array as any, options);
   }
 
   export function breaks(expanse: Expanse) {
-    return methods[expanse.type].breaks(expanse);
+    return methods[expanse.type].breaks?.(expanse);
   }
 
   export function move(expanse: Expanse, amount: number) {

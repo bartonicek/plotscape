@@ -1,11 +1,11 @@
+import { Plot } from "../main";
 import { Frame } from "../plot/Frame";
-import { ExpanseContinuous } from "../scales/ExpanseContinuous";
 import { Scale } from "../scales/Scale";
 import { LAYER } from "../scene/Marker";
 import { POSITIONS } from "../transformation/Factor";
 import { findLength, pointInRect, rectsIntersect } from "../utils/funs";
 import { Meta } from "../utils/Meta";
-import { DataLayer, DataLayers, Indexable, Point, Rect } from "../utils/types";
+import { DataLayers, Indexable, Point, Rect } from "../utils/types";
 import { FactorData, Geom } from "./Geom";
 
 type Data = {
@@ -15,21 +15,15 @@ type Data = {
   y1: Indexable;
 };
 
-type Scales = {
-  x: Scale<any, ExpanseContinuous>;
-  y: Scale<any, ExpanseContinuous>;
-  area: Scale<any, ExpanseContinuous>;
-};
-
 export interface Rectangles extends Geom {
   type: Geom.Type.Rectangles;
   data: (Data & FactorData)[];
-  scales: Scales;
+  scales: Plot.Scales;
 }
 
 export namespace Rectangles {
   export function of(): Rectangles {
-    const scales = {} as Scales; // Will be definitely assigned when added to Plot
+    const scales = {} as Plot.Scales; // Will be definitely assigned when added to Plot
     const data = [] as (Data & FactorData)[];
     const type = Geom.Type.Rectangles;
 
@@ -41,29 +35,16 @@ export namespace Rectangles {
     const data = Geom.groupedData(rectangles);
 
     const n = findLength(Object.values(data));
-    const vars = [`x0`, `y0`, `x1`, `y1`, `area`, LAYER] as const;
-    const [x0, y0, x1, y1, area, layer] = Geom.getters(data, vars);
+    const [x0, y0, x1, y1, area] = Geom.scaledArrays(n, [
+      [data.x0, scales.x],
+      [data.y0, scales.y],
+      [data.x1, scales.x],
+      [data.y1, scales.y],
+      [data.area, scales.areaPct],
+    ]);
 
-    for (let i = 0; i < n; i++) {
-      let x0i = Scale.pushforward(scales.x, x0(i));
-      let y0i = Scale.pushforward(scales.y, y0(i));
-      let x1i = Scale.pushforward(scales.x, x1(i));
-      let y1i = Scale.pushforward(scales.y, y1(i));
-      const li = layers[layer(i) as DataLayer];
-
-      if (data.area) {
-        const ai = Scale.pushforward(scales.area, area(i));
-        const rxi = x1i - x0i;
-        const ryi = y1i - y0i;
-
-        x0i = x0i + ((1 - ai) / 2) * rxi;
-        x1i = x1i - ((1 - ai) / 2) * rxi;
-        y0i = y0i + ((1 - ai) / 2) * ryi;
-        y1i = y1i - ((1 - ai) / 2) * ryi;
-      }
-
-      Frame.rectangleXY(li, x0i, y0i, x1i, y1i);
-    }
+    const layer = Geom.layer(n, data[LAYER], layers);
+    Frame.rectanglesXY(layer, x0, y0, x1, y1, area);
   }
 
   export function check(rectangles: Rectangles, selection: Rect) {
@@ -71,8 +52,8 @@ export namespace Rectangles {
     const data = Geom.flatData(rectangles);
 
     const n = findLength(Object.values(data));
-    const vars = [`x0`, `y0`, `x1`, `y1`, `area`, POSITIONS] as const;
-    const [x0, y0, x1, y1, area, positions] = Geom.getters(data, vars);
+    const keys = [`x0`, `y0`, `x1`, `y1`, `area`, POSITIONS] as const;
+    const [x0, y0, x1, y1, area, positions] = Geom.getters(data, keys);
 
     const selected = [] as number[];
 
@@ -107,8 +88,8 @@ export namespace Rectangles {
     const data = Geom.flatData(rectangles);
 
     const n = findLength(Object.values(data));
-    const vars = [`x0`, `y0`, `x1`, `y1`, `area`] as const;
-    const [x0, y0, x1, y1, area] = Geom.getters(data, vars);
+    const keys = [`x0`, `y0`, `x1`, `y1`, `area`] as const;
+    const [x0, y0, x1, y1, area] = Geom.getters(data, keys);
 
     for (let i = 0; i < n; i++) {
       let x0i = Scale.pushforward(scales.x, x0(i));

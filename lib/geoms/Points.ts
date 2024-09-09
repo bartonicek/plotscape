@@ -5,7 +5,7 @@ import { LAYER } from "../scene/Marker";
 import { POSITIONS } from "../transformation/Factor";
 import { findLength, pointInRect, rectsIntersect } from "../utils/funs";
 import { Meta } from "../utils/Meta";
-import { DataLayer, DataLayers, Indexable, Point, Rect } from "../utils/types";
+import { DataLayers, Indexable, Point, Rect } from "../utils/types";
 import { FactorData, Geom } from "./Geom";
 
 type Data = {
@@ -38,17 +38,14 @@ export namespace Points {
     const data = Geom.groupedData(points);
 
     const n = findLength(Object.values(data));
-    const vars = [`x`, `y`, `size`, LAYER] as const;
-    const [x, y, radius, layer] = Geom.getters(data, vars);
+    const [x, y, radius] = Geom.scaledArrays(n, [
+      [data.x, scales.x],
+      [data.y, scales.y],
+      [data.size, scales.size],
+    ]);
 
-    for (let i = 0; i < n; i++) {
-      const xi = Scale.pushforward(scales.x, x(i));
-      const yi = Scale.pushforward(scales.y, y(i));
-      const ri = Scale.pushforward(scales.size, radius(i));
-      const li = layers[layer(i) as DataLayer];
-
-      Frame.point(li, xi, yi, ri);
-    }
+    const layer = Geom.layer(n, data[LAYER], layers);
+    Frame.points(layer, x, y, radius);
   }
 
   export function check(points: Points, selection: Rect) {

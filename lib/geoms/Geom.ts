@@ -1,3 +1,4 @@
+import { Frame } from "../plot/Frame";
 import { Scale } from "../scales/Scale";
 import { LAYER } from "../scene/Marker";
 import { POSITIONS } from "../transformation/Factor";
@@ -74,6 +75,33 @@ export namespace Geom {
     fallback: (index: number) => any = () => 0.5,
   ) {
     return keys.map((x) => Geom.getter(data[x], fallback));
+  }
+
+  export function layer(
+    length: number,
+    layerId: Indexable<DataLayer>,
+    layers: DataLayers,
+  ): Frame[] {
+    const [layer, getter] = [Array(length), Getter.of(layerId)];
+    for (let i = 0; i < length; i++) layer[i] = layers[getter(i)];
+    return layer;
+  }
+
+  export function scaledArrays(length: number, pairs: [Indexable, Scale][]) {
+    const result = [];
+
+    for (const [indexable, scale] of pairs) {
+      const array = Array(length);
+      const getter = Getter.of(indexable ?? 1);
+
+      for (let i = 0; i < length; i++) {
+        array[i] = Scale.pushforward(scale, getter(i));
+      }
+
+      result.push(array);
+    }
+
+    return result;
   }
 
   export function render<T extends Geom>(geom: T, layers: DataLayers) {

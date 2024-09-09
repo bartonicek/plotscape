@@ -89,10 +89,11 @@ export namespace Plot {
   export type Scales = {
     x: Scale<any, ExpanseContinuous>;
     y: Scale<any, ExpanseContinuous>;
-    area: Scale<any, ExpanseContinuous>;
     size: Scale<any, ExpanseContinuous>;
     width: Scale<any, ExpanseContinuous>;
     height: Scale<any, ExpanseContinuous>;
+    area: Scale<any, ExpanseContinuous>;
+    areaPct: Scale<ExpanseContinuous, ExpanseContinuous>;
   };
 
   export type Type =
@@ -352,7 +353,7 @@ export namespace Plot {
     Plot.checkSelection(plot);
     Reactive.dispatch(plot, `lock-others`);
     Frame.clear(frames.user);
-    Frame.rectangleXY(frames.user, ...parameters.mousecoords);
+    Frame.rectangleXY(frames.user, ...parameters.mousecoords, 1);
   }
 
   function pan(plot: Plot, event: MouseEvent) {
@@ -607,13 +608,16 @@ export namespace Plot {
     }
   }
 
-  export function getScale(plot: Plot, scale: keyof Plot.Scales) {
+  export function getScale(
+    plot: Plot,
+    scale: Exclude<keyof Plot.Scales, symbol>,
+  ) {
     return plot.scales[scale].domain;
   }
 
   export function setScale(
     plot: Plot,
-    scale: keyof Plot.Scales,
+    scale: Exclude<keyof Plot.Scales, symbol>,
     options: {
       min?: number;
       max?: number;
@@ -860,15 +864,22 @@ function setupScales(
     Expanse.continuous(0, options.size),
   );
 
-  const { x, y, width, height, size, area } = scales;
+  scales.areaPct = Scale.of(Expanse.continuous(), Expanse.continuous());
+
+  const { x, y, width, height, size, area, areaPct } = scales;
 
   const opts = { default: true, silent: true };
   const { expandX: ex, expandY: ey } = defaultOptions;
 
   Expanse.set(area.domain, (e) => (e.ratio = true), opts);
   Expanse.set(size.domain, (e) => (e.ratio = true), opts);
-  Expanse.set(area.codomain, (e) => ((e.trans = square), (e.inv = sqrt)), opts);
   Expanse.set(size.codomain, (e) => ((e.trans = square), (e.inv = sqrt)), opts);
+  Expanse.set(area.codomain, (e) => ((e.trans = square), (e.inv = sqrt)), opts);
+  Expanse.set(
+    areaPct.codomain,
+    (e) => ((e.trans = square), (e.inv = sqrt)),
+    opts,
+  );
 
   Expanse.set(x.domain, (e) => ((e.zero = ex), (e.one = 1 - ex)), opts);
   Expanse.set(y.domain, (e) => ((e.zero = ey), (e.one = 1 - ey)), opts);

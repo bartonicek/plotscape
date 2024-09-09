@@ -150,15 +150,50 @@ export namespace Frame {
     context.fill();
   }
 
+  export function points(
+    frames: Frame[],
+    x: number[],
+    y: number[],
+    radius: number[],
+    options?: DrawOptions,
+  ) {
+    for (let i = 0; i < x.length; i++) {
+      point(frames[i], x[i], y[i], radius[i], options);
+    }
+  }
+
   export function rectangleXY(
     frame: Frame,
     x0: number,
     y0: number,
     x1: number,
     y1: number,
+    area: number,
   ) {
     const { context, height } = frame;
+
+    const rx = x1 - x0;
+    const ry = y1 - y0;
+
+    x0 = x0 + ((1 - area) / 2) * rx;
+    x1 = x1 - ((1 - area) / 2) * rx;
+    y0 = y0 + ((1 - area) / 2) * ry;
+    y1 = y1 - ((1 - area) / 2) * ry;
+
     context.fillRect(x0, height - y0, x1 - x0, y0 - y1);
+  }
+
+  export function rectanglesXY(
+    frames: Frame[],
+    x0: number[],
+    y0: number[],
+    x1: number[],
+    y1: number[],
+    area: number[],
+  ) {
+    for (let i = 0; i < x0.length; i++) {
+      rectangleXY(frames[i], x0[i], y0[i], x1[i], y1[i], area[i]);
+    }
   }
 
   export function rectangleWH(
@@ -179,6 +214,19 @@ export namespace Frame {
     context.fillRect(x, y, w, -h);
   }
 
+  export function rectanglesWH(
+    frames: Frame[],
+    x: number[],
+    y: number[],
+    w: number[],
+    h: number[],
+    options?: DrawOptions,
+  ) {
+    for (let i = 0; i < x.length; i++) {
+      rectangleWH(frames[i], x[i], y[i], w[i], h[i], options);
+    }
+  }
+
   export function line(frame: Frame, x: number[], y: number[]) {
     const { context, height } = frame;
 
@@ -190,6 +238,10 @@ export namespace Frame {
     }
 
     context.stroke();
+  }
+
+  export function lines(frames: Frame[], x: number[][], y: number[][]) {
+    for (let i = 0; i < x.length; i++) line(frames[i], x[i], y[i]);
   }
 
   export function text(
