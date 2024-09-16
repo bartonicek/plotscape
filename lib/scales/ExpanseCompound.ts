@@ -64,7 +64,7 @@ export namespace ExpanseCompound {
     return ExpanseContinuous.breaks(expanse as unknown as ExpanseContinuous);
   }
 
-  export function restoreDefaults(expanse: ExpanseCompound) {
-    for (const e of expanse.expanses) Expanse.restoreDefaults(e);
+  export function reset(expanse: ExpanseCompound) {
+    for (const e of expanse.expanses) Expanse.reset(e);
   }
 }

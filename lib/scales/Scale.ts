@@ -80,8 +80,8 @@ export namespace Scale {
   }
 
   export function restoreDefaults(scale: Scale) {
-    Expanse.restoreDefaults(scale.domain);
-    Expanse.restoreDefaults(scale.codomain);
+    Expanse.reset(scale.domain);
+    Expanse.reset(scale.codomain);
   }
 
   export function breaks(scale: Scale): {

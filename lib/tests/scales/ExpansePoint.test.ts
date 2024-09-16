@@ -18,7 +18,7 @@ describe("Expanse point", () => {
   test(`Normalizing "b" in ["a", "b", "c", "d"] with [0.1, 0.9] margins returns 0.1 + 1/3 * 0.8`, () => {
     Expanse.set(expanse, (e) => ((e.zero = 0.1), (e.one = 0.9)));
     expect(Expanse.normalize(expanse, "b")).toBe(0.1 + (1 / 3) * 0.8);
-    Expanse.restoreDefaults(expanse);
+    Expanse.reset(expanse);
   });
 
   test(`Unnormalizing 1/3 in ["a", "b", "c", "d"] returns "b"`, () => {
@@ -43,6 +43,6 @@ describe("Expanse point", () => {
     ExpansePoint.reorder(expanse, [2, 1, 0, 3]);
     expect(ExpansePoint.breaks(expanse)).toEqual(["c", "b", "a", "d"]);
     expect(Expanse.normalize(expanse, "a")).toBe(2 / 3);
-    Expanse.restoreDefaults(expanse);
+    Expanse.reset(expanse);
   });
 });

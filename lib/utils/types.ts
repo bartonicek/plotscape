@@ -1,11 +1,10 @@
 import { Frame } from "../plot/Frame";
 
 export type Primitive = string | number | boolean | undefined | null;
-
 export type Flat<T> = { [key in keyof T]: T[key] } & {};
-
 export type Entries<T> = [keyof T, T[keyof T]][];
 
+export type AnyFn = (...args: any[]) => any;
 export type MapFn<T> = (next: T) => T;
 export type ReduceFn<T, U> = (prev: U, next: T) => U;
 
@@ -15,17 +14,12 @@ export type Indexable<T = any> = T | ((index: number) => T) | T[];
 export type Indexables = Record<string, Indexable>;
 
 export type Columns = Record<string, any[]>;
-
 export interface Dataframe {
   [key: string | symbol]: Indexable;
 }
 
 export type UntypedColumns<S extends string[]> = { [key in S[number]]: any[] };
-
-export enum Direction {
-  Forwards = 1,
-  Backwards = -1,
-}
+export type Direction = 1 | -1;
 
 export type Point = [x: number, y: number];
 export type Rect = [x0: number, y0: number, x1: number, y1: number];

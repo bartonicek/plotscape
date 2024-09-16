@@ -72,7 +72,7 @@ export namespace Expanse {
   }) {
     const zero = options?.zero ?? 0;
     const one = options?.one ?? 1;
-    const direction = options?.direction ?? Direction.Forwards;
+    const direction = options?.direction ?? 1;
     const frozen = [] as string[];
     const linked = [] as Expanse[];
 
@@ -106,9 +106,8 @@ export namespace Expanse {
   }
 
   export function infer(values: any[], options = { train: true }) {
-    const expanse = isNumberArray(values)
-      ? Expanse.continuous()
-      : Expanse.point();
+    const isNumeric = isNumberArray(values);
+    const expanse = isNumeric ? Expanse.continuous() : Expanse.point();
     if (options.train) Expanse.train(expanse, values);
     return expanse;
   }
@@ -123,7 +122,7 @@ export namespace Expanse {
     if (!expanse.linked.includes(other)) expanse.linked.push(other);
   }
 
-  export function restoreDefaults<T extends Expanse>(expanse: T) {
+  export function reset<T extends Expanse>(expanse: T) {
     const { defaults } = expanse;
 
     for (const [k, v] of Object.entries(defaults) as Entries<T>) {
@@ -170,14 +169,14 @@ export namespace Expanse {
     const currRange = currOne - currZero;
 
     // Reflect if direction is backwards
-    if (direction === Direction.Backwards) [zero, one] = [1 - zero, 1 - one];
+    if (direction === -1) [zero, one] = [1 - zero, 1 - one];
 
     // Normalize the zoom values within the current range
     let [nZero, nOne] = [zero, one].map((x) => (x - currZero) / currRange);
     [nZero, nOne] = invertRange(nZero, nOne);
 
     // Finally, reflect again
-    if (direction === Direction.Backwards) {
+    if (direction === -1) {
       [nZero, nOne] = [1 - nZero, 1 - nOne];
     }
 
