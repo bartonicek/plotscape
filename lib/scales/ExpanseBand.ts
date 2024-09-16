@@ -7,6 +7,7 @@ import {
   last,
   ordered,
 } from "../utils/funs";
+import { Poly } from "../utils/Poly";
 import { Reactive } from "../utils/Reactive";
 import { Direction } from "../utils/types";
 import { Expanse } from "./Expanse";
@@ -37,6 +38,8 @@ export interface ExpanseBand extends Expanse<string> {
 }
 
 export namespace ExpanseBand {
+  const type = `band` as const;
+
   type Options = {
     weights?: number[];
     zero?: number;
@@ -45,40 +48,34 @@ export namespace ExpanseBand {
   };
 
   export function of(labels: string[] = [], options?: Options): ExpanseBand {
+    const labs = labels.map((x) => x.toString());
     const value = ``;
-    const type = `band`;
 
     const base = Expanse.base(options);
-    const { zero, one, direction } = base;
-
+    const ordered = false;
     const order = Array.from(Array(labels.length), (_, i) => i);
     const weights = options?.weights ?? Array(labels.length).fill(1);
     const cumulativeWeights = cumsum(weights);
-    const ordered = false;
-
-    const defaults = {
+    const vals = {
+      ...base.defaults,
       ordered,
-      labels: [...labels],
-      order: [...order],
-      weights: [...weights],
-      cumulativeWeights: [...cumulativeWeights],
-      zero,
-      one,
-      direction,
-    };
-
-    return {
-      value,
-      type,
-      ordered,
-      labels,
+      labels: labs,
       order,
       weights,
       cumulativeWeights,
-      ...base,
-      defaults,
     };
+
+    const defaults = { ...base, ...structuredClone(vals) };
+
+    return { type, value, ...vals, ...base, defaults };
   }
+
+  // Expanse method implementations
+  Poly.set(Expanse.normalize, type, normalize);
+  Poly.set(Expanse.unnormalize, type, unnormalize);
+  Poly.set(Expanse.train, type, train);
+  Poly.set(Expanse.breaks, type, breaks);
+  Poly.set(Expanse.reorder, type, reorder);
 
   function getMidpoint(expanse: ExpanseBand, index: number) {
     const { order, cumulativeWeights } = expanse;
@@ -110,7 +107,7 @@ export namespace ExpanseBand {
     Reactive.dispatch(expanse, `changed`);
   }
 
-  export function normalize(expanse: ExpanseBand, value: string) {
+  function normalize(expanse: ExpanseBand, value: string) {
     const { labels, zero, one, direction } = expanse;
 
     const index = labels.indexOf(value);
@@ -122,7 +119,7 @@ export namespace ExpanseBand {
     return applyDirection(pct, direction);
   }
 
-  export function unnormalize(expanse: ExpanseBand, value: number) {
+  function unnormalize(expanse: ExpanseBand, value: number) {
     const { labels, zero, one, direction } = expanse;
 
     value = applyDirection(value, direction);
@@ -132,10 +129,10 @@ export namespace ExpanseBand {
     return labels[index];
   }
 
-  export function train(
+  function train(
     expanse: ExpanseBand,
     array: string[],
-    options?: { default?: boolean },
+    options?: { default?: boolean; silent?: boolean },
   ) {
     const { order } = expanse;
     const labels = Array.from(new Set(array)).sort(compareAlphaNumeric);
@@ -155,9 +152,14 @@ export namespace ExpanseBand {
       if (isArray(expanse[k])) copyValues(v, expanse[k]);
       if (options?.default) copyValues(v, (expanse.defaults as any)[k]);
     }
+    Expanse.set(expanse, () => {}, options); // To trigger event listeners
   }
 
-  export function reorder(expanse: ExpanseBand, indices?: number[]) {
+  function breaks(expanse: ExpanseBand) {
+    return ordered(expanse.labels, expanse.order);
+  }
+
+  function reorder(expanse: ExpanseBand, indices?: number[]) {
     const { order, weights, cumulativeWeights, defaults } = expanse;
 
     if (!indices) {
@@ -174,17 +176,5 @@ export namespace ExpanseBand {
 
     expanse.ordered = true;
     Reactive.dispatch(expanse, `changed`);
-  }
-
-  export function breaks(expanse: ExpanseBand) {
-    return ordered(expanse.labels, expanse.order);
-  }
-
-  export function isContinuous() {
-    return false;
-  }
-
-  export function isDiscrete() {
-    return true;
   }
 }

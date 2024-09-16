@@ -6,6 +6,7 @@ import {
   prettyBreaks,
 } from "../utils/funs";
 import { Meta } from "../utils/Meta";
+import { Poly } from "../utils/Poly";
 import { Direction } from "../utils/types";
 import { Expanse } from "./Expanse";
 
@@ -14,6 +15,7 @@ import { Expanse } from "./Expanse";
  */
 export interface ExpanseContinuous extends Expanse<number> {
   type: `continuous`;
+  value: number;
 
   min: number;
   max: number;
@@ -38,12 +40,13 @@ export interface ExpanseContinuous extends Expanse<number> {
 }
 
 export namespace ExpanseContinuous {
+  const type = `continuous` as const;
+
   type Options = {
     scale?: number;
     mult?: number;
     offset?: number;
     ratio?: boolean;
-    negative?: boolean;
     zero?: number;
     one?: number;
     direction?: Direction;
@@ -51,79 +54,70 @@ export namespace ExpanseContinuous {
 
   export function of(min = 0, max = 1, options?: Options): ExpanseContinuous {
     const value = 0;
-    const type = `continuous`;
 
     const base = Expanse.base(options);
     const [trans, inv] = [identity, identity];
-    const scale = options?.scale ?? 1;
-    const mult = options?.mult ?? 1;
-    const offset = options?.offset ?? 0;
-    const ratio = options?.ratio ?? false;
+    const { scale = 1, mult = 1, offset = 0, ratio = false } = options ?? {};
+    const vals = { min, max, mult, offset, scale, trans, inv };
 
-    const defaults = { min, max, scale, mult, ...base, offset, trans, inv };
+    const defaults = { ...base.defaults, ...vals };
+    const result = { type, value, ratio, ...base, ...vals, defaults };
 
-    return {
-      value,
-      type,
-      min,
-      max,
-      scale,
-      mult,
-      offset,
-      ratio,
-      ...base,
-      trans,
-      inv,
-      defaults,
-    };
+    return result;
   }
 
-  export function normalize(expanse: ExpanseContinuous, value: number) {
+  // Expanse method implementations
+  Poly.set(Expanse.normalize, type, normalize);
+  Poly.set(Expanse.unnormalize, type, unnormalize);
+  Poly.set(Expanse.train, type, train);
+  Poly.set(Expanse.breaks, type, breaks);
+
+  function normalize(expanse: ExpanseContinuous, x: number) {
     const { min, max, zero, one } = expanse;
     const { direction, scale, mult, offset, trans } = expanse;
 
-    value = value / (scale * mult) - offset;
-    const range = trans(max) - trans(min);
-    let pct = (trans(value - offset) - trans(min)) / range;
-    pct = zero + pct * (one - zero);
+    let result = x / (scale * mult) - offset;
+    result = (trans(result - offset) - trans(min)) / (trans(max) - trans(min));
+    result = zero + result * (one - zero);
+    result = applyDirection(result, direction);
 
-    return applyDirection(pct, direction);
+    return result;
   }
 
   // Unnormalize doesn't use direction since [0, 1] already encodes direction
-  export function unnormalize(expanse: ExpanseContinuous, value: number) {
+  function unnormalize(expanse: ExpanseContinuous, value: number) {
     const { min, max, zero, one } = expanse;
     const { scale, mult, offset, trans, inv } = expanse;
-
-    const pct = (value - zero) / (one - zero);
     const range = trans(max) - trans(min);
 
-    return inv(trans(min) + pct * range) * (scale * mult) + offset;
+    let result = (value - zero) / (one - zero);
+    result = inv(trans(min) + result * range);
+    result = result * (scale * mult) + offset;
+
+    return result;
+  }
+
+  function train(
+    expanse: ExpanseContinuous,
+    array: number[],
+    options?: { default?: boolean; silent?: boolean },
+  ) {
+    let [min, max] = Meta.getN(array, [`min`, `max`]);
+    if (!min || !max) [min, max] = minmax(array);
+
+    min = expanse.ratio ? 0 : min;
+    Expanse.set(expanse, (e) => ((e.min = min), (e.max = max)), options);
+  }
+
+  function breaks(expanse: ExpanseContinuous): number[] | string[] {
+    const [min, max] = [0, 1].map((x) => unnormalize(expanse, x)).sort(diff);
+
+    const labels = prettyBreaks(min, max, 4);
+    return labels;
   }
 
   export function range(expanse: ExpanseContinuous) {
     const { min, max } = expanse;
     return max - min;
-  }
-
-  export function train(
-    expanse: ExpanseContinuous,
-    array: number[],
-    options?: { default?: boolean; silent?: boolean; ratio?: true },
-  ) {
-    let [min, max] = Meta.getN(array, [`min`, `max`]);
-    if (!min || !max) [min, max] = minmax(array);
-
-    min = expanse.ratio || options?.ratio ? 0 : min;
-    Expanse.set(expanse, (e) => ((e.min = min), (e.max = max)), options);
-  }
-
-  export function breaks(expanse: ExpanseContinuous, n = 4) {
-    const [min, max] = [0, 1]
-      .map((x) => ExpanseContinuous.unnormalize(expanse, x))
-      .sort(diff);
-
-    const labels = prettyBreaks(min, max, n);
-    return labels;
   }
 }

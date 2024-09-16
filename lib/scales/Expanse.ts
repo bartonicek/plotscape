@@ -1,10 +1,5 @@
-import {
-  copyProps,
-  copyValues,
-  invertRange,
-  isArray,
-  isNumberArray,
-} from "../utils/funs";
+import { copyProps, copyValues, invertRange, isArray } from "../utils/funs";
+import { Poly } from "../utils/Poly";
 import { Reactive } from "../utils/Reactive";
 import { Direction, Entries } from "../utils/types";
 import { ExpanseBand } from "./ExpanseBand";
@@ -15,55 +10,75 @@ import { ExpanseSplit } from "./ExpanseSplit";
 
 /** Converts values from some type to the interval [0, 1] and back. */
 export interface Expanse<T = any> extends Reactive {
-  readonly value: T; // Only a type-level tag
+  value: T; // Only a type-level tag
   type: Expanse.Type;
+  frozen: string[];
+  linked: Expanse[];
 
   zero: number;
   one: number;
-  direction: Direction;
-  frozen: string[];
-  linked: Expanse[];
+  direction: 1 | -1;
 
   defaults: {
     zero: number;
     one: number;
-    direction: Direction;
+    direction: 1 | -1;
     [key: string]: any;
   };
 }
 
-export type ExpanseTypeMap = {
-  continuous: ExpanseContinuous;
-  point: ExpansePoint;
-  band: ExpanseBand;
-};
-
-type ExpanseMethods = {
-  normalize(expanse: unknown, value: unknown): unknown;
-  unnormalize(expanse: unknown, value: unknown): unknown;
-  breaks?(expanse: unknown): string[] | number[];
-  train?(expanse: unknown, array: unknown[], options?: {}): void;
-  reorder?(expanse: unknown, indices: number[]): void;
-};
-
 export namespace Expanse {
   export type Type = `continuous` | `point` | `band` | `compound` | `split`;
 
-  export const methods: {
-    [key in Type]: ExpanseMethods;
-  } = {
-    continuous: ExpanseContinuous,
-    point: ExpansePoint,
-    band: ExpanseBand,
-    compound: ExpanseCompound,
-    split: ExpanseSplit,
-  };
+  // Polymorphic methods - will be implemented by subtypes
+  export const normalize = Poly.of(normalizeFallback);
+  export const unnormalize = Poly.of(unnormalizeFallback);
+  export const train = Poly.of(trainFallback);
+  export const breaks = Poly.of(breaksFallback);
+  export const reorder = Poly.of(reorderFallback);
 
-  export const continuous = ExpanseContinuous.of;
-  export const point = ExpansePoint.of;
-  export const band = ExpanseBand.of;
-  export const compound = ExpanseCompound.of;
-  export const split = ExpanseSplit.of;
+  function normalizeFallback<T extends Expanse>(
+    expanse: T,
+    value: T[`value`],
+  ): number {
+    throw new Error(
+      `Method 'normalize' not implemented for expanse of type '${expanse.type}'`,
+    );
+  }
+
+  function unnormalizeFallback<T extends Expanse>(
+    expanse: T,
+    value: number,
+  ): T[`value`] {
+    throw new Error(
+      `Method 'unnormalize' not implemented for expanse of type '${expanse.type}'`,
+    );
+  }
+
+  function trainFallback<T extends Expanse>(
+    expanse: T,
+    values: T[`value`][],
+    options?: { default?: boolean; silent?: boolean },
+  ): void {
+    throw new Error(
+      `Method 'train' not implemented for expanse of type '${expanse.type}'`,
+    );
+  }
+
+  function breaksFallback<T extends Expanse>(expanse: T): T[`value`][] {
+    throw new Error(
+      `Method 'breaks' not implemented for expanse of type '${expanse.type}'`,
+    );
+  }
+
+  function reorderFallback<T extends Expanse<string>>(
+    expanse: T,
+    indices?: number[],
+  ): void {
+    throw new Error(
+      `Method 'reorder' not implemented for expanse of type '${expanse.type}'`,
+    );
+  }
 
   export function base(options?: {
     zero?: number;
@@ -76,7 +91,9 @@ export namespace Expanse {
     const frozen = [] as string[];
     const linked = [] as Expanse[];
 
-    return Reactive.of()({ zero, one, direction, frozen, linked });
+    const defaults = { zero, one, direction };
+
+    return Reactive.of()({ zero, one, direction, frozen, linked, defaults });
   }
 
   export function set<T extends Expanse>(
@@ -105,13 +122,6 @@ export namespace Expanse {
     if (!options?.silent) Reactive.dispatch(expanse, `changed`);
   }
 
-  export function infer(values: any[], options = { train: true }) {
-    const isNumeric = isNumberArray(values);
-    const expanse = isNumeric ? Expanse.continuous() : Expanse.point();
-    if (options.train) Expanse.train(expanse, values);
-    return expanse;
-  }
-
   export function freeze<T extends Expanse>(expanse: T, props: (keyof T)[]) {
     for (const prop of props as string[]) {
       if (!expanse.frozen.includes(prop)) expanse.frozen.push(prop);
@@ -131,26 +141,6 @@ export namespace Expanse {
     }
 
     Reactive.dispatch(expanse, `changed`);
-  }
-
-  export function normalize<T extends Expanse>(expanse: T, value: T[`value`]) {
-    return methods[expanse.type].normalize(expanse, value) as number;
-  }
-
-  export function unnormalize<T extends Expanse>(expanse: T, value: number) {
-    return methods[expanse.type].unnormalize(expanse, value) as T[`value`];
-  }
-
-  export function train<T extends Expanse>(
-    expanse: T,
-    array: T[`value`][],
-    options?: { default?: boolean; ratio?: boolean },
-  ) {
-    methods[expanse.type].train?.(expanse, array as any, options);
-  }
-
-  export function breaks(expanse: Expanse) {
-    return methods[expanse.type].breaks?.(expanse);
   }
 
   export function move(expanse: Expanse, amount: number) {
@@ -187,21 +177,16 @@ export namespace Expanse {
     Expanse.set(expanse, (e) => (e.direction *= -1));
   }
 
-  export function reorder(expanse: Expanse, indices: number[]) {
-    if (!isDiscrete(expanse)) throw new Error(`Expanse must be discrete`);
-    Expanse.methods[expanse.type].reorder!(expanse, indices);
-  }
-
   export function unitRange(expanse: Expanse) {
     return expanse.one - expanse.zero;
   }
 
-  export function range(expanse: Expanse) {
-    if (!isContinuous(expanse)) {
-      throw new Error(`Can only compute range on a continuous expanse`);
-    }
-    return ExpanseContinuous.range(expanse);
-  }
+  // export function range(expanse: Expanse) {
+  //   if (!isContinuous(expanse)) {
+  //     throw new Error(`Can only compute range on a continuous expanse`);
+  //   }
+  //   return ExpanseContinuous.range(expanse);
+  // }
 
   export function isContinuous(expanse: Expanse): expanse is ExpanseContinuous {
     return expanse.type === `continuous` || expanse.type === `split`;

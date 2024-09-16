@@ -1,4 +1,5 @@
-import { isArray } from "../utils/funs";
+import { identity, isArray } from "../utils/funs";
+import { Poly } from "../utils/Poly";
 import { Expanse } from "./Expanse";
 
 export interface ExpanseSplit<T = any> extends Expanse<T[]> {
@@ -7,40 +8,48 @@ export interface ExpanseSplit<T = any> extends Expanse<T[]> {
 }
 
 export namespace ExpanseSplit {
+  const type = `split` as const;
+
   export function of<T>(expanse: Expanse<T>): ExpanseSplit<T> {
     const value = [] as T[];
-    const type = `split`;
     const innerType = expanse.type;
 
     return { ...expanse, value, type, innerType };
   }
 
-  export function normalize<T>(expanse: ExpanseSplit<T>, values: T | T[]) {
-    if (isArray(values)) {
-      return values.map((x) =>
-        Expanse.methods[expanse.innerType].normalize(expanse, x),
-      );
-    }
-    return Expanse.methods[expanse.innerType].normalize(expanse, values);
+  // Expanse method implementations
+  Poly.set(Expanse.normalize, type, normalize as any);
+  Poly.set(Expanse.unnormalize, type, unnormalize as any);
+  Poly.set(Expanse.train, type, train as any);
+  Poly.set(Expanse.breaks, type, breaks);
+
+  function normalize<T>(expanse: ExpanseSplit<T>, values: T | T[]) {
+    const { innerType: type } = expanse;
+    const normalizefn = Poly.dispatch(Expanse.normalize, identity, type);
+
+    if (isArray(values)) return values.map((x) => normalizefn(expanse, x));
+    return normalizefn(expanse, values);
   }
 
-  export function unnormalize<T>(
-    expanse: ExpanseSplit<T>,
-    values: number | number[],
-  ) {
-    if (isArray(values)) {
-      return values.map((x) =>
-        Expanse.methods[expanse.innerType].unnormalize(expanse, x),
-      );
-    }
-    return Expanse.methods[expanse.innerType].unnormalize(expanse, values);
+  function unnormalize<T>(expanse: ExpanseSplit<T>, values: number | number[]) {
+    const { innerType: type } = expanse;
+    const unnormalizefn = Poly.dispatch(Expanse.unnormalize, identity, type);
+
+    if (isArray(values)) return values.map((x) => unnormalizefn(expanse, x));
+    return unnormalizefn(expanse, values);
   }
 
-  export function train<T>(expanse: ExpanseSplit<T>, array: T[]) {
-    Expanse.methods[expanse.innerType].train(expanse, array);
+  function train<T>(expanse: ExpanseSplit<T>, array: T[]) {
+    const { innerType: type } = expanse;
+    const trainfn = Poly.dispatch(Expanse.train, identity, type);
+
+    trainfn(expanse, array);
   }
 
-  export function breaks<T>(expanse: ExpanseSplit<T>) {
-    return Expanse.methods[expanse.innerType].breaks(expanse);
+  function breaks<T>(expanse: ExpanseSplit<T>) {
+    const { innerType: type } = expanse;
+    const breaksfn = Poly.dispatch(Expanse.train, identity, type);
+
+    return breaksfn(expanse);
   }
 }

@@ -2,6 +2,7 @@ import { formatAxisLabels } from "../utils/funs";
 import { Meta } from "../utils/Meta";
 import { Reactive } from "../utils/Reactive";
 import { Expanse } from "./Expanse";
+import { ExpanseBand } from "./ExpanseBand";
 import { ExpanseContinuous } from "./ExpanseContinuous";
 
 export interface Scale<T extends Expanse = Expanse, U extends Expanse = Expanse>
@@ -63,20 +64,25 @@ export namespace Scale {
     options?: {
       default?: boolean;
       silent?: boolean;
-      ratio?: boolean;
       name?: boolean;
+      ratio?: boolean;
     },
   ) {
+    const { domain } = scale;
     const setName = options?.name ?? true;
     if (setName && Meta.has(array, `name`)) Meta.copy(scale, array, [`name`]);
 
     // Automatically coerce expanse to band if array is string[]
-    if (typeof array[0] === "string" && Expanse.isContinuous(scale.domain)) {
+    if (typeof array[0] === "string" && Expanse.isContinuous(domain)) {
       const labels = Array.from(new Set(array) as Set<string>);
-      scale.domain = Expanse.band(labels) as unknown as T;
+      scale.domain = ExpanseBand.of(labels) as unknown as T;
     }
 
     Expanse.train(scale.domain, array, options);
+
+    if (options?.ratio && Expanse.isContinuous(domain)) {
+      Expanse.set(domain, (e) => (e.min = 0));
+    }
   }
 
   export function restoreDefaults(scale: Scale) {
@@ -88,17 +94,14 @@ export namespace Scale {
     labels: string[];
     positions: number[];
   } {
-    const breaks = Expanse.breaks(scale.domain) as any;
+    const breaks = Expanse.breaks(scale.domain);
     let labels = formatAxisLabels(breaks);
 
     if (Expanse.isCompound(scale.domain)) {
       labels = formatAxisLabels(breaks, { decimals: 1 });
 
       const positions = breaks.map((x: number) =>
-        Expanse.unnormalize(
-          scale.codomain,
-          ExpanseContinuous.normalize(scale.domain as any, x),
-        ),
+        Expanse.unnormalize(scale.codomain, Expanse.normalize(scale.domain, x)),
       );
 
       return { labels, positions };
@@ -121,23 +124,43 @@ export namespace Scale {
   }
 
   export function domainRange(scale: Scale) {
-    return Expanse.range(scale.domain) / Expanse.unitRange(scale.domain);
+    if (!Expanse.isContinuous(scale.domain)) return;
+    return (
+      ExpanseContinuous.range(scale.domain) / Expanse.unitRange(scale.domain)
+    );
   }
 
   export function codomainRange(scale: Scale) {
-    return Expanse.range(scale.codomain) * Expanse.unitRange(scale.codomain);
+    if (!Expanse.isContinuous(scale.codomain)) return;
+    return (
+      ExpanseContinuous.range(scale.codomain) *
+      Expanse.unitRange(scale.codomain)
+    );
   }
 
   export function unitRatio(scale: Scale) {
     const { domain, codomain } = scale;
 
+    if (!Expanse.isContinuous(domain) || !Expanse.isContinuous(codomain)) {
+      return;
+    }
+
     if ([domain, codomain].map(Expanse.isContinuous).includes(false)) {
       throw new Error(`Both domain and codomain need to be continuous`);
     }
 
-    const domainRange = Expanse.range(domain);
-    const codomainRange = Expanse.range(codomain) * Expanse.unitRange(codomain);
+    const domainRange = ExpanseContinuous.range(domain);
+    const codomainRange =
+      ExpanseContinuous.range(codomain) * Expanse.unitRange(codomain);
 
     return codomainRange / domainRange;
+  }
+
+  export function isContinuous(
+    scale: Scale,
+  ): scale is Scale<ExpanseContinuous, ExpanseContinuous> {
+    return (
+      Expanse.isContinuous(scale.domain) && Expanse.isContinuous(scale.codomain)
+    );
   }
 }

@@ -1,3 +1,6 @@
+import { Expanse } from "../main";
+import { ExpanseContinuous } from "../scales/ExpanseContinuous";
+import { ExpansePoint } from "../scales/ExpansePoint";
 import { Getter } from "./Getter";
 import { Meta } from "./Meta";
 import {
@@ -1026,4 +1029,11 @@ export function stringArraysMatch(array1: string[], array2: string[]) {
 
 export function clearNodeChildren(node: HTMLElement) {
   node.innerHTML = ``;
+}
+
+export function inferExpanse(values: any[], options = { train: true }) {
+  const isNumeric = isNumberArray(values);
+  const expanse = isNumeric ? ExpanseContinuous.of() : ExpansePoint.of();
+  if (options.train) Expanse.train(expanse, values);
+  return expanse;
 }

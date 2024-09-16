@@ -6,7 +6,9 @@ import { Histogram2d } from "../plots/Histogram2d";
 import { Pcoordsplot } from "../plots/Pcoordsplot";
 import { Scatterplot } from "../plots/Scatterplot";
 import { Expanse } from "../scales/Expanse";
+import { ExpanseBand } from "../scales/ExpanseBand";
 import { ExpanseContinuous } from "../scales/ExpanseContinuous";
+import { ExpansePoint } from "../scales/ExpansePoint";
 import { Scale } from "../scales/Scale";
 import { defaultOptions, GraphicalOptions } from "../scene/defaultOptions";
 import {
@@ -585,26 +587,20 @@ export namespace Plot {
     const { scales } = plot;
     const { x, y } = scales;
 
-    const xRatio = Scale.unitRatio(x);
-    const yRatio = Scale.unitRatio(y) * ratio;
+    if (!Scale.isContinuous(x) || !Scale.isContinuous(y)) return;
+
+    const xRatio = Scale.unitRatio(x)!;
+    const yRatio = Scale.unitRatio(y)! * ratio;
     const opts = { default: true, silent: true };
 
     if (xRatio > yRatio) {
       const r = (yRatio / xRatio) * Expanse.unitRange(y.domain);
-
-      Expanse.set(
-        x.domain,
-        (e) => ((e.zero = (1 - r) / 2), (e.one = (1 + r) / 2)),
-        opts,
-      );
+      const [zero, one] = [(1 - r) / 2, (1 + r) / 2];
+      Expanse.set(x.domain, (e) => ((e.zero = zero), (e.one = one)), opts);
     } else {
       const r = (xRatio / yRatio) * Expanse.unitRange(x.domain);
-
-      Expanse.set(
-        y.domain,
-        (e) => ((e.zero = (1 - r) / 2), (e.one = (1 + r) / 2)),
-        opts,
-      );
+      const [zero, one] = [(1 - r) / 2, (1 + r) / 2];
+      Expanse.set(y.domain, (e) => ((e.zero = zero), (e.one = one)), opts);
     }
   }
 
@@ -848,23 +844,28 @@ function setupScales(
     scales?: { x?: `band` | `point`; y?: `band` | `point` };
   } & GraphicalOptions,
 ) {
-  const { scales, container } = plot;
-  const { clientWidth: w, clientHeight: h } = container;
+  const { scales } = plot;
 
-  const xDomain = Expanse[options?.scales?.x ?? `continuous`]();
-  const yDomain = Expanse[options?.scales?.y ?? `continuous`]();
+  const table = {
+    continuous: ExpanseContinuous,
+    point: ExpansePoint,
+    band: ExpanseBand,
+  };
 
-  scales.x = Scale.of(xDomain, Expanse.continuous(0, w));
-  scales.y = Scale.of(yDomain, Expanse.continuous(0, h));
-  scales.height = Scale.of(Expanse.continuous(), Expanse.continuous(0, h));
-  scales.width = Scale.of(Expanse.continuous(), Expanse.continuous(0, w));
-  scales.area = Scale.of(Expanse.continuous(), Expanse.continuous());
-  scales.size = Scale.of(
-    Expanse.continuous(),
-    Expanse.continuous(0, options.size),
-  );
+  options.scales = options.scales ?? {};
+  const { x: xType = `continuous`, y: yType = `continuous` } = options.scales;
 
-  scales.areaPct = Scale.of(Expanse.continuous(), Expanse.continuous());
+  const xDomain = table[xType].of();
+  const yDomain = table[yType].of();
+
+  scales.x = Scale.of(xDomain, ExpanseContinuous.of());
+  scales.y = Scale.of(yDomain, ExpanseContinuous.of());
+  scales.height = Scale.of(ExpanseContinuous.of(), ExpanseContinuous.of());
+  scales.width = Scale.of(ExpanseContinuous.of(), ExpanseContinuous.of());
+  scales.area = Scale.of(ExpanseContinuous.of(), ExpanseContinuous.of());
+  scales.size = Scale.of(ExpanseContinuous.of(), ExpanseContinuous.of());
+
+  scales.areaPct = Scale.of(ExpanseContinuous.of(), ExpanseContinuous.of());
 
   const { x, y, width, height, size, area, areaPct } = scales;
 
@@ -886,6 +887,7 @@ function setupScales(
   Expanse.set(width.domain, (e) => (e.one = 1 - 2 * ex), opts);
   Expanse.set(height.domain, (e) => (e.one = 1 - 2 * ey), opts);
   Expanse.set(area.domain, (e) => (e.one = 1 - 2 * Math.max(ex, ey)), opts);
+  Expanse.set(size.codomain, (e) => (e.max = options.size));
 
   // Truncate so e.g. bars cannot have negative height
   const trunc0 = (x: number) => Math.max(x, 0);

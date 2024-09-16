@@ -1,3 +1,4 @@
+import { Poly } from "../utils/Poly";
 import { Reactive } from "../utils/Reactive";
 import { Direction } from "../utils/types";
 import { Expanse } from "./Expanse";
@@ -9,23 +10,24 @@ export interface ExpanseCompound<T extends Expanse[] = Expanse[]>
 }
 
 export namespace ExpanseCompound {
+  const type = `compound` as const;
+
   export function of<T extends Expanse[] = Expanse[]>(
     expanses: T = [] as unknown as T,
     options?: { zero?: number; one?: number; direction?: Direction },
   ): ExpanseCompound<T> {
     const value = [] as any[];
-    const type = `compound` as const;
 
-    const base = Expanse.continuous(0, 1, options);
-    const { zero, one, direction } = base;
-    const defaults = { zero, one, direction };
+    const shared = ExpanseContinuous.of(0, 1, options);
+    const defaults = shared.defaults;
+    const { zero, one, direction } = defaults;
 
     for (const expanse of expanses) {
       Object.assign(expanse, { zero, one, direction });
       Object.assign(expanse.defaults, { zero, one, direction });
     }
 
-    const expanse = { expanses, ...base, value, type, defaults };
+    const expanse = { expanses, ...shared, value, type, defaults };
     Reactive.listen(expanse, `changed`, () => {
       const { zero, one, direction } = expanse;
       for (const expanse of expanses) {
@@ -37,17 +39,23 @@ export namespace ExpanseCompound {
     return expanse;
   }
 
-  export function normalize(expanse: ExpanseCompound, value: any[]) {
+  // Expanse method implementations
+  Poly.set(Expanse.normalize, type, normalize as any);
+  Poly.set(Expanse.unnormalize, type, unnormalize as any);
+  Poly.set(Expanse.train, type, train);
+  Poly.set(Expanse.breaks, type, breaks);
+
+  function normalize(expanse: ExpanseCompound, value: any[]) {
     const { expanses } = expanse;
     return value.map((e, i) => Expanse.normalize(expanses[i], e)) as number[];
   }
 
-  export function unnormalize(expanse: ExpanseCompound, value: number[]) {
+  function unnormalize(expanse: ExpanseCompound, value: number[]) {
     const { expanses } = expanse;
     return value.map((e, i) => Expanse.unnormalize(expanses[i], e)) as any[];
   }
 
-  export function train(expanse: ExpanseCompound, values: any[][]) {
+  function train(expanse: ExpanseCompound, values: any[][]) {
     const { expanses } = expanse;
 
     if (values.length != expanses.length) {
@@ -60,8 +68,8 @@ export namespace ExpanseCompound {
     }
   }
 
-  export function breaks(expanse: ExpanseCompound) {
-    return ExpanseContinuous.breaks(expanse as unknown as ExpanseContinuous);
+  function breaks(expanse: ExpanseCompound) {
+    return Expanse.breaks({ ...expanse, type: `continuous` });
   }
 
   export function reset(expanse: ExpanseCompound) {

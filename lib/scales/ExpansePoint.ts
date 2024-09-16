@@ -4,8 +4,9 @@ import {
   copyValues,
   ordered,
 } from "../utils/funs";
+import { Poly } from "../utils/Poly";
 import { Reactive } from "../utils/Reactive";
-import { Direction } from "../utils/types";
+import { Direction, Stringable } from "../utils/types";
 import { Expanse } from "./Expanse";
 
 /** Converts string labels to the [0, 1] interval and back, such that each value is placed
@@ -29,31 +30,32 @@ export interface ExpansePoint extends Expanse<string> {
 }
 
 export namespace ExpansePoint {
+  const type = `point` as const;
+
   export function of(
-    labels: string[] = [],
+    labels: Stringable[] = [],
     options?: { zero?: number; one?: number; direction?: Direction },
   ): ExpansePoint {
     const value = ``;
-    const type = `point`;
+    const labs = labels.map((x) => x.toString());
 
     const base = Expanse.base(options);
-    const { zero, one, direction } = base;
     const order = Array.from(Array(labels.length), (_, i) => i);
     const ordered = false;
+    const vals = { labels: labs, order, ordered };
+    const defaults = { ...base.defaults, ...structuredClone(vals) };
 
-    const defaults = {
-      ordered,
-      labels: [...labels],
-      order: [...order],
-      zero,
-      one,
-      direction,
-    };
-
-    return { value, type, ordered, labels, order, ...base, defaults };
+    return { ...base, ...vals, value, type, defaults };
   }
 
-  export function normalize(expanse: ExpansePoint, value: string) {
+  // Expanse method implementations
+  Poly.set(Expanse.normalize, type, normalize);
+  Poly.set(Expanse.unnormalize, type, unnormalize);
+  Poly.set(Expanse.train, type, train);
+  Poly.set(Expanse.breaks, type, breaks);
+  Poly.set(Expanse.reorder, type, reorder);
+
+  function normalize(expanse: ExpansePoint, value: string) {
     const { labels, order, zero, one, direction } = expanse;
     const index = order[labels.indexOf(value)];
     if (index === -1) return index;
@@ -62,7 +64,7 @@ export namespace ExpansePoint {
     return applyDirection(pct, direction);
   }
 
-  export function unnormalize(expanse: ExpansePoint, value: number) {
+  function unnormalize(expanse: ExpansePoint, value: number) {
     const { labels, order, zero, one, direction } = expanse;
     value = applyDirection(value, direction);
     const pct = (value - zero) / (one - zero);
@@ -70,10 +72,10 @@ export namespace ExpansePoint {
     return labels[order[index]];
   }
 
-  export function train(
+  function train(
     expanse: ExpansePoint,
     array: string[],
-    options?: { default?: boolean },
+    options?: { default?: boolean; silent?: boolean },
   ) {
     const { order } = expanse;
     const labels = Array.from(new Set(array)).sort(compareAlphaNumeric);
@@ -86,9 +88,10 @@ export namespace ExpansePoint {
 
     copyValues(labels, expanse.labels);
     if (options?.default) copyValues(labels, expanse.defaults.labels);
+    Expanse.set(expanse, () => {}, options); // To trigger event listeners
   }
 
-  export function reorder(expanse: ExpansePoint, indices?: number[]) {
+  function reorder(expanse: ExpansePoint, indices?: number[]) {
     const { order, defaults } = expanse;
 
     if (!indices) {
@@ -103,7 +106,7 @@ export namespace ExpansePoint {
     Reactive.dispatch(expanse, `changed`);
   }
 
-  export function breaks(expanse: ExpansePoint) {
+  function breaks(expanse: ExpansePoint) {
     return ordered(expanse.labels, expanse.order);
   }
 }

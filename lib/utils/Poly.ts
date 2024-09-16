@@ -16,7 +16,7 @@ export namespace Poly {
     return result;
   }
 
-  function dispatch(polyfn: Poly, defaultfn: AnyFn, type: string) {
+  export function dispatch(polyfn: Poly, defaultfn: AnyFn, type: string) {
     return polyfn[METHODS][type] ?? defaultfn;
   }
 
