@@ -3,7 +3,6 @@ import {
   compareAlphaNumeric,
   copyValues,
   diff,
-  isArray,
   last,
   subset,
 } from "../utils/funs";
@@ -49,7 +48,7 @@ export namespace Factor {
     copyValues(source.indices, target.indices);
 
     for (const k of Reflect.ownKeys(source.data)) {
-      if (isArray(source.data[k]) && isArray(target.data[k])) {
+      if (Array.isArray(source.data[k]) && Array.isArray(target.data[k])) {
         copyValues(source.data[k], target.data[k]);
         Meta.copy(target.data[k], source.data[k]);
       } else {
@@ -297,7 +296,7 @@ export namespace Factor {
 
         const [oldCol, inds] = [factor1.data[key], factor1ParentIndices];
 
-        const newCol = isArray(oldCol)
+        const newCol = Array.isArray(oldCol)
           ? subset(oldCol, inds)
           : Getter.proxy(oldCol, inds);
 
@@ -311,7 +310,7 @@ export namespace Factor {
         if (typeof key === "string") while (newKey in data) newKey += `$`;
         const [oldCol, inds] = [factor2.data[key], factor2ParentIndices];
 
-        const newCol = isArray(oldCol)
+        const newCol = Array.isArray(oldCol)
           ? subset(oldCol, inds)
           : Getter.proxy(oldCol, inds);
 

@@ -1,4 +1,4 @@
-import { isArray, isObject, isTypedArray } from "./funs";
+import { isObject, isTypedArray } from "./funs";
 import { Meta } from "./Meta";
 import { Indexable, TypedArray } from "./types";
 
@@ -10,7 +10,7 @@ export namespace Getter {
   export function of(indexable: Indexable | TypedArray) {
     if (typeof indexable === `function`) return indexable;
 
-    if (isArray(indexable)) {
+    if (Array.isArray(indexable)) {
       const getter = (index: number) => indexable[index];
       Meta.set(getter, `length`, indexable.length);
       return getter;

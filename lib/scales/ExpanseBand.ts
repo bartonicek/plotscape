@@ -3,7 +3,6 @@ import {
   compareAlphaNumeric,
   copyValues,
   cumsum,
-  isArray,
   last,
   ordered,
   seqLength,
@@ -149,7 +148,7 @@ export namespace ExpanseBand {
     const data = { labels, weights, cumulativeWeights };
 
     for (const [k, v] of Object.entries(data) as [keyof ExpanseBand, any][]) {
-      if (isArray(expanse[k])) copyValues(v, expanse[k]);
+      if (Array.isArray(expanse[k])) copyValues(v, expanse[k]);
       if (options?.default) copyValues(v, (expanse.defaults as any)[k]);
     }
     Expanse.set(expanse, () => {}, options); // Trigger listeners

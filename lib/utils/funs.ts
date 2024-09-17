@@ -1,6 +1,6 @@
-import { Expanse } from "../main";
-import { ExpanseContinuous } from "../scales/ExpanseContinuous";
-import { ExpansePoint } from "../scales/ExpansePoint";
+// import { Expanse } from "../main";
+// import { ExpanseContinuous } from "../scales/ExpanseContinuous";
+// import { ExpansePoint } from "../scales/ExpansePoint";
 import { Getter } from "./Getter";
 import { Meta } from "./Meta";
 import {
@@ -494,7 +494,7 @@ export function merge<
 export function copyValues<T extends any[] | TypedArray>(source: T, target: T) {
   if (source === target) return;
   if (isTypedArray(source) && isTypedArray(target)) target.set(source);
-  else if (isArray(source) && isArray(target)) {
+  else if (Array.isArray(source) && Array.isArray(target)) {
     target.length = source.length;
     for (let i = 0; i < source.length; i++) target[i] = source[i];
   }
@@ -507,7 +507,7 @@ export function copyValues<T extends any[] | TypedArray>(source: T, target: T) {
  */
 export function copyProps<T extends Record<string, any>>(source: T, target: T) {
   for (const [k, v] of Object.entries(source) as Entries<T>) {
-    if (isArray(v) && isArray(source[k])) copyValues(v, source[k]);
+    if (Array.isArray(v) && Array.isArray(source[k])) copyValues(v, source[k]);
     else target[k] = v;
   }
 }
@@ -890,11 +890,6 @@ export function isPrimitive(value: any): value is Primitive {
   return value === null || primitives.includes(typeof value);
 }
 
-/**
- * Checks whether an object is an array. Exported from `Array`.
- */
-export const isArray = Array.isArray;
-
 export function isObject(x: any): x is Object {
   return typeof x === `object` && x !== null;
 }
@@ -1048,11 +1043,4 @@ export function stringArraysMatch(array1: string[], array2: string[]) {
 
 export function clearNodeChildren(node: HTMLElement) {
   node.innerHTML = ``;
-}
-
-export function inferExpanse(values: any[], options = { train: true }) {
-  const isNumeric = isNumberArray(values);
-  const expanse = isNumeric ? ExpanseContinuous.of() : ExpansePoint.of();
-  if (options.train) Expanse.train(expanse, values);
-  return expanse;
 }

@@ -1,7 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { Expanse } from "../../scales/Expanse";
 import { ExpanseContinuous } from "../../scales/ExpanseContinuous";
-import { sqrt } from "../../utils/funs";
 
 describe("Expanse continuous", () => {
   const expanse = ExpanseContinuous.of(1, 10);
@@ -31,7 +30,7 @@ describe("Expanse continuous", () => {
   });
 
   test("Normalizing 4 in [1, 16] with square root transformation returns 1/3", () => {
-    Expanse.set(expanse, (e) => ((e.max = 16), (e.trans = sqrt)));
+    Expanse.set(expanse, (e) => ((e.max = 16), (e.trans = Math.sqrt)));
     expect(Expanse.normalize(expanse, 4)).toBe(1 / 3);
     Expanse.reset(expanse);
   });

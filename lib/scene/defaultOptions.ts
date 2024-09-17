@@ -21,6 +21,10 @@ updateOptions(defaultOptions);
 export type GraphicalOptions = typeof defaultOptions;
 
 export function updateOptions(options: GraphicalOptions) {
+  // Check if we really are in the browser
+  // E.g. to avoid accidentally breaking tests by importing from ./main
+  if (!globalThis.window) return;
+
   const k = options.groupColors.length;
   options.colors.length = 2 * k;
 

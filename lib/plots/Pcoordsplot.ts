@@ -1,9 +1,9 @@
 import { Lines } from "../geoms/Lines";
-import { inferExpanse } from "../main";
 import { Plot } from "../plot/Plot";
 import { ExpanseCompound } from "../scales/ExpanseCompound";
 import { ExpansePoint } from "../scales/ExpansePoint";
 import { ExpanseSplit } from "../scales/ExpanseSplit";
+import { inferExpanse } from "../scales/inferExpanse";
 import { Scale } from "../scales/Scale";
 import { Scene } from "../scene/Scene";
 import { Factor } from "../transformation/Factor";

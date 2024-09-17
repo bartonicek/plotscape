@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { Factor, POSITIONS } from "../../main";
+import { Factor, POSITIONS } from "../../transformation/Factor";
 
 // Some data
 const group = ["A", "B", "B", "C", "A", "B"];

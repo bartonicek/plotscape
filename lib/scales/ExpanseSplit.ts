@@ -1,4 +1,4 @@
-import { identity, isArray } from "../utils/funs";
+import { identity } from "../utils/funs";
 import { Poly } from "../utils/Poly";
 import { Expanse } from "./Expanse";
 
@@ -27,7 +27,7 @@ export namespace ExpanseSplit {
     const { innerType } = expanse;
     const fn = Poly.dispatch(Expanse.normalize, identity, innerType);
 
-    if (isArray(values)) return values.map((x) => fn(expanse, x));
+    if (Array.isArray(values)) return values.map((x) => fn(expanse, x));
     return fn(expanse, values);
   }
 
@@ -38,7 +38,7 @@ export namespace ExpanseSplit {
     const { innerType } = expanse;
     const fn = Poly.dispatch(Expanse.unnormalize, identity, innerType);
 
-    if (isArray(values)) return values.map((x) => fn(expanse, x));
+    if (Array.isArray(values)) return values.map((x) => fn(expanse, x));
     return fn(expanse, values);
   }
 

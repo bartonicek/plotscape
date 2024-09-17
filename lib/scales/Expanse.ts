@@ -1,12 +1,12 @@
-import { copyProps, copyValues, invertRange, isArray } from "../utils/funs";
+import { copyProps, copyValues, invertRange } from "../utils/funs";
 import { Poly } from "../utils/Poly";
 import { Reactive } from "../utils/Reactive";
 import { Direction, Entries } from "../utils/types";
-import { ExpanseBand } from "./ExpanseBand";
-import { ExpanseCompound } from "./ExpanseCompound";
-import { ExpanseContinuous } from "./ExpanseContinuous";
-import { ExpansePoint } from "./ExpansePoint";
-import { ExpanseSplit } from "./ExpanseSplit";
+import type { ExpanseBand } from "./ExpanseBand";
+import type { ExpanseCompound } from "./ExpanseCompound";
+import type { ExpanseContinuous } from "./ExpanseContinuous";
+import type { ExpansePoint } from "./ExpansePoint";
+import type { ExpanseSplit } from "./ExpanseSplit";
 
 /** Converts values from some type to the interval [0, 1] and back. */
 export interface Expanse<T = any> extends Reactive {
@@ -132,8 +132,9 @@ export namespace Expanse {
     const { defaults } = expanse;
 
     for (const [k, v] of Object.entries(defaults) as Entries<T>) {
-      if (isArray(v) && isArray(expanse[k])) copyValues(v, expanse[k]);
-      else expanse[k] = v;
+      if (Array.isArray(v) && Array.isArray(expanse[k])) {
+        copyValues(v, expanse[k]);
+      } else expanse[k] = v;
     }
 
     Reactive.dispatch(expanse, `changed`);
@@ -175,13 +176,6 @@ export namespace Expanse {
 
   export function unitRange(expanse: Expanse) {
     return expanse.one - expanse.zero;
-  }
-
-  export function range(expanse: Expanse) {
-    if (!isContinuous(expanse)) {
-      throw new Error(`Can only compute range on a continuous expanse`);
-    }
-    return ExpanseContinuous.range(expanse);
   }
 
   export function isContinuous(expanse: Expanse): expanse is ExpanseContinuous {

@@ -122,23 +122,27 @@ export namespace Scale {
   }
 
   export function domainRange(scale: Scale) {
-    return Expanse.range(scale.domain) / Expanse.unitRange(scale.domain);
+    const { domain } = scale;
+    if (!Expanse.isContinuous(domain)) return;
+    return ExpanseContinuous.range(domain) / Expanse.unitRange(domain);
   }
 
   export function codomainRange(scale: Scale) {
-    return Expanse.range(scale.codomain) * Expanse.unitRange(scale.codomain);
+    const { codomain } = scale;
+    if (!Expanse.isContinuous(codomain)) return;
+    return ExpanseContinuous.range(codomain) * Expanse.unitRange(codomain);
   }
 
   export function unitRatio(scale: Scale) {
     const { domain, codomain } = scale;
 
-    if ([domain, codomain].map(Expanse.isContinuous).includes(false)) {
+    if (!Expanse.isContinuous(domain) || !Expanse.isContinuous(codomain)) {
       throw new Error(`Both domain and codomain need to be continuous`);
     }
 
-    const domainRange = Expanse.range(domain);
-    const codomainRange = Expanse.range(codomain) * Expanse.unitRange(codomain);
+    const dr = ExpanseContinuous.range(domain);
+    const cdr = ExpanseContinuous.range(codomain) * Expanse.unitRange(codomain);
 
-    return codomainRange / domainRange;
+    return cdr / dr;
   }
 }

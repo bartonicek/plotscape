@@ -1,5 +1,5 @@
 import { Reactive } from "../utils/Reactive";
-import { copyValues, isArray, isIntegerString, merge } from "../utils/funs";
+import { copyValues, isIntegerString, merge } from "../utils/funs";
 import { Columns, Dataframe, Flat, Indexable } from "../utils/types";
 import { Factor } from "./Factor";
 import { Reduced } from "./Reduced";
@@ -89,7 +89,7 @@ export namespace Summaries {
         const newTranslated = compute(data[i]);
 
         for (const k of Reflect.ownKeys(newTranslated)) {
-          if (isArray(newTranslated[k]) && isArray(translated[k])) {
+          if (Array.isArray(newTranslated[k]) && Array.isArray(translated[k])) {
             copyValues(newTranslated[k], translated[k]);
           }
         }
