@@ -1,10 +1,5 @@
-import {
-  copyProps,
-  copyValues,
-  invertRange,
-  isArray,
-  isNumberArray,
-} from "../utils/funs";
+import { copyProps, copyValues, invertRange, isArray } from "../utils/funs";
+import { Poly } from "../utils/Poly";
 import { Reactive } from "../utils/Reactive";
 import { Direction, Entries } from "../utils/types";
 import { ExpanseBand } from "./ExpanseBand";
@@ -32,38 +27,55 @@ export interface Expanse<T = any> extends Reactive {
   };
 }
 
-export type ExpanseTypeMap = {
-  continuous: ExpanseContinuous;
-  point: ExpansePoint;
-  band: ExpanseBand;
-};
-
-type ExpanseMethods = {
-  normalize(expanse: unknown, value: unknown): unknown;
-  unnormalize(expanse: unknown, value: unknown): unknown;
-  breaks?(expanse: unknown): string[] | number[];
-  train?(expanse: unknown, array: unknown[], options?: {}): void;
-  reorder?(expanse: unknown, indices: number[]): void;
-};
-
 export namespace Expanse {
   export type Type = `continuous` | `point` | `band` | `compound` | `split`;
 
-  export const methods: {
-    [key in Type]: ExpanseMethods;
-  } = {
-    continuous: ExpanseContinuous,
-    point: ExpansePoint,
-    band: ExpanseBand,
-    compound: ExpanseCompound,
-    split: ExpanseSplit,
-  };
+  // Polymorphic methods
+  export const normalize = Poly.of(normalizeDefault);
+  export const unnormalize = Poly.of(unnormalizeDefault);
+  export const train = Poly.of(trainDefault);
+  export const breaks = Poly.of(breaksDefault);
+  export const reorder = Poly.of(reorderDefault);
 
-  export const continuous = ExpanseContinuous.of;
-  export const point = ExpansePoint.of;
-  export const band = ExpanseBand.of;
-  export const compound = ExpanseCompound.of;
-  export const split = ExpanseSplit.of;
+  function normalizeDefault<T extends Expanse>(
+    expanse: T,
+    value: T[`value`],
+  ): number {
+    throw new Error(
+      `Method 'normalize' not implemented for expanse of type '${expanse.type}'`,
+    );
+  }
+
+  function unnormalizeDefault<T extends Expanse>(
+    expanse: T,
+    value: number,
+  ): T[`value`] {
+    throw new Error(
+      `Method 'unnormalize' not implemented for expanse of type '${expanse.type}'`,
+    );
+  }
+
+  export function trainDefault<T extends Expanse>(
+    expanse: T,
+    array: T[`value`][],
+    options?: { default?: boolean; silent?: boolean },
+  ) {
+    throw new Error(
+      `Method 'train' not implemented for expanse of type '${expanse.type}'`,
+    );
+  }
+
+  function breaksDefault<T extends Expanse>(expanse: T): T[`value`][] {
+    throw new Error(
+      `Method 'breaks' not implemented for expanse of type '${expanse.type}'`,
+    );
+  }
+
+  function reorderDefault(expanse: Expanse<string>, indices?: number[]) {
+    throw new Error(
+      `Method 'reorder' not implemented for expanse of type '${expanse.type}'`,
+    );
+  }
 
   export function base(options?: {
     zero?: number;
@@ -75,8 +87,9 @@ export namespace Expanse {
     const direction = options?.direction ?? 1;
     const frozen = [] as string[];
     const linked = [] as Expanse[];
+    const defaults = { zero, one, direction };
 
-    return Reactive.of()({ zero, one, direction, frozen, linked });
+    return Reactive.of()({ zero, one, direction, frozen, linked, defaults });
   }
 
   export function set<T extends Expanse>(
@@ -105,13 +118,6 @@ export namespace Expanse {
     if (!options?.silent) Reactive.dispatch(expanse, `changed`);
   }
 
-  export function infer(values: any[], options = { train: true }) {
-    const isNumeric = isNumberArray(values);
-    const expanse = isNumeric ? Expanse.continuous() : Expanse.point();
-    if (options.train) Expanse.train(expanse, values);
-    return expanse;
-  }
-
   export function freeze<T extends Expanse>(expanse: T, props: (keyof T)[]) {
     for (const prop of props as string[]) {
       if (!expanse.frozen.includes(prop)) expanse.frozen.push(prop);
@@ -131,26 +137,6 @@ export namespace Expanse {
     }
 
     Reactive.dispatch(expanse, `changed`);
-  }
-
-  export function normalize<T extends Expanse>(expanse: T, value: T[`value`]) {
-    return methods[expanse.type].normalize(expanse, value) as number;
-  }
-
-  export function unnormalize<T extends Expanse>(expanse: T, value: number) {
-    return methods[expanse.type].unnormalize(expanse, value) as T[`value`];
-  }
-
-  export function train<T extends Expanse>(
-    expanse: T,
-    array: T[`value`][],
-    options?: { default?: boolean; ratio?: boolean },
-  ) {
-    methods[expanse.type].train?.(expanse, array as any, options);
-  }
-
-  export function breaks(expanse: Expanse) {
-    return methods[expanse.type].breaks?.(expanse);
   }
 
   export function move(expanse: Expanse, amount: number) {
@@ -185,11 +171,6 @@ export namespace Expanse {
 
   export function flip(expanse: Expanse) {
     Expanse.set(expanse, (e) => (e.direction *= -1));
-  }
-
-  export function reorder(expanse: Expanse, indices: number[]) {
-    if (!isDiscrete(expanse)) throw new Error(`Expanse must be discrete`);
-    Expanse.methods[expanse.type].reorder!(expanse, indices);
   }
 
   export function unitRange(expanse: Expanse) {

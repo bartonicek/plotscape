@@ -1,3 +1,6 @@
+import { Expanse } from "../main";
+import { ExpanseContinuous } from "../scales/ExpanseContinuous";
+import { ExpansePoint } from "../scales/ExpansePoint";
 import { Getter } from "./Getter";
 import { Meta } from "./Meta";
 import {
@@ -280,6 +283,16 @@ export function seq(start: number, end: number, length?: number) {
   const inc = range / (length - 1);
   const sign = end >= start ? 1 : -1;
   return Array.from(Array(length), (_, i) => start + sign * inc * i);
+}
+
+/**
+ * Returns a sequence of integers of a given `length`, starting from `start`
+ * @param start A starting value
+ * @param length Length of the sequence
+ * @returns An array of integers
+ */
+export function seqLength(start: number, length: number) {
+  return Array.from(Array(length), (_, i) => start + i);
 }
 
 /**
@@ -1026,4 +1039,11 @@ export function stringArraysMatch(array1: string[], array2: string[]) {
 
 export function clearNodeChildren(node: HTMLElement) {
   node.innerHTML = ``;
+}
+
+export function inferExpanse(values: any[], options = { train: true }) {
+  const isNumeric = isNumberArray(values);
+  const expanse = isNumeric ? ExpanseContinuous.of() : ExpansePoint.of();
+  if (options.train) Expanse.train(expanse, values);
+  return expanse;
 }

@@ -2,6 +2,7 @@ import { formatAxisLabels } from "../utils/funs";
 import { Meta } from "../utils/Meta";
 import { Reactive } from "../utils/Reactive";
 import { Expanse } from "./Expanse";
+import { ExpanseBand } from "./ExpanseBand";
 import { ExpanseContinuous } from "./ExpanseContinuous";
 
 export interface Scale<T extends Expanse = Expanse, U extends Expanse = Expanse>
@@ -73,7 +74,7 @@ export namespace Scale {
     // Automatically coerce expanse to band if array is string[]
     if (typeof array[0] === "string" && Expanse.isContinuous(scale.domain)) {
       const labels = Array.from(new Set(array) as Set<string>);
-      scale.domain = Expanse.band(labels) as unknown as T;
+      scale.domain = ExpanseBand.of(labels) as unknown as T;
     }
 
     Expanse.train(scale.domain, array, options);

@@ -6,7 +6,9 @@ import {
   isArray,
   last,
   ordered,
+  seqLength,
 } from "../utils/funs";
+import { Poly } from "../utils/Poly";
 import { Reactive } from "../utils/Reactive";
 import { Direction } from "../utils/types";
 import { Expanse } from "./Expanse";
@@ -37,6 +39,8 @@ export interface ExpanseBand extends Expanse<string> {
 }
 
 export namespace ExpanseBand {
+  const type = `band`;
+
   type Options = {
     weights?: number[];
     zero?: number;
@@ -46,15 +50,13 @@ export namespace ExpanseBand {
 
   export function of(labels: string[] = [], options?: Options): ExpanseBand {
     const value = ``;
-    const type = `band`;
-
     const base = Expanse.base(options);
-    const { zero, one, direction } = base;
 
-    const order = Array.from(Array(labels.length), (_, i) => i);
+    const [ordered, order] = [false, seqLength(0, labels.length)];
     const weights = options?.weights ?? Array(labels.length).fill(1);
     const cumulativeWeights = cumsum(weights);
-    const ordered = false;
+
+    const vals = { labels, ordered, order, weights, cumulativeWeights };
 
     const defaults = {
       ordered,
@@ -62,23 +64,18 @@ export namespace ExpanseBand {
       order: [...order],
       weights: [...weights],
       cumulativeWeights: [...cumulativeWeights],
-      zero,
-      one,
-      direction,
+      ...base.defaults,
     };
 
-    return {
-      value,
-      type,
-      ordered,
-      labels,
-      order,
-      weights,
-      cumulativeWeights,
-      ...base,
-      defaults,
-    };
+    return { value, type, ...vals, ...base, defaults };
   }
+
+  // Expanse methods implementations
+  Poly.set(Expanse.normalize, type, normalize);
+  Poly.set(Expanse.unnormalize, type, unnormalize);
+  Poly.set(Expanse.train, type, train);
+  Poly.set(Expanse.breaks, type, breaks);
+  Poly.set(Expanse.reorder, type, reorder);
 
   function getMidpoint(expanse: ExpanseBand, index: number) {
     const { order, cumulativeWeights } = expanse;
@@ -135,7 +132,7 @@ export namespace ExpanseBand {
   export function train(
     expanse: ExpanseBand,
     array: string[],
-    options?: { default?: boolean },
+    options?: { default?: boolean; silent?: boolean },
   ) {
     const { order } = expanse;
     const labels = Array.from(new Set(array)).sort(compareAlphaNumeric);
@@ -155,6 +152,7 @@ export namespace ExpanseBand {
       if (isArray(expanse[k])) copyValues(v, expanse[k]);
       if (options?.default) copyValues(v, (expanse.defaults as any)[k]);
     }
+    Expanse.set(expanse, () => {}, options); // Trigger listeners
   }
 
   export function reorder(expanse: ExpanseBand, indices?: number[]) {

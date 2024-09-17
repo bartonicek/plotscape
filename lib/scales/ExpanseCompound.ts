@@ -1,3 +1,4 @@
+import { Poly } from "../utils/Poly";
 import { Reactive } from "../utils/Reactive";
 import { Direction } from "../utils/types";
 import { Expanse } from "./Expanse";
@@ -9,14 +10,15 @@ export interface ExpanseCompound<T extends Expanse[] = Expanse[]>
 }
 
 export namespace ExpanseCompound {
+  const type = `compound` as const;
+
   export function of<T extends Expanse[] = Expanse[]>(
     expanses: T = [] as unknown as T,
     options?: { zero?: number; one?: number; direction?: Direction },
   ): ExpanseCompound<T> {
     const value = [] as any[];
-    const type = `compound` as const;
 
-    const base = Expanse.continuous(0, 1, options);
+    const base = ExpanseContinuous.of(0, 1, options);
     const { zero, one, direction } = base;
     const defaults = { zero, one, direction };
 
@@ -36,6 +38,12 @@ export namespace ExpanseCompound {
 
     return expanse;
   }
+
+  // Expanse methods implementations
+  Poly.set(Expanse.normalize, type, normalize as any);
+  Poly.set(Expanse.unnormalize, type, unnormalize as any);
+  Poly.set(Expanse.train, type, train as any);
+  Poly.set(Expanse.breaks, type, breaks);
 
   export function normalize(expanse: ExpanseCompound, value: any[]) {
     const { expanses } = expanse;
@@ -60,7 +68,7 @@ export namespace ExpanseCompound {
     }
   }
 
-  export function breaks(expanse: ExpanseCompound) {
+  export function breaks(expanse: ExpanseCompound): any[] {
     return ExpanseContinuous.breaks(expanse as unknown as ExpanseContinuous);
   }
 

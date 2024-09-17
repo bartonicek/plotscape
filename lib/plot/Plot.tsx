@@ -6,7 +6,9 @@ import { Histogram2d } from "../plots/Histogram2d";
 import { Pcoordsplot } from "../plots/Pcoordsplot";
 import { Scatterplot } from "../plots/Scatterplot";
 import { Expanse } from "../scales/Expanse";
+import { ExpanseBand } from "../scales/ExpanseBand";
 import { ExpanseContinuous } from "../scales/ExpanseContinuous";
+import { ExpansePoint } from "../scales/ExpansePoint";
 import { Scale } from "../scales/Scale";
 import { defaultOptions, GraphicalOptions } from "../scene/defaultOptions";
 import {
@@ -851,20 +853,26 @@ function setupScales(
   const { scales, container } = plot;
   const { clientWidth: w, clientHeight: h } = container;
 
-  const xDomain = Expanse[options?.scales?.x ?? `continuous`]();
-  const yDomain = Expanse[options?.scales?.y ?? `continuous`]();
+  const table = {
+    continuous: ExpanseContinuous,
+    point: ExpansePoint,
+    band: ExpanseBand,
+  };
 
-  scales.x = Scale.of(xDomain, Expanse.continuous(0, w));
-  scales.y = Scale.of(yDomain, Expanse.continuous(0, h));
-  scales.height = Scale.of(Expanse.continuous(), Expanse.continuous(0, h));
-  scales.width = Scale.of(Expanse.continuous(), Expanse.continuous(0, w));
-  scales.area = Scale.of(Expanse.continuous(), Expanse.continuous());
+  const xDomain = table[options?.scales?.x ?? `continuous`].of();
+  const yDomain = table[options?.scales?.y ?? `continuous`].of();
+
+  scales.x = Scale.of(xDomain, ExpanseContinuous.of(0, w));
+  scales.y = Scale.of(yDomain, ExpanseContinuous.of(0, h));
+  scales.height = Scale.of(ExpanseContinuous.of(), ExpanseContinuous.of(0, h));
+  scales.width = Scale.of(ExpanseContinuous.of(), ExpanseContinuous.of(0, w));
+  scales.area = Scale.of(ExpanseContinuous.of(), ExpanseContinuous.of());
   scales.size = Scale.of(
-    Expanse.continuous(),
-    Expanse.continuous(0, options.size),
+    ExpanseContinuous.of(),
+    ExpanseContinuous.of(0, options.size),
   );
 
-  scales.areaPct = Scale.of(Expanse.continuous(), Expanse.continuous());
+  scales.areaPct = Scale.of(ExpanseContinuous.of(), ExpanseContinuous.of());
 
   const { x, y, width, height, size, area, areaPct } = scales;
 
