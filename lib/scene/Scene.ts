@@ -12,8 +12,8 @@ import {
   seq,
   splitNumericSuffix,
   throttle,
+  tw,
 } from "../utils/funs";
-import React from "../utils/JSX";
 import { Meta } from "../utils/Meta";
 import { Reactive } from "../utils/Reactive";
 import { Columns } from "../utils/types";
@@ -76,19 +76,24 @@ export namespace Scene {
       websocketURL?: string;
     } & Partial<GraphicalOptions>,
   ): Scene<T> {
-    const container = (
-      <div
-        id="scene-container"
-        class="pr-15 tailwind relative flex h-full w-full content-center items-center justify-center bg-[#deded9] p-10"
-      >
-        <div
-          id="plots-container"
-          class="grid h-full w-full grid-cols-1 grid-rows-1 gap-5"
-        ></div>
-      </div>
-    ) as HTMLDivElement;
+    const container = DOM.element(`div`, { id: `scene-container` });
+    const plotsContainer = DOM.element(`div`, { id: `plots-container` });
 
-    const pc = DOM.select<HTMLDivElement>(container, `#plots-container`)!;
+    DOM.addClasses(
+      container,
+      tw(
+        "pr-15 tailwind relative flex h-full w-full content-center items-center justify-center bg-[#deded9] p-10",
+      ),
+    );
+
+    DOM.addClasses(
+      plotsContainer,
+      tw("grid h-full w-full grid-cols-1 grid-rows-1 gap-5"),
+    );
+
+    DOM.append(container, plotsContainer);
+
+    // const pc = DOM.select<HTMLDivElement>(container, `#plots-container`)!;
 
     const [rows, cols] = [1, 1];
     const marker = Marker.of(Object.values(data)[0].length);
@@ -110,7 +115,7 @@ export namespace Scene {
     const scene = Reactive.of()({
       data,
       container,
-      plotsContainer: pc,
+      plotsContainer,
       rows,
       cols,
       marker,

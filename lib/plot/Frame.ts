@@ -1,4 +1,5 @@
-import { addTailwind } from "../main";
+import { tw } from "../main";
+import { DOM } from "../utils/DOM";
 import { HAnchor, MapFn, Margins, VAnchor } from "../utils/types";
 
 export interface Frame {
@@ -28,10 +29,10 @@ export namespace Frame {
     canvasStyles?: Partial<CSSStyleDeclaration>;
     contextProps?: Partial<ContextProps>;
   }): Frame {
-    const canvas = document.createElement(`canvas`);
+    const canvas = DOM.element(`canvas`);
     const context = canvas.getContext("2d")!;
 
-    addTailwind(canvas, options.classes ?? ``);
+    DOM.addClasses(canvas, tw(options.classes ?? ""));
     for (const [k, v] of Object.entries(options.canvasStyles ?? {}) as any[]) {
       canvas.style[k] = v;
     }
@@ -41,8 +42,7 @@ export namespace Frame {
     const width = clientWidth - clientLeft;
     const height = clientHeight - clientTop;
     const scalingFactor = 2;
-    const margins = options.margins ?? ([0, 0, 0, 0] as Margins);
-    const contextProps = options.contextProps ?? {};
+    const { margins = [0, 0, 0, 0], contextProps = {} } = options;
 
     return {
       canvas,

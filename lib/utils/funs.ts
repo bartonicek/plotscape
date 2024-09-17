@@ -591,6 +591,15 @@ export function binBreaks(
 }
 
 /**
+ * Formats a string consisting of tailwind classnames (with intellisense autocomplete).
+ * @param classes A string of tailwind classes
+ * @returns An array of strings (tailwind classes)
+ */
+export function tw(classes: string) {
+  return classes.trim().split(/\s+/);
+}
+
+/**
  * Adds a list of tailwind classes to an HTML element.
  * @param element An HTML element
  * @param classList A list of tailwind classes (strings)

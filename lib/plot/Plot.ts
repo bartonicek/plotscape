@@ -11,8 +11,8 @@ import { ExpanseContinuous } from "../scales/ExpanseContinuous";
 import { ExpansePoint } from "../scales/ExpansePoint";
 import { Scale } from "../scales/Scale";
 import { defaultOptions, GraphicalOptions } from "../scene/defaultOptions";
+import { DOM } from "../utils/DOM";
 import {
-  addTailwind,
   clearNodeChildren,
   copyValues,
   diff,
@@ -30,8 +30,8 @@ import {
   stringArraysMatch,
   throttle,
   trunc,
+  tw,
 } from "../utils/funs";
-import { React } from "../utils/JSX";
 import { Reactive } from "../utils/Reactive";
 import {
   baseLayers,
@@ -115,14 +115,12 @@ export namespace Plot {
     } & Partial<GraphicalOptions>,
   ): Plot {
     const type = options?.type ?? `unknown`;
-    const container = (
-      <div id="plot" class="relative h-full w-full drop-shadow-md"></div>
-    );
-    const queryTable = (
-      <table class="relative z-30 bg-gray-50 shadow-md"></table>
-    );
 
-    container.appendChild(queryTable);
+    const container = DOM.element(`div`, { id: "plot" });
+    const queryTable = DOM.element(`table`);
+    DOM.addClasses(container, tw("relative h-full, w-full drop-shadow-md"));
+    DOM.addClasses(queryTable, tw("relative z-30 bg-gray-50 shadow-md"));
+    DOM.append(container, queryTable);
 
     const data = [] as Dataframe[];
     const frames = {} as Frames;
@@ -236,7 +234,7 @@ export namespace Plot {
   }
 
   export function activate(plot: Plot) {
-    addTailwind(plot.container, `outline outline-2 outline-slate-600`);
+    DOM.addClasses(plot.container, tw("outline outline-2 outline-slate-600"));
     plot.parameters.active = true;
     Reactive.dispatch(plot, `activated`);
   }
@@ -401,15 +399,19 @@ export namespace Plot {
     clearNodeChildren(queryTable);
 
     for (const [k, v] of Object.entries(result)) {
-      const row = (
-        <tr>
-          <td class="border border-gray-400 px-3">{k}</td>
-          <td class="border border-gray-400 px-3 font-mono">
-            {formatLabel(v)}
-          </td>
-        </tr>
-      );
-      queryTable.appendChild(row);
+      const row = DOM.element(`tr`);
+      const nameCell = DOM.element(`td`, {
+        classes: tw("border border-gray-400 px-3 py-1"),
+        textContent: k,
+      });
+      const valueCell = DOM.element(`td`, {
+        classes: tw("border border-gray-400 px-3 py-1 font-mono"),
+        textContent: formatLabel(v),
+      });
+
+      DOM.append(row, nameCell);
+      DOM.append(row, valueCell);
+      DOM.append(queryTable, row);
     }
 
     queryTable.style.display = `inline-block`;
