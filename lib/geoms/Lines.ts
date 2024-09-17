@@ -3,7 +3,7 @@ import { ExpanseContinuous } from "../scales/ExpanseContinuous";
 import { Scale } from "../scales/Scale";
 import { LAYER } from "../scene/Marker";
 import { POSITIONS } from "../transformation/Factor";
-import { findLength, rectSegmentIntersect } from "../utils/funs";
+import { bimap, findLength, rectSegmentIntersect, sum } from "../utils/funs";
 import { Meta } from "../utils/Meta";
 import { DataLayers, Indexable, Point, Rect } from "../utils/types";
 import { FactorData, Geom } from "./Geom";
@@ -38,6 +38,7 @@ export namespace Lines {
     const data = Geom.groupedData(lines);
 
     const n = findLength(Object.values(data));
+
     const [x, y] = Geom.scaledArrays(n, [
       [data.x, scales.x],
       [data.y, scales.y],
@@ -82,12 +83,7 @@ export namespace Lines {
     const vars = [`x`, `y`, POSITIONS] as const;
     const [x, y] = Geom.getters(data, vars);
 
-    const pos = [
-      position[0] - 1,
-      position[1] - 1,
-      position[0] + 1,
-      position[1] + 1,
-    ] as Rect;
+    const pos = bimap(position, [-1, -1, 1, 1], sum) as Rect;
 
     for (let i = 0; i < n; i++) {
       const xi = Scale.pushforward(scales.x, x(i)) as unknown as number[];

@@ -932,7 +932,10 @@ export function isEventTarget(object: Object): object is EventTarget {
  */
 export function findLength(indexables: (Indexable | undefined)[]) {
   for (const indexable of indexables) {
-    if (!indexable) continue;
+    if (!indexable) {
+      continue;
+    }
+
     const length = Meta.get(indexable, `length`);
     if (length) return length;
   }
@@ -1036,4 +1039,16 @@ export function inferExpanse(values: any[], options = { train: true }) {
   const expanse = isNumeric ? ExpanseContinuous.of() : ExpansePoint.of();
   if (options.train) Expanse.train(expanse, values);
   return expanse;
+}
+
+export function bimap<T, U, V>(
+  array1: T[],
+  array2: U[],
+  fn: (x: T, y: U) => V,
+) {
+  const result = Array<V>(array1.length);
+  for (let i = 0; i < array1.length; i++) {
+    result[i] = fn(array1[i], array2[i]);
+  }
+  return result;
 }

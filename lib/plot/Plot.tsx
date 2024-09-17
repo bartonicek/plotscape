@@ -874,20 +874,24 @@ function setupScales(
 
   Expanse.set(area.domain, (e) => (e.ratio = true), opts);
   Expanse.set(size.domain, (e) => (e.ratio = true), opts);
-  Expanse.set(size.codomain, (e) => ((e.trans = square), (e.inv = sqrt)), opts);
-  Expanse.set(area.codomain, (e) => ((e.trans = square), (e.inv = sqrt)), opts);
-  Expanse.set(
-    areaPct.codomain,
-    (e) => ((e.trans = square), (e.inv = sqrt)),
-    opts,
-  );
 
   Expanse.set(x.domain, (e) => ((e.zero = ex), (e.one = 1 - ex)), opts);
   Expanse.set(y.domain, (e) => ((e.zero = ey), (e.one = 1 - ey)), opts);
   Expanse.set(width.domain, (e) => (e.one = 1 - 2 * ex), opts);
   Expanse.set(height.domain, (e) => (e.one = 1 - 2 * ey), opts);
   Expanse.set(area.domain, (e) => (e.one = 1 - 2 * Math.max(ex, ey)), opts);
-  Expanse.set(size.codomain, (e) => (e.max = options.size));
+
+  Expanse.set(
+    size.codomain,
+    (e) => ((e.max = options.size), (e.trans = square), (e.inv = sqrt)),
+    opts,
+  );
+  Expanse.set(area.codomain, (e) => ((e.trans = square), (e.inv = sqrt)), opts);
+  Expanse.set(
+    areaPct.codomain,
+    (e) => ((e.trans = square), (e.inv = sqrt)),
+    opts,
+  );
 
   // Truncate so e.g. bars cannot have negative height
   const trunc0 = (x: number) => Math.max(x, 0);
