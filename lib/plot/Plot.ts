@@ -109,6 +109,7 @@ export namespace Plot {
 
   export function of(
     options?: {
+      id?: string;
       type?: Type;
       ratio?: number;
       scales?: { x?: `band` | `point`; y?: `band` | `point` };

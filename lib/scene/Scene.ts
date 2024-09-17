@@ -93,8 +93,6 @@ export namespace Scene {
 
     DOM.append(container, plotsContainer);
 
-    // const pc = DOM.select<HTMLDivElement>(container, `#plots-container`)!;
-
     const [rows, cols] = [1, 1];
     const marker = Marker.of(Object.values(data)[0].length);
     const plots = [] as Plot[];
