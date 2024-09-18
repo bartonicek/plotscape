@@ -2,7 +2,7 @@ import { AnyFn } from "./types";
 
 export const METHODS = Symbol(`methods`);
 
-interface Poly {
+export interface Poly {
   [METHODS]: Record<string, AnyFn>;
 }
 

@@ -39,6 +39,7 @@ export namespace Expanse {
 
   function normalizeDefault<T extends Expanse>(
     expanse: T,
+    // @ts-ignore - want to retain the function signature fore methods
     value: T[`value`],
   ): number {
     throw new Error(
@@ -48,6 +49,7 @@ export namespace Expanse {
 
   function unnormalizeDefault<T extends Expanse>(
     expanse: T,
+    // @ts-ignore
     value: number,
   ): T[`value`] {
     throw new Error(
@@ -57,7 +59,9 @@ export namespace Expanse {
 
   export function trainDefault<T extends Expanse>(
     expanse: T,
+    // @ts-ignore
     array: T[`value`][],
+    // @ts-ignore
     options?: { default?: boolean; silent?: boolean },
   ) {
     throw new Error(
@@ -71,6 +75,7 @@ export namespace Expanse {
     );
   }
 
+  // @ts-ignore
   function reorderDefault(expanse: Expanse<string>, indices?: number[]) {
     throw new Error(
       `Method 'reorder' not implemented for expanse of type '${expanse.type}'`,

@@ -82,7 +82,7 @@ export namespace Scene {
     DOM.addClasses(
       container,
       tw(
-        "pr-15 tailwind relative flex h-full w-full content-center items-center justify-center bg-[#deded9] p-10",
+        "tailwind pr-15 relative flex h-full w-full content-center items-center justify-center bg-[#deded9] p-10",
       ),
     );
 
