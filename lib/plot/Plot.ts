@@ -24,7 +24,6 @@ import {
   orderIndicesByTable,
   rangeInverse,
   remove,
-  removeTailwind,
   sqrt,
   square,
   stringArraysMatch,
@@ -119,8 +118,16 @@ export namespace Plot {
 
     const container = DOM.element(`div`, { id: "plot" });
     const queryTable = DOM.element(`table`);
-    DOM.addClasses(container, tw("relative h-full, w-full drop-shadow-md"));
-    DOM.addClasses(queryTable, tw("relative z-30 bg-gray-50 shadow-md"));
+    DOM.addClasses(
+      container,
+      tw("tw-relative tw-h-full tw-w-full tw-drop-shadow-md"),
+    );
+
+    DOM.addClasses(
+      queryTable,
+      tw("tw-relative tw-z-30 tw-bg-gray-50 tw-shadow-md"),
+    );
+
     DOM.append(container, queryTable);
 
     const data = [] as Dataframe[];
@@ -234,14 +241,16 @@ export namespace Plot {
     }
   }
 
+  const activeClasses = tw("tw-outline tw-outline-2 tw-outline-slate-600");
+
   export function activate(plot: Plot) {
-    DOM.addClasses(plot.container, tw("outline outline-2 outline-slate-600"));
+    DOM.addClasses(plot.container, activeClasses);
     plot.parameters.active = true;
     Reactive.dispatch(plot, `activated`);
   }
 
   export function deactivate(plot: Plot) {
-    removeTailwind(plot.container, `outline outline-2 outline-slate-600`);
+    DOM.removeClasses(plot.container, activeClasses);
     plot.parameters.active = false;
     Reactive.dispatch(plot, `deactivated`);
   }
@@ -402,11 +411,13 @@ export namespace Plot {
     for (const [k, v] of Object.entries(result)) {
       const row = DOM.element(`tr`);
       const nameCell = DOM.element(`td`, {
-        classes: tw("border border-gray-400 px-3 py-1"),
+        classes: tw("tw-border tw-border-gray-400 tw-px-3 py-1"),
         textContent: k,
       });
       const valueCell = DOM.element(`td`, {
-        classes: tw("border border-gray-400 px-3 py-1 font-mono"),
+        classes: tw(
+          "tw-border tw-border-gray-400 tw-px-3 tw-py-1 tw-font-mono",
+        ),
         textContent: formatLabel(v),
       });
 
@@ -693,10 +704,10 @@ function setupFrames(plot: Plot, options: GraphicalOptions) {
   const [bottom, left, top, right] = margins;
   const dataLayers = [7, 6, 5, 4, 3, 2, 1, 0] as const;
 
-  const classes = `absolute top-0 right-0 w-full h-full `; // Default Tailwind classes
+  const classes = "tw-absolute tw-top-0 tw-right-0 tw-w-full tw-h-full "; // Default Tailwind classes
 
   for (const layer of dataLayers) {
-    // Have to use base CSS: Tailwind classes cannnot be generated dynamically
+    // Have to use base CSS for z-index: Tailwind classes cannnot be generated dynamically
     const canvasStyles = { zIndex: `${7 - layer + 2}` };
     const color = colors[layer];
     const contextProps = { fillStyle: color, strokeStyle: color };
@@ -705,7 +716,7 @@ function setupFrames(plot: Plot, options: GraphicalOptions) {
     frames[layer] = frame;
   }
 
-  const base = Frame.of({ classes: classes + `bg-gray-100` });
+  const base = Frame.of({ classes: classes + "tw-bg-gray-100" });
   Frame.setContext(base, {
     font: `${ts}rem sans-serif`,
     textBaseline: `middle`,
@@ -716,12 +727,15 @@ function setupFrames(plot: Plot, options: GraphicalOptions) {
   const width = `calc(100% - ${left}px - ${right}px)`;
   const height = `calc(100% - ${bottom}px - ${top}px)`;
   const canvasStyles = { width, height, top: top + `px`, right: right + `px` };
-  const under = Frame.of({ classes: classes + `z-1 bg-white`, canvasStyles });
+  const under = Frame.of({
+    classes: classes + "tw-z-1 tw-bg-white",
+    canvasStyles,
+  });
 
-  const overClasses = `z-10 border border-b-black border-l-black`;
+  const overClasses = "tw-z-10 tw-border tw-border-b-black tw-border-l-black";
   const over = Frame.of({ classes: classes + overClasses, canvasStyles });
 
-  const user = Frame.of({ classes: classes + `z-10`, margins });
+  const user = Frame.of({ classes: classes + "tw-z-10", margins });
   Frame.setContext(user, { globalAlpha: 1 / 15 });
 
   const fillStyle = `#3B4854`;

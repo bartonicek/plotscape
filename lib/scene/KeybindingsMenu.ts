@@ -1,4 +1,4 @@
-import { capitalize, Plot, removeTailwind, tw } from "../main";
+import { capitalize, Plot, tw } from "../main";
 import { DOM } from "../utils/DOM";
 import { Scene } from "./Scene";
 
@@ -15,20 +15,21 @@ export namespace KeybindingsMenu {
     DOM.addClasses(
       modal,
       tw(
-        `absolute left-0 top-0 z-50 flex size-full 
-        flex-col items-center bg-slate-800 bg-opacity-80 p-10`,
+        "tw-absolute tw-left-0 tw-top-0 tw-z-50 tw-flex tw-size-full tw-flex-col tw-items-center tw-bg-slate-800 tw-bg-opacity-80 tw-p-10",
       ),
     );
 
     DOM.addClasses(
       bindingsContainer,
-      tw("relative flex h-full w-fit flex-col flex-wrap justify-start py-10"),
+      tw(
+        "tw-relative tw-flex tw-h-full tw-w-fit tw-flex-col tw-flex-wrap tw-justify-start tw-py-10",
+      ),
     );
 
     DOM.addClasses(
       button,
       tw(
-        "absolute right-0 top-0 z-30 select-none rounded-bl-md bg-gray-300 p-1 px-2 text-sm text-white hover:bg-gray-400",
+        "tw-absolute tw-right-0 tw-top-0 tw-z-30 tw-select-none tw-rounded-bl-md tw-bg-gray-300 tw-p-1 tw-px-2 tw-text-sm tw-text-white hover:tw-bg-gray-400",
       ),
     );
 
@@ -53,17 +54,19 @@ export namespace KeybindingsMenu {
     modal.addEventListener(`click`, hideModal);
 
     for (const [k, v] of Object.entries(keybindings)) {
-      const node = DOM.element(`span`, { classes: tw("m-1 flex flex-row") });
+      const node = DOM.element(`span`, {
+        classes: tw("tw-m-1 tw-flex tw-flex-row"),
+      });
       const button = DOM.element(`button`, { textContent: k });
       const text = DOM.element(`div`, {
-        classes: tw("m-1 p-1 px-2 text-white"),
+        classes: tw("tw-m-1 tw-p-1 tw-px-2 tw-text-white"),
         textContent: capitalize(v.replaceAll(`-`, ` `)),
       });
 
       DOM.addClasses(
         button,
         tw(
-          "m-1 w-8 rounded-md bg-gray-400 p-1 px-2 text-center text-white outline-none hover:bg-gray-500",
+          "tw-m-1 tw-w-8 tw-rounded-md tw-bg-gray-400 tw-p-1 tw-px-2 tw-text-center tw-text-white tw-outline-none hover:tw-bg-gray-500",
         ),
       );
 
@@ -90,8 +93,11 @@ export namespace KeybindingsMenu {
 
         setKeyBinding(keybindings, key, v);
         button.innerText = event.key;
-        removeTailwind(button, `text-black bg-slate-200 hover:bg-slate-200`);
 
+        DOM.removeClasses(
+          button,
+          tw("tw-text-black tw-bg-slate-200 hover:tw-bg-slate-200"),
+        );
         window.removeEventListener(`keydown`, listener);
         locked = false;
       };

@@ -8,6 +8,7 @@ export default {
   theme: {
     extend: {},
   },
+  prefix: "tw-",
   plugins: [
     scopedPreflightStyles({
       isolationStrategy: isolateInsideOfContainer('.tailwind')})

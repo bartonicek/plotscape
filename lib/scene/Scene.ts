@@ -82,13 +82,13 @@ export namespace Scene {
     DOM.addClasses(
       container,
       tw(
-        "tailwind pr-15 relative flex h-full w-full content-center items-center justify-center bg-[#deded9] p-10",
+        "tailwind tw-pr-15 tw-relative tw-flex tw-h-full tw-w-full tw-content-center tw-items-center tw-justify-center tw-bg-[#deded9] tw-p-10",
       ),
     );
 
     DOM.addClasses(
       plotsContainer,
-      tw("grid h-full w-full grid-cols-1 grid-rows-1 gap-5 "),
+      tw("tw-grid tw-h-full tw-w-full tw-grid-cols-1 tw-grid-rows-1 tw-gap-5 "),
     );
 
     const keybindings = { ...Scene.keybindings, ...Plot.keybindings };
