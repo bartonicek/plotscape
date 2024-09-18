@@ -4,6 +4,7 @@ import { Scale } from "../scales/Scale";
 import { LAYER } from "../scene/Marker";
 import { POSITIONS } from "../transformation/Factor";
 import { findLength, pointInRect, rectsIntersect } from "../utils/funs";
+import { Getter } from "../utils/Getter";
 import { Meta } from "../utils/Meta";
 import { DataLayers, Indexable, Point, Rect } from "../utils/types";
 import { FactorData, Geom } from "./Geom";
@@ -53,8 +54,8 @@ export namespace Points {
     const data = Geom.flatData(points);
 
     const n = findLength(Object.values(data));
-    const vars = [`x`, `y`, `size`, POSITIONS] as const;
-    const [x, y, radius, positions] = Geom.getters(data, vars);
+    const { x, y, size: radius } = Getter.mapObject(data);
+    const positions = Getter.of(data[POSITIONS]);
 
     const selected = [] as number[];
 
@@ -80,8 +81,7 @@ export namespace Points {
     const data = Geom.flatData(points);
 
     const n = findLength(Object.values(data));
-    const vars = [`x`, `y`, `size`] as const;
-    const [x, y, radius] = Geom.getters(data, vars);
+    const { x, y, size: radius } = Getter.mapObject(data);
 
     for (let i = 0; i < n; i++) {
       const xi = Scale.pushforward(scales.x, x(i));

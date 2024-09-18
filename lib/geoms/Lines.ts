@@ -3,7 +3,8 @@ import { ExpanseContinuous } from "../scales/ExpanseContinuous";
 import { Scale } from "../scales/Scale";
 import { LAYER } from "../scene/Marker";
 import { POSITIONS } from "../transformation/Factor";
-import { findLength, rectSegmentIntersect } from "../utils/funs";
+import { bimap, findLength, rectSegmentIntersect, sum } from "../utils/funs";
+import { Getter } from "../utils/Getter";
 import { Meta } from "../utils/Meta";
 import { DataLayers, Indexable, Point, Rect } from "../utils/types";
 import { FactorData, Geom } from "./Geom";
@@ -52,8 +53,8 @@ export namespace Lines {
     const data = Geom.flatData(lines);
 
     const n = findLength(Object.values(data));
-    const vars = [`x`, `y`, POSITIONS] as const;
-    const [x, y, positions] = Geom.getters(data, vars);
+    const { x, y } = Getter.mapObject(data);
+    const positions = Getter.of(data[POSITIONS]);
 
     const selected = [] as number[];
 
@@ -79,15 +80,9 @@ export namespace Lines {
     const data = Geom.flatData(lines);
 
     const n = findLength(Object.values(data));
-    const vars = [`x`, `y`, POSITIONS] as const;
-    const [x, y] = Geom.getters(data, vars);
+    const { x, y } = Getter.mapObject(data);
 
-    const pos = [
-      position[0] - 1,
-      position[1] - 1,
-      position[0] + 1,
-      position[1] + 1,
-    ] as Rect;
+    const pos = bimap([...position, ...position], [-1, -1, 1, 1], sum) as Rect;
 
     for (let i = 0; i < n; i++) {
       const xi = Scale.pushforward(scales.x, x(i)) as unknown as number[];

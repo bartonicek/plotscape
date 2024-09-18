@@ -4,6 +4,7 @@ import { Scale } from "../scales/Scale";
 import { LAYER } from "../scene/Marker";
 import { POSITIONS } from "../transformation/Factor";
 import { findLength, pointInRect, rectsIntersect } from "../utils/funs";
+import { Getter } from "../utils/Getter";
 import { Meta } from "../utils/Meta";
 import { DataLayers, Indexable, Point, Rect } from "../utils/types";
 import { FactorData, Geom } from "./Geom";
@@ -52,8 +53,8 @@ export namespace Rectangles {
     const data = Geom.flatData(rectangles);
 
     const n = findLength(Object.values(data));
-    const keys = [`x0`, `y0`, `x1`, `y1`, `area`, POSITIONS] as const;
-    const [x0, y0, x1, y1, area, positions] = Geom.getters(data, keys);
+    const { x0, y0, x1, y1, area } = Getter.mapObject(data);
+    const positions = Getter.of(data[POSITIONS]);
 
     const selected = [] as number[];
 
@@ -64,7 +65,7 @@ export namespace Rectangles {
       let y1i = Scale.pushforward(scales.y, y1(i));
 
       if (data.area) {
-        const ai = Scale.pushforward(scales.area, area(i));
+        const ai = Scale.pushforward(scales.areaPct, area(i));
         const rxi = x1i - x0i;
         const ryi = y1i - y0i;
 
@@ -88,8 +89,7 @@ export namespace Rectangles {
     const data = Geom.flatData(rectangles);
 
     const n = findLength(Object.values(data));
-    const keys = [`x0`, `y0`, `x1`, `y1`, `area`] as const;
-    const [x0, y0, x1, y1, area] = Geom.getters(data, keys);
+    const { x0, y0, x1, y1, area } = Getter.mapObject(data);
 
     for (let i = 0; i < n; i++) {
       let x0i = Scale.pushforward(scales.x, x0(i));
@@ -98,7 +98,7 @@ export namespace Rectangles {
       let y1i = Scale.pushforward(scales.y, y1(i));
 
       if (data.area) {
-        const ai = Scale.pushforward(scales.area, area(i));
+        const ai = Scale.pushforward(scales.areaPct, area(i));
         const rxi = x1i - x0i;
         const ryi = y1i - y0i;
 

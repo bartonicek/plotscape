@@ -1,6 +1,6 @@
 import { isObject, isTypedArray } from "./funs";
 import { Meta } from "./Meta";
-import { Indexable, TypedArray } from "./types";
+import { Dataframe, Indexable, IndexableValue, TypedArray } from "./types";
 
 type Getter<T> = (index: number) => T;
 
@@ -48,5 +48,20 @@ export namespace Getter {
     const getter = (index: number) => getters.map((x) => x(index));
     Meta.copy(getter, indexables[0], [`length`]);
     return getter;
+  }
+
+  export function mapObject<T extends Dataframe>(indexables: T) {
+    const result = {} as any;
+    for (const k of Reflect.ownKeys(indexables)) {
+      result[k] = Getter.of(indexables[k]);
+    }
+    return result as { [key in keyof T]: Getter<IndexableValue<T[key]>> };
+  }
+
+  export function array<T>(n: number, indexable: Indexable<T>) {
+    const getter = Getter.of(indexable);
+    const result = Array<T>(n);
+    for (let i = 0; i < n; i++) result[i] = getter(i);
+    return result;
   }
 }

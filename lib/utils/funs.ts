@@ -71,6 +71,30 @@ export function call<T extends () => any>(fn: T) {
 }
 
 /**
+ * Maps simultaneously across two arrays.
+ * @param array1 An array of `T`'s
+ * @param array2 An array of `U`'s
+ * @param fn A function that combines values of type `T` and `U` into type `V`
+ * @returns An array of `V`'s
+ */
+export function bimap<T, U, V>(
+  array1: T[],
+  array2: U[],
+  fn: (x: T, y: U) => V,
+) {
+  if (array1.length !== array2.length) {
+    throw new Error(`Arrays must be of the same length`);
+  }
+
+  const result = Array<V>(array1.length);
+  for (let i = 0; i < array1.length; i++) {
+    result[i] = fn(array1[i], array2[i]);
+  }
+
+  return result;
+}
+
+/**
  * Computes the square of a number.
  *
  * @param x A number

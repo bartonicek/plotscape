@@ -4,6 +4,7 @@ import { Scale } from "../scales/Scale";
 import { LAYER } from "../scene/Marker";
 import { POSITIONS } from "../transformation/Factor";
 import { findLength, pointInRect, rectsIntersect } from "../utils/funs";
+import { Getter } from "../utils/Getter";
 import { Meta } from "../utils/Meta";
 import {
   DataLayers,
@@ -64,8 +65,8 @@ export namespace Bars {
     const data = Geom.flatData(bars);
 
     const n = findLength(Object.values(data));
-    const vars = [`x`, `y`, `width`, `height`, POSITIONS] as const;
-    const [x, y, width, height, positions] = Geom.getters(data, vars);
+    const { x, y, width, height } = Getter.mapObject(data);
+    const positions = Getter.of(data[POSITIONS]);
 
     const selected = [] as number[];
 
@@ -100,8 +101,7 @@ export namespace Bars {
     const data = Geom.flatData(bars);
 
     const n = findLength(Object.values(data));
-    const vars = [`x`, `y`, `width`, `height`] as const;
-    const [x, y, width, height] = Geom.getters(data, vars);
+    const { x, y, width, height } = Getter.mapObject(data);
 
     for (let i = 0; i < n; i++) {
       let xi = Scale.pushforward(scales.x, x(i));
