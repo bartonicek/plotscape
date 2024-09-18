@@ -7,8 +7,8 @@ export const defaultOptions = {
   expandY: 0.1,
   gapPct: 0.8,
   gapPx: 1,
-  axisLabelSize: 1,
-  axisTitleSize: 1.25,
+  axisLabelSize: 1.5,
+  axisTitleSize: 2,
   margins: [0, 0, 0, 0] as Margins, // Will get updated
   colors: [] as string[], // Will get updated
   marginLines: [3.5, 3.5, 1, 1] as Margins,
@@ -35,6 +35,9 @@ export function updateOptions(options: GraphicalOptions) {
   }
 
   const { marginLines, axisTitleSize: ts } = options;
-  const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
-  options.margins = marginLines.map((x) => x * rem * ts) as Margins;
+
+  const styles = getComputedStyle(document.documentElement);
+  const { width, height } = styles;
+  const vmin = Math.floor(Math.min(...[width, height].map(parseFloat)) / 100);
+  options.margins = marginLines.map((x) => x * vmin * ts) as Margins;
 }

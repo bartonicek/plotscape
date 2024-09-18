@@ -1,3 +1,15 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  body {
+    @apply tw-text-body;
+  }
+
+  @screen lg {
+    body {
+      @apply tw-text-body-lg;
+    }
+  }
+}

@@ -138,7 +138,7 @@ export namespace Plot {
     const selectables = [] as Geom[];
     const queryables = [] as Geom[];
 
-    const opts = structuredClone({ ...defaultOptions, ...options });
+    const opts = { ...structuredClone(defaultOptions), ...options };
 
     const { expandX, expandY } = opts;
     const zoomStack = [[expandX, expandY, 1 - expandX, 1 - expandY]] as Rect[];
@@ -718,9 +718,9 @@ function setupFrames(plot: Plot, options: GraphicalOptions) {
 
   const base = Frame.of({ classes: classes + "tw-bg-gray-100" });
   Frame.setContext(base, {
-    font: `${ts}rem sans-serif`,
     textBaseline: `middle`,
     textAlign: `center`,
+    font: `${ts}vmin sans-serif`,
   });
 
   // Have to use base CSS here too (because of dynamic variables)
@@ -745,7 +745,7 @@ function setupFrames(plot: Plot, options: GraphicalOptions) {
     fillStyle,
     textBaseline: `top`,
     textAlign: `center`,
-    font: `${ls}rem serif`,
+    font: `${ls}vmin serif`,
   });
 
   const yAxis = Frame.of({ classes: classes });
@@ -753,7 +753,7 @@ function setupFrames(plot: Plot, options: GraphicalOptions) {
     fillStyle: `#3B4854`,
     textBaseline: `middle`,
     textAlign: `right`,
-    font: `${ls}rem serif`,
+    font: `${ls}vmin serif`,
   });
 
   Object.assign(frames, { base, under, over, user, xAxis, yAxis });

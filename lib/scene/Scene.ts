@@ -161,6 +161,8 @@ export namespace Scene {
   export function addPlot(scene: Scene, plot: Plot) {
     const { plotsContainer: plotContainer, marker, plots, plotsByType } = scene;
 
+    plot.options.margins = scene.options.margins;
+
     Reactive.listen(plot, `activated`, () => {
       for (const p of plots) if (p != plot) Reactive.dispatch(p, `deactivate`);
       scene.activePlot = plot;
@@ -381,6 +383,17 @@ export namespace Scene {
   }
 
   export function resize(scene: Scene) {
+    const { options } = scene;
+    const { margins, marginLines, axisTitleSize: ts } = options;
+
+    const styles = getComputedStyle(document.documentElement);
+    const { width, height } = styles;
+    const vmin = Math.floor(Math.min(...[width, height].map(parseFloat)) / 100);
+
+    for (let i = 0; i < 4; i++) {
+      margins[i] = marginLines[i] * vmin * ts;
+    }
+
     for (const plot of scene.plots) Reactive.dispatch(plot, `resize`);
   }
 

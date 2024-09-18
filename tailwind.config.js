@@ -6,7 +6,12 @@ export default {
     "./lib/**/*.{html,js,ts,jsx,tsx}", 
     "./src/**/*.{html,js,ts,jsx,tsx}"],
   theme: {
-    extend: {},
+    extend: {
+      fontSize: {
+        'body-lg': '1vmin',
+        'body': '1vmin',
+      }
+    }
   },
   prefix: "tw-",
   plugins: [
