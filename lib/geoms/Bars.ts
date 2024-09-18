@@ -1,5 +1,5 @@
+import { Plot } from "../main";
 import { Frame } from "../plot/Frame";
-import { ExpanseContinuous } from "../scales/ExpanseContinuous";
 import { Scale } from "../scales/Scale";
 import { LAYER } from "../scene/Marker";
 import { POSITIONS } from "../transformation/Factor";
@@ -22,17 +22,10 @@ type Data = {
   height: Indexable;
 };
 
-type Scales = {
-  x: Scale<any, ExpanseContinuous>;
-  y: Scale<any, ExpanseContinuous>;
-  width: Scale<any, ExpanseContinuous>;
-  height: Scale<any, ExpanseContinuous>;
-};
-
 export interface Bars extends Geom {
   type: Geom.Type.Bars;
   data: (Data & FactorData)[];
-  scales: Scales;
+  scales: Plot.Scales;
 
   vAnchor: VAnchor;
   hAnchor: HAnchor;
@@ -40,7 +33,7 @@ export interface Bars extends Geom {
 
 export namespace Bars {
   export function of(options?: { vAnchor?: VAnchor; hAnchor?: HAnchor }): Bars {
-    const scales = {} as Scales; // Will be definitely assigned when added to Plot
+    const scales = {} as Plot.Scales; // Will be definitely assigned when added to Plot
     const data = [] as (Data & FactorData)[];
 
     const type = Geom.Type.Bars;

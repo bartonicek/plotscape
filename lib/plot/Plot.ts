@@ -897,6 +897,7 @@ function setupScales(
   const { expandX: ex, expandY: ey } = defaultOptions;
 
   Expanse.set(area.domain, (e) => (e.ratio = true), opts);
+  Expanse.set(areaPct.domain, (e) => (e.ratio = true), opts);
   Expanse.set(size.domain, (e) => (e.ratio = true), opts);
   Expanse.set(size.codomain, (e) => ((e.trans = square), (e.inv = sqrt)), opts);
   Expanse.set(area.codomain, (e) => ((e.trans = square), (e.inv = sqrt)), opts);

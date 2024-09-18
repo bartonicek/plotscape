@@ -133,7 +133,7 @@ function histogram2d(plot: Histogram2D) {
 
   Scale.train(scales.x, flat.x1, { default: true });
   Scale.train(scales.y, flat.y1, { default: true });
-  Scale.train(scales.area, flat.area, { default: true });
+  Scale.train(scales.areaPct, flat.area, { default: true });
 
   Expanse.set(scales.area.codomain, (e) => ((e.min = 0), (e.max = 1)), {
     default: true,
@@ -147,7 +147,7 @@ function histogram2d(plot: Histogram2D) {
   Reactive.listen(flat as any, `changed`, () => {
     Scale.train(scales.x, flat.x1, { default: true, name: false });
     Scale.train(scales.y, flat.y1, { default: true, name: false });
-    Scale.train(scales.area, flat.area, { default: true });
+    Scale.train(scales.areaPct, flat.area, { default: true });
   });
 
   plot.representation = Representation.Absolute;
@@ -184,7 +184,7 @@ function spinogram2d(plot: Histogram2D) {
 
   Scale.train(scales.x, flat.x1, { default: true });
   Scale.train(scales.y, flat.y1, { default: true });
-  Scale.train(scales.area, [0, 1], { default: true });
+  Scale.train(scales.areaPct, [0, 1], { default: true });
 
   Expanse.set(scales.area.codomain, (e) => ((e.min = 0), (e.max = 1)), {
     default: true,
