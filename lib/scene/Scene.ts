@@ -22,7 +22,7 @@ import {
   GraphicalOptions,
   updateOptions,
 } from "./defaultOptions";
-import { keybindingsMenu } from "./Keybindings";
+import { KeybindingsMenu } from "./KeybindingsMenu";
 import { Group, Marker, Transient } from "./Marker";
 
 export interface Scene<T extends Columns = Columns>
@@ -88,10 +88,14 @@ export namespace Scene {
 
     DOM.addClasses(
       plotsContainer,
-      tw("grid h-full w-full grid-cols-1 grid-rows-1 gap-5"),
+      tw("grid h-full w-full grid-cols-1 grid-rows-1 gap-5 "),
     );
 
+    const keybindings = { ...Scene.keybindings, ...Plot.keybindings };
+    const keybindingsMenu = KeybindingsMenu.of(keybindings);
+
     DOM.append(container, plotsContainer);
+    DOM.append(container, keybindingsMenu);
 
     const [rows, cols] = [1, 1];
     const marker = Marker.of(Object.values(data)[0].length);
@@ -104,8 +108,6 @@ export namespace Scene {
     for (const [k, v] of Object.entries(data)) {
       if (!Meta.has(v, `name`)) Meta.set(v, `name`, k);
     }
-
-    const keybindings = { ...Scene.keybindings, ...Plot.keybindings };
 
     // Mock for just echoing messages back if websocket URL is not provided
     const client = { send: console.log } as WebSocket;
@@ -136,8 +138,6 @@ export namespace Scene {
       window.addEventListener(`beforeunload`, () => client.close());
       scene.client = client;
     }
-
-    container.appendChild(keybindingsMenu(scene));
 
     setupEvents(scene);
     return scene;
@@ -403,24 +403,6 @@ export namespace Scene {
 
   export function setGroupThird(scene: Scene) {
     Marker.setGroup(scene.marker, Group.Third);
-  }
-
-  export function setKeyBinding(
-    scene: Scene,
-    key: string,
-    event: Scene.Event | Plot.Event,
-  ) {
-    let oldkey: string | undefined = undefined;
-
-    for (const [k, v] of Object.entries(scene.keybindings)) {
-      if (v === event) {
-        oldkey = k;
-        break;
-      }
-    }
-
-    if (oldkey) delete scene.keybindings[oldkey];
-    scene.keybindings[key] = event;
   }
 
   export const keybindings: Record<string, Event> = {
