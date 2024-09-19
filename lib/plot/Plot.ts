@@ -281,21 +281,36 @@ export namespace Plot {
   }
 
   export function resize(plot: Plot) {
-    for (const frame of Object.values(plot.frames)) Frame.resize(frame);
     const { container, scales, frames, parameters, options } = plot;
     const { clientWidth, clientHeight } = container;
     const { x, y, width, height, area } = scales;
-    const { margins } = options;
+    const { margins, marginLines } = options;
+
+    const styles = getComputedStyle(plot.container);
+    const em = parseFloat(styles.fontSize);
+
+    for (let i = 0; i < margins.length; i++) {
+      margins[i] = marginLines[i] * em;
+    }
+
+    for (const frame of Object.values(plot.frames)) Frame.resize(frame);
 
     const [bottom, left] = [margins[0], margins[1]];
     const [top, right] = [clientHeight - margins[2], clientWidth - margins[3]];
 
-    frames.under.canvas.style.width = `calc(100% - ${left}px - ${margins[3]}px)`;
-    frames.under.canvas.style.height = `calc(100% - ${bottom}px - ${margins[2]}px)`;
-    frames.over.canvas.style.width = `calc(100% - ${left}px - ${margins[3]}px)`;
-    frames.over.canvas.style.height = `calc(100% - ${bottom}px - ${margins[2]}px)`;
+    DOM.setStyles(frames.under.canvas, {
+      width: `calc(100% - ${left}px - ${margins[3]}px)`,
+      height: `calc(100% - ${bottom}px - ${margins[2]}px)`,
+      top: `${margins[2]}px`,
+      right: `${margins[3]}px`,
+    });
 
-    for (const frame of Object.values(frames)) Frame.clip(frame);
+    DOM.setStyles(frames.over.canvas, {
+      width: `calc(100% - ${left}px - ${margins[3]}px)`,
+      height: `calc(100% - ${bottom}px - ${margins[2]}px)`,
+      top: `${margins[2]}px`,
+      right: `${margins[3]}px`,
+    });
 
     const opts = { default: true, silent: true }; // Silent to avoid re-renders
     Expanse.set(x.codomain, (e) => ((e.min = left), (e.max = right)), opts);

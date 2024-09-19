@@ -20,12 +20,10 @@ Reduced.setParent(reducedMax, reducedMaxParent);
 
 describe(`Reduced`, () => {
   test("Stacking sums works as intended", () => {
-    console.log(Array.from(Reduced.stack(reducedSum)));
     expect(Array.from(Reduced.stack(reducedSum))).toEqual([200, 920, 1220]);
   });
 
   test("Stacking maximums works as intended", () => {
-    console.log(Array.from(Reduced.stack(reducedSum)));
     expect(Array.from(Reduced.stack(reducedSum))).toEqual([200, 920, 1220]);
   });
 });

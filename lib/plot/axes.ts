@@ -11,7 +11,7 @@ export function renderAxisLabels(plot: Plot) {
 
 function renderSingleAxisLabels(plot: Plot, axis: `x` | `y`) {
   const { frames, scales, options } = plot;
-  const { margins } = options;
+  const { margins, marginLines } = options;
 
   const scale = scales[axis];
   const other = axis === `x` ? scales.y : scales.x;
@@ -54,9 +54,10 @@ function renderSingleAxisLabels(plot: Plot, axis: `x` | `y`) {
       if (outside(y, bottom, height - top)) continue;
       if (overlap(lastY, y, lastH, h)) continue;
 
-      // Enforce a gap between labels and title
+      // Enforce a gap between y-axis labels and title
       while (margins[1] / 2 < w + h) {
-        (margins[1] *= 1.01), Plot.resize(plot);
+        marginLines[1] *= 1.05;
+        Plot.resize(plot);
       }
 
       [lastY, lastH] = [y, h];
