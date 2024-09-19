@@ -138,7 +138,7 @@ export namespace Plot {
     const selectables = [] as Geom[];
     const queryables = [] as Geom[];
 
-    const opts = { ...structuredClone(defaultOptions), ...options };
+    const opts = structuredClone({ ...defaultOptions, ...options });
 
     const { expandX, expandY } = opts;
     const zoomStack = [[expandX, expandY, 1 - expandX, 1 - expandY]] as Rect[];

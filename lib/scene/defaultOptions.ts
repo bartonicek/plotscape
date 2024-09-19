@@ -6,8 +6,8 @@ export const defaultOptions = {
   expandY: 0.1,
   gapPct: 0.8,
   gapPx: 1,
-  axisLabelSize: 1.5,
-  axisTitleSize: 2,
+  axisLabelSize: 1,
+  axisTitleSize: 1.25,
   margins: [0, 0, 0, 0] as Margins, // Will get updated
   marginLines: [3.5, 3.5, 1, 1] as Margins,
   colors: [
@@ -23,19 +23,4 @@ export const defaultOptions = {
   plotBackground: `#fefffe`,
 };
 
-updateOptions(defaultOptions);
-
 export type GraphicalOptions = typeof defaultOptions;
-
-export function updateOptions(options: GraphicalOptions) {
-  // Check if we really are in the browser
-  // E.g. to avoid accidentally breaking tests by importing from ./main
-  if (!globalThis.window) return;
-
-  const { marginLines, axisTitleSize: ts } = options;
-
-  const styles = getComputedStyle(document.documentElement);
-  const { width, height } = styles;
-  const vmin = Math.floor(Math.min(...[width, height].map(parseFloat)) / 100);
-  options.margins = marginLines.map((x) => x * vmin * ts) as Margins;
-}

@@ -17,11 +17,7 @@ import {
 import { Meta } from "../utils/Meta";
 import { Reactive } from "../utils/Reactive";
 import { Columns } from "../utils/types";
-import {
-  defaultOptions,
-  GraphicalOptions,
-  updateOptions,
-} from "./defaultOptions";
+import { defaultOptions, GraphicalOptions } from "./defaultOptions";
 import { KeybindingsMenu } from "./KeybindingsMenu";
 import { Group, Marker, Transient } from "./Marker";
 
@@ -103,7 +99,6 @@ export namespace Scene {
     const plotsByType = {} as Record<Plot.Type, number[]>;
 
     const opts = Object.assign(defaultOptions, options);
-    updateOptions(opts);
 
     for (const [k, v] of Object.entries(data)) {
       if (!Meta.has(v, `name`)) Meta.set(v, `name`, k);
@@ -160,8 +155,6 @@ export namespace Scene {
 
   export function addPlot(scene: Scene, plot: Plot) {
     const { plotsContainer: plotContainer, marker, plots, plotsByType } = scene;
-
-    plot.options.margins = scene.options.margins;
 
     Reactive.listen(plot, `activated`, () => {
       for (const p of plots) if (p != plot) Reactive.dispatch(p, `deactivate`);
@@ -383,17 +376,6 @@ export namespace Scene {
   }
 
   export function resize(scene: Scene) {
-    const { options } = scene;
-    const { margins, marginLines, axisTitleSize: ts } = options;
-
-    const styles = getComputedStyle(document.documentElement);
-    const { width, height } = styles;
-    const vmin = Math.floor(Math.min(...[width, height].map(parseFloat)) / 100);
-
-    for (let i = 0; i < 4; i++) {
-      margins[i] = marginLines[i] * vmin * ts;
-    }
-
     for (const plot of scene.plots) Reactive.dispatch(plot, `resize`);
   }
 
