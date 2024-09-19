@@ -120,7 +120,9 @@ export namespace Plot {
     const queryTable = DOM.element(`table`);
     DOM.addClasses(
       container,
-      tw("tw-relative tw-h-full tw-w-full tw-drop-shadow-md"),
+      tw(
+        "tw-relative tw-h-full tw-w-full tw-drop-shadow-md tw-text-[max(min(2vmin,16px),8px)]",
+      ),
     );
 
     DOM.addClasses(
