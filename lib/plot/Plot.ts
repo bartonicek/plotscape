@@ -718,7 +718,7 @@ function setupFrames(plot: Plot, options: GraphicalOptions) {
 
   const base = Frame.of({ classes: classes + "tw-bg-gray-100" });
   Frame.setContext(base, {
-    font: `${ts}rem sans-serif`,
+    font: `${ts}em sans-serif`,
     textBaseline: `middle`,
     textAlign: `center`,
   });
@@ -745,7 +745,7 @@ function setupFrames(plot: Plot, options: GraphicalOptions) {
     fillStyle,
     textBaseline: `top`,
     textAlign: `center`,
-    font: `${ls}rem serif`,
+    font: `${ls}em serif`,
   });
 
   const yAxis = Frame.of({ classes: classes });
@@ -753,7 +753,7 @@ function setupFrames(plot: Plot, options: GraphicalOptions) {
     fillStyle: `#3B4854`,
     textBaseline: `middle`,
     textAlign: `right`,
-    font: `${ls}rem serif`,
+    font: `${ls}em serif`,
   });
 
   Object.assign(frames, { base, under, over, user, xAxis, yAxis });
