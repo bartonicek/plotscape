@@ -21,6 +21,15 @@ export namespace DOM {
     return element.querySelector(selector) as T | undefined;
   }
 
+  export function setStyles(
+    element: HTMLElement,
+    styles: Partial<CSSStyleDeclaration>,
+  ) {
+    for (const [k, v] of Object.entries(styles)) {
+      (element.style as any)[k] = v;
+    }
+  }
+
   export function addClasses(element: HTMLElement, classes: string[]) {
     for (const c of classes) element.classList.add(c);
   }
