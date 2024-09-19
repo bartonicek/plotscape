@@ -78,13 +78,15 @@ export namespace Scene {
     DOM.addClasses(
       container,
       tw(
-        "tailwind tw-pr-15 tw-relative tw-flex tw-h-full tw-w-full tw-content-center tw-items-center tw-justify-center tw-bg-[#deded9] tw-p-10",
+        "tailwind tw-pr-15 tw-relative tw-flex tw-h-full tw-w-full tw-content-center tw-items-center tw-justify-center tw-bg-[#deded9] tw-p-10  tw-text-[max(min(2vmin,16px),8px)]",
       ),
     );
 
     DOM.addClasses(
       plotsContainer,
-      tw("tw-grid tw-h-full tw-w-full tw-grid-cols-1 tw-grid-rows-1 tw-gap-3 "),
+      tw(
+        "tw-grid tw-h-full tw-w-full tw-grid-cols-1 tw-grid-rows-1 tw-gap-[1em]",
+      ),
     );
 
     const keybindings = { ...Scene.keybindings, ...Plot.keybindings };
