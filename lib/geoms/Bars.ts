@@ -121,18 +121,57 @@ export namespace Bars {
       ] as Rect;
 
       if (pointInRect(position, rectCoords)) {
-        const childIndices = data[Factor.CHILD_INDICES];
-        if (childIndices.length === 0 || childIndices[i].length === 1) {
+        const childIndices = data[Factor.CHILD_INDICES]?.[i];
+        if (!childIndices || childIndices.length === 1) {
           return Dataframe.getQueryRow(data, i);
         }
 
-        const rows = childIndices[i].map((x: number) => {
-          const row = Dataframe.getQueryRow(groupedData, x);
-          (row as any)[LAYER] = (groupedData as any)[LAYER][x];
-          return row;
-        });
+        const flatRow = Dataframe.getQueryRow(data, i, { reduced: `exclude` });
+        const rows = [flatRow];
+
+        for (let j = 0; j < childIndices.length; j++) {
+          const index = childIndices[j];
+          const row = Dataframe.getQueryRow(groupedData, index, {
+            reduced: `only`,
+          });
+          (row as any)[LAYER] = (groupedData as any)[LAYER][index];
+          rows.push(row);
+        }
 
         return rows;
+
+        // const childIndices = data[Factor.CHILD_INDICES];
+
+        // if (childIndices.length === 0 || childIndices[i].length === 1) {
+        //   const flatQueryRow = Dataframe.getQueryRow(data, i);
+        //   return flatQueryRow;
+        // }
+
+        // const exclude = [] as string[];
+        // for (const v of Object.values(data)) {
+        //   if (Meta.get(v, `reduced`) || !Meta.has(v, `name`)) continue;
+        //   exclude.push(Meta.get(v, `name`) as string);
+        // }
+
+        // const flatQueryRow = Dataframe.getQueryRow(data, i);
+
+        // for (const k of Object.keys(flatQueryRow)) {
+        //   if (!exclude.includes(k)) delete flatQueryRow[k];
+        // }
+
+        // const rows = [flatQueryRow];
+
+        // for (let j = 0; j < childIndices[i].length; j++) {
+        //   const index = childIndices[i][j];
+        //   const groupedRow = Dataframe.getQueryRow(groupedData, index, {
+        //     exclude,
+        //   });
+
+        //   (groupedRow as any)[LAYER] = (groupedData as any)[LAYER][index];
+        //   rows.push(groupedRow);
+        // }
+
+        // return rows;
       }
     }
   }

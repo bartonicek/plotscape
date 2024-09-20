@@ -3,7 +3,8 @@ const LENGTH = Symbol(`length`);
 const MIN = Symbol(`min`);
 const MAX = Symbol(`max`);
 const QUERYABLE = Symbol(`queryable`);
-const PARENTVALUES = Symbol(`parentValues`);
+const REDUCED = Symbol(`reduced`);
+const PARENT_VALUES = Symbol(`parent-values`);
 
 declare global {
   interface Object {
@@ -12,7 +13,8 @@ declare global {
     [MIN]?: number;
     [MAX]?: number;
     [QUERYABLE]?: boolean;
-    [PARENTVALUES]?: any;
+    [REDUCED]?: boolean;
+    [PARENT_VALUES]?: any;
   }
 }
 
@@ -22,7 +24,8 @@ const keyToSymbolMap = {
   min: MIN,
   max: MAX,
   queryable: QUERYABLE,
-  parent: PARENTVALUES,
+  reduced: REDUCED,
+  parent: PARENT_VALUES,
 } as const;
 
 type Prop = keyof typeof keyToSymbolMap;

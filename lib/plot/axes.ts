@@ -79,7 +79,7 @@ function renderSingleAxisTitle(plot: Plot, axis: `x` | `y`) {
   const other = axis === `x` ? plot.scales.y : plot.scales.x;
 
   const frame = frames.base;
-  const name = Meta.get(scale, `name`);
+  const name = Meta.get(scale, `name`) as string;
   const offset = axis === `x` ? margins[0] : margins[1];
 
   const dim1 = Expanse.unnormalize(scale.codomain, 0.5);

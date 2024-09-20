@@ -4,21 +4,23 @@ import { Meta } from "../utils/Meta";
 import { Factor } from "./Factor";
 import { Reducer } from "./Reducer";
 
-const PARENT = Symbol(`parent`);
-const VALUES = Symbol(`values`);
-const INDICES = Symbol(`indices`);
-const FACTOR = Symbol(`factor`);
-const REDUCER = Symbol(`reducer`);
-
 export interface Reduced<T = any> extends Array<T> {
-  [FACTOR]: Factor;
-  [REDUCER]: Reducer<any, T>;
-  [VALUES]: T[];
-  [PARENT]?: Reduced<T>;
-  [INDICES]?: number[];
+  [Reduced.FACTOR]: Factor;
+  [Reduced.REDUCER]: Reducer<any, T>;
+  [Reduced.PARENT]?: Reduced<T>;
+  [Reduced.INDICES]?: number[];
+  [Reduced.VALUES]: T[];
+  [Reduced.ORIGINAL_VALUES]: T[];
 }
 
 export namespace Reduced {
+  export const PARENT = Symbol(`parent`);
+  export const VALUES = Symbol(`values`);
+  export const INDICES = Symbol(`indices`);
+  export const FACTOR = Symbol(`factor`);
+  export const REDUCER = Symbol(`reducer`);
+  export const ORIGINAL_VALUES = Symbol(`original-values`);
+
   export function of<T>(
     reduced: T[] | Reduced<T>,
     factor: Factor,
@@ -29,8 +31,9 @@ export namespace Reduced {
     result[VALUES] = reduced;
     result[FACTOR] = factor;
     result[REDUCER] = reducer;
-    if (parent) setParent(result, parent);
+    result[ORIGINAL_VALUES] = reduced;
 
+    if (parent) setParent(result, parent);
     return result;
   }
 
@@ -48,7 +51,9 @@ export namespace Reduced {
     const result = of(array, getFactor(parent), reducer, getParent(parent));
     setValues(result, parent);
     setIndices(result, parentIndices);
-    Meta.copy(result, reduced, [`name`, `queryable`]);
+    result[ORIGINAL_VALUES] = reduced[ORIGINAL_VALUES];
+
+    Meta.copy(result, reduced, [`name`, `queryable`, `reduced`]);
 
     return result;
   }
@@ -77,7 +82,9 @@ export namespace Reduced {
     const result = Reduced.of(array, factor, reducer, parent);
     setValues(result, stacked);
     if (indices) setIndices(result, indices);
-    Meta.copy(result, reduced, [`name`, `queryable`]);
+    result[ORIGINAL_VALUES] = reduced[ORIGINAL_VALUES];
+
+    Meta.copy(result, reduced, [`name`, `queryable`, `reduced`]);
 
     return result;
   }
@@ -102,7 +109,9 @@ export namespace Reduced {
     const result = Reduced.of(array, factor, reducer, parent);
     setValues(result, normalized);
     if (indices) setIndices(result, indices);
-    Meta.copy(result, reduced, [`name`, `queryable`]);
+    result[ORIGINAL_VALUES] = reduced[ORIGINAL_VALUES];
+
+    Meta.copy(result, reduced, [`name`, `queryable`, `reduced`]);
 
     return result;
   }
@@ -118,6 +127,8 @@ export namespace Reduced {
     const result = Reduced.of(array, factor, reducer, parent);
     setValues(result, shifted);
     if (indices) setIndices(result, indices);
+    result[ORIGINAL_VALUES] = reduced[ORIGINAL_VALUES];
+
     Meta.copy(result, reduced, [`name`, `queryable`]);
 
     return result;

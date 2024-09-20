@@ -87,6 +87,7 @@ export namespace Reducer {
     Meta.copy(result, values as any);
     Meta.set(result, `name`, getName(array, reducer) ?? `[unknown summary]`);
     Meta.set(result, `queryable`, true);
+    Meta.set(result, `reduced`, true);
 
     return result;
   }
