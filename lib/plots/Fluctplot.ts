@@ -50,7 +50,11 @@ export function Fluctuationplot<T extends Columns>(
 
   const representation = Representation.Absolute;
   const opts = { type: `fluct`, scales: { x: `band`, y: `band` } } as const;
-  const plot = { representation, ...Plot.of(opts), summaries, coordinates };
+  const plot = Object.assign(Plot.of(opts), {
+    representation,
+    summaries,
+    coordinates,
+  });
 
   Scale.shareCodomain(plot.scales.area, plot.scales.width);
   Scale.shareCodomain(plot.scales.area, plot.scales.height);

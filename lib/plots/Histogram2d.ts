@@ -72,7 +72,11 @@ export function Histogram2d<T extends Columns>(
   const representation = Representation.Absolute;
   const coordinates = [] as (Dataframe & Reactive)[];
   const opts = { type: `histo2d`, ratio: options?.ratio } as const;
-  const plot = { representation, ...Plot.of(opts), summaries, coordinates };
+  const plot = Object.assign(Plot.of(opts), {
+    representation,
+    summaries,
+    coordinates,
+  });
 
   Reactive.listen(plot, `normalize`, () => switchRepresentation(plot));
 

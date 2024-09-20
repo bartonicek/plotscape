@@ -26,7 +26,7 @@ export interface Scene<T extends Columns = Columns>
   data: T;
   container: HTMLDivElement;
   plotsContainer: HTMLDivElement;
-  // queryTable: HTMLTableElement;
+  queryTable: HTMLTableElement;
 
   client?: WebSocket;
 
@@ -91,15 +91,15 @@ export namespace Scene {
       ),
     );
 
-    // const queryTable = DOM.element(`table`, {
-    //   classes: tw("tw-absolute tw-z-100 tw-bg-gray-50 tw-shadow-md"),
-    // });
+    const queryTable = DOM.element(`table`, {
+      classes: tw("tw-fixed tw-z-30 tw-bg-gray-50 tw-shadow-md"),
+    });
 
     const keybindings = { ...Scene.keybindings, ...Plot.keybindings };
     const keybindingsMenu = KeybindingsMenu.of(keybindings);
 
     DOM.append(container, plotsContainer);
-    // DOM.append(container, queryTable);
+    DOM.append(container, queryTable);
     DOM.append(container, keybindingsMenu);
 
     const [rows, cols] = [1, 1];
@@ -120,7 +120,7 @@ export namespace Scene {
       data,
       container,
       plotsContainer,
-      // queryTable,
+      queryTable,
       rows,
       cols,
       marker,
@@ -190,6 +190,7 @@ export namespace Scene {
     plots.push(plot);
 
     Plot.append(plotContainer, plot);
+    plot.queryTable = scene.queryTable;
 
     updatePlotIds(scene);
     autoUpdateDimensions(scene);
@@ -420,7 +421,7 @@ export namespace Scene {
 }
 
 function setupEvents(scene: Scene) {
-  const { marker, plots, container, keybindings } = scene;
+  const { marker, plots, container, keybindings, queryTable } = scene;
 
   container.addEventListener(`mousedown`, () => {
     for (const plot of plots) Reactive.dispatch(plot, `deactivate`);
@@ -434,6 +435,23 @@ function setupEvents(scene: Scene) {
     Marker.clearAll(scene.marker);
     scene.activePlot = undefined;
   });
+
+  container.addEventListener(
+    `mousemove`,
+    throttle(function (event) {
+      const { parentElement } = container;
+      const { clientX, clientY } = event;
+      const { clientWidth: appWidth, clientHeight: appHeight } = parentElement!;
+      const { clientWidth: tableWidth, clientHeight: tableHeight } = queryTable;
+
+      let [left, top] = [clientX, clientY];
+      if (clientX + tableWidth > appWidth) left -= tableWidth;
+      if (clientY + tableHeight > appHeight) top -= tableHeight;
+
+      queryTable.style.left = left + `px`;
+      queryTable.style.top = top + `px`;
+    }, 10),
+  );
 
   window.addEventListener(`keydown`, (e) => {
     const event = keybindings[e.key];

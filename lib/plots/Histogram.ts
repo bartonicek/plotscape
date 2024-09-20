@@ -65,7 +65,11 @@ export function Histogram<T extends Columns>(
   const representation = Representation.Absolute;
   const coordinates = [] as (Dataframe & Reactive)[];
   const opts = { type: `histo` } as const;
-  const plot = { representation, ...Plot.of(opts), summaries, coordinates };
+  const plot = Object.assign(Plot.of(opts), {
+    representation,
+    summaries,
+    coordinates,
+  });
 
   Reactive.listen(plot, `normalize`, () => switchRepresentation(plot));
 

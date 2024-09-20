@@ -40,5 +40,5 @@ export function Scatterplot<T extends Columns>(
   Plot.setData(plot, coordinates);
   Plot.addGeom(plot, Points.of());
 
-  return { ...plot, summaries } as unknown as Plot;
+  return Object.assign(plot, { summaries }) as unknown as Plot;
 }

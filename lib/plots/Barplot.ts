@@ -54,7 +54,11 @@ export function Barplot<T extends Columns>(
 
   const representation = Representation.Absolute;
   const opts = { type: `bar`, scales: { x: `band` } } as const;
-  const plot = { representation, ...Plot.of(opts), summaries, coordinates };
+  const plot = Object.assign(Plot.of(opts), {
+    representation,
+    summaries,
+    coordinates,
+  });
 
   Reactive.listen(plot, `normalize`, () => switchRepresentation(plot));
 

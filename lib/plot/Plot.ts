@@ -54,8 +54,8 @@ export interface Plot extends Reactive<Plot.Event> {
   data: Dataframe[];
 
   container: HTMLElement;
-  queryTable: HTMLTableElement;
   frames: Frames;
+  queryTable?: HTMLTableElement;
 
   scales: Plot.Scales;
 
@@ -116,20 +116,15 @@ export namespace Plot {
     const type = options?.type ?? `unknown`;
 
     const container = DOM.element(`div`, { id: "plot" });
-    const queryTable = DOM.element(`table`, {
-      classes: tw("tw-absolute tw-z-30 tw-bg-gray-50 tw-shadow-md"),
-    });
+    // const queryTable = DOM.element(`table`, {
+    //   classes: tw("tw-absolute tw-z-30 tw-bg-gray-50 tw-shadow-md"),
+    // });
     DOM.addClasses(
       container,
       tw("tw-relative tw-h-full tw-w-full tw-drop-shadow-md"),
     );
 
-    DOM.addClasses(
-      queryTable,
-      tw("tw-absolute tw-z-30 tw-bg-gray-50 tw-shadow-md"),
-    );
-
-    DOM.append(container, queryTable);
+    // DOM.append(container, queryTable);
 
     const data = [] as Dataframe[];
     const frames = {} as Frames;
@@ -159,7 +154,6 @@ export namespace Plot {
       type,
       data,
       container,
-      queryTable,
       frames,
       scales,
       renderables,
@@ -406,8 +400,10 @@ export namespace Plot {
 
   function query(plot: Plot, event: MouseEvent) {
     const { offsetX, offsetY } = event;
-    const { container, queryTable, queryables } = plot;
-    const { clientWidth, clientHeight } = container;
+    const { queryTable, queryables, container } = plot;
+    const { clientHeight } = container;
+
+    if (!queryTable) return;
 
     queryTable.style.display = `none`;
 
@@ -421,22 +417,8 @@ export namespace Plot {
 
     if (!result) return;
 
-    QueryTable.formatQueryTable(plot.queryTable, result);
+    QueryTable.formatQueryTable(queryTable, result);
     queryTable.style.display = `inline-block`;
-
-    const queryStyles = getComputedStyle(queryTable);
-    const queryWidth = parseFloat(queryStyles.width.slice(0, -2));
-    const { clientWidth: width } = queryTable;
-
-    if (x + queryWidth > clientWidth) {
-      queryTable.style.left = `auto`;
-      queryTable.style.right = `${width - offsetX + 5}px`;
-    } else {
-      queryTable.style.left = `${x + 5}px`;
-      queryTable.style.right = `auto`;
-    }
-
-    queryTable.style.top = offsetY + `px`;
   }
 
   export const keybindings: Record<string, Event> = {
