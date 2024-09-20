@@ -32,7 +32,7 @@ export namespace Marker {
     const group = Transient;
     const indices = new Uint32Array(n).fill(Group.Base);
     const transientIndices: number[] = [];
-    const type = Factor.Type.Surjection;
+    const type: Factor.Type = `surjection`;
     const factor = Factor.of(type, 8, indices, {
       [LAYER]: [0, 1, 2, 3, 4, 5, 6, 7],
     });

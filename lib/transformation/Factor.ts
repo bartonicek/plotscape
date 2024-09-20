@@ -28,11 +28,7 @@ export interface Factor<T extends Dataframe = Dataframe> extends Reactive {
 }
 
 export namespace Factor {
-  export enum Type {
-    Constant,
-    Bijection,
-    Surjection,
-  }
+  export type Type = `bijection` | `constant` | `surjection`;
 
   export function of<T extends Dataframe>(
     type: Type,
@@ -58,25 +54,35 @@ export namespace Factor {
   }
 
   function checkMatchingLength(factor1: Factor, factor2: Factor) {
-    if ([factor1, factor2].some((x) => x.type === Type.Bijection)) return true;
+    if ([factor1, factor2].some((x) => x.type === `bijection`)) return true;
     if (factor1.indices.length !== factor2.indices.length) {
       throw new Error(`Factors do not have matching length`);
     }
   }
 
-  export function bijection<T extends Dataframe>(
+  /**
+   * Factor where each case is assigned to a different level
+   * @param data An optional dataframe
+   * @returns The factor
+   */
+  export function bijection<T extends Dataframe | undefined>(
     data: T,
   ): Factor<Flat<T & { [POSITIONS]: Indexable<number[]> }>> {
     const cardinality = Infinity;
     const indices = new Uint32Array();
     const positions = (index: number) => [index];
 
-    const type = Type.Bijection;
-    const factorData = { ...data, [POSITIONS]: positions };
+    const type: Type = `bijection`;
+    const factorData = { ...(data ?? ({} as T)), [POSITIONS]: positions };
 
     return of(type, cardinality, indices, factorData);
   }
 
+  /**
+   * Factor where all cases are assigned to the same level
+   * @param n The number of cases
+   * @returns The factor
+   */
   export function mono(
     n: number,
   ): Factor<{ [POSITIONS]: Indexable<number[]> }> {
@@ -84,7 +90,7 @@ export namespace Factor {
     const indices = new Uint32Array(n).fill(0);
     const positions = () => Array.from(indices);
 
-    const type = Type.Constant;
+    const type: Type = `constant`;
     const data = { [POSITIONS]: positions };
 
     return of(type, cardinality, indices, data);
@@ -95,7 +101,7 @@ export namespace Factor {
    * strings as the same level.
    * @param array An array of values that have a `toString()` method
    * @param labels An optional array of labels
-   * @returns A factor
+   * @returns The factor
    */
   export function from(
     array: Stringable[],
@@ -117,7 +123,7 @@ export namespace Factor {
       positions[index].push(i);
     }
 
-    const type = Type.Surjection;
+    const type: Type = `surjection`;
     const data = { label: labels, [POSITIONS]: Object.values(positions) };
 
     return of(type, labels.length, indices, data);
@@ -133,8 +139,8 @@ export namespace Factor {
   /**
    * Creates a factor by binning a numeric array.
    * @param array An array of numbers
-   * @param options A list of binning options
-   * @returns A factor
+   * @param options Binning options
+   * @returns The factor
    */
   export function bin(
     array: number[],
@@ -182,7 +188,7 @@ export namespace Factor {
       Meta.set(binMax, `name`, `max of ${Meta.get(array, `name`)}`);
       Meta.copy(breaks, array, [`name`]);
 
-      const type = Type.Surjection;
+      const type: Type = `surjection`;
       const data = {
         binMin,
         binMax,
@@ -209,8 +215,8 @@ export namespace Factor {
    * Creates a factor by taking the Cartesian product of two existing factors.
    * @param factor1 The first factor
    * @param factor2 The second factor
-   * @returns A factor which has as its levels all of the unique combinations
-   * of the levels of the two factors (and the corresponding data)
+   * @returns A factor representing all unique combinations of levels
+   * of the two original factors (and the corresponding data)
    */
   export function product<T extends Dataframe, U extends Dataframe>(
     factor1: Factor<T>,
@@ -219,7 +225,7 @@ export namespace Factor {
     checkMatchingLength(factor1, factor2);
 
     function compute() {
-      if (factor1.type === Type.Bijection) {
+      if (factor1.type === `bijection`) {
         const data = {} as Dataframe;
 
         for (const k of Reflect.ownKeys(factor1.data)) {
@@ -230,7 +236,7 @@ export namespace Factor {
           data[k] = Getter.proxy(factor2.data[k], factor2.indices);
         }
 
-        const type = Type.Bijection;
+        const type: Type = `bijection`;
         const cardinality = factor2.indices.length;
         const indices = new Uint32Array(factor1.indices.length);
 
@@ -240,7 +246,7 @@ export namespace Factor {
         return result as Factor<TaggedUnion<T, U>>;
       }
 
-      if (factor1.type === Type.Constant) {
+      if (factor1.type === `constant`) {
         const { type, data, cardinality, indices } = factor2;
 
         const result = of(type, cardinality, indices, data);
@@ -318,7 +324,7 @@ export namespace Factor {
         data[newKey] = newCol;
       }
 
-      const type = Type.Surjection;
+      const type: Type = `surjection`;
       data[POSITIONS] = Object.values(positions);
 
       type Data = TaggedUnion<T, U>;
