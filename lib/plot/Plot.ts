@@ -11,12 +11,11 @@ import { ExpanseContinuous } from "../scales/ExpanseContinuous";
 import { ExpansePoint } from "../scales/ExpansePoint";
 import { Scale } from "../scales/Scale";
 import { defaultOptions, GraphicalOptions } from "../scene/defaultOptions";
+import { Dataframe } from "../utils/Dataframe";
 import { DOM } from "../utils/DOM";
 import {
-  clearNodeChildren,
   copyValues,
   diff,
-  formatLabel,
   invertRange,
   isDefined,
   last,
@@ -34,7 +33,6 @@ import {
 import { Reactive } from "../utils/Reactive";
 import {
   baseLayers,
-  Dataframe,
   dataLayers,
   DataLayers,
   MouseButton,
@@ -42,6 +40,7 @@ import {
 } from "../utils/types";
 import { renderAxisLabels, renderAxisTitles } from "./axes";
 import { Frame } from "./Frame";
+import { QueryTable } from "./Querytable";
 
 export type Frames = DataLayers & {
   [key in `base` | `under` | `over` | `user` | `xAxis` | `yAxis`]: Frame;
@@ -55,7 +54,7 @@ export interface Plot extends Reactive<Plot.Event> {
   data: Dataframe[];
 
   container: HTMLElement;
-  queryTable: HTMLElement;
+  queryTable: HTMLTableElement;
   frames: Frames;
 
   scales: Plot.Scales;
@@ -117,7 +116,9 @@ export namespace Plot {
     const type = options?.type ?? `unknown`;
 
     const container = DOM.element(`div`, { id: "plot" });
-    const queryTable = DOM.element(`table`);
+    const queryTable = DOM.element(`table`, {
+      classes: tw("tw-absolute tw-z-30 tw-bg-gray-50 tw-shadow-md"),
+    });
     DOM.addClasses(
       container,
       tw("tw-relative tw-h-full tw-w-full tw-drop-shadow-md"),
@@ -125,7 +126,7 @@ export namespace Plot {
 
     DOM.addClasses(
       queryTable,
-      tw("tw-relative tw-z-30 tw-bg-gray-50 tw-shadow-md"),
+      tw("tw-absolute tw-z-30 tw-bg-gray-50 tw-shadow-md"),
     );
 
     DOM.append(container, queryTable);
@@ -410,8 +411,7 @@ export namespace Plot {
 
     queryTable.style.display = `none`;
 
-    const x = offsetX;
-    const y = clientHeight - offsetY;
+    const [x, y] = [offsetX, clientHeight - offsetY];
 
     let result: Record<string, any> | undefined;
     for (const geom of queryables) {
@@ -421,26 +421,7 @@ export namespace Plot {
 
     if (!result) return;
 
-    clearNodeChildren(queryTable);
-
-    for (const [k, v] of Object.entries(result)) {
-      const row = DOM.element(`tr`);
-      const nameCell = DOM.element(`td`, {
-        classes: tw("tw-border tw-border-gray-400 tw-px-3 py-1"),
-        textContent: k,
-      });
-      const valueCell = DOM.element(`td`, {
-        classes: tw(
-          "tw-border tw-border-gray-400 tw-px-3 tw-py-1 tw-font-mono",
-        ),
-        textContent: formatLabel(v),
-      });
-
-      DOM.append(row, nameCell);
-      DOM.append(row, valueCell);
-      DOM.append(queryTable, row);
-    }
-
+    QueryTable.formatQueryTable(plot.queryTable, result);
     queryTable.style.display = `inline-block`;
 
     const queryStyles = getComputedStyle(queryTable);

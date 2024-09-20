@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { Factor, POSITIONS } from "../../transformation/Factor";
+import { Factor, Factor.POSITIONS } from "../../transformation/Factor";
 
 // Some data
 const group = ["A", "B", "B", "C", "A", "B"];
@@ -17,7 +17,7 @@ describe("Factor", () => {
 
   test(`Indices and positions encode the same information (differently)`, () => {
     const indices = factor1.indices;
-    const positions = factor1.data[POSITIONS];
+    const positions = factor1.data[Factor.POSITIONS];
     const check = [] as boolean[];
 
     for (let i = 0; i < indices.length; i++) {

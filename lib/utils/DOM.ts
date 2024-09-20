@@ -37,4 +37,8 @@ export namespace DOM {
   export function removeClasses(element: HTMLElement, classes: string[]) {
     for (const c of classes) element.classList.remove(c);
   }
+
+  export function clearChildren(node: HTMLElement) {
+    node.innerHTML = ``;
+  }
 }

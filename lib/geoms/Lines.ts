@@ -2,10 +2,10 @@ import { Frame } from "../plot/Frame";
 import { ExpanseContinuous } from "../scales/ExpanseContinuous";
 import { Scale } from "../scales/Scale";
 import { LAYER } from "../scene/Marker";
-import { POSITIONS } from "../transformation/Factor";
+import { Factor } from "../transformation/Factor";
+import { Dataframe } from "../utils/Dataframe";
 import { bimap, findLength, rectSegmentIntersect, sum } from "../utils/funs";
 import { Getter } from "../utils/Getter";
-import { Meta } from "../utils/Meta";
 import { DataLayers, Indexable, Point, Rect } from "../utils/types";
 import { FactorData, Geom } from "./Geom";
 
@@ -54,7 +54,7 @@ export namespace Lines {
 
     const n = findLength(Object.values(data));
     const { x, y } = Getter.mapObject(data);
-    const positions = Getter.of(data[POSITIONS]);
+    const positions = Getter.of(data[Factor.POSITIONS]);
 
     const selected = [] as number[];
 
@@ -78,6 +78,7 @@ export namespace Lines {
   export function query(lines: Lines, position: Point) {
     let { scales } = lines;
     const data = Geom.flatData(lines);
+    const groupedData = Geom.groupedData(lines);
 
     const n = findLength(Object.values(data));
     const { x, y } = Getter.mapObject(data);
@@ -92,18 +93,27 @@ export namespace Lines {
         const coords = [xi[j - 1], yi[j - 1], xi[j], yi[j]] as Rect;
 
         if (rectSegmentIntersect(pos, coords)) {
-          const result = {} as Record<string, any>;
-          const [xiu, yiu] = [x(i), y(i)];
-          for (let k = 0; k < xiu.length; k++) result[xiu[k]] = yiu[k];
+          const childIndices = data[Factor.CHILD_INDICES];
 
-          for (const [k, v] of Object.entries(data)) {
-            if (k === `x` || k === `y`) continue;
-            if (v && Meta.has(v, `name`)) {
-              result[Meta.get(v, `name`)] = Geom.getter(v)(i);
+          if (childIndices.length === 0 || childIndices[i].length === 1) {
+            const xq = x(i);
+            const yq = y(i);
+
+            const result = {} as Record<string, any>;
+            for (let i = 0; i < xq.length; i++) {
+              result[xq[i]] = yq[i];
             }
+
+            return result;
           }
 
-          return result;
+          const rows = childIndices[i].map((x: number) => {
+            const row = Dataframe.getQueryRow(groupedData, x);
+            (row as any)[LAYER] = (groupedData as any)[LAYER][x];
+            return row;
+          });
+
+          return rows;
         }
       }
     }

@@ -1,10 +1,10 @@
 // import { Expanse } from "../main";
 // import { ExpanseContinuous } from "../scales/ExpanseContinuous";
 // import { ExpansePoint } from "../scales/ExpansePoint";
+import { Dataframe } from "./Dataframe";
 import { Getter } from "./Getter";
 import { Meta } from "./Meta";
 import {
-  Dataframe,
   Entries,
   Flat,
   Indexable,
@@ -1063,8 +1063,4 @@ export function stringArraysMatch(array1: string[], array2: string[]) {
   const s1 = array1.toSorted(compareAlphaNumeric).join(``);
   const s2 = array2.toSorted(compareAlphaNumeric).join(``);
   return s1 === s2;
-}
-
-export function clearNodeChildren(node: HTMLElement) {
-  node.innerHTML = ``;
 }

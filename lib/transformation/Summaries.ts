@@ -1,6 +1,7 @@
+import { Dataframe } from "../utils/Dataframe";
 import { Reactive } from "../utils/Reactive";
 import { copyValues, isIntegerString, merge } from "../utils/funs";
-import { Columns, Dataframe, Flat, Indexable } from "../utils/types";
+import { Columns, Flat, Indexable } from "../utils/types";
 import { Factor } from "./Factor";
 import { Reduced } from "./Reduced";
 import { Reducer } from "./Reducer";
@@ -51,6 +52,10 @@ export namespace Summaries {
 
         for (const k of Object.keys(newSummarized)) {
           copyValues(newSummarized[k], summarized[k]);
+        }
+
+        for (const k of Reflect.ownKeys(factor.data)) {
+          copyValues(factor.data[k], data[k]);
         }
       });
 

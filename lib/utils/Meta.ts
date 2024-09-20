@@ -41,7 +41,7 @@ export namespace Meta {
     return !!object[keyToSymbolMap[prop]];
   }
 
-  export function get(object: Object, prop: Prop) {
+  export function get<T extends Prop>(object: Object, prop: T) {
     if (prop === `length` && Array.isArray(object)) return object.length;
     return object[keyToSymbolMap[prop]];
   }
@@ -55,7 +55,7 @@ export namespace Meta {
   export function set<T extends Prop>(
     object: Object,
     prop: T,
-    value: PropValue[T],
+    value: Object[(typeof keyToSymbolMap)[T]],
   ) {
     object[keyToSymbolMap[prop]] = value;
   }

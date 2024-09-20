@@ -1,11 +1,10 @@
-import { Plot } from "../main";
+import { Factor, Plot } from "../main";
 import { Frame } from "../plot/Frame";
 import { Scale } from "../scales/Scale";
 import { LAYER } from "../scene/Marker";
-import { POSITIONS } from "../transformation/Factor";
+import { Dataframe } from "../utils/Dataframe";
 import { findLength, pointInRect, rectsIntersect } from "../utils/funs";
 import { Getter } from "../utils/Getter";
-import { Meta } from "../utils/Meta";
 import {
   DataLayers,
   HAnchor,
@@ -66,7 +65,7 @@ export namespace Bars {
 
     const n = findLength(Object.values(data));
     const { x, y, width, height } = Getter.mapObject(data);
-    const positions = Getter.of(data[POSITIONS]);
+    const positions = Getter.of(data[Factor.POSITIONS]);
 
     const selected = [] as number[];
 
@@ -99,6 +98,7 @@ export namespace Bars {
   export function query(bars: Bars, position: Point) {
     const { scales, hAnchor, vAnchor } = bars;
     const data = Geom.flatData(bars);
+    const groupedData = Geom.groupedData(bars);
 
     const n = findLength(Object.values(data));
     const { x, y, width, height } = Getter.mapObject(data);
@@ -121,22 +121,18 @@ export namespace Bars {
       ] as Rect;
 
       if (pointInRect(position, rectCoords)) {
-        const result = {} as Record<string, any>;
-
-        if (Meta.has(data.x, `name`)) result[Meta.get(data.x, `name`)] = x(i);
-        if (Meta.has(data.y, `name`)) result[Meta.get(data.y, `name`)] = y(i);
-        if (Meta.has(data.height, `name`)) {
-          result[Meta.get(data.height, `name`)] = height(i);
+        const childIndices = data[Factor.CHILD_INDICES];
+        if (childIndices.length === 0 || childIndices[i].length === 1) {
+          return Dataframe.getQueryRow(data, i);
         }
 
-        for (const [k, v] of Object.entries(data)) {
-          if ([`x`, `y`, `width`, `height`].includes(k)) continue;
-          if (v && Meta.has(v, `name`)) {
-            result[Meta.get(v, `name`)] = Geom.getter(v)(i);
-          }
-        }
+        const rows = childIndices[i].map((x: number) => {
+          const row = Dataframe.getQueryRow(groupedData, x);
+          (row as any)[LAYER] = (groupedData as any)[LAYER][x];
+          return row;
+        });
 
-        return result;
+        return rows;
       }
     }
   }

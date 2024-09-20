@@ -7,9 +7,10 @@ import { Factor } from "../transformation/Factor";
 import { Reduced } from "../transformation/Reduced";
 import { Reducer } from "../transformation/Reducer";
 import { Summaries } from "../transformation/Summaries";
+import { Dataframe } from "../utils/Dataframe";
 import { max, one } from "../utils/funs";
 import { Reactive } from "../utils/Reactive";
-import { Columns, Dataframe, VAnchor } from "../utils/types";
+import { Columns, VAnchor } from "../utils/types";
 
 enum Representation {
   Absolute,

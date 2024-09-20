@@ -1,4 +1,5 @@
 import { Factor } from "../transformation/Factor";
+import { Meta } from "../utils/Meta";
 import { Reactive } from "../utils/Reactive";
 import { DataLayer, Indexable } from "../utils/types";
 
@@ -17,6 +18,7 @@ export enum Group {
 }
 
 type GroupType = Group | Transient;
+export const LAYER = Symbol(`layer`);
 
 export interface Marker extends Reactive<Marker.Event> {
   group: GroupType;
@@ -33,9 +35,10 @@ export namespace Marker {
     const indices = new Uint32Array(n).fill(Group.Base);
     const transientIndices: number[] = [];
     const type: Factor.Type = `surjection`;
-    const factor = Factor.of(type, 8, indices, {
-      [LAYER]: [0, 1, 2, 3, 4, 5, 6, 7],
-    });
+
+    const layer = [0, 1, 2, 3, 4, 5, 6, 7];
+    const factor = Factor.of(type, 8, indices, { [LAYER]: layer });
+    Meta.set(layer, `queryable`, true);
 
     const marker = Reactive.of<Event>()({
       group,
@@ -120,5 +123,3 @@ export namespace Marker {
     return x | 4;
   }
 }
-
-export const LAYER = Symbol(`layer`);

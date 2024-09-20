@@ -8,10 +8,11 @@ import { Factor } from "../transformation/Factor";
 import { Reduced } from "../transformation/Reduced";
 import { Reducer } from "../transformation/Reducer";
 import { Summaries } from "../transformation/Summaries";
+import { Dataframe } from "../utils/Dataframe";
 import { cumsum, one, orderIndices, zero } from "../utils/funs";
 import { Meta } from "../utils/Meta";
 import { Reactive } from "../utils/Reactive";
-import { Columns, Dataframe } from "../utils/types";
+import { Columns } from "../utils/types";
 
 enum Representation {
   Absolute,

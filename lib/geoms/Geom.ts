@@ -1,29 +1,24 @@
 import { Frame } from "../plot/Frame";
 import { Scale } from "../scales/Scale";
 import { LAYER } from "../scene/Marker";
-import { POSITIONS } from "../transformation/Factor";
+import { Factor } from "../transformation/Factor";
+
+import { Dataframe } from "../utils/Dataframe";
 import { Getter } from "../utils/Getter";
-import {
-  Dataframe,
-  DataLayer,
-  DataLayers,
-  Indexable,
-  Point,
-  Rect,
-} from "../utils/types";
+import { DataLayer, DataLayers, Indexable, Point, Rect } from "../utils/types";
 import { Bars } from "./Bars";
 import { Lines } from "./Lines";
 import { Points } from "./Points";
 import { Rectangles } from "./Rectangles";
 
-export type FlatData = { [POSITIONS]: Indexable<number[]> };
+export type FlatData = { [Factor.POSITIONS]: Indexable<number[]> };
 export type GroupedData = {
-  [POSITIONS]: Indexable<number[]>;
+  [Factor.POSITIONS]: Indexable<number[]>;
   [LAYER]: Indexable<DataLayer>;
 };
 
 export type FactorData = {
-  [POSITIONS]: Indexable<number[]>;
+  [Factor.POSITIONS]: Indexable<number[]>;
   [LAYER]: Indexable<DataLayer>;
 };
 

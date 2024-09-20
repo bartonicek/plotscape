@@ -2,10 +2,10 @@ import { Plot } from "../main";
 import { Frame } from "../plot/Frame";
 import { Scale } from "../scales/Scale";
 import { LAYER } from "../scene/Marker";
-import { POSITIONS } from "../transformation/Factor";
+import { Factor } from "../transformation/Factor";
+import { Dataframe } from "../utils/Dataframe";
 import { findLength, pointInRect, rectsIntersect } from "../utils/funs";
 import { Getter } from "../utils/Getter";
-import { Meta } from "../utils/Meta";
 import { DataLayers, Indexable, Point, Rect } from "../utils/types";
 import { FactorData, Geom } from "./Geom";
 
@@ -54,7 +54,7 @@ export namespace Rectangles {
 
     const n = findLength(Object.values(data));
     const { x0, y0, x1, y1, area } = Getter.mapObject(data);
-    const positions = Getter.of(data[POSITIONS]);
+    const positions = Getter.of(data[Factor.POSITIONS]);
 
     const selected = [] as number[];
 
@@ -87,6 +87,7 @@ export namespace Rectangles {
   export function query(rectangles: Rectangles, position: Point) {
     const { scales } = rectangles;
     const data = Geom.flatData(rectangles);
+    const groupedData = Geom.groupedData(rectangles);
 
     const n = findLength(Object.values(data));
     const { x0, y0, x1, y1, area } = Getter.mapObject(data);
@@ -109,15 +110,18 @@ export namespace Rectangles {
       }
 
       if (pointInRect(position, [x0i, y0i, x1i, y1i])) {
-        const result = {} as Record<string, any>;
-
-        for (const v of Object.values(data)) {
-          if (v && Meta.has(v, `name`)) {
-            result[Meta.get(v, `name`)] = Geom.getter(v)(i);
-          }
+        const childIndices = data[Factor.CHILD_INDICES];
+        if (childIndices.length === 0 || childIndices[i].length === 1) {
+          return Dataframe.getQueryRow(data, i);
         }
 
-        return result;
+        const rows = childIndices[i].map((x: number) => {
+          const row = Dataframe.getQueryRow(groupedData, x);
+          (row as any)[LAYER] = (groupedData as any)[LAYER][x];
+          return row;
+        });
+
+        return rows;
       }
     }
   }

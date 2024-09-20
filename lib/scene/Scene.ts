@@ -26,6 +26,8 @@ export interface Scene<T extends Columns = Columns>
   data: T;
   container: HTMLDivElement;
   plotsContainer: HTMLDivElement;
+  // queryTable: HTMLTableElement;
+
   client?: WebSocket;
 
   rows: number;
@@ -89,10 +91,15 @@ export namespace Scene {
       ),
     );
 
+    // const queryTable = DOM.element(`table`, {
+    //   classes: tw("tw-absolute tw-z-100 tw-bg-gray-50 tw-shadow-md"),
+    // });
+
     const keybindings = { ...Scene.keybindings, ...Plot.keybindings };
     const keybindingsMenu = KeybindingsMenu.of(keybindings);
 
     DOM.append(container, plotsContainer);
+    // DOM.append(container, queryTable);
     DOM.append(container, keybindingsMenu);
 
     const [rows, cols] = [1, 1];
@@ -113,6 +120,7 @@ export namespace Scene {
       data,
       container,
       plotsContainer,
+      // queryTable,
       rows,
       cols,
       marker,
@@ -438,7 +446,7 @@ function setupEvents(scene: Scene) {
     Marker.setGroup(marker, Transient);
     for (const p of scene.plots) {
       p.parameters.mode = Plot.Mode.Select;
-      p.queryTable.style.display = `none`;
+      if (p.queryTable) p.queryTable.style.display = `none`;
     }
   });
 

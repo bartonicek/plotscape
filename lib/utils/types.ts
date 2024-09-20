@@ -16,10 +16,6 @@ export type IndexableValue<T extends Indexable> =
 export type Indexables = Record<string, Indexable>;
 
 export type Columns = Record<string, any[]>;
-export interface Dataframe {
-  [key: string | symbol]: Indexable;
-}
-
 export type UntypedColumns<S extends string[]> = { [key in S[number]]: any[] };
 export type Direction = 1 | -1;
 

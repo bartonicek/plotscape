@@ -1,3 +1,4 @@
+import { Dataframe } from "../utils/Dataframe";
 import {
   binBreaks,
   compareAlphaNumeric,
@@ -9,15 +10,7 @@ import {
 import { Getter } from "../utils/Getter";
 import { Meta } from "../utils/Meta";
 import { Reactive } from "../utils/Reactive";
-import {
-  Dataframe,
-  Flat,
-  Indexable,
-  Stringable,
-  TaggedUnion,
-} from "../utils/types";
-
-export const POSITIONS = Symbol(`positions`);
+import { Flat, Indexable, Stringable, TaggedUnion } from "../utils/types";
 
 export interface Factor<T extends Dataframe = Dataframe> extends Reactive {
   type: Factor.Type;
@@ -29,6 +22,8 @@ export interface Factor<T extends Dataframe = Dataframe> extends Reactive {
 
 export namespace Factor {
   export type Type = `bijection` | `constant` | `surjection`;
+  export const POSITIONS = Symbol(`positions`);
+  export const CHILD_INDICES = Symbol(`child-indices`);
 
   export function of<T extends Dataframe>(
     type: Type,
@@ -67,13 +62,17 @@ export namespace Factor {
    */
   export function bijection<T extends Dataframe | undefined>(
     data: T,
-  ): Factor<Flat<T & { [POSITIONS]: Indexable<number[]> }>> {
+  ): Factor<Flat<T & { [Factor.POSITIONS]: Indexable<number[]> }>> {
     const cardinality = Infinity;
     const indices = new Uint32Array();
     const positions = (index: number) => [index];
 
+    data = data ?? ({} as T);
+
+    for (const v of Object.values(data!)) Meta.set(v, `queryable`, true);
+
     const type: Type = `bijection`;
-    const factorData = { ...(data ?? ({} as T)), [POSITIONS]: positions };
+    const factorData = { ...data, [Factor.POSITIONS]: positions };
 
     return of(type, cardinality, indices, factorData);
   }
@@ -85,13 +84,13 @@ export namespace Factor {
    */
   export function mono(
     n: number,
-  ): Factor<{ [POSITIONS]: Indexable<number[]> }> {
+  ): Factor<{ [Factor.POSITIONS]: Indexable<number[]> }> {
     const cardinality = 1;
     const indices = new Uint32Array(n).fill(0);
     const positions = () => Array.from(indices);
 
     const type: Type = `constant`;
-    const data = { [POSITIONS]: positions };
+    const data = { [Factor.POSITIONS]: positions };
 
     return of(type, cardinality, indices, data);
   }
@@ -106,7 +105,7 @@ export namespace Factor {
   export function from(
     array: Stringable[],
     labels?: string[],
-  ): Factor<{ label: string[]; [POSITIONS]: number[][] }> {
+  ): Factor<{ label: string[]; [Factor.POSITIONS]: number[][] }> {
     const arr = array.map((x) => x.toString());
     labels = labels ?? Array.from(new Set(arr)).sort(compareAlphaNumeric);
 
@@ -123,8 +122,11 @@ export namespace Factor {
       positions[index].push(i);
     }
 
+    Meta.set(labels, `queryable`, true);
+
+    const pos = Object.values(positions);
     const type: Type = `surjection`;
-    const data = { label: labels, [POSITIONS]: Object.values(positions) };
+    const data = { label: labels, [Factor.POSITIONS]: pos };
 
     return of(type, labels.length, indices, data);
   }
@@ -149,7 +151,7 @@ export namespace Factor {
     binMin: number[];
     binMax: number[];
     breaks: number[];
-    [POSITIONS]: number[][];
+    [Factor.POSITIONS]: number[][];
   }> {
     function compute() {
       const breaks = options?.breaks ?? binBreaks(array, options);
@@ -188,13 +190,12 @@ export namespace Factor {
       Meta.set(binMax, `name`, `max of ${Meta.get(array, `name`)}`);
       Meta.copy(breaks, array, [`name`]);
 
+      Meta.set(binMin, `queryable`, true);
+      Meta.set(binMax, `queryable`, true);
+
+      const pos = Object.values(positions);
       const type: Type = `surjection`;
-      const data = {
-        binMin,
-        binMax,
-        breaks,
-        [POSITIONS]: Object.values(positions),
-      };
+      const data = { binMin, binMax, breaks, [Factor.POSITIONS]: pos };
 
       return of(type, sorted.length, indices, data);
     }
@@ -223,6 +224,8 @@ export namespace Factor {
     factor2: Factor<U>,
   ): Factor<TaggedUnion<T, U>> {
     checkMatchingLength(factor1, factor2);
+
+    (factor1.data as any)[CHILD_INDICES] = [];
 
     function compute() {
       if (factor1.type === `bijection`) {
@@ -261,8 +264,8 @@ export namespace Factor {
       const indices = new Uint32Array(factor1.indices.length);
       const positions = {} as Record<number, number[]>;
 
-      const factor1Map = {} as Record<number, number>;
-      const factor2Map = {} as Record<number, number>;
+      const productToFactor1Map = {} as Record<number, number>;
+      const productToFactor2Map = {} as Record<number, number>;
 
       const f1Index = Getter.of(factor1.indices);
       const f2Index = Getter.of(factor2.indices);
@@ -272,9 +275,9 @@ export namespace Factor {
         const index = k * f1level + f2level;
 
         // We have not seen this combination of factor levels before
-        if (!(index in factor1Map)) {
-          factor1Map[index] = f1level;
-          factor2Map[index] = f2level;
+        if (!(index in productToFactor1Map)) {
+          productToFactor1Map[index] = f1level;
+          productToFactor2Map[index] = f2level;
           positions[index] = [];
         }
 
@@ -286,12 +289,26 @@ export namespace Factor {
       // Need to clean up indices by removing unused ones,
       // e.g. [0, 2, 3, 2, 5] -> [0, 1, 2, 1, 3]
       const sorted = Array.from(uniqueIndices).sort(diff);
-      for (let i = 0; i < indices.length; i++) {
-        indices[i] = sorted.indexOf(indices[i]);
+      const cleanIndexMap = {} as Record<number, number>;
+
+      for (const k of Object.keys(productToFactor1Map)) {
+        cleanIndexMap[parseInt(k)] = sorted.indexOf(parseInt(k));
       }
 
-      const factor1ParentIndices = Object.values(factor1Map);
-      const factor2ParentIndices = Object.values(factor2Map);
+      for (let i = 0; i < indices.length; i++) {
+        indices[i] = cleanIndexMap[indices[i]];
+      }
+
+      // Also create a map of factor 1 indices to the product factor indices
+      const factor1ToProductMap = {} as Record<number, number[]>;
+
+      for (const [k, v] of Object.entries(productToFactor1Map)) {
+        if (!(v in factor1ToProductMap)) factor1ToProductMap[v] = [];
+        factor1ToProductMap[v].push(cleanIndexMap[parseInt(k)]);
+      }
+
+      const factor1ParentIndices = Object.values(productToFactor1Map);
+      const factor2ParentIndices = Object.values(productToFactor2Map);
 
       const data = {} as Dataframe;
 
@@ -325,11 +342,14 @@ export namespace Factor {
       }
 
       const type: Type = `surjection`;
-      data[POSITIONS] = Object.values(positions);
+      data[Factor.POSITIONS] = Object.values(positions);
 
       type Data = TaggedUnion<T, U>;
       const result = of(type, sorted.length, indices, data) as Factor<Data>;
       result.parent = factor1;
+
+      const childIndices = Object.values(factor1ToProductMap);
+      copyValues(childIndices, (factor1.data as any)[CHILD_INDICES]);
 
       return result;
     }
@@ -339,15 +359,14 @@ export namespace Factor {
     Reactive.listen(factor1, `changed`, () => {
       const newFactor = compute();
       Factor.copyFrom(newFactor, factor);
+      Reactive.dispatch(factor, `changed`);
     });
 
     Reactive.listen(factor2, `changed`, () => {
       const newFactor = compute();
       Factor.copyFrom(newFactor, factor);
+      Reactive.dispatch(factor, `changed`);
     });
-
-    Reactive.propagate(factor1, factor, `changed`);
-    Reactive.propagate(factor2, factor, `changed`);
 
     return factor;
   }

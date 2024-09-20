@@ -1,6 +1,7 @@
+import { Dataframe } from "./Dataframe";
 import { isObject, isTypedArray } from "./funs";
 import { Meta } from "./Meta";
-import { Dataframe, Indexable, IndexableValue, TypedArray } from "./types";
+import { Indexable, IndexableValue, TypedArray } from "./types";
 
 type Getter<T> = (index: number) => T;
 
