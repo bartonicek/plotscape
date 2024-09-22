@@ -110,7 +110,7 @@ export namespace Scene {
     const opts = Object.assign(defaultOptions, options);
 
     for (const [k, v] of Object.entries(data)) {
-      if (!Meta.has(v, `name`)) Meta.set(v, `name`, k);
+      if (!Meta.has(v, `name`)) Meta.set(v, { name: k });
     }
 
     // Mock for just echoing messages back if websocket URL is not provided

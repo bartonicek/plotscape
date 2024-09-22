@@ -72,7 +72,7 @@ export namespace Factor {
 
     data = data ?? ({} as T);
 
-    for (const v of Object.values(data!)) Meta.set(v, `queryable`, true);
+    for (const v of Object.values(data!)) Meta.set(v, { queryable: true });
 
     const type: Type = `bijection`;
     const factorData = { ...data, [Factor.POSITIONS]: positions };
@@ -125,8 +125,7 @@ export namespace Factor {
       positions[index].push(i);
     }
 
-    Meta.set(labels, `queryable`, true);
-    Meta.set(labels, `isDimension`, true);
+    Meta.set(labels, { queryable: true, isDimension: true });
 
     const pos = Object.values(positions);
     const type: Type = `surjection`;
@@ -188,16 +187,15 @@ export namespace Factor {
       }
 
       const [min, max] = [breaks[sorted[0]], breaks[last(sorted) + 1]];
-      Meta.setN(binMin, [`min`, `max`], [min, max]);
-      Meta.setN(binMax, [`min`, `max`], [min, max]);
-      Meta.set(binMin, `name`, `min of ${Meta.get(array, `name`)}`);
-      Meta.set(binMax, `name`, `max of ${Meta.get(array, `name`)}`);
-      Meta.copy(breaks, array, [`name`]);
 
-      Meta.set(binMin, `queryable`, true);
-      Meta.set(binMax, `queryable`, true);
-      Meta.set(binMin, `isDimension`, true);
-      Meta.set(binMax, `isDimension`, true);
+      const minName = `min of ${Meta.get(array, `name`)}`;
+      const maxName = `max of ${Meta.get(array, `name`)}`;
+
+      const opts = { queryable: true, isDimension: true };
+
+      Meta.set(binMin, { min, max, name: minName, ...opts });
+      Meta.set(binMax, { min, max, name: maxName, ...opts });
+      Meta.copy(breaks, array, [`name`]);
 
       const pos = Object.values(positions);
       const type: Type = `surjection`;

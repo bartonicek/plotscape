@@ -13,13 +13,13 @@ export namespace Getter {
 
     if (Array.isArray(indexable)) {
       const getter = (index: number) => indexable[index];
-      Meta.set(getter, `length`, indexable.length);
+      Meta.set(getter, { length: indexable.length });
       return getter;
     }
 
     if (isTypedArray(indexable)) {
       const getter = (index: number) => indexable[index];
-      Meta.set(getter, `length`, indexable.length);
+      Meta.set(getter, { length: indexable.length });
       return getter;
     }
 
@@ -40,7 +40,7 @@ export namespace Getter {
       Meta.copy(proxyGetter, indexable);
     }
 
-    Meta.set(proxyGetter, `length`, indices.length);
+    Meta.set(proxyGetter, { length: indices.length });
     return proxyGetter;
   }
 

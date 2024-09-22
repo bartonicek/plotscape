@@ -192,8 +192,8 @@ function spinogram(plot: Histogram) {
 
   Expanse.freeze(scales.y.domain, [`zero`]);
 
-  Meta.set(scales.x, `name`, `cumulative count`);
-  Meta.set(scales.y, `name`, `proportion`);
+  Meta.set(scales.x, { name: `cumulative count` });
+  Meta.set(scales.y, { name: `proportion` });
 
   Plot.setData(plot, coordinates);
   plot.representation = Representation.Proportion;

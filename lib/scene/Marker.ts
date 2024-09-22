@@ -38,7 +38,7 @@ export namespace Marker {
 
     const layer = [0, 1, 2, 3, 4, 5, 6, 7];
     const factor = Factor.of(type, 8, indices, { [LAYER]: layer });
-    Meta.set(layer, `queryable`, true);
+    Meta.set(layer, { queryable: true });
 
     const marker = Reactive.of<Event>()({
       group,

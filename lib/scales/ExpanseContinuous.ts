@@ -101,7 +101,7 @@ export namespace ExpanseContinuous {
     array: number[],
     options?: { default?: boolean; silent?: boolean; ratio?: true },
   ) {
-    let [min, max] = Meta.getN(array, [`min`, `max`]);
+    let [min, max] = Meta.get(array, [`min`, `max`]);
     if (!min || !max) [min, max] = minmax(array);
 
     min = expanse.ratio || options?.ratio ? 0 : min;

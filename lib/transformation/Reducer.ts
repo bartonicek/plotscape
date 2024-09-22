@@ -85,9 +85,9 @@ export namespace Reducer {
 
     const result = Reduced.of(array, factor, reducer);
     Meta.copy(result, values as any);
-    Meta.set(result, `name`, getName(array, reducer) ?? `[unknown summary]`);
-    Meta.set(result, `queryable`, true);
-    Meta.set(result, `reduced`, true);
+
+    const name = getName(array, reducer) ?? `[unknown summary]`;
+    Meta.set(result, { name, queryable: true, reduced: true });
 
     return result;
   }

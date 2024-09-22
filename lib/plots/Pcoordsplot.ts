@@ -48,8 +48,8 @@ export function Pcoordsplot<T extends Columns>(
   Scale.setDomain(scales.y, ExpanseCompound.of(domains, yOpts));
   Scale.setCoomain(scales.y, ExpanseSplit.of(scales.y.codomain));
 
-  Meta.set(scales.x, `name`, `variable`);
-  Meta.set(scales.y, `name`, `value`);
+  Meta.set(scales.x, { name: `variable` });
+  Meta.set(scales.y, { name: `value` });
 
   Plot.setData(plot, coordinates);
   Plot.addGeom(plot, Lines.of());

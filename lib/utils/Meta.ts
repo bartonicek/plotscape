@@ -31,10 +31,9 @@ const keyToSymbolMap = {
   isDimension: IS_DIMENSION,
 } as const;
 
-type Prop = keyof typeof keyToSymbolMap;
-type PropValue = {
-  [key in keyof typeof keyToSymbolMap]: Object[(typeof keyToSymbolMap)[key]];
-};
+type KeyToSymbolMap = typeof keyToSymbolMap;
+type Prop = keyof KeyToSymbolMap;
+type PropValue = { [key in keyof KeyToSymbolMap]: Object[KeyToSymbolMap[key]] };
 type MapValues<T extends Prop[]> = T extends [
   infer U extends Prop,
   ...infer Rest extends Prop[],
@@ -57,27 +56,14 @@ export namespace Meta {
     return object[keyToSymbolMap[prop]];
   }
 
-  export function getN<const T extends Prop[]>(object: Object, props: T) {
-    const result = [];
-    for (let i = 0; i < props.length; i++) result.push(get(object, props[i]));
-    return result as MapValues<T>;
-  }
+  type PropDict = {
+    [key in keyof typeof keyToSymbolMap]: Object[(typeof keyToSymbolMap)[key]];
+  };
 
-  export function set<T extends Prop>(
-    object: Object,
-    prop: T,
-    value: Object[(typeof keyToSymbolMap)[T]],
-  ) {
-    object[keyToSymbolMap[prop]] = value;
-  }
-
-  export function setN<const T extends Prop[]>(
-    object: Object,
-    props: T,
-    values: MapValues<T>,
-  ) {
-    for (let i = 0; i < props.length; i++) {
-      set(object, props[i], values[i]);
+  export function set(object: Object, props: Partial<PropDict>) {
+    type Entries = [keyof KeyToSymbolMap, any][];
+    for (const [k, v] of Object.entries(props) as Entries) {
+      object[keyToSymbolMap[k]] = v;
     }
   }
 

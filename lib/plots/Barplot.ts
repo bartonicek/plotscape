@@ -160,7 +160,7 @@ function spineplot(plot: Barplot) {
     { default: true },
   );
 
-  Meta.set(scales.y, `name`, `proportion`);
+  Meta.set(scales.y, { name: `proportion` });
 
   Reactive.removeAll(plot, `reorder`);
   Reactive.listen(plot, `reorder`, () => sortAxis(scales.x.domain, flat.width));
