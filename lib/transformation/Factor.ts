@@ -5,6 +5,7 @@ import {
   copyValues,
   diff,
   last,
+  seq,
   subset,
 } from "../utils/funs";
 import { Getter } from "../utils/Getter";
@@ -23,6 +24,7 @@ export interface Factor<T extends Dataframe = Dataframe> extends Reactive {
 export namespace Factor {
   export type Type = `bijection` | `constant` | `surjection`;
   export const POSITIONS = Symbol(`positions`);
+  export const DIMENSION = Symbol(`dimension`);
   export const CHILD_INDICES = Symbol(`child-indices`);
 
   export function of<T extends Dataframe>(
@@ -61,10 +63,11 @@ export namespace Factor {
    * @returns The factor
    */
   export function bijection<T extends Dataframe | undefined>(
+    n: number,
     data: T,
   ): Factor<Flat<T & { [Factor.POSITIONS]: Indexable<number[]> }>> {
     const cardinality = Infinity;
-    const indices = new Uint32Array();
+    const indices = new Uint32Array(seq(0, n));
     const positions = (index: number) => [index];
 
     data = data ?? ({} as T);
@@ -123,6 +126,7 @@ export namespace Factor {
     }
 
     Meta.set(labels, `queryable`, true);
+    Meta.set(labels, `isDimension`, true);
 
     const pos = Object.values(positions);
     const type: Type = `surjection`;
@@ -192,6 +196,8 @@ export namespace Factor {
 
       Meta.set(binMin, `queryable`, true);
       Meta.set(binMax, `queryable`, true);
+      Meta.set(binMin, `isDimension`, true);
+      Meta.set(binMax, `isDimension`, true);
 
       const pos = Object.values(positions);
       const type: Type = `surjection`;
@@ -233,18 +239,23 @@ export namespace Factor {
 
         for (const k of Reflect.ownKeys(factor1.data)) {
           data[k] = Getter.of(factor1.data[k]);
+          Meta.copy(data[k], factor1.data[k]);
         }
 
         for (const k of Reflect.ownKeys(factor2.data)) {
           data[k] = Getter.proxy(factor2.data[k], factor2.indices);
+          Meta.copy(data[k], factor2.data[k]);
         }
 
         const type: Type = `bijection`;
         const cardinality = factor2.indices.length;
-        const indices = new Uint32Array(factor1.indices.length);
+        const indices = new Uint32Array(factor2.indices.length);
 
         const result = of(type, cardinality, indices, data);
         result.parent = factor1;
+
+        const childIndices = Array.from(Array(indices.length), (_, i) => [i]);
+        copyValues(childIndices, (factor1.data as any)[CHILD_INDICES]);
 
         return result as Factor<TaggedUnion<T, U>>;
       }

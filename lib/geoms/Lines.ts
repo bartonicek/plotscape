@@ -3,7 +3,6 @@ import { ExpanseContinuous } from "../scales/ExpanseContinuous";
 import { Scale } from "../scales/Scale";
 import { LAYER } from "../scene/Marker";
 import { Factor } from "../transformation/Factor";
-import { Dataframe } from "../utils/Dataframe";
 import { bimap, findLength, rectSegmentIntersect, sum } from "../utils/funs";
 import { Getter } from "../utils/Getter";
 import { DataLayers, Indexable, Point, Rect } from "../utils/types";
@@ -93,27 +92,19 @@ export namespace Lines {
         const coords = [xi[j - 1], yi[j - 1], xi[j], yi[j]] as Rect;
 
         if (rectSegmentIntersect(pos, coords)) {
-          const childIndices = data[Factor.CHILD_INDICES];
+          const childIndices = data[Factor.CHILD_INDICES]?.[i];
 
-          if (childIndices.length === 0 || childIndices[i].length === 1) {
-            const xq = x(i);
-            const yq = y(i);
+          const xq = x(i);
+          const yq = y(i);
 
-            const result = {} as Record<string, any>;
-            for (let i = 0; i < xq.length; i++) {
-              result[xq[i]] = yq[i];
-            }
-
-            return result;
+          const result = {} as Record<string, any>;
+          for (let i = 0; i < xq.length; i++) {
+            result[xq[i]] = yq[i];
           }
 
-          const rows = childIndices[i].map((x: number) => {
-            const row = Dataframe.getQueryRow(groupedData, x);
-            (row as any)[LAYER] = (groupedData as any)[LAYER][x];
-            return row;
-          });
-
-          return rows;
+          const index = childIndices[0];
+          (result as any)[LAYER] = Getter.of(groupedData[LAYER])(index);
+          return [result];
         }
       }
     }

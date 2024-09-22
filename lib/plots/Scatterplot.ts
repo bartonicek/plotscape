@@ -24,7 +24,7 @@ export function Scatterplot<T extends Columns>(
   const queries = options?.queries ? options?.queries(data) : {};
   const bijectionData = { x, y, size: size ?? (() => 0.5), ...queries };
 
-  const factor1 = Factor.bijection(bijectionData);
+  const factor1 = Factor.bijection(x.length, bijectionData);
   const factor2 = Factor.product(factor1, marker.factor);
 
   const summaries = Summaries.of({}, [factor1, factor2] as const);

@@ -28,7 +28,7 @@ export function Pcoordsplot<T extends Columns>(
   const y = Getter.multi(vars);
   const queries = options?.queries ? options.queries(data) : {};
 
-  const factor1 = Factor.bijection({ x, y, ...queries });
+  const factor1 = Factor.bijection(vars[0].length, { x, y, ...queries });
   const factor2 = Factor.product(factor1, marker.factor);
 
   const summaries = Summaries.of({}, [factor1, factor2] as const);

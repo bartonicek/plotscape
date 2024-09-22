@@ -3,7 +3,6 @@ import { ExpanseContinuous } from "../scales/ExpanseContinuous";
 import { Scale } from "../scales/Scale";
 import { LAYER } from "../scene/Marker";
 import { Factor } from "../transformation/Factor";
-import { Dataframe } from "../utils/Dataframe";
 import { findLength, pointInRect, rectsIntersect } from "../utils/funs";
 import { Getter } from "../utils/Getter";
 import { DataLayers, Indexable, Point, Rect } from "../utils/types";
@@ -93,18 +92,8 @@ export namespace Points {
       const coords = [xi - ri, yi - ri, xi + ri, yi + ri] as Rect;
 
       if (pointInRect(position, coords)) {
-        const childIndices = data[Factor.CHILD_INDICES];
-        if (childIndices.length === 0 || childIndices[i].length === 1) {
-          return Dataframe.getQueryRow(data, i);
-        }
-
-        const rows = childIndices[i].map((x: number) => {
-          const row = Dataframe.getQueryRow(groupedData, x);
-          (row as any)[LAYER] = (groupedData as any)[LAYER][x];
-          return row;
-        });
-
-        return rows;
+        const childIndices = data[Factor.CHILD_INDICES]?.[i];
+        return Geom.getQueryInfo(groupedData, childIndices);
       }
     }
   }

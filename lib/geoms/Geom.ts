@@ -2,9 +2,11 @@ import { Frame } from "../plot/Frame";
 import { Scale } from "../scales/Scale";
 import { LAYER } from "../scene/Marker";
 import { Factor } from "../transformation/Factor";
+import { Reduced } from "../transformation/Reduced";
 
 import { Dataframe } from "../utils/Dataframe";
 import { Getter } from "../utils/Getter";
+import { Meta } from "../utils/Meta";
 import { DataLayer, DataLayers, Indexable, Point, Rect } from "../utils/types";
 import { Bars } from "./Bars";
 import { Lines } from "./Lines";
@@ -48,6 +50,18 @@ export namespace Geom {
     [Type.Rectangles]: Rectangles,
     [Type.Lines]: Lines,
   };
+
+  export function render<T extends Geom>(geom: T, layers: DataLayers) {
+    methods[geom.type].render(geom, layers);
+  }
+
+  export function check<T extends Geom>(geom: T, selection: Rect) {
+    return methods[geom.type].check(geom, selection);
+  }
+
+  export function query<T extends Geom>(geom: T, position: Point) {
+    return methods[geom.type].query(geom, position);
+  }
 
   export function flatData(geom: Geom) {
     return geom.data[geom.data.length - 2];
@@ -99,15 +113,47 @@ export namespace Geom {
     return result;
   }
 
-  export function render<T extends Geom>(geom: T, layers: DataLayers) {
-    methods[geom.type].render(geom, layers);
+  export function getQueryInfo(data: Dataframe, indices: number[]) {
+    const i = indices[0];
+    const dimRow = getQueryRow(data, i, { dimension: `only` });
+    const rows = [dimRow];
+
+    for (let j = 0; j < indices.length; j++) {
+      const k = indices[j];
+
+      const row = getQueryRow(data, k, { dimension: `exclude` });
+      (row as any)[LAYER] = Getter.of(data[LAYER])(k);
+      rows.push(row);
+    }
+
+    return rows;
   }
 
-  export function check<T extends Geom>(geom: T, selection: Rect) {
-    return methods[geom.type].check(geom, selection);
-  }
+  function getQueryRow(
+    data: Dataframe,
+    index: number,
+    options?: { dimension?: `exclude` | `only` },
+  ) {
+    const result = {} as Record<string, any>;
+    const dimension = options?.dimension;
 
-  export function query<T extends Geom>(geom: T, position: Point) {
-    return methods[geom.type].query(geom, position);
+    for (const v of Object.values(data)) {
+      if (dimension === `exclude` && Meta.get(v, `isDimension`)) continue;
+      if (dimension === `only` && !Meta.get(v, `isDimension`)) continue;
+
+      const [n, q, r] = Meta.get(v, [`name`, `queryable`, `reduced`]);
+
+      console.log(v, n, q, r);
+
+      if (!n || !q) continue;
+
+      // Get original values because might be e.g. stacked/shifted otherwise
+      const variable = r ? v[Reduced.ORIGINAL_VALUES] : v;
+      const getter = Getter.of(variable);
+
+      result[n] = getter(index);
+    }
+
+    return result;
   }
 }

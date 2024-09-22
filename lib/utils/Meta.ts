@@ -5,6 +5,7 @@ const MAX = Symbol(`max`);
 const QUERYABLE = Symbol(`queryable`);
 const REDUCED = Symbol(`reduced`);
 const PARENT_VALUES = Symbol(`parent-values`);
+const IS_DIMENSION = Symbol(`is-dimension`);
 
 declare global {
   interface Object {
@@ -15,6 +16,7 @@ declare global {
     [QUERYABLE]?: boolean;
     [REDUCED]?: boolean;
     [PARENT_VALUES]?: any;
+    [IS_DIMENSION]: boolean;
   }
 }
 
@@ -26,6 +28,7 @@ const keyToSymbolMap = {
   queryable: QUERYABLE,
   reduced: REDUCED,
   parent: PARENT_VALUES,
+  isDimension: IS_DIMENSION,
 } as const;
 
 type Prop = keyof typeof keyToSymbolMap;
@@ -44,7 +47,12 @@ export namespace Meta {
     return !!object[keyToSymbolMap[prop]];
   }
 
-  export function get<T extends Prop>(object: Object, prop: T) {
+  export function get<T extends Prop | Prop[]>(object: Object, props: T) {
+    if (Array.isArray(props)) return props.map((x) => getDatum(object, x));
+    return getDatum(object, props);
+  }
+
+  function getDatum<T extends Prop>(object: Object, prop: T) {
     if (prop === `length` && Array.isArray(object)) return object.length;
     return object[keyToSymbolMap[prop]];
   }

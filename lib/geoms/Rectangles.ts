@@ -3,7 +3,6 @@ import { Frame } from "../plot/Frame";
 import { Scale } from "../scales/Scale";
 import { LAYER } from "../scene/Marker";
 import { Factor } from "../transformation/Factor";
-import { Dataframe } from "../utils/Dataframe";
 import { findLength, pointInRect, rectsIntersect } from "../utils/funs";
 import { Getter } from "../utils/Getter";
 import { DataLayers, Indexable, Point, Rect } from "../utils/types";
@@ -110,18 +109,8 @@ export namespace Rectangles {
       }
 
       if (pointInRect(position, [x0i, y0i, x1i, y1i])) {
-        const childIndices = data[Factor.CHILD_INDICES];
-        if (childIndices.length === 0 || childIndices[i].length === 1) {
-          return Dataframe.getQueryRow(data, i);
-        }
-
-        const rows = childIndices[i].map((x: number) => {
-          const row = Dataframe.getQueryRow(groupedData, x);
-          (row as any)[LAYER] = (groupedData as any)[LAYER][x];
-          return row;
-        });
-
-        return rows;
+        const childIndices = data[Factor.CHILD_INDICES]?.[i];
+        return Geom.getQueryInfo(groupedData, childIndices);
       }
     }
   }
