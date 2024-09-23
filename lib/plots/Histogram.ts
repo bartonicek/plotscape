@@ -165,17 +165,15 @@ function spinogram(plot: Histogram) {
       y0: zero,
       x1: Reduced.stack(d.stat),
       y1: one,
+    }),
+    (d) => ({
+      x0: Reduced.shiftLeft(Reduced.stack(Reduced.parent(d.stat))),
+      y0: zero,
+      x1: Reduced.stack(Reduced.parent(d.stat)),
+      y1: Reduced.normalize(Reduced.stack(d.stat), (x, y) => x / y),
       query1: d.binMin,
       query2: d.binMax,
     }),
-    (d) => {
-      return {
-        x0: Reduced.shiftLeft(Reduced.stack(Reduced.parent(d.stat))),
-        y0: zero,
-        x1: Reduced.stack(Reduced.parent(d.stat)),
-        y1: Reduced.normalize(Reduced.stack(d.stat), (x, y) => x / y),
-      };
-    },
   ]);
 
   const { scales } = plot;
