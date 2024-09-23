@@ -33,13 +33,6 @@ const keyToSymbolMap = {
 
 type KeyToSymbolMap = typeof keyToSymbolMap;
 type Prop = keyof KeyToSymbolMap;
-type PropValue = { [key in keyof KeyToSymbolMap]: Object[KeyToSymbolMap[key]] };
-type MapValues<T extends Prop[]> = T extends [
-  infer U extends Prop,
-  ...infer Rest extends Prop[],
-]
-  ? [PropValue[U], ...MapValues<Rest>]
-  : [];
 
 export namespace Meta {
   export function has(object: Object, prop: Prop) {

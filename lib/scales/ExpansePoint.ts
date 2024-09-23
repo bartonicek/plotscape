@@ -47,17 +47,20 @@ export namespace ExpansePoint {
   Poly.set(Expanse.breaks, type, breaks);
   Poly.set(Expanse.reorder, type, reorder);
 
-  export function normalize(expanse: ExpansePoint, value: string) {
+  export function normalize(
+    expanse: ExpansePoint,
+    value: string,
+  ): number | number[] {
     const { labels, order } = expanse.props;
     const index = order[labels.indexOf(value)];
     if (index === -1) return index;
     return index / (labels.length - 1);
   }
 
-  export function unnormalize(expanse: ExpansePoint, value: number) {
+  export function unnormalize(expanse: ExpansePoint, index: number) {
     const { labels, order } = expanse.props;
-    value = Math.round(value * (labels.length - 1));
-    return labels[order[value]];
+    index = Math.round(index * (labels.length - 1));
+    return labels[order[index]];
   }
 
   export function train(
@@ -66,7 +69,7 @@ export namespace ExpansePoint {
     options?: { default?: boolean; silent?: boolean },
   ) {
     const { props, defaults } = expanse;
-    const { order, ordered } = props;
+    const { order } = props;
     const labels = Array.from(new Set(array)).sort(compareAlphaNumeric);
 
     if (!order.length) {

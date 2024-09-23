@@ -3,7 +3,7 @@ import { Poly } from "../utils/Poly";
 import { Reactive } from "../utils/Reactive";
 import type { ExpanseBand } from "./ExpanseBand";
 import type { ExpanseCompound } from "./ExpanseCompound";
-import type { ExpanseContinuous } from "./ExpanseContinuous";
+import { ExpanseContinuous } from "./ExpanseContinuous";
 import type { ExpansePoint } from "./ExpansePoint";
 import type { ExpanseSplit } from "./ExpanseSplit";
 
@@ -31,7 +31,7 @@ export namespace Expanse {
     expanse: T,
     // @ts-ignore - Need to infer function signatures
     value: T[`value`],
-  ): number {
+  ): number | number[] {
     throw new Error(
       `Method 'normalize' not implemented for expanse of type '${expanse.type}'`,
     );
@@ -40,7 +40,7 @@ export namespace Expanse {
   function unnormalizeDefault<T extends Expanse>(
     expanse: T,
     // @ts-ignore
-    value: number,
+    value: number | number[],
   ): T[`value`] {
     throw new Error(
       `Method 'unnormalize' not implemented for expanse of type '${expanse.type}'`,

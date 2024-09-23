@@ -48,7 +48,10 @@ export namespace ExpanseContinuous {
   Poly.set(Expanse.train, type, train);
   Poly.set(Expanse.breaks, type, breaks);
 
-  export function normalize(expanse: ExpanseContinuous, value: number) {
+  export function normalize(
+    expanse: ExpanseContinuous,
+    value: number,
+  ): number | number[] {
     const { min, max, scale, mult, offset, trans } = expanse.props;
     const range = trans(max) - trans(min);
 
@@ -58,7 +61,6 @@ export namespace ExpanseContinuous {
     return result;
   }
 
-  // Unnormalize doesn't use direction since [0, 1] already encodes direction
   export function unnormalize(expanse: ExpanseContinuous, value: number) {
     const { min, max, scale, mult, offset, trans, inv } = expanse.props;
     const range = trans(max) - trans(min);

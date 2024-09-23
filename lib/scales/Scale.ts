@@ -53,16 +53,22 @@ export namespace Scale {
     value: T[`value`],
   ): U[`value`] {
     const { domain, codomain, props } = scale;
-    const { zero, one } = props;
+    const { zero, one, direction } = props;
 
     let normalized = Expanse.normalize(domain, value);
-    if (!Array.isArray(value)) normalized = zero + normalized * (one - zero);
-    // @ts-ignore
-    else normalized = normalized.map((x) => zero + x * (one - zero));
+    if (!Array.isArray(normalized)) {
+      normalized = zero + normalized * (one - zero);
+      normalized = applyDirection(normalized, direction);
+    } else {
+      normalized = normalized.map((x) =>
+        applyDirection(zero + x * (one - zero), direction),
+      );
+    }
 
     return Expanse.unnormalize(codomain, normalized);
   }
 
+  // Pullback does not use direction since [0, 1] already encodes direction
   export function pullback<T extends Expanse, U extends Expanse>(
     scale: Scale<T, U>,
     value: U[`value`],
@@ -71,11 +77,17 @@ export namespace Scale {
     const { zero, one } = props;
 
     let normalized = Expanse.normalize(codomain, value);
-    if (!Array.isArray(value)) normalized = (normalized - zero) / (one - zero);
-    // @ts-ignore
-    else normalized = normalized.map((x) => (x - zero) / (one - zero));
+    if (!Array.isArray(normalized)) {
+      normalized = (normalized - zero) / (one - zero);
+    } else {
+      normalized = normalized.map((x) => (x - zero) / (one - zero));
+    }
 
-    return Expanse.unnormalize(domain, Expanse.normalize(codomain, value));
+    return Expanse.unnormalize(domain, normalized);
+  }
+
+  function applyDirection(x: number, direction: 1 | -1) {
+    return 0.5 * (1 - direction) + direction * x;
   }
 
   export function set(

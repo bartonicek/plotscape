@@ -499,10 +499,10 @@ export namespace Plot {
       Scale.set(x, () => ({ zero: 0, one: 1 }), opts);
       Scale.set(y, () => ({ zero: 0, one: 1 }), opts);
 
-      x0 = Expanse.normalize(x.domain, x0);
-      x1 = Expanse.normalize(x.domain, x1);
-      y0 = Expanse.normalize(y.domain, y0);
-      y1 = Expanse.normalize(y.domain, y1);
+      x0 = Expanse.normalize(x.domain, x0) as number;
+      x1 = Expanse.normalize(x.domain, x1) as number;
+      y0 = Expanse.normalize(y.domain, y0) as number;
+      y1 = Expanse.normalize(y.domain, y1) as number;
     }
 
     // Normalize within screen coordinates
@@ -510,10 +510,10 @@ export namespace Plot {
       // If zoom area is too tiny, do nothing
       if (Math.abs(x1 - x0) < 10 || Math.abs(y1 - y0) < 10) return;
 
-      x0 = trunc(Expanse.normalize(x.codomain, x0));
-      x1 = trunc(Expanse.normalize(x.codomain, x1));
-      y0 = trunc(Expanse.normalize(y.codomain, y0));
-      y1 = trunc(Expanse.normalize(y.codomain, y1));
+      x0 = trunc(Expanse.normalize(x.codomain, x0) as number);
+      x1 = trunc(Expanse.normalize(x.codomain, x1) as number);
+      y0 = trunc(Expanse.normalize(y.codomain, y0) as number);
+      y1 = trunc(Expanse.normalize(y.codomain, y1) as number);
     }
 
     [x0, x1] = [x0, x1].sort(diff);
@@ -671,11 +671,11 @@ export namespace Plot {
         throw new Error(`Labels can be ordered with a discrete domain only`);
       }
 
-      if (!stringArraysMatch(domain.labels, labels)) {
+      if (!stringArraysMatch(domain.props.labels, labels)) {
         throw new Error(`Labels must match the scale's labels`);
       }
 
-      const indices = orderIndicesByTable(domain.labels, labels);
+      const indices = orderIndicesByTable(domain.props.labels, labels);
       Expanse.reorder(domain, indices);
     }
 

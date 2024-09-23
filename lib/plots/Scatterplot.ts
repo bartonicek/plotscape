@@ -40,7 +40,7 @@ export function Scatterplot<T extends Columns>(
 
   // Automatically adjust size based on number of datapoints
   const max = 30 / Math.log(x.length + 2);
-  Expanse.set(scales.size.codomain, () => ({ max }));
+  Expanse.set(scales.size.codomain, () => ({ max }), { default: true });
 
   Plot.setData(plot, coordinates);
   Plot.addGeom(plot, Points.of());

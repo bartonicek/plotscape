@@ -15,7 +15,6 @@ import { Expanse } from "./Expanse";
  * label is placed in the middle of its corresponding bin.
  */
 export interface ExpanseBand extends Expanse<string> {
-  type: `band`;
   value: string;
 
   props: ExpanseBand.Props;
@@ -55,7 +54,10 @@ export namespace ExpanseBand {
   Poly.set(Expanse.breaks, type, breaks);
   Poly.set(Expanse.reorder, type, reorder);
 
-  export function normalize(expanse: ExpanseBand, value: string) {
+  export function normalize(
+    expanse: ExpanseBand,
+    value: string,
+  ): number | number[] {
     const { labels } = expanse.props;
 
     const index = labels.indexOf(value);

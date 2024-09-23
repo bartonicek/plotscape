@@ -17,20 +17,8 @@ describe("Expanse continuous", () => {
     expect(Expanse.unnormalize(expanse, 4 / 9)).toBe(5);
   });
 
-  test("Normalizing 5 in [10, 1] returns 5/9", () => {
-    Expanse.flip(expanse);
-    expect(Expanse.normalize(expanse, 5)).toBe(5 / 9);
-    Expanse.reset(expanse);
-  });
-
-  test("Normalizing 5 in [1, 10] with [0.1, 0.9] margins returns 0.1 + 4/9 * 0.8", () => {
-    Expanse.set(expanse, (e) => ((e.zero = 0.1), (e.one = 0.9)));
-    expect(Expanse.normalize(expanse, 5)).toBe(0.1 + (4 / 9) * 0.8);
-    Expanse.reset(expanse);
-  });
-
   test("Normalizing 4 in [1, 16] with square root transformation returns 1/3", () => {
-    Expanse.set(expanse, (e) => ((e.max = 16), (e.trans = Math.sqrt)));
+    Expanse.set(expanse, () => ({ max: 16, trans: Math.sqrt }));
     expect(Expanse.normalize(expanse, 4)).toBe(1 / 3);
     Expanse.reset(expanse);
   });
