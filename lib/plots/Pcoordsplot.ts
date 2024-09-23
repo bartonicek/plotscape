@@ -4,7 +4,6 @@ import { ExpanseCompound } from "../scales/ExpanseCompound";
 import { ExpansePoint } from "../scales/ExpansePoint";
 import { ExpanseSplit } from "../scales/ExpanseSplit";
 import { inferExpanse } from "../scales/inferExpanse";
-import { Scale } from "../scales/Scale";
 import { Scene } from "../scene/Scene";
 import { Factor } from "../transformation/Factor";
 import { Summaries } from "../transformation/Summaries";
@@ -41,12 +40,13 @@ export function Pcoordsplot<T extends Columns>(
   const xOpts = { zero: ex, one: 1 - ex };
   const yOpts = { zero: ey, one: 1 - ey };
 
-  Scale.setDomain(scales.x, ExpanseSplit.of(ExpansePoint.of(names, xOpts)));
-  Scale.setCoomain(scales.x, ExpanseSplit.of(scales.x.codomain));
-
   const domains = vars.map((x) => inferExpanse(x));
-  Scale.setDomain(scales.y, ExpanseCompound.of(domains, yOpts));
-  Scale.setCoomain(scales.y, ExpanseSplit.of(scales.y.codomain));
+  scales.x.domain = ExpanseSplit.of(ExpansePoint.of(names, xOpts));
+  scales.y.domain = ExpanseCompound.of(domains, yOpts);
+  // @ts-ignore
+  scales.x.codomain = ExpanseSplit.of(scales.x.codomain);
+  // @ts-ignore
+  scales.y.codomain = ExpanseSplit.of(scales.y.codomain);
 
   Meta.set(scales.x, { name: `variable` });
   Meta.set(scales.y, { name: `value` });

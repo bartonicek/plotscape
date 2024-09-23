@@ -302,19 +302,19 @@ export namespace Plot {
     });
 
     const opts = { default: true, silent: true }; // Silent to avoid re-renders
-    Expanse.set(x.codomain, (e) => ((e.min = left), (e.max = right)), opts);
-    Expanse.set(y.codomain, (e) => ((e.min = bottom), (e.max = top)), opts);
+    Expanse.set(x.codomain, () => ({ min: left, max: right }), opts);
+    Expanse.set(y.codomain, () => ({ min: bottom, max: top }), opts);
 
     const [w, h] = [right - left, top - bottom];
 
-    Expanse.set(width.codomain, (e) => (e.max = w), opts);
-    Expanse.set(height.codomain, (e) => (e.max = h), opts);
-    Expanse.set(area.codomain, (e) => (e.max = Math.min(w, h)), opts);
+    Expanse.set(width.codomain, () => ({ max: w }), opts);
+    Expanse.set(height.codomain, () => ({ max: h }), opts);
+    Expanse.set(area.codomain, () => ({ max: Math.min(w, h) }), opts);
 
     if (parameters.ratio) {
       const { expandX: ex, expandY: ey } = defaultOptions;
-      Expanse.set(x.domain, (e) => ((e.zero = ex), (e.one = 1 - ex)), opts);
-      Expanse.set(y.domain, (e) => ((e.zero = ey), (e.one = 1 - ey)), opts);
+      Scale.set(x, () => ({ zero: ex, one: 1 - ex }), opts);
+      Scale.set(y, () => ({ zero: ey, one: 1 - ey }), opts);
       Plot.applyRatio(plot, parameters.ratio);
     }
 
@@ -429,18 +429,23 @@ export namespace Plot {
 
   export function grow(plot: Plot) {
     const { area, size, width } = plot.scales;
-    Expanse.set(area.codomain, (e) => ((e.min *= 10 / 9), (e.max *= 10 / 9)));
-    Expanse.set(size.codomain, (e) => ((e.min *= 10 / 9), (e.max *= 10 / 9)));
+    const k = 10 / 9;
+
+    Expanse.set(area.codomain, (e) => ({ min: e.min * k, max: e.max * k }));
+    Expanse.set(size.codomain, (e) => ({ min: e.min * k, max: e.max * k }));
+
     Expanse.set(width.codomain, (e) =>
-      e.mult < 1 ? (e.mult *= 10 / 9) : null,
+      e.mult < 1 ? { mult: (e.mult * 10) / 9 } : {},
     );
   }
 
   export function shrink(plot: Plot) {
     const { area, width, size } = plot.scales;
-    Expanse.set(area.codomain, (e) => ((e.min *= 9 / 10), (e.max *= 9 / 10)));
-    Expanse.set(size.codomain, (e) => ((e.min *= 9 / 10), (e.max *= 9 / 10)));
-    Expanse.set(width.codomain, (e) => (e.mult *= 9 / 10));
+    const k = 9 / 10;
+
+    Expanse.set(area.codomain, (e) => ({ min: e.min * k, max: e.max * k }));
+    Expanse.set(size.codomain, (e) => ({ min: e.min * k, max: e.max * k }));
+    Expanse.set(width.codomain, (e) => ({ mult: (e.mult * 9) / 10 }));
   }
 
   export function fade(plot: Plot) {
@@ -463,7 +468,7 @@ export namespace Plot {
     const { frames, scales } = plot;
 
     for (const layer of baseLayers) Frame.resetAlpha(frames[layer]);
-    for (const scale of Object.values(scales)) Scale.restoreDefaults(scale);
+    for (const scale of Object.values(scales)) Scale.restore(scale);
 
     plot.zoomStack.length = 1;
     Plot.clearUserFrame(plot);
@@ -490,8 +495,8 @@ export namespace Plot {
     if (units === `data`) {
       // Need to first set zero and one to (0, 1) to ensure correct normalization
       const opts = { silent: true };
-      Expanse.set(x.domain, (e) => ((e.zero = 0), (e.one = 1)), opts);
-      Expanse.set(y.domain, (e) => ((e.zero = 0), (e.one = 1)), opts);
+      Scale.set(x, () => ({ zero: 0, one: 1 }), opts);
+      Scale.set(y, () => ({ zero: 0, one: 1 }), opts);
 
       x0 = Expanse.normalize(x.domain, x0);
       x1 = Expanse.normalize(x.domain, x1);
@@ -520,10 +525,10 @@ export namespace Plot {
     const yStretch = rangeInverse(y0, y1);
     const areaStretch = sqrt(max(xStretch, yStretch));
 
-    Expanse.set(scales.width.codomain, (e) => (e.max *= xStretch));
-    Expanse.set(scales.height.codomain, (e) => (e.max *= yStretch));
-    Expanse.set(scales.area.codomain, (e) => (e.max *= areaStretch));
-    Expanse.set(scales.size.codomain, (e) => (e.max *= areaStretch));
+    Expanse.set(scales.width.codomain, (e) => ({ max: e.max * xStretch }));
+    Expanse.set(scales.height.codomain, (e) => ({ max: e.max * yStretch }));
+    Expanse.set(scales.area.codomain, (e) => ({ max: e.max * areaStretch }));
+    Expanse.set(scales.size.codomain, (e) => ({ max: e.max * areaStretch }));
 
     zoomStack.push([x0, y0, x1, y1]);
 
@@ -548,10 +553,10 @@ export namespace Plot {
     const yStretch = rangeInverse(iy0, iy1);
     const areaStretch = 1 / sqrt(max(1 / xStretch, 1 / yStretch));
 
-    Expanse.set(scales.width.codomain, (e) => (e.max *= xStretch));
-    Expanse.set(scales.height.codomain, (e) => (e.max *= yStretch));
-    Expanse.set(scales.area.codomain, (e) => (e.max *= areaStretch));
-    Expanse.set(scales.size.codomain, (e) => (e.max *= areaStretch));
+    Expanse.set(scales.width.codomain, (e) => ({ max: e.max * xStretch }));
+    Expanse.set(scales.height.codomain, (e) => ({ max: e.max * yStretch }));
+    Expanse.set(scales.area.codomain, (e) => ({ max: e.max * areaStretch }));
+    Expanse.set(scales.size.codomain, (e) => ({ max: e.max * areaStretch }));
 
     zoomStack.pop();
 
@@ -577,21 +582,13 @@ export namespace Plot {
     const opts = { default: true, silent: true };
 
     if (xRatio > yRatio) {
-      const r = (yRatio / xRatio) * Expanse.unitRange(y.domain);
-
-      Expanse.set(
-        x.domain,
-        (e) => ((e.zero = (1 - r) / 2), (e.one = (1 + r) / 2)),
-        opts,
-      );
+      const r = (yRatio / xRatio) * Scale.unitRange(y);
+      const [zero, one] = [(1 - r) / 2, (1 + r) / 2];
+      Scale.set(x, () => ({ zero, one }), opts);
     } else {
-      const r = (xRatio / yRatio) * Expanse.unitRange(x.domain);
-
-      Expanse.set(
-        y.domain,
-        (e) => ((e.zero = (1 - r) / 2), (e.one = (1 + r) / 2)),
-        opts,
-      );
+      const r = (xRatio / yRatio) * Scale.unitRange(x);
+      const [zero, one] = [(1 - r) / 2, (1 + r) / 2];
+      Scale.set(x, () => ({ zero, one }), opts);
     }
   }
 
@@ -618,8 +615,9 @@ export namespace Plot {
     },
   ) {
     let { min, max, zero, one, mult, labels, direction } = options;
-    const domain = plot.scales[scale].domain;
-    const codomain = plot.scales[scale].codomain;
+    const s = plot.scales[scale];
+    const domain = s.domain;
+    const codomain = s.codomain;
 
     if (!Object.keys(plot.scales).includes(scale)) {
       throw new Error(`Unrecognized scale '${scale}'`);
@@ -634,7 +632,7 @@ export namespace Plot {
       zero = zero ?? domain.zero;
       max = max ?? domain.max;
 
-      Expanse.set(domain, (e) => ((e.zero = zero), (e.one = one)), opts);
+      Scale.set(s, () => ({ zero, one }), opts);
       plot.parameters.ratio = undefined;
     }
 
@@ -643,10 +641,10 @@ export namespace Plot {
         throw new Error(`Limits can only be set with a continuous scale`);
       }
 
-      min = min ?? domain.min;
-      max = max ?? domain.max;
+      min = min ?? domain.props.min;
+      max = max ?? domain.props.max;
 
-      Expanse.set(domain, (e) => ((e.min = min!), (e.max = max!)), opts);
+      Expanse.set(domain, () => ({ min, max }), opts);
       plot.parameters.ratio = undefined;
     }
 
@@ -663,8 +661,8 @@ export namespace Plot {
       Expanse.reorder(domain, indices);
     }
 
-    if (direction) Expanse.set(domain, (e) => (e.direction = direction), opts);
-    if (mult) Expanse.set(codomain, (e) => (e.mult = mult), opts);
+    if (direction) Expanse.set(domain, () => ({ direction }), opts);
+    if (mult) Expanse.set(codomain, () => ({ mult }), opts);
   }
 }
 
@@ -867,25 +865,21 @@ function setupScales(
   const opts = { default: true, silent: true };
   const { expandX: ex, expandY: ey } = defaultOptions;
 
-  Expanse.set(area.domain, (e) => (e.ratio = true), opts);
-  Expanse.set(areaPct.domain, (e) => (e.ratio = true), opts);
-  Expanse.set(size.domain, (e) => (e.ratio = true), opts);
-  Expanse.set(size.codomain, (e) => ((e.trans = square), (e.inv = sqrt)), opts);
-  Expanse.set(area.codomain, (e) => ((e.trans = square), (e.inv = sqrt)), opts);
-  Expanse.set(
-    areaPct.codomain,
-    (e) => ((e.trans = square), (e.inv = sqrt)),
-    opts,
-  );
+  Expanse.set(area.domain, () => ({ ratio: true }), opts);
+  Expanse.set(areaPct.domain, () => ({ ratio: true }), opts);
+  Expanse.set(size.domain, () => ({ ratio: true }), opts);
+  Expanse.set(size.codomain, () => ({ trans: square, inv: sqrt }), opts);
+  Expanse.set(area.codomain, () => ({ trans: square, inv: sqrt }), opts);
+  Expanse.set(areaPct.codomain, () => ({ trans: square, inv: sqrt }), opts);
 
-  Expanse.set(x.domain, (e) => ((e.zero = ex), (e.one = 1 - ex)), opts);
-  Expanse.set(y.domain, (e) => ((e.zero = ey), (e.one = 1 - ey)), opts);
-  Expanse.set(width.domain, (e) => (e.one = 1 - 2 * ex), opts);
-  Expanse.set(height.domain, (e) => (e.one = 1 - 2 * ey), opts);
-  Expanse.set(area.domain, (e) => (e.one = 1 - 2 * Math.max(ex, ey)), opts);
+  Scale.set(x, () => ({ zero: ex, one: 1 - ex }), opts);
+  Scale.set(y, () => ({ zero: ey, one: 1 - ey }), opts);
+  Scale.set(width, () => ({ one: 1 - 2 * ex }), opts);
+  Scale.set(height, () => ({ one: 1 - 2 * ey }), opts);
+  Scale.set(area, () => ({ one: 1 - 2 * Math.max(ex, ey) }), opts);
 
   // Truncate so e.g. bars cannot have negative height
   const trunc0 = (x: number) => Math.max(x, 0);
-  Expanse.set(width.codomain, (e) => (e.inv = trunc0), opts);
-  Expanse.set(height.codomain, (e) => (e.inv = trunc0), opts);
+  Expanse.set(width.codomain, (e) => ({ inv: trunc0 }), opts);
+  Expanse.set(height.codomain, (e) => ({ inv: trunc0 }), opts);
 }

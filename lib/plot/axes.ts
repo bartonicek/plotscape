@@ -23,7 +23,7 @@ function renderSingleAxisLabels(plot: Plot, axis: `x` | `y`) {
   const [bottom, left, top, right] = margins;
   const fontsize = parseInt(context.font.match(/^[0-9]*/)![0], 10);
 
-  const base = other!.codomain.min - fontsize / 2;
+  const base = other!.codomain.props.min - fontsize / 2;
 
   const { width, height } = frame;
   Frame.clear(frame);

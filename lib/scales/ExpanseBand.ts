@@ -1,5 +1,4 @@
 import {
-  applyDirection,
   compareAlphaNumeric,
   copyValues,
   cumsum,
@@ -9,7 +8,6 @@ import {
 } from "../utils/funs";
 import { Poly } from "../utils/Poly";
 import { Reactive } from "../utils/Reactive";
-import { Direction } from "../utils/types";
 import { Expanse } from "./Expanse";
 
 /**
@@ -18,55 +16,36 @@ import { Expanse } from "./Expanse";
  */
 export interface ExpanseBand extends Expanse<string> {
   type: `band`;
+  value: string;
 
-  ordered: boolean;
-  labels: string[];
-  order: number[];
-  weights: number[];
-  cumulativeWeights: number[];
-
-  defaults: {
-    ordered: boolean;
-    labels: string[];
-    order: number[];
-    weights: number[];
-    cumulativeWeights: number[];
-    zero: number;
-    one: number;
-    direction: Direction;
-  };
+  props: ExpanseBand.Props;
+  defaults: ExpanseBand.Props;
 }
 
 export namespace ExpanseBand {
   const type = `band`;
 
-  type Options = {
-    weights?: number[];
-    zero?: number;
-    one?: number;
-    direction?: Direction;
-  };
+  export interface Props {
+    ordered: boolean;
+    labels: string[];
+    order: number[];
+    weights: number[];
+    cumulativeWeights: number[];
+  }
 
-  export function of(labels: string[] = [], options?: Options): ExpanseBand {
+  export function of(labels: string[] = []): ExpanseBand {
     const value = ``;
-    const base = Expanse.base(options);
+    const base = Expanse.base();
 
     const [ordered, order] = [false, seqLength(0, labels.length)];
-    const weights = options?.weights ?? Array(labels.length).fill(1);
+    const weights = Array(labels.length).fill(1);
     const cumulativeWeights = cumsum(weights);
 
-    const vals = { labels, ordered, order, weights, cumulativeWeights };
+    const props = { labels, ordered, order, weights, cumulativeWeights };
+    const defaults = structuredClone(props);
+    const frozen = [] as (keyof Props)[];
 
-    const defaults = {
-      ordered,
-      labels: [...labels],
-      order: [...order],
-      weights: [...weights],
-      cumulativeWeights: [...cumulativeWeights],
-      ...base.defaults,
-    };
-
-    return { value, type, ...vals, ...base, defaults };
+    return { ...base, type, value, props, defaults, frozen };
   }
 
   // Expanse methods implementations
@@ -76,55 +55,18 @@ export namespace ExpanseBand {
   Poly.set(Expanse.breaks, type, breaks);
   Poly.set(Expanse.reorder, type, reorder);
 
-  function getMidpoint(expanse: ExpanseBand, index: number) {
-    const { order, cumulativeWeights } = expanse;
-    index = order[index];
-
-    const lower = cumulativeWeights[index - 1] ?? 0;
-    const upper = cumulativeWeights[index];
-    const max = last(cumulativeWeights);
-
-    return (lower + upper) / 2 / max;
-  }
-
-  export function setWeights(expanse: ExpanseBand, weights?: number[]) {
-    weights = weights ?? Array(expanse.labels.length).fill(1);
-
-    if (weights.length != expanse.labels.length) {
-      const msg = `The length of the weights must match the length of labels`;
-      throw new Error(msg);
-    }
-
-    const { order } = expanse;
-    const cumulativeWeights = cumsum(ordered(weights, order));
-
-    copyValues(weights, expanse.weights);
-    copyValues(weights, expanse.defaults.weights);
-    copyValues(cumulativeWeights, expanse.cumulativeWeights);
-    copyValues(cumulativeWeights, expanse.defaults.cumulativeWeights);
-
-    Reactive.dispatch(expanse, `changed`);
-  }
-
   export function normalize(expanse: ExpanseBand, value: string) {
-    const { labels, zero, one, direction } = expanse;
+    const { labels } = expanse.props;
 
     const index = labels.indexOf(value);
     if (index === -1) throw new Error(`Label ${value} not found in: ${labels}`);
 
-    const midpoint = getMidpoint(expanse, index);
-    const pct = zero + midpoint * (one - zero);
-
-    return applyDirection(pct, direction);
+    return getMidpoint(expanse, index);
   }
 
   export function unnormalize(expanse: ExpanseBand, value: number) {
-    const { labels, zero, one, direction } = expanse;
-
-    value = applyDirection(value, direction);
-    const pct = (value - zero) / (one - zero);
-    const index = Math.round((2 * pct * labels.length - 1) / 2);
-
+    const { labels } = expanse.props;
+    const index = Math.round((2 * value * labels.length - 1) / 2);
     return labels[index];
   }
 
@@ -133,13 +75,14 @@ export namespace ExpanseBand {
     array: string[],
     options?: { default?: boolean; silent?: boolean },
   ) {
-    const { order } = expanse;
+    const { props } = expanse;
+    const { order } = props;
     const labels = Array.from(new Set(array)).sort(compareAlphaNumeric);
 
     if (!order.length) {
       for (let i = 0; i < labels.length; i++) order[i] = i;
       expanse.defaults.order = [...order];
-      expanse.ordered = false;
+      props.ordered = false;
     }
 
     const weights = Array(labels.length).fill(1);
@@ -147,21 +90,23 @@ export namespace ExpanseBand {
 
     const data = { labels, weights, cumulativeWeights };
 
-    for (const [k, v] of Object.entries(data) as [keyof ExpanseBand, any][]) {
-      if (Array.isArray(expanse[k])) copyValues(v, expanse[k]);
+    for (const [k, v] of Object.entries(data) as [keyof Props, any][]) {
+      copyValues(v, expanse.props[k]);
       if (options?.default) copyValues(v, (expanse.defaults as any)[k]);
     }
-    Expanse.set(expanse, () => {}, options); // Trigger listeners
+
+    Expanse.set(expanse, () => ({}), options); // Trigger listeners
   }
 
   export function reorder(expanse: ExpanseBand, indices?: number[]) {
-    const { order, weights, cumulativeWeights, defaults } = expanse;
+    const { props, defaults } = expanse;
+    const { order, weights, cumulativeWeights } = expanse.props;
 
     if (!indices) {
       copyValues(defaults.order, order);
       copyValues(cumsum(ordered(weights, order)), cumulativeWeights);
 
-      expanse.ordered = false;
+      props.ordered = false;
       Reactive.dispatch(expanse, `changed`);
       return;
     }
@@ -169,19 +114,43 @@ export namespace ExpanseBand {
     copyValues(indices, order);
     copyValues(cumsum(ordered(weights, indices)), cumulativeWeights);
 
-    expanse.ordered = true;
+    props.ordered = true;
     Reactive.dispatch(expanse, `changed`);
   }
 
   export function breaks(expanse: ExpanseBand) {
-    return ordered(expanse.labels, expanse.order);
+    const { labels, order } = expanse.props;
+    return ordered(labels, order);
   }
 
-  export function isContinuous() {
-    return false;
+  export function setWeights(expanse: ExpanseBand, weights?: number[]) {
+    const { props, defaults } = expanse;
+    weights = weights ?? Array(props.labels.length).fill(1);
+
+    if (weights.length != props.labels.length) {
+      const msg = `The length of the weights must match the length of labels`;
+      throw new Error(msg);
+    }
+
+    const { order } = props;
+    const cumulativeWeights = cumsum(ordered(weights, order));
+
+    copyValues(weights, props.weights);
+    copyValues(weights, defaults.weights);
+    copyValues(cumulativeWeights, props.cumulativeWeights);
+    copyValues(cumulativeWeights, defaults.cumulativeWeights);
+
+    Reactive.dispatch(expanse, `changed`);
   }
 
-  export function isDiscrete() {
-    return true;
+  function getMidpoint(expanse: ExpanseBand, index: number) {
+    const { order, cumulativeWeights } = expanse.props;
+    index = order[index];
+
+    const lower = cumulativeWeights[index - 1] ?? 0;
+    const upper = cumulativeWeights[index];
+    const max = last(cumulativeWeights);
+
+    return (lower + upper) / 2 / max;
   }
 }

@@ -24,14 +24,17 @@ export interface ExpansePoint extends Expanse<string> {
     ordered: boolean;
     labels: string[];
     order: number[];
-    zero: number;
-    one: number;
-    direction: Direction;
   };
 }
 
 export namespace ExpansePoint {
   const type = `point`;
+
+  export interface Props {
+    ordered: boolean;
+    labels: string[];
+    order: number[];
+  }
 
   export function of(
     labels: string[] = [],
@@ -39,16 +42,11 @@ export namespace ExpansePoint {
   ): ExpansePoint {
     const value = ``;
 
-    const base = Expanse.base(options);
+    const base = Expanse.base();
     const [ordered, order] = [false, seqLength(0, labels.length)];
     const vals = { labels, ordered, order };
 
-    const defaults = {
-      ordered,
-      labels: [...labels],
-      order: [...order],
-      ...base.defaults,
-    };
+    const defaults = { ordered, labels: [...labels], order: [...order] };
 
     return { type, value, ...base, ...vals, defaults };
   }

@@ -1,7 +1,7 @@
-import { copyProps, copyValues, invertRange } from "../utils/funs";
+import { copyProps, copyValues } from "../utils/funs";
 import { Poly } from "../utils/Poly";
 import { Reactive } from "../utils/Reactive";
-import { Direction, Entries } from "../utils/types";
+import { Entries } from "../utils/types";
 import type { ExpanseBand } from "./ExpanseBand";
 import type { ExpanseCompound } from "./ExpanseCompound";
 import type { ExpanseContinuous } from "./ExpanseContinuous";
@@ -13,18 +13,9 @@ export interface Expanse<T = any> extends Reactive {
   readonly value: T; // Only a type-level tag
   type: Expanse.Type;
 
-  zero: number;
-  one: number;
-  direction: Direction;
+  props: Record<string, any>;
+  defaults: Record<string, any>;
   frozen: string[];
-  linked: Expanse[];
-
-  defaults: {
-    zero: number;
-    one: number;
-    direction: Direction;
-    [key: string]: any;
-  };
 }
 
 export namespace Expanse {
@@ -69,7 +60,14 @@ export namespace Expanse {
     );
   }
 
-  function breaksDefault<T extends Expanse>(expanse: T): T[`value`][] {
+  function breaksDefault<T extends Expanse>(
+    expanse: T,
+    // @ts-ignore
+    zero?: number,
+    // @ts-ignore
+    one?: number,
+    // @ts-ignore
+  ): T[`value`][] {
     throw new Error(
       `Method 'breaks' not implemented for expanse of type '${expanse.type}'`,
     );
@@ -82,44 +80,30 @@ export namespace Expanse {
     );
   }
 
-  export function base(options?: {
-    zero?: number;
-    one?: number;
-    direction?: Direction;
-  }) {
-    const zero = options?.zero ?? 0;
-    const one = options?.one ?? 1;
-    const direction = options?.direction ?? 1;
-    const frozen = [] as string[];
-    const linked = [] as Expanse[];
-    const defaults = { zero, one, direction };
-
-    return Reactive.of()({ zero, one, direction, frozen, linked, defaults });
+  export function base() {
+    return Reactive.of()({});
   }
 
   export function set<T extends Expanse>(
     expanse: T,
-    setfn: (expanse: T & { [key in string]: any }) => void,
+    setfn: (props: T[`props`]) => Partial<T[`props`]>,
     options?: { default?: boolean; silent?: boolean; unfreeze?: boolean },
   ) {
-    const { linked, frozen } = expanse;
-    const modified = { ...expanse };
-    setfn(modified);
+    const { frozen, props } = expanse;
+    const modified = setfn({ ...props });
 
     if (!options?.unfreeze) {
       // Frozen properties don't get copied
-      for (const k of frozen as (keyof T)[]) delete modified[k];
+      for (const k of frozen as (keyof T[`props`])[]) delete modified[k];
     }
 
-    for (const k of Object.keys(modified) as (keyof T)[]) {
-      if (modified[k] === expanse[k]) delete modified[k];
+    for (const k of Object.keys(modified)) {
+      if (modified[k] === expanse.props[k]) delete modified[k];
     }
 
-    copyProps(modified, expanse);
-
-    for (const l of linked) Expanse.set(l as T, setfn);
-
+    copyProps(modified, expanse.props);
     if (!!options?.default) copyProps(modified, expanse.defaults);
+
     if (!options?.silent) Reactive.dispatch(expanse, `changed`);
   }
 
@@ -127,10 +111,6 @@ export namespace Expanse {
     for (const prop of props as string[]) {
       if (!expanse.frozen.includes(prop)) expanse.frozen.push(prop);
     }
-  }
-
-  export function linkTo<T extends Expanse>(expanse: T, other: T) {
-    if (!expanse.linked.includes(other)) expanse.linked.push(other);
   }
 
   export function reset<T extends Expanse>(expanse: T) {
@@ -143,44 +123,6 @@ export namespace Expanse {
     }
 
     Reactive.dispatch(expanse, `changed`);
-  }
-
-  export function move(expanse: Expanse, amount: number) {
-    const { direction: d } = expanse;
-    const amt = amount;
-    Expanse.set(expanse, (e) => ((e.zero += d * amt), (e.one += d * amt)));
-  }
-
-  export function expand(
-    expanse: Expanse,
-    zero: number,
-    one: number,
-    options?: { default?: boolean },
-  ) {
-    const { zero: currZero, one: currOne, direction } = expanse;
-    const currRange = currOne - currZero;
-
-    // Reflect if direction is backwards
-    if (direction === -1) [zero, one] = [1 - zero, 1 - one];
-
-    // Normalize the zoom values within the current range
-    let [nZero, nOne] = [zero, one].map((x) => (x - currZero) / currRange);
-    [nZero, nOne] = invertRange(nZero, nOne);
-
-    // Finally, reflect again
-    if (direction === -1) {
-      [nZero, nOne] = [1 - nZero, 1 - nOne];
-    }
-
-    Expanse.set(expanse, (e) => ((e.zero = nZero), (e.one = nOne)), options);
-  }
-
-  export function flip(expanse: Expanse) {
-    Expanse.set(expanse, (e) => (e.direction *= -1));
-  }
-
-  export function unitRange(expanse: Expanse) {
-    return expanse.one - expanse.zero;
   }
 
   export function isContinuous(expanse: Expanse): expanse is ExpanseContinuous {

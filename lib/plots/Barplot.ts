@@ -69,7 +69,7 @@ export function Barplot<T extends Columns>(
 }
 
 function sortAxis(domain: ExpanseBand, values: number[]) {
-  if (!domain.ordered) {
+  if (!domain.props.ordered) {
     const indices = orderIndices(values);
     ExpanseBand.reorder(domain, indices);
   } else ExpanseBand.reorder(domain);
@@ -100,14 +100,14 @@ function barplot(plot: Barplot) {
   ExpanseBand.setWeights(scales.x.domain);
 
   const k = 1 / new Set(flat.x).size;
-  Expanse.linkTo(scales.y.domain, scales.height.domain);
+  Scale.link(scales.y, scales.height);
   Expanse.set(
     scales.width.codomain,
-    (e) => {
-      e.scale = k;
-      e.mult = 0.9;
-      e.offset = 0;
-    },
+    () => ({
+      scale: k,
+      mult: 0.9,
+      offset: 0,
+    }),
     { default: true },
   );
 
@@ -149,14 +149,10 @@ function spineplot(plot: Barplot) {
   Expanse.freeze(scales.height.domain, [`zero`]);
   ExpanseBand.setWeights(scales.x.domain, flat.width);
 
-  Expanse.linkTo(scales.y.domain, scales.height.domain);
+  Scale.link(scales.y, scales.height);
   Expanse.set(
     scales.width.codomain,
-    (e) => {
-      e.scale = 1;
-      e.mult = 1;
-      e.offset = -1;
-    },
+    () => ({ scale: 1, mult: 1, offset: -1 }),
     { default: true },
   );
 

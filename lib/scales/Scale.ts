@@ -1,61 +1,150 @@
-import { formatAxisLabels } from "../utils/funs";
+import { formatAxisLabels, invertRange } from "../utils/funs";
 import { Meta } from "../utils/Meta";
 import { Reactive } from "../utils/Reactive";
 import { Expanse } from "./Expanse";
 import { ExpanseBand } from "./ExpanseBand";
 import { ExpanseContinuous } from "./ExpanseContinuous";
 
+type Direction = 1 | -1;
+
 export interface Scale<T extends Expanse = Expanse, U extends Expanse = Expanse>
   extends Reactive {
   domain: T;
   codomain: U;
+  linked: Scale[];
+
+  props: Scale.Props;
+  defaults: Scale.Props;
+  frozen: string[];
 }
 
 export namespace Scale {
+  export interface Props {
+    zero: number;
+    one: number;
+    direction: Direction;
+  }
+
   export function of<T extends Expanse, U extends Expanse>(
     domain: T,
     codomain: U,
   ): Scale<T, U> {
-    const scale = Reactive.of()({ domain, codomain });
+    const props = { zero: 0, one: 1, direction: 1 as Direction };
+    const defaults = { ...props };
+    const [linked, frozen] = [[], []] as [Scale[], string[]];
+
+    const scale = Reactive.of()({
+      domain,
+      codomain,
+      props,
+      defaults,
+      frozen,
+      linked,
+    });
+
     Reactive.propagate(domain, scale, `changed`);
     Reactive.propagate(codomain, scale, `changed`);
 
     return scale;
   }
 
-  export function setDomain(scale: Scale, expanse: Expanse) {
-    scale.domain = expanse;
-    Reactive.propagate(scale.domain, scale, `changed`);
-  }
-
-  export function setCoomain(scale: Scale, expanse: Expanse) {
-    scale.codomain = expanse;
-    Reactive.propagate(scale.codomain, scale, `changed`);
-  }
-
   export function pushforward<T extends Expanse, U extends Expanse>(
     scale: Scale<T, U>,
     value: T[`value`],
   ): U[`value`] {
-    const { domain, codomain } = scale;
-    return Expanse.unnormalize(codomain, Expanse.normalize(domain, value));
+    const { domain, codomain, props } = scale;
+    const { zero, one } = props;
+
+    let normalized = Expanse.normalize(domain, value);
+    if (!Array.isArray(value)) normalized = zero + normalized * (one - zero);
+    // @ts-ignore
+    else normalized = normalized.map((x) => zero + x * (one - zero));
+
+    return Expanse.unnormalize(codomain, normalized);
   }
 
   export function pullback<T extends Expanse, U extends Expanse>(
     scale: Scale<T, U>,
     value: U[`value`],
   ): T[`value`] {
-    const { domain, codomain } = scale;
+    const { domain, codomain, props } = scale;
+    const { zero, one } = props;
+
+    let normalized = Expanse.normalize(codomain, value);
+    if (!Array.isArray(value)) normalized = (normalized - zero) / (one - zero);
+    // @ts-ignore
+    else normalized = normalized.map((x) => (x - zero) / (one - zero));
+
     return Expanse.unnormalize(domain, Expanse.normalize(codomain, value));
+  }
+
+  export function set(
+    scale: Scale,
+    setfn: (scale: Props) => Partial<Props>,
+    options?: { default?: boolean; silent?: boolean; unfreeze?: boolean },
+  ) {
+    const { linked, frozen, props } = scale;
+    const modified = setfn({ ...props });
+
+    if (!options?.unfreeze) {
+      // Frozen properties don't get modified
+      for (const k of frozen as (keyof Props)[]) delete modified[k];
+    }
+
+    Object.assign(props, modified);
+    if (!!options?.default) Object.assign(scale.defaults, modified);
+    if (!options?.silent) Reactive.dispatch(scale, `changed`);
+
+    for (const s of linked) Scale.set(s, setfn, options);
+  }
+
+  // export function setDomain<T extends Expanse, U extends Scale<T, Expanse>>(
+  //   scale: U,
+  //   setfn: (props: U[`[props]`]) => U[`props`],
+  //   options?: { default?: boolean; silent?: boolean; unfreeze?: boolean },
+  // ) {
+  //   Expanse.set(scale.domain, setfn, options);
+  // }
+
+  // export function setCodomain<T extends Expanse, U extends Scale<T, Expanse>>(
+  //   scale: U,
+  //   setfn: (props: U[`[props]`]) => U[`props`],
+  //   options?: { default?: boolean; silent?: boolean; unfreeze?: boolean },
+  // ) {
+  //   Expanse.set(scale.codomain, setfn, options);
+  // }
+
+  export function flip(scale: Scale) {
+    Scale.set(scale, (s) => ({ direction: (-1 * s.direction) as Direction }));
+  }
+
+  export function move(scale: Scale, amount: number) {
+    let { direction, zero, one } = scale.props;
+    zero += direction * amount;
+    one += direction * amount;
+    Scale.set(scale, () => ({ zero, one }));
   }
 
   export function expand(
     scale: Scale,
     zero: number,
     one: number,
-    options?: { default?: boolean },
+    options?: { default?: boolean; silent?: boolean },
   ) {
-    Expanse.expand(scale.domain, zero, one, options);
+    const { zero: currZero, one: currOne, direction } = scale.props;
+    const currRange = currOne - currZero;
+
+    // Reflect if direction is backwards
+    if (direction === -1) [zero, one] = [1 - zero, 1 - one];
+
+    // Normalize the zoom values within the current range
+    [zero, one] = [zero, one].map((x) => (x - currZero) / currRange);
+    [zero, one] = invertRange(zero, one);
+
+    // Finally, reflect again
+    if (direction === -1) [zero, one] = [1 - zero, 1 - one];
+
+    Scale.set(scale, () => ({ zero, one }), options);
   }
 
   export function train<T extends Expanse>(
@@ -80,16 +169,26 @@ export namespace Scale {
     Expanse.train(scale.domain, array, options);
   }
 
-  export function restoreDefaults(scale: Scale) {
+  export function reset(scale: Scale) {
+    Object.assign(scale.props, scale.defaults);
+    Reactive.dispatch(scale, `changed`);
+  }
+
+  export function restore(scale: Scale) {
     Expanse.reset(scale.domain);
     Expanse.reset(scale.codomain);
+    Scale.reset(scale);
   }
 
   export function breaks(scale: Scale): {
     labels: string[];
     positions: number[];
   } {
-    const breaks = Expanse.breaks(scale.domain) as any;
+    const { domain, props } = scale;
+    let { zero, one } = props;
+    [zero, one] = invertRange(zero, one);
+
+    const breaks = Expanse.breaks(domain, zero, one) as any;
     let labels = formatAxisLabels(breaks);
 
     if (Expanse.isCompound(scale.domain)) {
@@ -109,40 +208,49 @@ export namespace Scale {
     }
 
     const positions = breaks.map((x: any) => Scale.pushforward(scale, x));
-
     return { labels, positions };
   }
 
-  export function move(scale: Scale, amount: number) {
-    Expanse.move(scale.domain, amount);
+  export function link(scale1: Scale, scale2: Scale) {
+    if (scale1.linked.indexOf(scale2) === -1) scale1.linked.push(scale2);
   }
 
   export function shareCodomain(scale1: Scale, scale2: Scale) {
     scale2.codomain = scale1.codomain;
   }
 
+  export function unitRange(scale: Scale) {
+    return scale.props.one - scale.props.zero;
+  }
+
   export function domainRange(scale: Scale) {
     const { domain } = scale;
     if (!Expanse.isContinuous(domain)) return;
-    return ExpanseContinuous.range(domain) / Expanse.unitRange(domain);
+    return ExpanseContinuous.range(domain) / unitRange(scale);
   }
 
   export function codomainRange(scale: Scale) {
     const { codomain } = scale;
     if (!Expanse.isContinuous(codomain)) return;
-    return ExpanseContinuous.range(codomain) * Expanse.unitRange(codomain);
+    return ExpanseContinuous.range(codomain) * unitRange(scale);
   }
 
   export function unitRatio(scale: Scale) {
-    const { domain, codomain } = scale;
-
-    if (!Expanse.isContinuous(domain) || !Expanse.isContinuous(codomain)) {
+    if (!isContinuous(scale)) {
       throw new Error(`Both domain and codomain need to be continuous`);
     }
 
+    const { domain, codomain } = scale;
     const dr = ExpanseContinuous.range(domain);
-    const cdr = ExpanseContinuous.range(codomain) * Expanse.unitRange(codomain);
+    const cdr = ExpanseContinuous.range(codomain) * unitRange(scale);
 
     return cdr / dr;
+  }
+
+  export function isContinuous(
+    scale: Scale,
+  ): scale is Scale<ExpanseContinuous, ExpanseContinuous> {
+    const { domain, codomain } = scale;
+    return Expanse.isContinuous(domain) && Expanse.isContinuous(codomain);
   }
 }
