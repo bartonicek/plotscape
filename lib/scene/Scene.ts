@@ -80,7 +80,7 @@ export namespace Scene {
     DOM.addClasses(
       container,
       tw(
-        "tailwind tw-pr-15 tw-relative tw-flex tw-h-full tw-w-full tw-content-center tw-items-center tw-justify-center tw-bg-[#deded9] tw-p-10  tw-text-[max(min(2vmin,16px),8px)]",
+        "tailwind tw-pr-15 tw-relative tw-flex tw-h-full tw-w-full tw-content-center tw-items-center tw-justify-center tw-bg-[#deded9] tw-p-10",
       ),
     );
 
@@ -388,6 +388,13 @@ export namespace Scene {
   }
 
   export function resize(scene: Scene) {
+    const { container } = scene;
+    const { clientWidth, clientHeight } = container;
+    const unit = Math.min(clientWidth, clientHeight) / 100;
+    const fontsize = Math.min(Math.max(8, 3 * unit), 16);
+
+    container.style.fontSize = fontsize + `px`;
+
     for (const plot of scene.plots) Reactive.dispatch(plot, `resize`);
   }
 
