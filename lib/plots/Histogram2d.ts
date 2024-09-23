@@ -140,7 +140,7 @@ function histogram2d(plot: Histogram2D) {
   Scale.train(scales.y, flat.y1, { default: true });
   Scale.train(scales.areaPct, flat.area, { default: true });
 
-  Expanse.set(scales.area.codomain, (e) => ((e.min = 0), (e.max = 1)), {
+  Expanse.set(scales.area.codomain, () => ({ min: 0, max: 1 }), {
     default: true,
   });
   Expanse.freeze(scales.area.codomain, [`min`, `max`]);
@@ -191,7 +191,7 @@ function spinogram2d(plot: Histogram2D) {
   Scale.train(scales.y, flat.y1, { default: true });
   Scale.train(scales.areaPct, [0, 1], { default: true });
 
-  Expanse.set(scales.area.codomain, (e) => ((e.min = 0), (e.max = 1)), {
+  Expanse.set(scales.area.codomain, () => ({ min: 0, max: 1 }), {
     default: true,
   });
   Expanse.freeze(scales.area.codomain, [`min`, `max`]);

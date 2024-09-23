@@ -97,11 +97,7 @@ function fluctplot(plot: Fluctplot) {
 
   Expanse.set(
     scales.area.codomain,
-    (e) => {
-      e.scale = 1 / k;
-      e.mult = 0.9;
-      e.offset = 0;
-    },
+    () => ({ scale: 1 / k, mult: 0.9, offset: 0 }),
     { default: true },
   );
 
@@ -136,11 +132,7 @@ function pctfluctplot(plot: Fluctplot) {
 
   Expanse.set(
     scales.area.codomain,
-    (e) => {
-      e.scale = 1 / k;
-      e.mult = 0.9;
-      e.offset = -1;
-    },
+    () => ({ scale: 1 / k, mult: 0.9, offset: -1 }),
     { default: true },
   );
 

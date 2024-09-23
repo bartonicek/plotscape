@@ -444,9 +444,9 @@ function setupEvents(scene: Scene) {
       const { clientWidth: appWidth, clientHeight: appHeight } = parentElement!;
       const { clientWidth: tableWidth, clientHeight: tableHeight } = queryTable;
 
-      let [left, top] = [clientX, clientY];
-      if (clientX + tableWidth > appWidth) left -= tableWidth;
-      if (clientY + tableHeight > appHeight) top -= tableHeight;
+      let [left, top] = [clientX + 2, clientY + 2];
+      if (clientX + tableWidth > appWidth) left = left - tableWidth - 4;
+      if (clientY + tableHeight > appHeight) top = left - tableHeight - 4;
 
       DOM.setStyles(queryTable, { left: left + `px`, top: top + `px` });
     }, 20),

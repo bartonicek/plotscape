@@ -1,7 +1,6 @@
 import { copyProps, copyValues } from "../utils/funs";
 import { Poly } from "../utils/Poly";
 import { Reactive } from "../utils/Reactive";
-import { Entries } from "../utils/types";
 import type { ExpanseBand } from "./ExpanseBand";
 import type { ExpanseCompound } from "./ExpanseCompound";
 import type { ExpanseContinuous } from "./ExpanseContinuous";
@@ -103,26 +102,31 @@ export namespace Expanse {
 
     copyProps(modified, expanse.props);
     if (!!options?.default) copyProps(modified, expanse.defaults);
-
     if (!options?.silent) Reactive.dispatch(expanse, `changed`);
   }
 
-  export function freeze<T extends Expanse>(expanse: T, props: (keyof T)[]) {
+  export function freeze<T extends Expanse>(
+    expanse: T,
+    props: (keyof T[`props`])[],
+  ) {
     for (const prop of props as string[]) {
       if (!expanse.frozen.includes(prop)) expanse.frozen.push(prop);
     }
   }
 
-  export function reset<T extends Expanse>(expanse: T) {
+  export function reset<T extends Expanse>(
+    expanse: T,
+    options?: { silent?: boolean },
+  ) {
     const { defaults } = expanse;
 
-    for (const [k, v] of Object.entries(defaults) as Entries<T>) {
-      if (Array.isArray(v) && Array.isArray(expanse[k])) {
-        copyValues(v, expanse[k]);
-      } else expanse[k] = v;
+    for (const [k, v] of Object.entries(defaults)) {
+      if (Array.isArray(v) && Array.isArray(expanse.props[k])) {
+        copyValues(v, expanse.props[k]);
+      } else expanse.props[k] = v;
     }
 
-    Reactive.dispatch(expanse, `changed`);
+    if (!options?.silent) Reactive.dispatch(expanse, `changed`);
   }
 
   export function isContinuous(expanse: Expanse): expanse is ExpanseContinuous {

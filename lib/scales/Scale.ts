@@ -98,6 +98,10 @@ export namespace Scale {
     for (const s of linked) Scale.set(s, setfn, options);
   }
 
+  export function freeze(scale: Scale, props: (keyof Props)[]) {
+    for (const p of props) if (!scale.frozen.includes(p)) scale.frozen.push(p);
+  }
+
   // export function setDomain<T extends Expanse, U extends Scale<T, Expanse>>(
   //   scale: U,
   //   setfn: (props: U[`[props]`]) => U[`props`],
@@ -169,14 +173,14 @@ export namespace Scale {
     Expanse.train(scale.domain, array, options);
   }
 
-  export function reset(scale: Scale) {
+  export function reset(scale: Scale, options?: { silent?: boolean }) {
     Object.assign(scale.props, scale.defaults);
-    Reactive.dispatch(scale, `changed`);
+    if (!options?.silent) Reactive.dispatch(scale, `changed`);
   }
 
   export function restore(scale: Scale) {
-    Expanse.reset(scale.domain);
-    Expanse.reset(scale.codomain);
+    Expanse.reset(scale.domain, { silent: true });
+    Expanse.reset(scale.codomain, { silent: true });
     Scale.reset(scale);
   }
 
@@ -212,7 +216,7 @@ export namespace Scale {
   }
 
   export function link(scale1: Scale, scale2: Scale) {
-    if (scale1.linked.indexOf(scale2) === -1) scale1.linked.push(scale2);
+    if (!scale1.linked.includes(scale2)) scale1.linked.push(scale2);
   }
 
   export function shareCodomain(scale1: Scale, scale2: Scale) {

@@ -1,6 +1,4 @@
 import { Poly } from "../utils/Poly";
-import { Reactive } from "../utils/Reactive";
-import { Direction } from "../utils/types";
 import { Expanse } from "./Expanse";
 import { ExpanseContinuous } from "./ExpanseContinuous";
 
@@ -14,29 +12,12 @@ export namespace ExpanseCompound {
 
   export function of<T extends Expanse[] = Expanse[]>(
     expanses: T = [] as unknown as T,
-    options?: { zero?: number; one?: number; direction?: Direction },
   ): ExpanseCompound<T> {
     const value = [] as any[];
+    const base = ExpanseContinuous.of();
 
-    const base = ExpanseContinuous.of(0, 1, options);
-    const { zero, one, direction } = base;
-    const defaults = { zero, one, direction };
-
-    for (const expanse of expanses) {
-      Object.assign(expanse, { zero, one, direction });
-      Object.assign(expanse.defaults, { zero, one, direction });
-    }
-
-    const expanse = { expanses, ...base, value, type, defaults };
-    Reactive.listen(expanse, `changed`, () => {
-      const { zero, one, direction } = expanse;
-      for (const expanse of expanses) {
-        Object.assign(expanse, { zero, one, direction });
-        Object.assign(expanse.defaults, { zero, one, direction });
-      }
-    });
-
-    return expanse;
+    const result = { ...base, type, value, expanses };
+    return result;
   }
 
   // Expanse methods implementations

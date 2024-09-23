@@ -450,8 +450,8 @@ export namespace Plot {
 
   export function fade(plot: Plot) {
     const { frames } = plot;
-    for (const layer of baseLayers) {
-      Frame.setAlpha(frames[layer], (a) => (a * 9) / 10);
+    for (const l of baseLayers) {
+      Frame.setAlpha(frames[l], (a) => (a * 9) / 10);
     }
     Plot.render(plot);
   }

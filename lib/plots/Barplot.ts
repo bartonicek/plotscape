@@ -95,8 +95,8 @@ function barplot(plot: Barplot) {
   Scale.train(scales.width, [0, 1], opts);
   Scale.train(scales.height, flat.height, opts);
 
-  Expanse.freeze(scales.y.domain, [`zero`]);
-  Expanse.freeze(scales.height.domain, [`zero`]);
+  Scale.freeze(scales.y, [`zero`]);
+  Scale.freeze(scales.height, [`zero`]);
   ExpanseBand.setWeights(scales.x.domain);
 
   const k = 1 / new Set(flat.x).size;
@@ -145,8 +145,8 @@ function spineplot(plot: Barplot) {
   Scale.train(scales.width, cumsum(flat.width), opts);
   Scale.train(scales.height, [0, 1], opts);
 
-  Expanse.freeze(scales.y.domain, [`zero`]);
-  Expanse.freeze(scales.height.domain, [`zero`]);
+  Scale.freeze(scales.y, [`zero`]);
+  Scale.freeze(scales.height, [`zero`]);
   ExpanseBand.setWeights(scales.x.domain, flat.width);
 
   Scale.link(scales.y, scales.height);

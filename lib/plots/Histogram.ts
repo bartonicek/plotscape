@@ -1,6 +1,5 @@
 import { Rectangles } from "../geoms/Rectangles";
 import { Plot } from "../plot/Plot";
-import { Expanse } from "../scales/Expanse";
 import { Scale } from "../scales/Scale";
 import { Scene } from "../scene/Scene";
 import { Factor } from "../transformation/Factor";
@@ -135,6 +134,7 @@ function histogram(plot: Histogram) {
 
   Scale.train(scales.x, flat.x1, { default: true, name: false });
   Scale.train(scales.y, flat.y1, { default: true, ratio: true });
+  Scale.freeze(scales.y, [`zero`]);
 
   for (const c of plot.data) {
     Reactive.removeAll(c as any, `changed`);
@@ -144,8 +144,6 @@ function histogram(plot: Histogram) {
     Scale.train(scales.x, flat.x1, { default: true, name: false });
     Scale.train(scales.y, flat.y1, { default: true, ratio: true });
   });
-
-  Expanse.freeze(scales.y.domain, [`zero`]);
 
   Meta.copy(scales.x, summaries[1].breaks, [`name`]);
   Meta.copy(scales.y, flat.y1, [`name`]);
@@ -185,12 +183,11 @@ function spinogram(plot: Histogram) {
 
   Scale.train(scales.x, [0, ...flat.x1], { default: true, name: false });
   Scale.train(scales.y, [0, 1], { default: true, ratio: true });
+  Scale.freeze(scales.y, [`zero`]);
 
   Reactive.listen(flat as any, `changed`, () => {
     Scale.train(scales.x, [0, ...flat.x1], { default: true, name: false });
   });
-
-  Expanse.freeze(scales.y.domain, [`zero`]);
 
   Meta.set(scales.x, { name: `cumulative count` });
   Meta.set(scales.y, { name: `proportion` });

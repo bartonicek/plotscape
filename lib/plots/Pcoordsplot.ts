@@ -36,13 +36,9 @@ export function Pcoordsplot<T extends Columns>(
   const plot = Plot.of({ type: `pcoords` });
   const { scales } = plot;
 
-  const { expandX: ex, expandY: ey } = scene.options;
-  const xOpts = { zero: ex, one: 1 - ex };
-  const yOpts = { zero: ey, one: 1 - ey };
-
   const domains = vars.map((x) => inferExpanse(x));
-  scales.x.domain = ExpanseSplit.of(ExpansePoint.of(names, xOpts));
-  scales.y.domain = ExpanseCompound.of(domains, yOpts);
+  scales.x.domain = ExpanseSplit.of(ExpansePoint.of(names));
+  scales.y.domain = ExpanseCompound.of(domains);
   // @ts-ignore
   scales.x.codomain = ExpanseSplit.of(scales.x.codomain);
   // @ts-ignore

@@ -1,5 +1,4 @@
 import {
-  applyDirection,
   compareAlphaNumeric,
   copyValues,
   ordered,
@@ -7,7 +6,6 @@ import {
 } from "../utils/funs";
 import { Poly } from "../utils/Poly";
 import { Reactive } from "../utils/Reactive";
-import { Direction } from "../utils/types";
 import { Expanse } from "./Expanse";
 
 /** Converts string labels to the [0, 1] interval and back, such that each value is placed
@@ -16,15 +14,9 @@ import { Expanse } from "./Expanse";
 export interface ExpansePoint extends Expanse<string> {
   type: `point`;
 
-  ordered: boolean;
-  labels: string[];
-  order: number[];
-
-  defaults: {
-    ordered: boolean;
-    labels: string[];
-    order: number[];
-  };
+  props: ExpansePoint.Props;
+  defaults: ExpansePoint.Props;
+  frozen: (keyof ExpansePoint.Props)[];
 }
 
 export namespace ExpansePoint {
@@ -36,19 +28,16 @@ export namespace ExpansePoint {
     order: number[];
   }
 
-  export function of(
-    labels: string[] = [],
-    options?: { zero?: number; one?: number; direction?: Direction },
-  ): ExpansePoint {
+  export function of(labels: string[] = []): ExpansePoint {
     const value = ``;
 
     const base = Expanse.base();
     const [ordered, order] = [false, seqLength(0, labels.length)];
-    const vals = { labels, ordered, order };
+    const props = { labels, ordered, order };
+    const defaults = structuredClone(props);
+    const frozen = [] as (keyof Props)[];
 
-    const defaults = { ordered, labels: [...labels], order: [...order] };
-
-    return { type, value, ...base, ...vals, defaults };
+    return { ...base, type, value, props, defaults, frozen };
   }
 
   // Expanse methods implementations
@@ -59,25 +48,16 @@ export namespace ExpansePoint {
   Poly.set(Expanse.reorder, type, reorder);
 
   export function normalize(expanse: ExpansePoint, value: string) {
-    const { labels, order, zero, one, direction } = expanse;
+    const { labels, order } = expanse.props;
     const index = order[labels.indexOf(value)];
     if (index === -1) return index;
-
-    let result = index / (labels.length - 1);
-    result = zero + result * (one - zero);
-    result = applyDirection(result, direction);
-
-    return result;
+    return index / (labels.length - 1);
   }
 
   export function unnormalize(expanse: ExpansePoint, value: number) {
-    const { labels, order, zero, one, direction } = expanse;
-
-    let result = applyDirection(value, direction);
-    result = (result - zero) / (one - zero);
-    result = Math.round(result * (labels.length - 1));
-
-    return labels[order[result]];
+    const { labels, order } = expanse.props;
+    value = Math.round(value * (labels.length - 1));
+    return labels[order[value]];
   }
 
   export function train(
@@ -85,36 +65,39 @@ export namespace ExpansePoint {
     array: string[],
     options?: { default?: boolean; silent?: boolean },
   ) {
-    const { order } = expanse;
+    const { props, defaults } = expanse;
+    const { order, ordered } = props;
     const labels = Array.from(new Set(array)).sort(compareAlphaNumeric);
 
     if (!order.length) {
       for (let i = 0; i < labels.length; i++) order[i] = i;
-      expanse.defaults.order = [...order];
-      expanse.ordered = false;
+      defaults.order = [...order];
+      props.ordered = false;
     }
 
-    copyValues(labels, expanse.labels);
+    copyValues(labels, props.labels);
     if (options?.default) copyValues(labels, expanse.defaults.labels);
-    Expanse.set(expanse, () => {}, options); // Trigger listeners
+    Expanse.set(expanse, () => ({}), options); // Trigger listeners
   }
 
   export function reorder(expanse: ExpansePoint, indices?: number[]) {
-    const { order, defaults } = expanse;
+    const { props, defaults } = expanse;
+    const { order } = props;
 
     if (!indices) {
       copyValues(defaults.order, order);
-      expanse.ordered = false;
+      props.ordered = false;
       Reactive.dispatch(expanse, `changed`);
       return;
     }
 
     copyValues(indices, order);
-    expanse.ordered = true;
+    props.ordered = true;
     Reactive.dispatch(expanse, `changed`);
   }
 
   export function breaks(expanse: ExpansePoint) {
-    return ordered(expanse.labels, expanse.order);
+    const { labels, order } = expanse.props;
+    return ordered(labels, order);
   }
 }

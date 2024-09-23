@@ -36,8 +36,8 @@ export namespace ExpanseContinuous {
     const [trans, inv] = [identity, identity];
     const [scale, mult, offset, ratio] = [1, 1, 0, false];
     const props = { min, max, scale, mult, offset, ratio, trans, inv };
-    const frozen = [] as (keyof Props)[];
     const defaults = { ...props, trans, inv };
+    const frozen = [] as (keyof Props)[];
 
     return { ...base, value, type, props, defaults, frozen };
   }
