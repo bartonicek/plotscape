@@ -35,6 +35,7 @@ import {
   baseLayers,
   dataLayers,
   DataLayers,
+  Direction,
   MouseButton,
   Rect,
 } from "../utils/types";
@@ -525,10 +526,18 @@ export namespace Plot {
     const yStretch = rangeInverse(y0, y1);
     const areaStretch = sqrt(max(xStretch, yStretch));
 
-    Expanse.set(scales.width.codomain, (e) => ({ max: e.max * xStretch }));
-    Expanse.set(scales.height.codomain, (e) => ({ max: e.max * yStretch }));
-    Expanse.set(scales.area.codomain, (e) => ({ max: e.max * areaStretch }));
-    Expanse.set(scales.size.codomain, (e) => ({ max: e.max * areaStretch }));
+    const { width, height, area, size } = scales;
+
+    if (width.codomain !== area.codomain) {
+      Expanse.set(width.codomain, (e) => ({ max: e.max * xStretch }));
+    }
+
+    if (height.codomain !== area.codomain) {
+      Expanse.set(height.codomain, (e) => ({ max: e.max * yStretch }));
+    }
+
+    Expanse.set(area.codomain, (e) => ({ max: e.max * areaStretch }));
+    Expanse.set(size.codomain, (e) => ({ max: e.max * areaStretch }));
 
     zoomStack.push([x0, y0, x1, y1]);
 
@@ -553,10 +562,18 @@ export namespace Plot {
     const yStretch = rangeInverse(iy0, iy1);
     const areaStretch = 1 / sqrt(max(1 / xStretch, 1 / yStretch));
 
-    Expanse.set(scales.width.codomain, (e) => ({ max: e.max * xStretch }));
-    Expanse.set(scales.height.codomain, (e) => ({ max: e.max * yStretch }));
-    Expanse.set(scales.area.codomain, (e) => ({ max: e.max * areaStretch }));
-    Expanse.set(scales.size.codomain, (e) => ({ max: e.max * areaStretch }));
+    const { width, height, area, size } = scales;
+
+    if (width.codomain !== area.codomain) {
+      Expanse.set(width.codomain, (e) => ({ max: e.max * xStretch }));
+    }
+
+    if (height.codomain !== area.codomain) {
+      Expanse.set(height.codomain, (e) => ({ max: e.max * yStretch }));
+    }
+
+    Expanse.set(area.codomain, (e) => ({ max: e.max * areaStretch }));
+    Expanse.set(size.codomain, (e) => ({ max: e.max * areaStretch }));
 
     zoomStack.pop();
 
@@ -601,7 +618,7 @@ export namespace Plot {
 
   export function setScale(
     plot: Plot,
-    scale: Exclude<keyof Plot.Scales, symbol>,
+    scale: keyof Scales,
     options: {
       min?: number;
       max?: number;
@@ -609,7 +626,7 @@ export namespace Plot {
       zero?: number;
       one?: number;
       mult?: number;
-      direction?: number;
+      direction?: Direction;
       default?: boolean;
       unfreeze?: boolean;
     },
@@ -638,19 +655,20 @@ export namespace Plot {
 
     if ([min, max].some(isDefined)) {
       if (!Expanse.isContinuous(domain)) {
-        throw new Error(`Limits can only be set with a continuous scale`);
+        throw new Error(`Limits can only be set with a continuous domain`);
       }
 
       min = min ?? domain.props.min;
       max = max ?? domain.props.max;
 
       Expanse.set(domain, () => ({ min, max }), opts);
+      Scale.set(s, () => ({ zero: 0, one: 1 }), opts);
       plot.parameters.ratio = undefined;
     }
 
     if (labels) {
       if (!Expanse.isDiscrete(domain)) {
-        throw new Error(`Labels can be ordered with a discrete scale only`);
+        throw new Error(`Labels can be ordered with a discrete domain only`);
       }
 
       if (!stringArraysMatch(domain.labels, labels)) {
@@ -661,7 +679,7 @@ export namespace Plot {
       Expanse.reorder(domain, indices);
     }
 
-    if (direction) Expanse.set(domain, () => ({ direction }), opts);
+    if (direction) Scale.set(s, () => ({ direction }), opts);
     if (mult) Expanse.set(codomain, () => ({ mult }), opts);
   }
 }
@@ -850,8 +868,8 @@ function setupScales(
 
   scales.x = Scale.of(xDomain, ExpanseContinuous.of(0, w));
   scales.y = Scale.of(yDomain, ExpanseContinuous.of(0, h));
-  scales.height = Scale.of(ExpanseContinuous.of(), ExpanseContinuous.of(0, h));
-  scales.width = Scale.of(ExpanseContinuous.of(), ExpanseContinuous.of(0, w));
+  scales.height = Scale.of(ExpanseContinuous.of(), ExpanseContinuous.of());
+  scales.width = Scale.of(ExpanseContinuous.of(), ExpanseContinuous.of());
   scales.area = Scale.of(ExpanseContinuous.of(), ExpanseContinuous.of());
   scales.size = Scale.of(
     ExpanseContinuous.of(),
@@ -880,6 +898,6 @@ function setupScales(
 
   // Truncate so e.g. bars cannot have negative height
   const trunc0 = (x: number) => Math.max(x, 0);
-  Expanse.set(width.codomain, (e) => ({ inv: trunc0 }), opts);
-  Expanse.set(height.codomain, (e) => ({ inv: trunc0 }), opts);
+  Expanse.set(width.codomain, () => ({ inv: trunc0 }), opts);
+  Expanse.set(height.codomain, () => ({ inv: trunc0 }), opts);
 }

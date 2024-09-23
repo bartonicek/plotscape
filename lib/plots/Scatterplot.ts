@@ -1,4 +1,5 @@
 import { Points } from "../geoms/Points";
+import { Expanse } from "../main";
 import { Plot } from "../plot/Plot";
 import { Scale } from "../scales/Scale";
 import { Scene } from "../scene/Scene";
@@ -35,8 +36,12 @@ export function Scatterplot<T extends Columns>(
 
   Scale.train(scales.x, x, { default: true });
   Scale.train(scales.y, y, { default: true });
-
   if (size) Scale.train(scales.size, size, { default: true });
+
+  // Automatically adjust size based on number of datapoints
+  const max = 30 / Math.log(x.length + 2);
+  Expanse.set(scales.size.codomain, () => ({ max }));
+
   Plot.setData(plot, coordinates);
   Plot.addGeom(plot, Points.of());
 
