@@ -115,16 +115,10 @@ export namespace Plot {
   ): Plot {
     const type = options?.type ?? `unknown`;
 
-    const container = DOM.element(`div`, { id: "plot" });
-    // const queryTable = DOM.element(`table`, {
-    //   classes: tw("tw-absolute tw-z-30 tw-bg-gray-50 tw-shadow-md"),
-    // });
-    DOM.addClasses(
-      container,
-      tw("tw-relative tw-h-full tw-w-full tw-drop-shadow-md"),
-    );
-
-    // DOM.append(container, queryTable);
+    const container = DOM.element(`div`, {
+      id: "plot",
+      classes: tw("tw-relative tw-h-full tw-w-full tw-drop-shadow-md"),
+    });
 
     const data = [] as Dataframe[];
     const frames = {} as Frames;
@@ -405,8 +399,7 @@ export namespace Plot {
 
     if (!queryTable) return;
 
-    queryTable.style.display = `none`;
-
+    DOM.setStyles(queryTable, { display: `none` });
     const [x, y] = [offsetX, clientHeight - offsetY];
 
     let result: Record<string, any> | undefined;

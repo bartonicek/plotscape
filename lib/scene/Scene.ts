@@ -92,7 +92,7 @@ export namespace Scene {
     );
 
     const queryTable = DOM.element(`table`, {
-      classes: tw("tw-fixed tw-z-30 tw-bg-gray-50 tw-shadow-md"),
+      classes: tw("tw-fixed tw-z-30 tw-bg-gray-100 tw-shadow-md"),
     });
 
     const keybindings = { ...Scene.keybindings, ...Plot.keybindings };
@@ -448,9 +448,8 @@ function setupEvents(scene: Scene) {
       if (clientX + tableWidth > appWidth) left -= tableWidth;
       if (clientY + tableHeight > appHeight) top -= tableHeight;
 
-      queryTable.style.left = left + `px`;
-      queryTable.style.top = top + `px`;
-    }, 10),
+      DOM.setStyles(queryTable, { left: left + `px`, top: top + `px` });
+    }, 20),
   );
 
   window.addEventListener(`keydown`, (e) => {

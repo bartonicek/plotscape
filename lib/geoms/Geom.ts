@@ -142,9 +142,6 @@ export namespace Geom {
       if (dimension === `only` && !Meta.get(v, `isDimension`)) continue;
 
       const [n, q, r] = Meta.get(v, [`name`, `queryable`, `reduced`]);
-
-      console.log(v, n, q, r);
-
       if (!n || !q) continue;
 
       // Get original values because might be e.g. stacked/shifted otherwise
