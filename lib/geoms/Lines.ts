@@ -19,7 +19,7 @@ type Scales = {
 };
 
 export interface Lines extends Geom {
-  type: Geom.Type.Lines;
+  type: `lines`;
   data: (Data & FactorData)[];
   scales: Scales;
 }
@@ -28,7 +28,7 @@ export namespace Lines {
   export function of(): Lines {
     const scales = {} as Scales; // Will be definitely assigned when added to Plot
     const data = [] as (Data & FactorData)[];
-    const type = Geom.Type.Lines;
+    const type = `lines`;
 
     return { type, data, scales };
   }

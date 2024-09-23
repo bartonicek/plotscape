@@ -22,7 +22,7 @@ type Data = {
 };
 
 export interface Bars extends Geom {
-  type: Geom.Type.Bars;
+  type: `bars`;
   data: (Data & FactorData)[];
   scales: Plot.Scales;
 
@@ -35,7 +35,7 @@ export namespace Bars {
     const scales = {} as Plot.Scales; // Will be definitely assigned when added to Plot
     const data = [] as (Data & FactorData)[];
 
-    const type = Geom.Type.Bars;
+    const type = `bars`;
     const vAnchor = options?.vAnchor ?? VAnchor.Bottom;
     const hAnchor = options?.hAnchor ?? HAnchor.Center;
 

@@ -37,18 +37,13 @@ type GeomMethods = {
 };
 
 export namespace Geom {
-  export enum Type {
-    Points,
-    Bars,
-    Rectangles,
-    Lines,
-  }
+  export type Type = `points` | `bars` | `rectangles` | `lines`;
 
   const methods: { [key in Type]: GeomMethods } = {
-    [Type.Points]: Points,
-    [Type.Bars]: Bars,
-    [Type.Rectangles]: Rectangles,
-    [Type.Lines]: Lines,
+    points: Points,
+    bars: Bars,
+    rectangles: Rectangles,
+    lines: Lines,
   };
 
   export function render<T extends Geom>(geom: T, layers: DataLayers) {

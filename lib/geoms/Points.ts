@@ -21,7 +21,7 @@ type Scales = {
 };
 
 export interface Points extends Geom {
-  type: Geom.Type.Points;
+  type: `points`;
   data: (Data & FactorData)[];
   scales: Scales;
 }
@@ -30,7 +30,7 @@ export namespace Points {
   export function of(): Points {
     const scales = {} as Scales; // Will be definitely assigned when added to Plot
     const data = [] as (Data & FactorData)[];
-    return { type: Geom.Type.Points, data, scales };
+    return { type: `points`, data, scales };
   }
 
   export function render(points: Points, layers: DataLayers) {

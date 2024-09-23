@@ -16,7 +16,7 @@ type Data = {
 };
 
 export interface Rectangles extends Geom {
-  type: Geom.Type.Rectangles;
+  type: `rectangles`;
   data: (Data & FactorData)[];
   scales: Plot.Scales;
 }
@@ -25,7 +25,7 @@ export namespace Rectangles {
   export function of(): Rectangles {
     const scales = {} as Plot.Scales; // Will be definitely assigned when added to Plot
     const data = [] as (Data & FactorData)[];
-    const type = Geom.Type.Rectangles;
+    const type = `rectangles`;
 
     return { type, data, scales };
   }
