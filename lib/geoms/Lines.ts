@@ -1,5 +1,5 @@
+import { Plot, Poly } from "../main";
 import { Frame } from "../plot/Frame";
-import { ExpanseContinuous } from "../scales/ExpanseContinuous";
 import { Scale } from "../scales/Scale";
 import { LAYER } from "../scene/Marker";
 import { Factor } from "../transformation/Factor";
@@ -13,25 +13,27 @@ type Data = {
   y: Indexable<any[]>;
 };
 
-type Scales = {
-  x: Scale<any, ExpanseContinuous>;
-  y: Scale<any, ExpanseContinuous>;
-};
-
 export interface Lines extends Geom {
   type: `lines`;
   data: (Data & FactorData)[];
-  scales: Scales;
+  scales: Plot.Scales;
 }
 
 export namespace Lines {
+  const type = `lines`;
+
   export function of(): Lines {
-    const scales = {} as Scales; // Will be definitely assigned when added to Plot
+    // Will be definitely assigned when added to Plot
+    const scales = {} as Plot.Scales;
     const data = [] as (Data & FactorData)[];
-    const type = `lines`;
 
     return { type, data, scales };
   }
+
+  // Polymorphic method implementations
+  Poly.set(Geom.render, type, render);
+  Poly.set(Geom.check, type, check);
+  Poly.set(Geom.query, type, query);
 
   export function render(lines: Lines, layers: DataLayers) {
     const { scales } = lines;

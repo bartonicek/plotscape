@@ -1,5 +1,5 @@
+import { Plot, Poly } from "../main";
 import { Frame } from "../plot/Frame";
-import { ExpanseContinuous } from "../scales/ExpanseContinuous";
 import { Scale } from "../scales/Scale";
 import { LAYER } from "../scene/Marker";
 import { Factor } from "../transformation/Factor";
@@ -14,24 +14,25 @@ type Data = {
   size?: Indexable<number>;
 };
 
-type Scales = {
-  x: Scale<any, ExpanseContinuous>;
-  y: Scale<any, ExpanseContinuous>;
-  size: Scale<any, ExpanseContinuous>;
-};
-
 export interface Points extends Geom {
-  type: `points`;
   data: (Data & FactorData)[];
-  scales: Scales;
+  scales: Plot.Scales;
 }
 
 export namespace Points {
+  const type: Geom.Type = `points`;
+
   export function of(): Points {
-    const scales = {} as Scales; // Will be definitely assigned when added to Plot
+    // Will be definitely assigned when added to Plot
+    const scales = {} as Plot.Scales;
     const data = [] as (Data & FactorData)[];
-    return { type: `points`, data, scales };
+    return { type, data, scales };
   }
+
+  // Polymorphic method implementations
+  Poly.set(Geom.render, type, render);
+  Poly.set(Geom.check, type, check);
+  Poly.set(Geom.query, type, query);
 
   export function render(points: Points, layers: DataLayers) {
     const { scales } = points;

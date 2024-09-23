@@ -1,4 +1,4 @@
-import { Plot } from "../main";
+import { Plot, Poly } from "../main";
 import { Frame } from "../plot/Frame";
 import { Scale } from "../scales/Scale";
 import { LAYER } from "../scene/Marker";
@@ -22,13 +22,19 @@ export interface Rectangles extends Geom {
 }
 
 export namespace Rectangles {
+  const type = `rectangles`;
+
   export function of(): Rectangles {
     const scales = {} as Plot.Scales; // Will be definitely assigned when added to Plot
     const data = [] as (Data & FactorData)[];
-    const type = `rectangles`;
 
     return { type, data, scales };
   }
+
+  // Polymorphic method implementations
+  Poly.set(Geom.render, type, render);
+  Poly.set(Geom.check, type, check);
+  Poly.set(Geom.query, type, query);
 
   export function render(rectangles: Rectangles, layers: DataLayers) {
     const { scales } = rectangles;

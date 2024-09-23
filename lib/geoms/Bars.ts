@@ -1,4 +1,4 @@
-import { Factor, Plot } from "../main";
+import { Factor, Plot, Poly } from "../main";
 import { Frame } from "../plot/Frame";
 import { Scale } from "../scales/Scale";
 import { LAYER } from "../scene/Marker";
@@ -31,16 +31,23 @@ export interface Bars extends Geom {
 }
 
 export namespace Bars {
+  const type = `bars`;
+
   export function of(options?: { vAnchor?: VAnchor; hAnchor?: HAnchor }): Bars {
-    const scales = {} as Plot.Scales; // Will be definitely assigned when added to Plot
+    // Will be definitely assigned when added to Plot
+    const scales = {} as Plot.Scales;
     const data = [] as (Data & FactorData)[];
 
-    const type = `bars`;
     const vAnchor = options?.vAnchor ?? VAnchor.Bottom;
     const hAnchor = options?.hAnchor ?? HAnchor.Center;
 
     return { type, data, scales, vAnchor, hAnchor };
   }
+
+  // Polymorphic method implementations
+  Poly.set(Geom.render, type, render);
+  Poly.set(Geom.check, type, check);
+  Poly.set(Geom.query, type, query);
 
   export function render(bars: Bars, layers: DataLayers) {
     const { scales, hAnchor, vAnchor } = bars;

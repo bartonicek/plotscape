@@ -1,3 +1,4 @@
+import { Plot, Poly } from "../main";
 import { Frame } from "../plot/Frame";
 import { Scale } from "../scales/Scale";
 import { LAYER } from "../scene/Marker";
@@ -8,10 +9,6 @@ import { Dataframe } from "../utils/Dataframe";
 import { Getter } from "../utils/Getter";
 import { Meta } from "../utils/Meta";
 import { DataLayer, DataLayers, Indexable, Point, Rect } from "../utils/types";
-import { Bars } from "./Bars";
-import { Lines } from "./Lines";
-import { Points } from "./Points";
-import { Rectangles } from "./Rectangles";
 
 export type FlatData = { [Factor.POSITIONS]: Indexable<number[]> };
 export type GroupedData = {
@@ -27,58 +24,47 @@ export type FactorData = {
 export interface Geom<T extends Dataframe = Dataframe> {
   type: Geom.Type;
   data: (T & FactorData)[];
-  scales: Record<string, Scale>;
+  scales: Plot.Scales;
 }
-
-type GeomMethods = {
-  render(geom: Geom, layers: DataLayers): void;
-  check(geom: Geom, selection: Rect): number[];
-  query(geom: Geom, point: Point): Record<string, any> | undefined;
-};
 
 export namespace Geom {
   export type Type = `points` | `bars` | `rectangles` | `lines`;
 
-  const methods: { [key in Type]: GeomMethods } = {
-    points: Points,
-    bars: Bars,
-    rectangles: Rectangles,
-    lines: Lines,
-  };
+  // Polymorphic functions
+  export const render = Poly.of(renderDefault);
+  export const check = Poly.of(checkDefault);
+  export const query = Poly.of(queryDefault);
 
-  export function render<T extends Geom>(geom: T, layers: DataLayers) {
-    methods[geom.type].render(geom, layers);
+  // @ts-ignore - Need to infer function signatures
+  function renderDefault<T extends Geom>(geom: T, layers: DataLayers) {
+    throw new Error(
+      `Method 'render' not implemented for geom of type '${geom.type}'`,
+    );
   }
 
-  export function check<T extends Geom>(geom: T, selection: Rect) {
-    return methods[geom.type].check(geom, selection);
+  // @ts-ignore
+  function checkDefault<T extends Geom>(geom: T, selection: Rect): number[] {
+    throw new Error(
+      `Method 'check' not implemented for geom of type '${geom.type}'`,
+    );
   }
 
-  export function query<T extends Geom>(geom: T, position: Point) {
-    return methods[geom.type].query(geom, position);
+  function queryDefault<T extends Geom>(
+    geom: T,
+    // @ts-ignore
+    point: Point,
+  ): Record<string, any>[] | undefined {
+    throw new Error(
+      `Method 'render' not implemented for geom of type '${geom.type}'`,
+    );
   }
 
-  export function flatData(geom: Geom) {
+  export function flatData<T extends Geom>(geom: T) {
     return geom.data[geom.data.length - 2];
   }
 
-  export function groupedData(geom: Geom) {
+  export function groupedData<T extends Geom>(geom: T) {
     return geom.data[geom.data.length - 1];
-  }
-
-  export function getter<T extends Indexable>(
-    indexable: T,
-    fallback: (index: number) => any = () => 0.5,
-  ) {
-    return Getter.of(indexable ?? fallback);
-  }
-
-  export function getters<T extends Dataframe, U extends readonly (keyof T)[]>(
-    data: T,
-    keys: U,
-    fallback: (index: number) => any = () => 0.5,
-  ) {
-    return keys.map((x) => Geom.getter(data[x], fallback));
   }
 
   export function frames(

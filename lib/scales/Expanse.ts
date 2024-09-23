@@ -30,7 +30,7 @@ export interface Expanse<T = any> extends Reactive {
 export namespace Expanse {
   export type Type = `continuous` | `point` | `band` | `compound` | `split`;
 
-  // Polymorphic methods
+  // Polymorphic functions
   export const normalize = Poly.of(normalizeDefault);
   export const unnormalize = Poly.of(unnormalizeDefault);
   export const train = Poly.of(trainDefault);
@@ -39,7 +39,7 @@ export namespace Expanse {
 
   function normalizeDefault<T extends Expanse>(
     expanse: T,
-    // @ts-ignore - want to retain the function signature fore methods
+    // @ts-ignore - Need to infer function signatures
     value: T[`value`],
   ): number {
     throw new Error(
