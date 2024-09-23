@@ -92,15 +92,16 @@ export namespace Scene {
     );
 
     const queryTable = DOM.element(`table`, {
-      classes: tw("tw-fixed tw-z-30 tw-bg-gray-100 tw-shadow-md"),
+      classes: tw("tw-absolute tw-z-30 tw-bg-gray-100 tw-shadow-md"),
     });
+    DOM.setStyles(queryTable, { pointerEvents: `none` });
 
     const keybindings = { ...Scene.keybindings, ...Plot.keybindings };
     const keybindingsMenu = KeybindingsMenu.of(keybindings);
 
     DOM.append(container, plotsContainer);
-    DOM.append(container, queryTable);
     DOM.append(container, keybindingsMenu);
+    DOM.append(container, queryTable);
 
     const [rows, cols] = [1, 1];
     const marker = Marker.of(Object.values(data)[0].length);
@@ -421,7 +422,8 @@ export namespace Scene {
 }
 
 function setupEvents(scene: Scene) {
-  const { marker, plots, container, keybindings, queryTable } = scene;
+  const { marker, plots, container, plotsContainer, keybindings, queryTable } =
+    scene;
 
   container.addEventListener(`mousedown`, () => {
     for (const plot of plots) Reactive.dispatch(plot, `deactivate`);
@@ -436,17 +438,27 @@ function setupEvents(scene: Scene) {
     scene.activePlot = undefined;
   });
 
-  container.addEventListener(
+  plotsContainer.addEventListener(
     `mousemove`,
-    throttle(function (event) {
-      const { parentElement } = container;
-      const { clientX, clientY } = event;
-      const { clientWidth: appWidth, clientHeight: appHeight } = parentElement!;
+    throttle((event) => {
+      const { clientWidth: appWidth, clientHeight: appHeight } = plotsContainer;
       const { clientWidth: tableWidth, clientHeight: tableHeight } = queryTable;
 
-      let [left, top] = [clientX + 2, clientY + 2];
-      if (clientX + tableWidth > appWidth) left = left - tableWidth - 4;
-      if (clientY + tableHeight > appHeight) top = left - tableHeight - 4;
+      let { offsetX, offsetY } = event;
+      let element = event.target;
+
+      while (element !== plotsContainer) {
+        if (element === null) return;
+        offsetX += element.offsetLeft;
+        offsetY += element.offsetTop;
+        element = element.parentElement;
+      }
+
+      console.log(offsetY, tableHeight, appHeight);
+
+      let [left, top] = [offsetX + 2, offsetY + 2];
+      if (offsetX + tableWidth > appWidth) left = left - tableWidth - 4;
+      if (offsetY + tableHeight > appHeight) top = top - tableHeight - 4;
 
       DOM.setStyles(queryTable, { left: left + `px`, top: top + `px` });
     }, 20),
@@ -463,7 +475,7 @@ function setupEvents(scene: Scene) {
     Marker.setGroup(marker, Transient);
     for (const p of scene.plots) {
       p.parameters.mode = Plot.Mode.Select;
-      if (p.queryTable) p.queryTable.style.display = `none`;
+      DOM.setStyles(queryTable, { display: `none` });
     }
   });
 
