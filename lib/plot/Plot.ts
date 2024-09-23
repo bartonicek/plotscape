@@ -588,7 +588,7 @@ export namespace Plot {
     } else {
       const r = (xRatio / yRatio) * Scale.unitRange(x);
       const [zero, one] = [(1 - r) / 2, (1 + r) / 2];
-      Scale.set(x, () => ({ zero, one }), opts);
+      Scale.set(y, () => ({ zero, one }), opts);
     }
   }
 
