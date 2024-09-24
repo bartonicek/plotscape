@@ -23,7 +23,6 @@ import {
   sqrt,
   square,
   stringArraysMatch,
-  throttle,
   trunc,
   tw,
 } from "../utils/funs";
@@ -169,6 +168,7 @@ export namespace Plot {
     | `resize`
     | `render`
     | `render-axes`
+    | `render-all`
     | `activate`
     | `activated`
     | `deactivate`
@@ -210,8 +210,15 @@ export namespace Plot {
     }
 
     const render = () => Plot.render(plot);
-    // Other callback e.g. computing scale limits should run first
-    Reactive.listen(geom, `coords-changed`, render, { priority: 2 });
+    Reactive.listen(
+      geom,
+      `coords-changed`,
+      () => Reactive.dispatch(plot, `render-all`),
+      {
+        throttle: 10,
+        priority: 10, // Other callbacks e.g. computing scale limits should run first
+      },
+    );
   }
 
   export function deleteGeom(plot: Plot, geom: Geom) {
@@ -793,12 +800,9 @@ function setupEvents(plot: Plot) {
 
   container.addEventListener(`mouseup`, () => Plot.setMousedown(plot, false));
 
-  container.addEventListener(
-    `mousemove`,
-    throttle((e) => {
-      Plot.mousemoveHandlers[parameters.mode](plot, e);
-    }, 20),
-  );
+  container.addEventListener(`mousemove`, (e) => {
+    Plot.mousemoveHandlers[parameters.mode](plot, e);
+  });
 
   Reactive.listen(plot, `reset`, () => Plot.reset(plot));
   Reactive.listen(plot, `resize`, () => Plot.resize(plot));

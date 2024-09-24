@@ -141,8 +141,8 @@ function histogram2d(plot: Histogram2D) {
   });
   Expanse.freeze(scales.area.codomain, [`min`, `max`]);
 
-  Reactive.removeAll(rectangles.coordinates[1] as any, `changed`);
-  Reactive.listen(coordinates[1] as any, `changed`, () => {
+  Reactive.removeAll(rectangles.coordinates[0] as any, `changed`);
+  Reactive.listen(coordinates[0] as any, `changed`, () => {
     Scale.train(scales.x, flat.x1, { default: true, name: false });
     Scale.train(scales.y, flat.y1, { default: true, name: false });
     Scale.train(scales.areaPct, flat.area, { default: true });
@@ -189,8 +189,8 @@ function spinogram2d(plot: Histogram2D) {
   });
   Expanse.freeze(scales.area.codomain, [`min`, `max`]);
 
-  Reactive.removeAll(rectangles.coordinates[1] as any, `changed`);
-  Reactive.listen(coordinates[1] as any, `changed`, () => {
+  Reactive.removeAll(rectangles.coordinates[0] as any, `changed`);
+  Reactive.listen(coordinates[0] as any, `changed`, () => {
     Scale.train(scales.x, flat.x1, { default: true, name: false });
     Scale.train(scales.y, flat.y1, { default: true, name: false });
   });

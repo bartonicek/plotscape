@@ -185,6 +185,10 @@ export namespace Scene {
       Marker.clearTransient(marker);
     });
 
+    Reactive.listen(plot, `render-all`, () => {
+      for (const p of plots) Reactive.dispatch(p, `render`);
+    });
+
     const { type } = plot;
     if (!plotsByType[type]) plotsByType[type] = [];
     plotsByType[type].push(plots.length);
