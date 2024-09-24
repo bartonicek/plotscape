@@ -1,8 +1,7 @@
-import * as funs from "./funs";
+import { throttle } from "./funs";
 
 const EVENTS = Symbol(`events`);
 const LISTENERS = Symbol(`listeners`);
-const DEFERRED = Symbol(`deferred`);
 
 type EventCallback = (data?: Record<string, any>) => void;
 
@@ -11,11 +10,10 @@ type EventCallback = (data?: Record<string, any>) => void;
  */
 export interface Reactive<T extends string = string> {
   [EVENTS]: T;
-  [LISTENERS]: Record<string, EventCallback[]>;
-  [DEFERRED]: Record<string, EventCallback[]>;
+  [LISTENERS]: Record<string, { priority: number; callback: EventCallback }[]>;
 }
 
-type EventOf<T extends Reactive> = T[typeof EVENTS];
+export type EventOf<T extends Reactive> = T[typeof EVENTS];
 
 export namespace Reactive {
   /**
@@ -26,7 +24,7 @@ export namespace Reactive {
   export function of<E extends string = `changed`>() {
     return function <T extends Object>(object: T) {
       // Need to copy so that e.g. translated data gets assigned a new Reactive pointer
-      return { ...object, [LISTENERS]: {}, [DEFERRED]: {} } as T & Reactive<E>;
+      return { ...object, [LISTENERS]: {} } as T & Reactive<E>;
     };
   }
 
@@ -36,33 +34,37 @@ export namespace Reactive {
    * @returns `true` if the object is `Reactive`
    */
   export function is(object: Record<PropertyKey, any>): object is Reactive {
-    return object[LISTENERS] !== undefined;
+    return object?.[LISTENERS] !== undefined;
   }
 
   /**
    * Listen for events of a specific type on an object using a callback.
-   * Can be 'deferred', meaning that the callback gets added to a second
-   * array of listeners that only runs after the first has finished running
-   * (useful if e.g. we want to propagate updates to another object but want to
-   * make sure all of the updates on the first object run first). The callback can
-   * also be throttled.
+   * `priority` can be used to make sure some callbacks get executed before
+   * others, with lower-valued callbacks (e.g. `priority: 1`) getting executed
+   * before higher-valued ones (e.g. `priority: 10`).
    *
    * @param object A `Reactive` object
    * @param type The event type (string)
-   * @param listenfn A callback
+   * @param callback A callback
    * @param options A list of options
    */
   export function listen<T extends Reactive>(
     object: T,
     type: EventOf<T>,
-    listenfn: EventCallback,
-    options?: { throttle?: number; defer?: boolean },
+    callback: EventCallback,
+    options?: { throttle?: number; priority?: number },
   ) {
-    if (options?.throttle) listenfn = funs.throttle(listenfn, options.throttle);
+    if (!Reactive.is(object)) return;
+    if (options?.throttle) callback = throttle(callback, options.throttle);
 
-    const listeners = options?.defer ? object[DEFERRED] : object[LISTENERS];
+    const priority = options?.priority ?? 1;
+    const listeners = object[LISTENERS];
+    const listener = { priority, callback };
+
     if (!listeners[type]) listeners[type] = [];
-    if (!listeners[type].includes(listenfn)) listeners[type].push(listenfn);
+    if (!listeners[type].includes(listener)) listeners[type].push(listener);
+
+    listeners[type].sort((x, y) => x.priority - y.priority);
   }
 
   /**
@@ -76,18 +78,17 @@ export namespace Reactive {
     type: EventOf<T>,
     data?: Record<string, any>,
   ) {
-    const [listeners, deferred] = [
-      object[LISTENERS][type],
-      object[DEFERRED][type],
-    ];
-
-    if (listeners) for (const cb of listeners) cb(data);
-    // Run deferred callbacks only after regular callbacks
-    if (deferred) for (const cb of deferred) cb(data);
+    if (!Reactive.is(object)) return;
+    const listeners = object[LISTENERS][type];
+    if (listeners) for (const { callback } of listeners) callback(data);
   }
 
   /**
    * Propagate event from one object to another.
+   * The propagate function gets assigned `priority: 99`,
+   * meaning that it should run after all other callbacks
+   * registered on the objects.
+   *
    * @param object1 A `Reactive` object
    * @param object2 Another `Reactive` object
    * @param type The type of event to propagate (string)
@@ -97,8 +98,9 @@ export namespace Reactive {
     object2: U,
     type: EventOf<T>,
   ) {
+    if (!Reactive.is(object1) || !Reactive.is(object2)) return;
     const propagatefn = () => Reactive.dispatch(object2, type);
-    Reactive.listen(object1, type, propagatefn, { defer: true });
+    Reactive.listen(object1, type, propagatefn, { priority: 99 });
   }
 
   /**
@@ -110,6 +112,7 @@ export namespace Reactive {
     object: T,
     setfn: (object: T) => void,
   ) {
+    if (!Reactive.is(object)) return;
     setfn(object);
     Reactive.dispatch(object, `changed` as EventOf<T>);
   }
@@ -125,13 +128,13 @@ export namespace Reactive {
     type: EventOf<T>,
     listener: EventCallback,
   ) {
-    const [listeners, deferred] = [
-      object[LISTENERS][type],
-      object[DEFERRED][type],
-    ];
+    if (!Reactive.is(object)) return;
 
-    if (listeners) funs.remove(listeners, listener);
-    if (deferred) funs.remove(deferred, listener);
+    const listeners = object[LISTENERS][type] ?? [];
+
+    for (let i = 0; i < listeners.length; i++) {
+      if (listeners[i].callback === listener) listeners.splice(i, 1);
+    }
   }
 
   /**
@@ -140,13 +143,8 @@ export namespace Reactive {
    * @param type The event type (string)
    */
   export function removeAll<T extends Reactive>(object: T, type: EventOf<T>) {
-    const [listeners, deferred] = [
-      object[LISTENERS][type],
-      object[DEFERRED][type],
-    ];
-
-    if (listeners) for (const cb of listeners) funs.remove(listeners, cb);
-    if (deferred) for (const cb of deferred) funs.remove(deferred, cb);
+    if (!Reactive.is(object)) return;
+    if (object[LISTENERS][type]) object[LISTENERS][type].length = 0;
   }
 
   /**
@@ -154,9 +152,8 @@ export namespace Reactive {
    * @param object A `Reactive` object
    */
   export function removeAllListeners<T extends Reactive>(object: T) {
-    const [listeners, deferred] = [object[LISTENERS], object[DEFERRED]];
-
-    if (listeners) for (const cbs of Object.values(listeners)) cbs.length = 0;
-    if (deferred) for (const cbs of Object.values(deferred)) cbs.length = 0;
+    if (!Reactive.is(object)) return;
+    const listeners = object[LISTENERS];
+    if (listeners) for (const ls of Object.values(listeners)) ls.length = 0;
   }
 }

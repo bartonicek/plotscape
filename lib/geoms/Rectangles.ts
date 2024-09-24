@@ -1,12 +1,13 @@
-import { Plot, Poly } from "../main";
 import { Frame } from "../plot/Frame";
 import { Scale } from "../scales/Scale";
+import { Scales } from "../scales/Scales";
 import { LAYER } from "../scene/Marker";
 import { Factor } from "../transformation/Factor";
 import { findLength, pointInRect, rectsIntersect } from "../utils/funs";
 import { Getter } from "../utils/Getter";
+import { Poly } from "../utils/Poly";
 import { DataLayers, Indexable, Point, Rect } from "../utils/types";
-import { FactorData, Geom } from "./Geom";
+import { Geom } from "./Geom";
 
 type Data = {
   x0: Indexable;
@@ -17,18 +18,15 @@ type Data = {
 
 export interface Rectangles extends Geom {
   type: `rectangles`;
-  data: (Data & FactorData)[];
-  scales: Plot.Scales;
+  coordinates: Data[];
+  scales: Scales;
 }
 
 export namespace Rectangles {
   const type = `rectangles`;
 
-  export function of(): Rectangles {
-    const scales = {} as Plot.Scales; // Will be definitely assigned when added to Plot
-    const data = [] as (Data & FactorData)[];
-
-    return { type, data, scales };
+  export function of(coordinates: Data[], scales: Scales): Rectangles {
+    return Geom.of({ type, coordinates, scales });
   }
 
   // Polymorphic method implementations

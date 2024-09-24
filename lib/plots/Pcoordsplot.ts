@@ -1,4 +1,5 @@
 import { Lines } from "../geoms/Lines";
+import { Scales } from "../main";
 import { Plot } from "../plot/Plot";
 import { ExpanseCompound } from "../scales/ExpanseCompound";
 import { ExpansePoint } from "../scales/ExpansePoint";
@@ -29,26 +30,27 @@ export function Pcoordsplot<T extends Columns>(
 
   const factor1 = Factor.bijection(vars[0].length, { x, y, ...queries });
   const factor2 = Factor.product(factor1, marker.factor);
+  const plotData = Summaries.of({}, [factor1, factor2] as const);
 
-  const summaries = Summaries.of({}, [factor1, factor2] as const);
-  const coordinates = Summaries.translate(summaries, [(d) => d, (d) => d]);
+  const scales = Scales.of({
+    x: [`split`, `split`],
+    y: [`compound`, `split`],
+  });
+  const props = { type: `pcoords`, representation: `absolute` } as const;
+  const coordinates = Summaries.translate(plotData, [(d) => d, (d) => d]);
+  const lines = Lines.of(coordinates, scales);
 
-  const plot = Plot.of({ type: `pcoords` });
-  const { scales } = plot;
+  const plot = Plot.of(plotData, scales, props);
+  Plot.addGeom(plot, lines);
 
   const domains = vars.map((x) => inferExpanse(x));
   scales.x.domain = ExpanseSplit.of(ExpansePoint.of(names));
   scales.y.domain = ExpanseCompound.of(domains);
-  // @ts-ignore
-  scales.x.codomain = ExpanseSplit.of(scales.x.codomain);
-  // @ts-ignore
-  scales.y.codomain = ExpanseSplit.of(scales.y.codomain);
+  // scales.x.codomain = ExpanseSplit.of(scales.x.codomain);
+  // scales.y.codomain = ExpanseSplit.of(scales.y.codomain);
 
   Meta.set(scales.x, { name: `variable` });
   Meta.set(scales.y, { name: `value` });
 
-  Plot.setData(plot, coordinates);
-  Plot.addGeom(plot, Lines.of());
-
-  return plot as unknown as Plot;
+  return plot;
 }

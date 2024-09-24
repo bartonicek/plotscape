@@ -1,15 +1,14 @@
 import { Geom } from "../geoms/Geom";
 import { Barplot } from "../plots/Barplot";
+import { Bibarplot } from "../plots/Bibarplot";
 import { Fluctuationplot } from "../plots/Fluctplot";
 import { Histogram } from "../plots/Histogram";
 import { Histogram2d } from "../plots/Histogram2d";
 import { Pcoordsplot } from "../plots/Pcoordsplot";
 import { Scatterplot } from "../plots/Scatterplot";
 import { Expanse } from "../scales/Expanse";
-import { ExpanseBand } from "../scales/ExpanseBand";
-import { ExpanseContinuous } from "../scales/ExpanseContinuous";
-import { ExpansePoint } from "../scales/ExpansePoint";
 import { Scale } from "../scales/Scale";
+import { Scales } from "../scales/Scales";
 import { defaultOptions, GraphicalOptions } from "../scene/defaultOptions";
 import { Dataframe } from "../utils/Dataframe";
 import { DOM } from "../utils/DOM";
@@ -18,7 +17,6 @@ import {
   diff,
   invertRange,
   isDefined,
-  last,
   max,
   orderIndicesByTable,
   rangeInverse,
@@ -38,6 +36,7 @@ import {
   Direction,
   MouseButton,
   Rect,
+  Representation,
 } from "../utils/types";
 import { renderAxisLabels, renderAxisTitles } from "./axes";
 import { Frame } from "./Frame";
@@ -50,15 +49,18 @@ export type Frames = DataLayers & {
 /**
  * A generic plot object which handles rendering data and reacting to DOM events.
  */
-export interface Plot extends Reactive<Plot.Event> {
+export interface Plot<
+  T extends readonly Dataframe[] = readonly Dataframe[],
+  U extends Scales = Scales,
+> extends Reactive<Plot.Event> {
   type: Plot.Type;
-  data: Dataframe[];
+  representation: Representation;
+  data: T;
+  scales: U;
 
   container: HTMLElement;
   frames: Frames;
   queryTable?: HTMLTableElement;
-
-  scales: Plot.Scales;
 
   renderables: Geom[];
   selectables: Geom[];
@@ -87,16 +89,6 @@ export namespace Plot {
     Query = "query",
   }
 
-  export type Scales = {
-    x: Scale<any, ExpanseContinuous>;
-    y: Scale<any, ExpanseContinuous>;
-    size: Scale<any, ExpanseContinuous>;
-    width: Scale<any, ExpanseContinuous>;
-    height: Scale<any, ExpanseContinuous>;
-    area: Scale<any, ExpanseContinuous>;
-    areaPct: Scale<ExpanseContinuous, ExpanseContinuous>;
-  };
-
   export type Type =
     | `unknown`
     | `scatter`
@@ -106,24 +98,27 @@ export namespace Plot {
     | `fluct`
     | `pcoords`;
 
-  export function of(
-    options?: {
+  export function of<
+    T extends readonly Dataframe[] = readonly Dataframe[],
+    U extends Scales = Scales,
+  >(
+    data: T,
+    scales: U,
+    options: {
       id?: string;
       type?: Type;
+      representation?: Representation;
       ratio?: number;
-      scales?: { x?: `band` | `point`; y?: `band` | `point` };
     } & Partial<GraphicalOptions>,
-  ): Plot {
-    const type = options?.type ?? `unknown`;
-
+  ): Plot<T, U> {
     const container = DOM.element(`div`, {
       id: "plot",
       classes: tw("tw-relative tw-h-full tw-w-full tw-drop-shadow-md"),
     });
 
-    const data = [] as Dataframe[];
+    data = data ?? [];
+    scales = scales ?? Scales.of();
     const frames = {} as Frames;
-    const scales = {} as Scales;
 
     const renderables = [] as Geom[];
     const selectables = [] as Geom[];
@@ -145,8 +140,12 @@ export namespace Plot {
       ratio: options?.ratio ?? undefined,
     };
 
+    const type = options.type ?? `unknown`;
+    const representation = options.representation ?? `absolute`;
+
     const plot = Reactive.of()({
       type,
+      representation,
       data,
       container,
       frames,
@@ -160,8 +159,8 @@ export namespace Plot {
     });
 
     setupFrames(plot, opts);
-    setupScales(plot, opts);
-    setupEvents(plot); // Need to set up events last
+    setupScales(plot);
+    setupEvents(plot); // Events need to be setup last
 
     return plot;
   }
@@ -171,6 +170,7 @@ export namespace Plot {
     | `resize`
     | `render`
     | `render-axes`
+    | `render-all`
     | `activate`
     | `activated`
     | `deactivate`
@@ -199,25 +199,14 @@ export namespace Plot {
   export const histo = Histogram;
   export const histo2d = Histogram2d;
   export const pcoords = Pcoordsplot;
+  export const bibar = Bibarplot;
 
   export function append(parent: HTMLElement, plot: Plot) {
     parent.appendChild(plot.container);
     Plot.resize(plot);
   }
 
-  export function setData(plot: Plot, data: Dataframe[]) {
-    for (const data of plot.data) {
-      if (Reactive.is(data)) Reactive.removeAll(data, `changed`);
-    }
-
-    plot.data.length = 0;
-    for (let i = 0; i < data.length; i++) plot.data.push(data[i]);
-    Reactive.listen(last(data) as any, `changed`, () => Plot.render(plot));
-  }
-
   export function addGeom(plot: Plot, geom: Geom) {
-    geom.scales = plot.scales;
-    geom.data = plot.data as any;
     const { renderables, selectables, queryables } = plot;
     for (const e of [renderables, selectables, queryables]) {
       e.push(geom);
@@ -429,30 +418,39 @@ export namespace Plot {
   };
 
   export function grow(plot: Plot) {
-    const { area, size, width } = plot.scales;
+    const { area: a, size: sz, width: w } = plot.scales;
     const k = 10 / 9;
 
-    Expanse.set(area.codomain, (e) => ({ min: e.min * k, max: e.max * k }));
-    Expanse.set(size.codomain, (e) => ({ min: e.min * k, max: e.max * k }));
-
-    Expanse.set(width.codomain, (e) =>
-      e.mult < 1 ? { mult: (e.mult * 10) / 9 } : {},
+    // Silent to avoid unnecessary re-renders
+    const opts = { silent: true };
+    Expanse.set(a.codomain, (s) => ({ min: s.min * k, max: s.max * k }), opts);
+    Expanse.set(sz.codomain, (s) => ({ min: s.min * k, max: s.max * k }), opts);
+    Expanse.set(
+      w.codomain,
+      (s) => (s.mult < 1 ? { mult: s.mult * k } : {}),
+      opts,
     );
+
+    Plot.render(plot);
   }
 
   export function shrink(plot: Plot) {
-    const { area, width, size } = plot.scales;
+    const { area: a, size: sz, width: w } = plot.scales;
     const k = 9 / 10;
 
-    Expanse.set(area.codomain, (e) => ({ min: e.min * k, max: e.max * k }));
-    Expanse.set(size.codomain, (e) => ({ min: e.min * k, max: e.max * k }));
-    Expanse.set(width.codomain, (e) => ({ mult: (e.mult * 9) / 10 }));
+    // Silent to avoid unnecessary re-renders
+    const opts = { silent: true };
+    Expanse.set(a.codomain, (e) => ({ min: e.min * k, max: e.max * k }), opts);
+    Expanse.set(sz.codomain, (e) => ({ min: e.min * k, max: e.max * k }), opts);
+    Expanse.set(w.codomain, (e) => ({ mult: (e.mult * 9) / 10 }), opts);
+
+    Plot.render(plot);
   }
 
   export function fade(plot: Plot) {
     const { frames } = plot;
-    for (const l of baseLayers) {
-      Frame.setAlpha(frames[l], (a) => (a * 9) / 10);
+    for (const layer of baseLayers) {
+      Frame.setAlpha(frames[layer], (a) => (a * 9) / 10);
     }
     Plot.render(plot);
   }
@@ -609,10 +607,7 @@ export namespace Plot {
     }
   }
 
-  export function getScale(
-    plot: Plot,
-    scale: Exclude<keyof Plot.Scales, symbol>,
-  ) {
+  export function getScale(plot: Plot, scale: Exclude<keyof Scales, symbol>) {
     return plot.scales[scale].domain;
   }
 
@@ -632,9 +627,9 @@ export namespace Plot {
     },
   ) {
     let { min, max, zero, one, mult, labels, direction } = options;
-    const s = plot.scales[scale];
-    const domain = s.domain;
-    const codomain = s.codomain;
+    const scale_ = plot.scales[scale];
+    const domain = scale_.domain;
+    const codomain = scale_.codomain;
 
     if (!Object.keys(plot.scales).includes(scale)) {
       throw new Error(`Unrecognized scale '${scale}'`);
@@ -646,10 +641,10 @@ export namespace Plot {
     };
 
     if ([zero, one].some(isDefined)) {
-      zero = zero ?? domain.zero;
-      max = max ?? domain.max;
+      zero = zero ?? scale_.props.zero;
+      one = one ?? scale_.props.one;
 
-      Scale.set(s, () => ({ zero, one }), opts);
+      Scale.set(scale_, () => ({ zero, one }), opts);
       plot.parameters.ratio = undefined;
     }
 
@@ -658,11 +653,13 @@ export namespace Plot {
         throw new Error(`Limits can only be set with a continuous domain`);
       }
 
+      zero = min ? (zero ?? 0) : scale_.props.zero;
+      one = max ? (one ?? 1) : scale_.props.one;
       min = min ?? domain.props.min;
       max = max ?? domain.props.max;
 
       Expanse.set(domain, () => ({ min, max }), opts);
-      Scale.set(s, () => ({ zero: 0, one: 1 }), opts);
+      Scale.set(scale_, () => ({ zero, one }), opts);
       plot.parameters.ratio = undefined;
     }
 
@@ -679,7 +676,7 @@ export namespace Plot {
       Expanse.reorder(domain, indices);
     }
 
-    if (direction) Scale.set(s, () => ({ direction }), opts);
+    if (direction) Scale.set(scale_, () => ({ direction }), opts);
     if (mult) Expanse.set(codomain, () => ({ mult }), opts);
   }
 }
@@ -753,7 +750,7 @@ function setupFrames(plot: Plot, options: GraphicalOptions) {
 }
 
 function setupEvents(plot: Plot) {
-  const { container, parameters, frames } = plot;
+  const { container, data, parameters, frames } = plot;
   const { mousecoords } = parameters;
 
   for (const [k, v] of Object.entries(Plot.keybindings)) {
@@ -834,10 +831,10 @@ function setupEvents(plot: Plot) {
     Plot.setScale(plot, data.scale, data);
   });
 
-  Reactive.listen(plot, `grow`, () => Plot.grow(plot));
-  Reactive.listen(plot, `shrink`, () => Plot.shrink(plot));
-  Reactive.listen(plot, `fade`, () => Plot.fade(plot));
-  Reactive.listen(plot, `unfade`, () => Plot.unfade(plot));
+  Reactive.listen(plot, `grow`, () => Plot.grow(plot), { throttle: 10 });
+  Reactive.listen(plot, `shrink`, () => Plot.shrink(plot), { throttle: 10 });
+  Reactive.listen(plot, `fade`, () => Plot.fade(plot), { throttle: 10 });
+  Reactive.listen(plot, `unfade`, () => Plot.unfade(plot), { throttle: 10 });
   Reactive.listen(plot, `zoom`, (data) => Plot.zoom(plot, data));
   Reactive.listen(plot, `pop-zoom`, () => Plot.popZoom(plot));
 
@@ -848,36 +845,8 @@ function setupEvents(plot: Plot) {
   }
 }
 
-function setupScales(
-  plot: Plot,
-  options: {
-    scales?: { x?: `band` | `point`; y?: `band` | `point` };
-  } & GraphicalOptions,
-) {
-  const { scales, container } = plot;
-  const { clientWidth: w, clientHeight: h } = container;
-
-  const table = {
-    continuous: ExpanseContinuous,
-    point: ExpansePoint,
-    band: ExpanseBand,
-  };
-
-  const xDomain = table[options?.scales?.x ?? `continuous`].of();
-  const yDomain = table[options?.scales?.y ?? `continuous`].of();
-
-  scales.x = Scale.of(xDomain, ExpanseContinuous.of(0, w));
-  scales.y = Scale.of(yDomain, ExpanseContinuous.of(0, h));
-  scales.height = Scale.of(ExpanseContinuous.of(), ExpanseContinuous.of());
-  scales.width = Scale.of(ExpanseContinuous.of(), ExpanseContinuous.of());
-  scales.area = Scale.of(ExpanseContinuous.of(), ExpanseContinuous.of());
-  scales.size = Scale.of(
-    ExpanseContinuous.of(),
-    ExpanseContinuous.of(0, options.size),
-  );
-
-  scales.areaPct = Scale.of(ExpanseContinuous.of(), ExpanseContinuous.of());
-
+function setupScales(plot: Plot) {
+  const { scales } = plot;
   const { x, y, width, height, size, area, areaPct } = scales;
 
   const opts = { default: true, silent: true };

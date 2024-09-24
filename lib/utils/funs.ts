@@ -277,7 +277,7 @@ export function stripWS(string: string) {
  * @param array An array
  * @returns The last value
  */
-export function last<T>(array: T[]) {
+export function last<T>(array: T[] | readonly T[]) {
   return array[array.length - 1];
 }
 

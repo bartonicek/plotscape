@@ -9,7 +9,7 @@ import { Reducer } from "./Reducer";
 type ReducerTuple<T = any, U = any> = readonly [Indexable<T>, Reducer<T, U>];
 type Computed<T extends Record<string, ReducerTuple>> = {
   [key in keyof T]: Reduced<ReturnType<T[key][1][`reducefn`]>>;
-};
+} & Reactive;
 
 type TranslateFn<T extends Dataframe = any> = (data: T) => Dataframe;
 type TranslateFns<T extends readonly Dataframe[]> = T extends readonly [
@@ -23,7 +23,7 @@ type TranslatedData<T extends TranslateFn[]> = T extends [
   infer U extends TranslateFn,
   ...infer Rest extends TranslateFn[],
 ]
-  ? [ReturnType<U>, ...TranslatedData<Rest>]
+  ? [ReturnType<U> & Reactive, ...TranslatedData<Rest>]
   : [];
 
 export namespace Summaries {

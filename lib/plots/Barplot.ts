@@ -1,4 +1,6 @@
 import { Bars } from "../geoms/Bars";
+import { Geom } from "../geoms/Geom";
+import { InferScales, Scales } from "../main";
 import { Plot } from "../plot/Plot";
 import { Expanse } from "../scales/Expanse";
 import { ExpanseBand } from "../scales/ExpanseBand";
@@ -8,23 +10,25 @@ import { Factor } from "../transformation/Factor";
 import { Reduced } from "../transformation/Reduced";
 import { Reducer } from "../transformation/Reducer";
 import { Summaries } from "../transformation/Summaries";
-import { Dataframe } from "../utils/Dataframe";
 import { cumsum, one, orderIndices, zero } from "../utils/funs";
 import { Meta } from "../utils/Meta";
 import { Reactive } from "../utils/Reactive";
-import { Columns } from "../utils/types";
+import { Columns, Indexable } from "../utils/types";
 
-enum Representation {
-  Absolute,
-  Proportion,
+interface Coordinates extends Reactive {
+  x: Indexable;
+  y: Indexable;
+  width: Indexable;
+  height: Indexable;
 }
 
 interface Barplot extends Plot {
-  representation: Representation;
-  summaries: readonly [
+  scales: InferScales<{ x: [`band`, `continuous`] }>;
+  data: readonly [
     { label: string[]; stat: Reduced<number> },
     { label: string[]; stat: Reduced<number> },
   ];
+  bars: Bars;
 }
 
 export function Barplot<T extends Columns>(
@@ -37,35 +41,29 @@ export function Barplot<T extends Columns>(
 ) {
   const { data, marker } = scene;
 
-  let [category, vals] = selectfn(data);
+  let [cat, vals] = selectfn(data);
   const reducer = vals && options?.reducer ? options.reducer : Reducer.sum;
   const values = vals ? vals : () => 1;
 
-  const factor1 = Factor.from(category);
+  const factor1 = Factor.from(cat);
   const factor2 = Factor.product(factor1, marker.factor);
   const factors = [factor1, factor2] as const;
 
   const queries = options?.queries ? options.queries(data) : {};
-  const summaries = Summaries.of(
-    { stat: [values, reducer], ...queries },
-    factors,
-  );
-  const coordinates = [] as (Dataframe & Reactive)[];
+  const stat = [values, reducer] as const;
+  const plotData = Summaries.of({ stat, ...queries }, factors);
 
-  const representation = Representation.Absolute;
-  const opts = { type: `bar`, scales: { x: `band` } } as const;
-  const plot = Object.assign(Plot.of(opts), {
-    representation,
-    summaries,
-    coordinates,
-  });
+  const scales = Scales.of({ x: [`band`, `continuous`] });
+  const props = { type: `bar`, representation: `absolute` } as const;
+  const bars = Bars.of([] as Coordinates[], scales);
+
+  const plot = Object.assign(Plot.of(plotData, scales, props), { bars });
+  barplot(plot);
+  Plot.addGeom(plot, bars);
 
   Reactive.listen(plot, `normalize`, () => switchRepresentation(plot));
 
-  barplot(plot);
-  Plot.addGeom(plot, Bars.of());
-
-  return plot as unknown as Plot;
+  return plot;
 }
 
 function sortAxis(domain: ExpanseBand, values: number[]) {
@@ -76,13 +74,13 @@ function sortAxis(domain: ExpanseBand, values: number[]) {
 }
 
 function switchRepresentation(plot: Barplot) {
-  if (plot.representation === Representation.Absolute) spineplot(plot);
+  if (plot.representation === `absolute`) spineplot(plot);
   else barplot(plot);
 }
 
 function barplot(plot: Barplot) {
-  const { summaries, scales } = plot;
-  const coordinates = Summaries.translate(summaries, [
+  const { data, scales, bars } = plot;
+  const coordinates = Summaries.translate(data, [
     (d) => ({ x: d.label, y: zero, height: d.stat, width: one }),
     (d) => ({ x: d.label, y: zero, height: Reduced.stack(d.stat), width: one }),
   ]);
@@ -101,15 +99,9 @@ function barplot(plot: Barplot) {
 
   const k = 1 / new Set(flat.x).size;
   Scale.link(scales.y, scales.height);
-  Expanse.set(
-    scales.width.codomain,
-    () => ({
-      scale: k,
-      mult: 0.9,
-      offset: 0,
-    }),
-    { default: true },
-  );
+
+  const widthProps = { scale: k, mult: 0.9, offset: 0 };
+  Expanse.set(scales.width.codomain, () => widthProps, { default: true });
 
   Meta.copy(scales.y, flat.height, [`name`]);
 
@@ -118,16 +110,18 @@ function barplot(plot: Barplot) {
     sortAxis(scales.x.domain, flat.height),
   );
 
-  plot.representation = Representation.Absolute;
-  Plot.setData(plot, coordinates);
+  Geom.setCoordinates(bars, coordinates);
 
+  plot.representation = `absolute`;
   Plot.render(plot);
   Plot.renderAxes(plot);
+
+  return plot;
 }
 
 function spineplot(plot: Barplot) {
-  const { summaries, scales } = plot;
-  const coordinates = Summaries.translate(summaries, [
+  const { data, scales, bars } = plot;
+  const coordinates = Summaries.translate(data, [
     (d) => ({ x: d.label, y: zero, height: one, width: d.stat }),
     (d) => ({
       x: d.label,
@@ -150,20 +144,17 @@ function spineplot(plot: Barplot) {
   ExpanseBand.setWeights(scales.x.domain, flat.width);
 
   Scale.link(scales.y, scales.height);
-  Expanse.set(
-    scales.width.codomain,
-    () => ({ scale: 1, mult: 1, offset: -1 }),
-    { default: true },
-  );
+  const widthProps = { scale: 1, mult: 1, offset: -1 };
+  Expanse.set(scales.width.codomain, () => widthProps, { default: true });
 
   Meta.set(scales.y, { name: `proportion` });
 
   Reactive.removeAll(plot, `reorder`);
   Reactive.listen(plot, `reorder`, () => sortAxis(scales.x.domain, flat.width));
 
-  plot.representation = Representation.Proportion;
-  Plot.setData(plot, coordinates);
+  Geom.setCoordinates(bars, coordinates);
 
+  plot.representation = `propotion`;
   Plot.render(plot);
   Plot.renderAxes(plot);
 }

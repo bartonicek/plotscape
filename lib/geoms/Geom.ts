@@ -1,13 +1,15 @@
-import { Plot, Poly } from "../main";
+import { last } from "../main";
 import { Frame } from "../plot/Frame";
 import { Scale } from "../scales/Scale";
+import { Scales } from "../scales/Scales";
 import { LAYER } from "../scene/Marker";
 import { Factor } from "../transformation/Factor";
 import { Reduced } from "../transformation/Reduced";
-
 import { Dataframe } from "../utils/Dataframe";
 import { Getter } from "../utils/Getter";
 import { Meta } from "../utils/Meta";
+import { Poly } from "../utils/Poly";
+import { Reactive } from "../utils/Reactive";
 import { DataLayer, DataLayers, Indexable, Point, Rect } from "../utils/types";
 
 export type FlatData = { [Factor.POSITIONS]: Indexable<number[]> };
@@ -21,14 +23,27 @@ export type FactorData = {
   [LAYER]: Indexable<DataLayer>;
 };
 
-export interface Geom<T extends Dataframe = Dataframe> {
+export interface Geom<T extends Dataframe[] = Dataframe[]>
+  extends Reactive<Geom.Event> {
   type: Geom.Type;
-  data: (T & FactorData)[];
-  scales: Plot.Scales;
+  coordinates: T;
+  scales: Scales;
 }
 
 export namespace Geom {
   export type Type = `points` | `bars` | `rectangles` | `lines`;
+  export type Event = `coords-changed` | `coords-swapped`;
+
+  export function of<
+    T extends { type: Geom.Type; coordinates: Dataframe[]; scales: Scales },
+  >(props: T) {
+    const geom = Reactive.of<Geom.Event>()(props);
+    const coord = (last(props.coordinates) ?? Reactive.of()({})) as Reactive;
+    Reactive.listen(coord, `changed`, () =>
+      Reactive.dispatch(geom as Geom, `coords-changed`),
+    );
+    return geom;
+  }
 
   // Polymorphic functions
   export const render = Poly.of(renderDefault);
@@ -59,12 +74,28 @@ export namespace Geom {
     );
   }
 
+  export function setCoordinates<T extends Geom>(
+    geom: T,
+    coordinates: T[`coordinates`],
+  ) {
+    const oldCoord = (last(geom.coordinates) ?? Reactive.of()({})) as Reactive;
+    Reactive.removeAllListeners(oldCoord);
+
+    geom.coordinates = coordinates;
+    const newCoord = (last(coordinates) ?? {}) as Reactive;
+    Reactive.listen(newCoord, `changed`, () =>
+      Reactive.dispatch(geom, `coords-changed`),
+    );
+
+    Reactive.dispatch(geom, `coords-swapped`);
+  }
+
   export function flatData<T extends Geom>(geom: T) {
-    return geom.data[geom.data.length - 2];
+    return geom.coordinates[geom.coordinates.length - 2];
   }
 
   export function groupedData<T extends Geom>(geom: T) {
-    return geom.data[geom.data.length - 1];
+    return geom.coordinates[geom.coordinates.length - 1];
   }
 
   export function frames(

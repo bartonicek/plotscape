@@ -48,6 +48,11 @@ export namespace Scale {
     return scale;
   }
 
+  // 'default' is a keyword, unfortunately
+  export function standard() {
+    return Scale.of(ExpanseContinuous.of(), ExpanseContinuous.of());
+  }
+
   export function pushforward<T extends Expanse, U extends Expanse>(
     scale: Scale<T, U>,
     value: T[`value`],
@@ -231,8 +236,8 @@ export namespace Scale {
     if (!scale1.linked.includes(scale2)) scale1.linked.push(scale2);
   }
 
-  export function shareCodomain(scale1: Scale, scale2: Scale) {
-    scale2.codomain = scale1.codomain;
+  export function shareCodomain(source: Scale, target: Scale) {
+    target.codomain = source.codomain;
   }
 
   export function unitRange(scale: Scale) {

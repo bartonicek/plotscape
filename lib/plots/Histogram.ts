@@ -1,6 +1,8 @@
+import { Geom } from "../geoms/Geom";
 import { Rectangles } from "../geoms/Rectangles";
 import { Plot } from "../plot/Plot";
 import { Scale } from "../scales/Scale";
+import { InferScales, Scales } from "../scales/Scales";
 import { Scene } from "../scene/Scene";
 import { Factor } from "../transformation/Factor";
 import { Reduced } from "../transformation/Reduced";
@@ -10,25 +12,27 @@ import { Dataframe } from "../utils/Dataframe";
 import { minmax, one, zero } from "../utils/funs";
 import { Meta } from "../utils/Meta";
 import { Reactive } from "../utils/Reactive";
-import { Columns } from "../utils/types";
+import { Columns, Indexable } from "../utils/types";
 
-enum Representation {
-  Absolute,
-  Proportion,
+interface Coordinates {
+  x0: Indexable<number>;
+  y0: Indexable<number>;
+  x1: Indexable<number>;
+  y1: Indexable<number>;
+  area: Indexable<number>;
 }
 
-type Summary = {
+interface Summaries extends Reactive {
   binMin: number[];
   binMax: number[];
   breaks: number[];
   stat: Reduced<number>;
-};
+}
 
 interface Histogram extends Plot {
-  representation: Representation;
-  summaries: readonly [Dataframe, Summary, Summary];
-  coordinates: Dataframe[];
-  rectangles?: Rectangles;
+  scales: InferScales<{}>;
+  data: readonly [Dataframe, Summaries, Summaries];
+  rectangles: Rectangles;
 }
 
 export function Histogram<T extends Columns>(
@@ -56,19 +60,16 @@ export function Histogram<T extends Columns>(
   const factors = [factor0, factor1, factor2] as const;
 
   const queries = options?.queries ? options.queries(data) : {};
-  const summaries = Summaries.of(
-    { stat: [values, reducer], ...queries },
-    factors,
-  );
+  const stat = [values, reducer] as const;
+  const plotData = Summaries.of({ stat, ...queries }, factors);
 
-  const representation = Representation.Absolute;
-  const coordinates = [] as (Dataframe & Reactive)[];
-  const opts = { type: `histo` } as const;
-  const plot = Object.assign(Plot.of(opts), {
-    representation,
-    summaries,
-    coordinates,
-  });
+  const scales = Scales.of();
+  const props = { type: `histo`, representation: `absolute` } as const;
+  const rectangles = Rectangles.of([] as Coordinates[], scales);
+
+  const plot = Object.assign(Plot.of(plotData, scales, props), { rectangles });
+  histogram(plot);
+  Plot.addGeom(plot, rectangles);
 
   Reactive.listen(plot, `normalize`, () => switchRepresentation(plot));
 
@@ -100,20 +101,17 @@ export function Histogram<T extends Columns>(
     Reactive.set(pars, (p) => ((p.anchor = min), (p.width = range / 15)));
   });
 
-  histogram(plot);
-  Plot.addGeom(plot, Rectangles.of());
-
-  return plot as unknown as Plot;
+  return plot;
 }
 
 function switchRepresentation(plot: Histogram) {
-  if (plot.representation === Representation.Absolute) spinogram(plot);
+  if (plot.representation === `absolute`) spinogram(plot);
   else histogram(plot);
 }
 
 function histogram(plot: Histogram) {
-  const { summaries } = plot;
-  const coordinates = Summaries.translate(summaries, [
+  const { data, rectangles } = plot;
+  const coordinates = Summaries.translate(data, [
     (d) => d,
     (d) => ({
       x0: d.binMin,
@@ -136,29 +134,26 @@ function histogram(plot: Histogram) {
   Scale.train(scales.y, flat.y1, { default: true, ratio: true });
   Scale.freeze(scales.y, [`zero`]);
 
-  for (const c of plot.data) {
-    Reactive.removeAll(c as any, `changed`);
-  }
-
-  Reactive.listen(flat as any, `changed`, () => {
+  Reactive.removeAll(rectangles.coordinates[1] as any, `changed`);
+  Reactive.listen(coordinates[1] as any, `changed`, () => {
     Scale.train(scales.x, flat.x1, { default: true, name: false });
     Scale.train(scales.y, flat.y1, { default: true, ratio: true });
   });
 
-  Meta.copy(scales.x, summaries[1].breaks, [`name`]);
+  Meta.copy(scales.x, data[1].breaks, [`name`]);
   Meta.copy(scales.y, flat.y1, [`name`]);
 
-  plot.representation = Representation.Absolute;
-  Plot.setData(plot, coordinates);
+  Geom.setCoordinates(rectangles, coordinates as any);
 
+  plot.representation = `absolute`;
   Plot.render(plot);
   Plot.renderAxes(plot);
 }
 
 function spinogram(plot: Histogram) {
-  const { summaries } = plot;
+  const { data, rectangles } = plot;
 
-  const coordinates = Summaries.translate(summaries, [
+  const coordinates = Summaries.translate(data, [
     (d) => d,
     (d) => ({
       x0: Reduced.shiftLeft(Reduced.stack(d.stat)),
@@ -183,16 +178,16 @@ function spinogram(plot: Histogram) {
   Scale.train(scales.y, [0, 1], { default: true, ratio: true });
   Scale.freeze(scales.y, [`zero`]);
 
-  Reactive.listen(flat as any, `changed`, () => {
+  Reactive.removeAll(rectangles.coordinates[1] as any, `changed`);
+  Reactive.listen(coordinates[1] as any, `changed`, () => {
     Scale.train(scales.x, [0, ...flat.x1], { default: true, name: false });
   });
 
   Meta.set(scales.x, { name: `cumulative count` });
   Meta.set(scales.y, { name: `proportion` });
 
-  Plot.setData(plot, coordinates);
-  plot.representation = Representation.Proportion;
-
+  Geom.setCoordinates(rectangles, coordinates as any);
+  plot.representation = `propotion`;
   Plot.render(plot);
   Plot.renderAxes(plot);
 }

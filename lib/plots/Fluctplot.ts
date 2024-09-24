@@ -1,4 +1,6 @@
 import { Bars } from "../geoms/Bars";
+import { Geom } from "../geoms/Geom";
+import { InferScales, Scales } from "../main";
 import { Plot } from "../plot/Plot";
 import { Expanse } from "../scales/Expanse";
 import { Scale } from "../scales/Scale";
@@ -7,22 +9,30 @@ import { Factor } from "../transformation/Factor";
 import { Reduced } from "../transformation/Reduced";
 import { Reducer } from "../transformation/Reducer";
 import { Summaries } from "../transformation/Summaries";
-import { Dataframe } from "../utils/Dataframe";
 import { max, one } from "../utils/funs";
 import { Reactive } from "../utils/Reactive";
-import { Columns, VAnchor } from "../utils/types";
+import { Columns, Indexable, VAnchor } from "../utils/types";
 
-enum Representation {
-  Absolute,
-  Proportion,
+interface Summaries {
+  label: string[];
+  label$: string[];
+  stat: Reduced<number>;
+}
+
+interface Coordinates extends Reactive {
+  x: Indexable;
+  y: Indexable;
+  width: Indexable;
+  height: Indexable;
 }
 
 interface Fluctplot extends Plot {
-  representation: Representation;
-  summaries: readonly [
-    { label: string[]; label$: string[]; stat: Reduced<number> },
-    { label: string[]; label$: string[]; stat: Reduced<number> },
-  ];
+  scales: InferScales<{
+    x: [`band`, `continuous`];
+    y: [`band`, `continuous`];
+  }>;
+  data: readonly [Summaries, Summaries];
+  bars: Bars;
 }
 
 export function Fluctuationplot<T extends Columns>(
@@ -30,7 +40,7 @@ export function Fluctuationplot<T extends Columns>(
   selectfn: (data: T) => [any[], any[]] | [any[], any[], number[]],
   options?: {
     reducer?: Reducer<number, number>;
-    queries?: [(data: T) => any[], Reducer][];
+    queries?: (data: T) => [any[], Reducer][];
   },
 ) {
   const { data, marker } = scene;
@@ -43,39 +53,41 @@ export function Fluctuationplot<T extends Columns>(
   const factor2 = Factor.product(factor1, marker.factor);
   const factors = [factor1, factor2] as const;
 
-  const qs = Summaries.formatQueries(options?.queries ?? [], data);
+  const queries = options?.queries ? options.queries(data) : {};
+  const stat = [values, reducer] as const;
+  const plotData = Summaries.of({ stat, ...queries }, factors);
 
-  const summaries = Summaries.of({ stat: [values, reducer], ...qs }, factors);
-  const coordinates = [] as (Dataframe & Reactive)[];
-
-  const representation = Representation.Absolute;
-  const opts = { type: `fluct`, scales: { x: `band`, y: `band` } } as const;
-  const plot = Object.assign(Plot.of(opts), {
-    representation,
-    summaries,
-    coordinates,
+  const scales = Scales.of({
+    x: [`band`, `continuous`],
+    y: [`band`, `continuous`],
   });
 
-  Scale.shareCodomain(plot.scales.area, plot.scales.width);
-  Scale.shareCodomain(plot.scales.area, plot.scales.height);
+  const props = { type: `fluct`, representation: `absolute` } as const;
+  const bars = Bars.of([] as Coordinates[], scales, {
+    vAnchor: VAnchor.Middle,
+  });
+  const plot = Object.assign(Plot.of(plotData, scales, props), { bars });
+
+  Scale.shareCodomain(scales.area, scales.width);
+  Scale.shareCodomain(scales.area, scales.height);
+
+  fluctplot(plot);
+  Plot.addGeom(plot, bars);
 
   Reactive.listen(plot, `normalize`, () => switchRepresentation(plot));
 
-  fluctplot(plot);
-  Plot.addGeom(plot, Bars.of({ vAnchor: VAnchor.Middle }));
-
-  return plot as unknown as Plot;
+  return plot;
 }
 
 function switchRepresentation(plot: Fluctplot) {
-  if (plot.representation === Representation.Absolute) pctfluctplot(plot);
+  if (plot.representation === `absolute`) pctfluctplot(plot);
   else fluctplot(plot);
 }
 
 function fluctplot(plot: Fluctplot) {
-  const { summaries, scales } = plot;
+  const { data, scales, bars } = plot;
 
-  const coordinates = Summaries.translate(summaries, [
+  const coordinates = Summaries.translate(data, [
     (d) => ({ x: d.label, y: d.label$, height: d.stat, width: d.stat }),
     (d) => ({
       x: d.label,
@@ -95,22 +107,19 @@ function fluctplot(plot: Fluctplot) {
 
   const k = max(new Set(flat.x).size, new Set(flat.y).size);
 
-  Expanse.set(
-    scales.area.codomain,
-    () => ({ scale: 1 / k, mult: 0.9, offset: 0 }),
-    { default: true },
-  );
+  const widthProps = { scale: 1 / k, mult: 0.9, offset: 0 };
+  Expanse.set(scales.area.codomain, () => widthProps, { default: true });
 
-  Plot.setData(plot, coordinates);
-  plot.representation = Representation.Absolute;
+  Geom.setCoordinates(bars, coordinates);
+  plot.representation = `absolute`;
 
   Plot.render(plot);
 }
 
 function pctfluctplot(plot: Fluctplot) {
-  const { summaries, scales } = plot;
+  const { data, scales, bars } = plot;
 
-  const coordinates = Summaries.translate(summaries, [
+  const coordinates = Summaries.translate(data, [
     (d) => ({ x: d.label, y: d.label$, height: one, width: one }),
     (d) => ({
       x: d.label,
@@ -130,14 +139,11 @@ function pctfluctplot(plot: Fluctplot) {
 
   const k = max(new Set(flat.x).size, new Set(flat.y).size);
 
-  Expanse.set(
-    scales.area.codomain,
-    () => ({ scale: 1 / k, mult: 0.9, offset: -1 }),
-    { default: true },
-  );
+  const widthProps = { scale: 1 / k, mult: 0.9, offset: -1 };
+  Expanse.set(scales.area.codomain, () => widthProps, { default: true });
 
-  Plot.setData(plot, coordinates);
-  plot.representation = Representation.Proportion;
+  Geom.setCoordinates(bars, coordinates);
+  plot.representation = `propotion`;
 
   Plot.render(plot);
 }
