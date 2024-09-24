@@ -23,6 +23,7 @@ import {
   sqrt,
   square,
   stringArraysMatch,
+  throttle,
   trunc,
   tw,
 } from "../utils/funs";
@@ -208,17 +209,6 @@ export namespace Plot {
     for (const e of [renderables, selectables, queryables]) {
       e.push(geom);
     }
-
-    const render = () => Plot.render(plot);
-    Reactive.listen(
-      geom,
-      `coords-changed`,
-      () => Reactive.dispatch(plot, `render-all`),
-      {
-        throttle: 10,
-        priority: 10, // Other callbacks e.g. computing scale limits should run first
-      },
-    );
   }
 
   export function deleteGeom(plot: Plot, geom: Geom) {
@@ -426,30 +416,39 @@ export namespace Plot {
   };
 
   export function grow(plot: Plot) {
-    const { area, size, width } = plot.scales;
+    const { area: a, size: sz, width: w } = plot.scales;
     const k = 10 / 9;
 
-    Expanse.set(area.codomain, (e) => ({ min: e.min * k, max: e.max * k }));
-    Expanse.set(size.codomain, (e) => ({ min: e.min * k, max: e.max * k }));
-
-    Expanse.set(width.codomain, (e) =>
-      e.mult < 1 ? { mult: (e.mult * 10) / 9 } : {},
+    // Silent to avoid unnecessary re-renders
+    const opts = { silent: true };
+    Expanse.set(a.codomain, (s) => ({ min: s.min * k, max: s.max * k }), opts);
+    Expanse.set(sz.codomain, (s) => ({ min: s.min * k, max: s.max * k }), opts);
+    Expanse.set(
+      w.codomain,
+      (s) => (s.mult < 1 ? { mult: s.mult * k } : {}),
+      opts,
     );
+
+    Plot.render(plot);
   }
 
   export function shrink(plot: Plot) {
-    const { area, width, size } = plot.scales;
+    const { area: a, size: sz, width: w } = plot.scales;
     const k = 9 / 10;
 
-    Expanse.set(area.codomain, (e) => ({ min: e.min * k, max: e.max * k }));
-    Expanse.set(size.codomain, (e) => ({ min: e.min * k, max: e.max * k }));
-    Expanse.set(width.codomain, (e) => ({ mult: (e.mult * 9) / 10 }));
+    // Silent to avoid unnecessary re-renders
+    const opts = { silent: true };
+    Expanse.set(a.codomain, (e) => ({ min: e.min * k, max: e.max * k }), opts);
+    Expanse.set(sz.codomain, (e) => ({ min: e.min * k, max: e.max * k }), opts);
+    Expanse.set(w.codomain, (e) => ({ mult: (e.mult * 9) / 10 }), opts);
+
+    Plot.render(plot);
   }
 
   export function fade(plot: Plot) {
     const { frames } = plot;
-    for (const l of baseLayers) {
-      Frame.setAlpha(frames[l], (a) => (a * 9) / 10);
+    for (const layer of baseLayers) {
+      Frame.setAlpha(frames[layer], (a) => (a * 9) / 10);
     }
     Plot.render(plot);
   }
@@ -800,9 +799,12 @@ function setupEvents(plot: Plot) {
 
   container.addEventListener(`mouseup`, () => Plot.setMousedown(plot, false));
 
-  container.addEventListener(`mousemove`, (e) => {
-    Plot.mousemoveHandlers[parameters.mode](plot, e);
-  });
+  container.addEventListener(
+    `mousemove`,
+    throttle((e) => {
+      Plot.mousemoveHandlers[parameters.mode](plot, e);
+    }, 20),
+  );
 
   Reactive.listen(plot, `reset`, () => Plot.reset(plot));
   Reactive.listen(plot, `resize`, () => Plot.resize(plot));
@@ -827,10 +829,10 @@ function setupEvents(plot: Plot) {
     Plot.setScale(plot, data.scale, data);
   });
 
-  Reactive.listen(plot, `grow`, () => Plot.grow(plot));
-  Reactive.listen(plot, `shrink`, () => Plot.shrink(plot));
-  Reactive.listen(plot, `fade`, () => Plot.fade(plot));
-  Reactive.listen(plot, `unfade`, () => Plot.unfade(plot));
+  Reactive.listen(plot, `grow`, () => Plot.grow(plot), { throttle: 10 });
+  Reactive.listen(plot, `shrink`, () => Plot.shrink(plot), { throttle: 10 });
+  Reactive.listen(plot, `fade`, () => Plot.fade(plot), { throttle: 10 });
+  Reactive.listen(plot, `unfade`, () => Plot.unfade(plot), { throttle: 10 });
   Reactive.listen(plot, `zoom`, (data) => Plot.zoom(plot, data));
   Reactive.listen(plot, `pop-zoom`, () => Plot.popZoom(plot));
 

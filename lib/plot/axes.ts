@@ -56,7 +56,7 @@ function renderSingleAxisLabels(plot: Plot, axis: `x` | `y`) {
 
       // Enforce a gap between y-axis labels and title
       while (margins[1] / 2 < w + h) {
-        marginLines[1] *= 1.01;
+        marginLines[1] *= 1.05;
         Plot.resize(plot);
       }
 

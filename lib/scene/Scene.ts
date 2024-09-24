@@ -402,6 +402,10 @@ export namespace Scene {
     for (const plot of scene.plots) Reactive.dispatch(plot, `resize`);
   }
 
+  export function render(scene: Scene) {
+    for (const plot of scene.plots) Plot.render(plot);
+  }
+
   export function reset(scene: Scene) {
     for (const plot of scene.plots) Reactive.dispatch(plot, `reset`);
     Marker.clearTransient(scene.marker);
@@ -492,6 +496,10 @@ function setupEvents(scene: Scene) {
     `resize`,
     throttle(() => Scene.resize(scene), 10),
   );
+
+  Reactive.listen(marker, `updated`, () => Scene.render(scene), {
+    throttle: 20,
+  });
 
   Reactive.listen(marker, `cleared`, () => {
     for (const plot of plots) Reactive.dispatch(plot, `unlock`);
