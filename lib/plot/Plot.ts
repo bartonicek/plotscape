@@ -1,5 +1,6 @@
 import { Geom } from "../geoms/Geom";
 import { Barplot } from "../plots/Barplot";
+import { Bibarplot } from "../plots/Bibarplot";
 import { Fluctuationplot } from "../plots/Fluctplot";
 import { Histogram } from "../plots/Histogram";
 import { Histogram2d } from "../plots/Histogram2d";
@@ -198,6 +199,7 @@ export namespace Plot {
   export const histo = Histogram;
   export const histo2d = Histogram2d;
   export const pcoords = Pcoordsplot;
+  export const bibar = Bibarplot;
 
   export function append(parent: HTMLElement, plot: Plot) {
     parent.appendChild(plot.container);
