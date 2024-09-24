@@ -1,5 +1,5 @@
 import { Points } from "../geoms/Points";
-import { Expanse } from "../main";
+import { Expanse, Scales } from "../main";
 import { Plot } from "../plot/Plot";
 import { Scale } from "../scales/Scale";
 import { Scene } from "../scene/Scene";
@@ -28,11 +28,11 @@ export function Scatterplot<T extends Columns>(
   const factor1 = Factor.bijection(x.length, bijectionData);
   const factor2 = Factor.product(factor1, marker.factor);
 
-  const summaries = Summaries.of({}, [factor1, factor2] as const);
-  const coordinates = Summaries.translate(summaries, [(d) => d, (d) => d]);
+  const plotData = Summaries.of({}, [factor1, factor2] as const);
+  const coordinates = Summaries.translate(plotData, [(d) => d, (d) => d]);
+  const scales = Scales.of();
 
-  const plot = Plot.of({ type: `scatter`, ratio: options?.ratio });
-  const { scales } = plot;
+  const plot = Plot.of(plotData, scales, { ratio: options?.ratio });
 
   Scale.train(scales.x, x, { default: true });
   Scale.train(scales.y, y, { default: true });
@@ -42,8 +42,8 @@ export function Scatterplot<T extends Columns>(
   const max = 30 / Math.log(x.length + 2);
   Expanse.set(scales.size.codomain, () => ({ max }), { default: true });
 
-  Plot.setData(plot, coordinates);
-  Plot.addGeom(plot, Points.of());
+  const points = Points.of(coordinates, scales);
+  Plot.addGeom(plot, points);
 
-  return Object.assign(plot, { summaries }) as unknown as Plot;
+  return plot;
 }

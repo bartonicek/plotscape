@@ -137,7 +137,9 @@ export namespace Expanse {
     return expanse.type === `point`;
   }
 
-  export function isDiscrete(expanse: Expanse) {
+  export function isDiscrete(
+    expanse: Expanse,
+  ): expanse is ExpansePoint | ExpanseBand {
     return expanse.type === `point` || expanse.type === `band`;
   }
 

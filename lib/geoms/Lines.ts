@@ -15,7 +15,7 @@ type Data = {
 
 export interface Lines extends Geom {
   type: `lines`;
-  data: (Data & FactorData)[];
+  coordinates: (Data & FactorData)[];
   scales: Plot.Scales;
 }
 
@@ -27,7 +27,7 @@ export namespace Lines {
     const scales = {} as Plot.Scales;
     const data = [] as (Data & FactorData)[];
 
-    return { type, data, scales };
+    return { type, coordinates: data, scales };
   }
 
   // Polymorphic method implementations

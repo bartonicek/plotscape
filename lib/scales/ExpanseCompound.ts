@@ -11,12 +11,13 @@ export namespace ExpanseCompound {
   const type = `compound` as const;
 
   export function of<T extends Expanse[] = Expanse[]>(
-    expanses: T = [] as unknown as T,
+    expanses?: T,
   ): ExpanseCompound<T> {
     const value = [] as any[];
     const base = ExpanseContinuous.of();
+    const exps = expanses ?? ([] as unknown as T);
 
-    const result = { ...base, type, value, expanses };
+    const result = { ...base, type, value, expanses: exps };
     return result;
   }
 

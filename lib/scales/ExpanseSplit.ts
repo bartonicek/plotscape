@@ -1,6 +1,7 @@
 import { identity } from "../utils/funs";
 import { Poly } from "../utils/Poly";
 import { Expanse } from "./Expanse";
+import { ExpanseContinuous } from "./ExpanseContinuous";
 
 export interface ExpanseSplit<T = any> extends Expanse<T[]> {
   type: `split`;
@@ -10,11 +11,12 @@ export interface ExpanseSplit<T = any> extends Expanse<T[]> {
 export namespace ExpanseSplit {
   const type = `split`;
 
-  export function of<T>(expanse: Expanse<T>): ExpanseSplit<T> {
+  export function of<T>(expanse?: Expanse<T>): ExpanseSplit<T> {
     const value = [] as T[];
-    const innerType = expanse.type;
+    const exp = expanse ?? ExpanseContinuous.of();
+    const innerType = exp.type;
 
-    return { ...expanse, value, type, innerType };
+    return { ...exp, value, type, innerType };
   }
 
   // Expanse methods implementations

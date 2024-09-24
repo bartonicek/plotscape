@@ -1,32 +1,30 @@
-import { Plot, Poly } from "../main";
+import { Poly, Scales } from "../main";
 import { Frame } from "../plot/Frame";
 import { Scale } from "../scales/Scale";
 import { LAYER } from "../scene/Marker";
 import { Factor } from "../transformation/Factor";
 import { findLength, pointInRect, rectsIntersect } from "../utils/funs";
 import { Getter } from "../utils/Getter";
+import { Reactive } from "../utils/Reactive";
 import { DataLayers, Indexable, Point, Rect } from "../utils/types";
-import { FactorData, Geom } from "./Geom";
+import { Geom } from "./Geom";
 
-type Data = {
+interface Data extends Reactive {
   x: Indexable;
   y: Indexable;
   size?: Indexable<number>;
-};
+}
 
 export interface Points extends Geom {
-  data: (Data & FactorData)[];
-  scales: Plot.Scales;
+  coordinates: Data[];
+  scales: Scales;
 }
 
 export namespace Points {
   const type: Geom.Type = `points`;
 
-  export function of(): Points {
-    // Will be definitely assigned when added to Plot
-    const scales = {} as Plot.Scales;
-    const data = [] as (Data & FactorData)[];
-    return { type, data, scales };
+  export function of(coordinates: Data[], scales: Scales): Points {
+    return Geom.of({ type, coordinates, scales });
   }
 
   // Polymorphic method implementations

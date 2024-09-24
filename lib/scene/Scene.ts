@@ -461,8 +461,6 @@ function setupEvents(scene: Scene) {
         element = element.parentElement;
       }
 
-      console.log(offsetY, tableHeight, appHeight);
-
       let [left, top] = [offsetX + 2, offsetY + 2];
       if (offsetX + tableWidth > appWidth) left = left - tableWidth - 4;
       if (offsetY + tableHeight > appHeight) top = top - tableHeight - 4;

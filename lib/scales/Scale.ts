@@ -48,6 +48,11 @@ export namespace Scale {
     return scale;
   }
 
+  // 'default' is a keyword, unfortunately
+  export function standard() {
+    return Scale.of(ExpanseContinuous.of(), ExpanseContinuous.of());
+  }
+
   export function pushforward<T extends Expanse, U extends Expanse>(
     scale: Scale<T, U>,
     value: T[`value`],
