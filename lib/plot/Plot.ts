@@ -6,7 +6,6 @@ import { Histogram2d } from "../plots/Histogram2d";
 import { Pcoordsplot } from "../plots/Pcoordsplot";
 import { Scatterplot } from "../plots/Scatterplot";
 import { Expanse } from "../scales/Expanse";
-import { ExpanseContinuous } from "../scales/ExpanseContinuous";
 import { Scale } from "../scales/Scale";
 import { Scales } from "../scales/Scales";
 import { defaultOptions, GraphicalOptions } from "../scene/defaultOptions";
@@ -89,16 +88,6 @@ export namespace Plot {
     Query = "query",
   }
 
-  export type Scales = {
-    x: Scale<any, ExpanseContinuous>;
-    y: Scale<any, ExpanseContinuous>;
-    size: Scale<any, ExpanseContinuous>;
-    width: Scale<any, ExpanseContinuous>;
-    height: Scale<any, ExpanseContinuous>;
-    area: Scale<any, ExpanseContinuous>;
-    areaPct: Scale<ExpanseContinuous, ExpanseContinuous>;
-  };
-
   export type Type =
     | `unknown`
     | `scatter`
@@ -115,9 +104,9 @@ export namespace Plot {
     data: T,
     scales: U,
     options: {
+      id?: string;
       type?: Type;
       representation?: Representation;
-      id?: string;
       ratio?: number;
     } & Partial<GraphicalOptions>,
   ): Plot<T, U> {
@@ -610,10 +599,7 @@ export namespace Plot {
     }
   }
 
-  export function getScale(
-    plot: Plot,
-    scale: Exclude<keyof Plot.Scales, symbol>,
-  ) {
+  export function getScale(plot: Plot, scale: Exclude<keyof Scales, symbol>) {
     return plot.scales[scale].domain;
   }
 
