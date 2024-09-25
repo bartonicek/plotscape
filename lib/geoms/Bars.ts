@@ -83,10 +83,6 @@ export namespace Bars {
       let wi = Scale.pushforward(scales.width, width(i));
       let hi = Scale.pushforward(scales.height, height(i));
 
-      const coords = [xi, yi, wi, hi] as Rect;
-
-      [xi, yi, wi, hi] = coords;
-
       const rectCoords = [
         xi - wi * hAnchor,
         yi - hi * vAnchor,
@@ -116,10 +112,6 @@ export namespace Bars {
       let yi = Scale.pushforward(scales.y, y(i));
       let wi = Scale.pushforward(scales.width, width(i));
       let hi = Scale.pushforward(scales.height, height(i));
-
-      const coords = [xi, yi, wi, hi] as Rect;
-
-      [xi, yi, wi, hi] = coords;
 
       const rectCoords = [
         xi - wi * hAnchor,

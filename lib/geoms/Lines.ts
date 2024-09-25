@@ -21,7 +21,7 @@ export interface Lines extends Geom {
 }
 
 export namespace Lines {
-  const type = `lines`;
+  const type = `lines` as const;
 
   export function of(coordinates: Data[], scales: Scales): Lines {
     return Geom.of({ type, coordinates, scales });

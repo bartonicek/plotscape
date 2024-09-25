@@ -16,12 +16,13 @@ interface Data extends Reactive {
 }
 
 export interface Points extends Geom {
+  type: `points`;
   coordinates: Data[];
   scales: Scales;
 }
 
 export namespace Points {
-  const type: Geom.Type = `points`;
+  const type = `points` as const;
 
   export function of(coordinates: Data[], scales: Scales): Points {
     return Geom.of({ type, coordinates, scales });

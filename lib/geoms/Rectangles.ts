@@ -6,24 +6,24 @@ import { Factor } from "../transformation/Factor";
 import { findLength, pointInRect, rectsIntersect } from "../utils/funs";
 import { Getter } from "../utils/Getter";
 import { Poly } from "../utils/Poly";
+import { Reactive } from "../utils/Reactive";
 import { DataLayers, Indexable, Point, Rect } from "../utils/types";
 import { Geom } from "./Geom";
 
-type Data = {
+interface Data extends Reactive {
   x0: Indexable;
   y0: Indexable;
   x1: Indexable;
   y1: Indexable;
-};
+}
 
 export interface Rectangles extends Geom {
-  type: `rectangles`;
   coordinates: Data[];
   scales: Scales;
 }
 
 export namespace Rectangles {
-  const type = `rectangles`;
+  const type = `rectangles` as const;
 
   export function of(coordinates: Data[], scales: Scales): Rectangles {
     return Geom.of({ type, coordinates, scales });

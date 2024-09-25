@@ -725,7 +725,9 @@ export function rectSegmentIntersect(rect: Rect, segment: Segment) {
  */
 export function pointInRect(point: Point, rect: Rect) {
   const [x, y] = point;
-  const [x0, y0, x1, y1] = rect;
+  let [x0, y0, x1, y1] = rect;
+  [x0, x1] = [x0, x1].sort(diff);
+  [y0, y1] = [y0, y1].sort(diff);
 
   return !(x < x0 || x > x1 || y < y0 || y > y1);
 }
