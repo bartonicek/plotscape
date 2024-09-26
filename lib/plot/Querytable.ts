@@ -1,8 +1,8 @@
 import tinycolor from "tinycolor2";
-import { formatLabel, tw } from "../main";
 import { defaultOptions } from "../scene/defaultOptions";
 import { LAYER } from "../scene/Marker";
 import { DOM } from "../utils/DOM";
+import { formatLabel, tw } from "../utils/funs";
 
 export namespace QueryTable {
   export function formatQueryTable(

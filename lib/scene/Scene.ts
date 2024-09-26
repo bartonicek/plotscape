@@ -1,6 +1,6 @@
-import { Reducer } from "../main";
 import { Frame } from "../plot/Frame";
 import { Plot } from "../plot/Plot";
+import { Reducer } from "../transformation/Reducer";
 import { DOM } from "../utils/DOM";
 import {
   fetchJSON,

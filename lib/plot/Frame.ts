@@ -1,5 +1,5 @@
-import { tw } from "../main";
 import { DOM } from "../utils/DOM";
+import { tw } from "../utils/funs";
 import { HAnchor, MapFn, Margins, VAnchor } from "../utils/types";
 
 export interface Frame {

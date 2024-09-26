@@ -6,11 +6,10 @@ import { Factor } from "../transformation/Factor";
 import { findLength, pointInRect, rectsIntersect } from "../utils/funs";
 import { Getter } from "../utils/Getter";
 import { Poly } from "../utils/Poly";
-import { Reactive } from "../utils/Reactive";
 import { DataLayers, Indexable, Point, Rect } from "../utils/types";
 import { Geom } from "./Geom";
 
-interface Data extends Reactive {
+interface Data {
   x0: Indexable;
   y0: Indexable;
   x1: Indexable;

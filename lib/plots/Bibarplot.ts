@@ -1,10 +1,10 @@
 import { Bars } from "../geoms/Bars";
 import { Geom } from "../geoms/Geom";
-import { InferScales, Scales } from "../main";
 import { Plot } from "../plot/Plot";
 import { Expanse } from "../scales/Expanse";
 import { ExpanseBand } from "../scales/ExpanseBand";
 import { Scale } from "../scales/Scale";
+import { InferScales, Scales } from "../scales/Scales";
 import { Scene } from "../scene/Scene";
 import { Factor } from "../transformation/Factor";
 import { Reduced } from "../transformation/Reduced";
@@ -90,7 +90,7 @@ export function Bibarplot<T extends Columns>(
     default: true,
   });
 
-  Reactive.listen(plot, `normalize`, () => switchRepresentation(plot));
+  // Reactive.listen(plot, `normalize`, () => switchRepresentation(plot));
 
   return plot;
 }
@@ -102,10 +102,10 @@ function sortAxis(domain: ExpanseBand, values: number[]) {
   } else ExpanseBand.reorder(domain);
 }
 
-function switchRepresentation(plot: Bibarplot) {
-  //   if (plot.representation === `absolute`) spineplot(plot);
-  //   else barplot(plot);
-}
+// function switchRepresentation(plot: Bibarplot) {
+//   //   if (plot.representation === `absolute`) spineplot(plot);
+//   //   else barplot(plot);
+// }
 
 function barplot(plot: Bibarplot) {
   const { data, scales, bars1, bars2 } = plot;

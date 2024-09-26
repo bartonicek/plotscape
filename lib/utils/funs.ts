@@ -1,6 +1,3 @@
-// import { Expanse } from "../main";
-// import { ExpanseContinuous } from "../scales/ExpanseContinuous";
-// import { ExpansePoint } from "../scales/ExpansePoint";
 import { Dataframe } from "./Dataframe";
 import { Getter } from "./Getter";
 import { Meta } from "./Meta";

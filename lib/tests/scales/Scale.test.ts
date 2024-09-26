@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { Scale } from "../../main";
 import { ExpanseContinuous } from "../../scales/ExpanseContinuous";
+import { Scale } from "../../scales/Scale";
 
 const scale = Scale.of(
   ExpanseContinuous.of(1, 10),

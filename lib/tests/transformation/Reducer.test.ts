@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { Factor } from "../../main";
+import { Factor } from "../../transformation/Factor";
 import { Reducer } from "../../transformation/Reducer";
 
 // Some data

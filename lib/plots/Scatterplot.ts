@@ -1,7 +1,8 @@
 import { Points } from "../geoms/Points";
-import { Expanse, Scales } from "../main";
 import { Plot } from "../plot/Plot";
+import { Expanse } from "../scales/Expanse";
 import { Scale } from "../scales/Scale";
+import { Scales } from "../scales/Scales";
 import { Scene } from "../scene/Scene";
 import { Factor } from "../transformation/Factor";
 import { Summaries } from "../transformation/Summaries";

@@ -750,7 +750,7 @@ function setupFrames(plot: Plot, options: GraphicalOptions) {
 }
 
 function setupEvents(plot: Plot) {
-  const { container, data, parameters, frames } = plot;
+  const { container, parameters, frames } = plot;
   const { mousecoords } = parameters;
 
   for (const [k, v] of Object.entries(Plot.keybindings)) {

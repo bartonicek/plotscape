@@ -1,10 +1,11 @@
-import { Factor, Poly, Scales } from "../main";
 import { Frame } from "../plot/Frame";
 import { Scale } from "../scales/Scale";
+import { Scales } from "../scales/Scales";
 import { LAYER } from "../scene/Marker";
+import { Factor } from "../transformation/Factor";
 import { findLength, pointInRect, rectsIntersect } from "../utils/funs";
 import { Getter } from "../utils/Getter";
-import { Reactive } from "../utils/Reactive";
+import { Poly } from "../utils/Poly";
 import {
   DataLayers,
   HAnchor,
@@ -15,7 +16,7 @@ import {
 } from "../utils/types";
 import { Geom } from "./Geom";
 
-interface Data extends Reactive {
+interface Data {
   x: Indexable;
   y: Indexable;
   width: Indexable;

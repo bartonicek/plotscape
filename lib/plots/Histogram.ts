@@ -22,7 +22,7 @@ interface Coordinates {
   area: Indexable<number>;
 }
 
-interface Summaries extends Reactive {
+interface Summaries {
   binMin: number[];
   binMax: number[];
   breaks: number[];

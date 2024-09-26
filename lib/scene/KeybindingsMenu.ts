@@ -1,5 +1,6 @@
-import { capitalize, Plot, tw } from "../main";
+import { Plot } from "../plot/Plot";
 import { DOM } from "../utils/DOM";
+import { capitalize, tw } from "../utils/funs";
 import { Scene } from "./Scene";
 
 type Event = Scene.Event | Plot.Event;

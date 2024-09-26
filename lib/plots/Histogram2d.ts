@@ -1,8 +1,9 @@
 import { Geom } from "../geoms/Geom";
 import { Rectangles } from "../geoms/Rectangles";
-import { Expanse, InferScales, Scales } from "../main";
 import { Plot } from "../plot/Plot";
+import { Expanse } from "../scales/Expanse";
 import { Scale } from "../scales/Scale";
+import { InferScales, Scales } from "../scales/Scales";
 import { Scene } from "../scene/Scene";
 import { Factor } from "../transformation/Factor";
 import { Reduced } from "../transformation/Reduced";

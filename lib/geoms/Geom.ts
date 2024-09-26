@@ -1,4 +1,3 @@
-import { last } from "../main";
 import { Frame } from "../plot/Frame";
 import { Scale } from "../scales/Scale";
 import { Scales } from "../scales/Scales";
@@ -6,6 +5,7 @@ import { LAYER } from "../scene/Marker";
 import { Factor } from "../transformation/Factor";
 import { Reduced } from "../transformation/Reduced";
 import { Dataframe } from "../utils/Dataframe";
+import { last } from "../utils/funs";
 import { Getter } from "../utils/Getter";
 import { Meta } from "../utils/Meta";
 import { Poly } from "../utils/Poly";

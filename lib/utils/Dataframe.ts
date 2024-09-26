@@ -1,7 +1,6 @@
-import { Reactive } from "./Reactive";
 import { Indexable } from "./types";
 
-export interface Dataframe extends Partial<Reactive> {
+export interface Dataframe {
   [key: string | symbol]: Indexable;
 }
 
