@@ -440,6 +440,8 @@ function setupEvents(scene: Scene) {
   const { marker, plots, container, plotsContainer, keybindings, queryTable } =
     scene;
 
+  document.addEventListener(`DOMContentLoaded`, () => Scene.render(scene));
+
   container.addEventListener(`mousedown`, () => {
     for (const plot of plots) Reactive.dispatch(plot, `deactivate`);
   });
