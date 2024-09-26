@@ -29,7 +29,7 @@ interface Summaries {
   stat: Reduced<number>;
 }
 
-interface Histogram extends Plot {
+export interface Histogram extends Plot {
   scales: InferScales<{}>;
   data: readonly [Dataframe, Summaries, Summaries];
   rectangles: Rectangles;
@@ -42,7 +42,7 @@ export function Histogram<T extends Columns>(
     reducer?: Reducer<number, number>;
     queries?: (data: T) => [any[], Reducer][];
   },
-) {
+): Histogram {
   const { data, marker } = scene;
 
   let [binned, vals] = selectfn(data);

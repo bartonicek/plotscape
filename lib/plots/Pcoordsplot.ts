@@ -4,7 +4,7 @@ import { ExpanseCompound } from "../scales/ExpanseCompound";
 import { ExpansePoint } from "../scales/ExpansePoint";
 import { ExpanseSplit } from "../scales/ExpanseSplit";
 import { inferExpanse } from "../scales/inferExpanse";
-import { Scales } from "../scales/Scales";
+import { InferScales, Scales } from "../scales/Scales";
 import { Scene } from "../scene/Scene";
 import { Factor } from "../transformation/Factor";
 import { Summaries } from "../transformation/Summaries";
@@ -12,13 +12,22 @@ import { Getter } from "../utils/Getter";
 import { Meta } from "../utils/Meta";
 import { Columns } from "../utils/types";
 
+export interface Pcoordsplot extends Plot {
+  scales: InferScales<{
+    x: [`split`, `split`];
+    y: [`compound`, `split`];
+  }>;
+  data: readonly [any, any];
+  lines: Lines;
+}
+
 export function Pcoordsplot<T extends Columns>(
   scene: Scene<T>,
   selectfn: (data: T) => number[][],
   options?: {
     queries?: (data: T) => any[][];
   },
-) {
+): Pcoordsplot {
   const { data, marker } = scene;
 
   const vars = selectfn(data);
@@ -40,7 +49,7 @@ export function Pcoordsplot<T extends Columns>(
   const coordinates = Summaries.translate(plotData, [(d) => d, (d) => d]);
   const lines = Lines.of(coordinates, scales);
 
-  const plot = Plot.of(plotData, scales, props);
+  const plot = Object.assign(Plot.of(plotData, scales, props), { lines });
   Plot.addGeom(plot, lines);
 
   const domains = vars.map((x) => inferExpanse(x));

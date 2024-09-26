@@ -32,7 +32,7 @@ interface Summaries {
   stat: Reduced<number>;
 }
 
-interface Histogram2D extends Plot {
+export interface Histogram2D extends Plot {
   scales: InferScales<{}>;
   data: readonly [Summaries, Summaries];
   rectangles: Rectangles;
@@ -46,7 +46,7 @@ export function Histogram2d<T extends Columns>(
     ratio?: number;
     queries?: (data: T) => [any[], Reducer][];
   },
-) {
+): Histogram2D {
   const { data, marker } = scene;
 
   let [binned1, binned2, vals] = selectfn(data);

@@ -22,7 +22,7 @@ interface Coordinates extends Reactive {
   height: Indexable;
 }
 
-interface Bibarplot extends Plot {
+export interface Bibarplot extends Plot {
   scales: InferScales<{
     x: [`band`, `continuous`];
     heightUp: [`continuous`, `continuous`];
@@ -43,7 +43,7 @@ export function Bibarplot<T extends Columns>(
     reducer?: Reducer<number, number>;
     queries?: (data: T) => [any[], Reducer][];
   },
-) {
+): Bibarplot {
   const { data, marker } = scene;
 
   let [cat, vals1, vals2] = selectfn(data);

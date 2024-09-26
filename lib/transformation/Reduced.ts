@@ -26,7 +26,7 @@ export namespace Reduced {
     factor: Factor,
     reducer: Reducer<any, T>,
     parent?: Reduced<T>,
-  ) {
+  ): Reduced<T> {
     const result = reduced as Reduced<T>;
     result[VALUES] = reduced;
     result[FACTOR] = factor;

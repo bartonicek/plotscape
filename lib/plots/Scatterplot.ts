@@ -2,24 +2,25 @@ import { Points } from "../geoms/Points";
 import { Plot } from "../plot/Plot";
 import { Expanse } from "../scales/Expanse";
 import { Scale } from "../scales/Scale";
-import { Scales } from "../scales/Scales";
+import { InferScales, Scales } from "../scales/Scales";
 import { Scene } from "../scene/Scene";
 import { Factor } from "../transformation/Factor";
 import { Summaries } from "../transformation/Summaries";
 import { Columns, Indexable } from "../utils/types";
 
-type Scatterplot = Plot & {
-  summaries: readonly [
-    { x: Indexable<any>; y: Indexable<any> },
-    { x: Indexable<any>; y: Indexable<any> },
+export interface Scatterplot extends Plot {
+  scales: InferScales<{}>;
+  data: readonly [
+    { x: Indexable; y: Indexable },
+    { x: Indexable; y: Indexable },
   ];
-};
+}
 
 export function Scatterplot<T extends Columns>(
   scene: Scene<T>,
   selectfn: (data: T) => [any[], any[]] | [any[], any[], any[]],
   options?: { ratio?: number; queries?: (data: T) => any[][] },
-) {
+): Scatterplot {
   const { data, marker } = scene;
 
   const [x, y, size] = selectfn(data);

@@ -22,7 +22,7 @@ interface Coordinates extends Reactive {
   height: Indexable;
 }
 
-interface Barplot extends Plot {
+export interface Barplot extends Plot {
   scales: InferScales<{ x: [`band`, `continuous`] }>;
   data: readonly [
     { label: string[]; stat: Reduced<number> },
@@ -38,7 +38,7 @@ export function Barplot<T extends Columns>(
     reducer?: Reducer<number, number>;
     queries?: (data: T) => [any[], Reducer][];
   },
-) {
+): Barplot {
   const { data, marker } = scene;
 
   let [cat, vals] = selectfn(data);

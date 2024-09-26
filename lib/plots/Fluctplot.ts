@@ -26,7 +26,7 @@ interface Coordinates extends Reactive {
   height: Indexable;
 }
 
-interface Fluctplot extends Plot {
+export interface Fluctplot extends Plot {
   scales: InferScales<{
     x: [`band`, `continuous`];
     y: [`band`, `continuous`];
@@ -42,7 +42,7 @@ export function Fluctuationplot<T extends Columns>(
     reducer?: Reducer<number, number>;
     queries?: (data: T) => [any[], Reducer][];
   },
-) {
+): Fluctplot {
   const { data, marker } = scene;
 
   let [cat1, cat2, vals] = selectfn(data);
