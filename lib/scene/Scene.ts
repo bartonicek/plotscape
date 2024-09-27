@@ -440,6 +440,11 @@ function setupEvents(scene: Scene) {
   const { marker, plots, container, plotsContainer, keybindings, queryTable } =
     scene;
 
+  window.addEventListener(`pageshow`, () => {
+    Scene.resize(scene);
+    Scene.render(scene);
+  });
+
   document.addEventListener(`load`, () => {
     Scene.resize(scene);
     Scene.render(scene);
