@@ -98,19 +98,17 @@ export namespace Plot {
     | `fluct`
     | `pcoords`;
 
+  export type Options = {
+    id?: string;
+    type?: Type;
+    representation?: Representation;
+    ratio?: number;
+  } & Partial<GraphicalOptions>;
+
   export function of<
     T extends readonly Dataframe[] = readonly Dataframe[],
     U extends Scales = Scales,
-  >(
-    data: T,
-    scales: U,
-    options: {
-      id?: string;
-      type?: Type;
-      representation?: Representation;
-      ratio?: number;
-    } & Partial<GraphicalOptions>,
-  ): Plot<T, U> {
+  >(data: T, scales: U, options: Options): Plot<T, U> {
     const container = DOM.element(`div`, {
       id: "plot",
       classes: tw("tw-relative tw-h-full tw-w-full tw-drop-shadow-md"),
@@ -124,7 +122,7 @@ export namespace Plot {
     const selectables = [] as Geom[];
     const queryables = [] as Geom[];
 
-    const opts = structuredClone({ ...defaultOptions, ...options });
+    const opts = { ...structuredClone(defaultOptions), ...options };
 
     const { expandX, expandY } = opts;
     const zoomStack = [[expandX, expandY, 1 - expandX, 1 - expandY]] as Rect[];

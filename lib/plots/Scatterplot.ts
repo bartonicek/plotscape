@@ -19,7 +19,7 @@ export interface Scatterplot extends Plot {
 export function Scatterplot<T extends Columns>(
   scene: Scene<T>,
   selectfn: (data: T) => [any[], any[]] | [any[], any[], any[]],
-  options?: { ratio?: number; queries?: (data: T) => any[][] },
+  options?: Plot.Options & { queries?: (data: T) => any[][] },
 ): Scatterplot {
   const { data, marker } = scene;
 
@@ -33,8 +33,9 @@ export function Scatterplot<T extends Columns>(
   const plotData = Summaries.of({}, [factor1, factor2] as const);
   const coordinates = Summaries.translate(plotData, [(d) => d, (d) => d]);
   const scales = Scales.of();
+  const opts: Plot.Options = { ...options, type: `scatter` } as const;
 
-  const plot = Plot.of(plotData, scales, { ratio: options?.ratio });
+  const plot = Plot.of(plotData, scales, opts);
 
   Scale.train(scales.x, x, { default: true });
   Scale.train(scales.y, y, { default: true });

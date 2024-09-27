@@ -41,9 +41,8 @@ export interface Histogram2D extends Plot {
 export function Histogram2d<T extends Columns>(
   scene: Scene<T>,
   selectfn: (data: T) => [number[], number[]] | [number[], number[], number[]],
-  options?: {
+  options?: Plot.Options & {
     reducer?: Reducer<number, number>;
-    ratio?: number;
     queries?: (data: T) => [any[], Reducer][];
   },
 ): Histogram2D {
@@ -68,13 +67,14 @@ export function Histogram2d<T extends Columns>(
 
   const queries = options?.queries ? options.queries(data) : {};
   const stat = [values, reducer] as const;
-  const plotData = Summaries.of({ stat, ...queries }, factors);
 
+  const plotData = Summaries.of({ stat, ...queries }, factors);
   const scales = Scales.of();
-  const props = { type: `histo2d`, representation: `absolute` } as const;
+  const [type, representation] = [`histo2d`, `absolute`] as const;
+  const opts: Plot.Options = { ...options, type, representation } as const;
   const rectangles = Rectangles.of([] as Coordinates[], scales);
 
-  const plot = Object.assign(Plot.of(plotData, scales, props), { rectangles });
+  const plot = Object.assign(Plot.of(plotData, scales, opts), { rectangles });
   histogram2d(plot);
   Plot.addGeom(plot, rectangles);
 
