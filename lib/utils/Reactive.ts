@@ -103,10 +103,11 @@ export namespace Reactive {
     object2: U,
     event1: EventOf<T>,
     event2?: EventOf<U>,
+    options?: { throttle?: number; priority?: number },
   ) {
     if (!isReactive(object1) || !isReactive(object2)) return;
     const propagatefn = () => dispatch(object2, event2 ?? event1);
-    listen(object1, event1, propagatefn, { priority: 99 });
+    listen(object1, event1, propagatefn, options);
   }
 
   /**

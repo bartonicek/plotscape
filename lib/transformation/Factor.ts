@@ -365,17 +365,28 @@ export namespace Factor {
 
     const factor = compute();
 
-    Reactive.listen(factor1, `changed`, () => {
-      const newFactor = compute();
-      Factor.copyFrom(newFactor, factor);
-      Reactive.dispatch(factor, `changed`);
-    });
+    Reactive.listen(
+      factor1,
+      `changed`,
+      () => {
+        const newFactor = compute();
+        Factor.copyFrom(newFactor, factor);
+        Reactive.dispatch(factor, `changed`);
+      },
+      // Important! Everything to do with the parent factors needs to happen first
+      { priority: 2 },
+    );
 
-    Reactive.listen(factor2, `changed`, () => {
-      const newFactor = compute();
-      Factor.copyFrom(newFactor, factor);
-      Reactive.dispatch(factor, `changed`);
-    });
+    Reactive.listen(
+      factor2,
+      `changed`,
+      () => {
+        const newFactor = compute();
+        Factor.copyFrom(newFactor, factor);
+        Reactive.dispatch(factor, `changed`);
+      },
+      { priority: 2 },
+    );
 
     return factor;
   }
