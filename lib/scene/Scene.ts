@@ -28,16 +28,16 @@ export interface Scene<T extends Columns = Columns>
   plotsContainer: HTMLDivElement;
   queryTable: HTMLTableElement;
 
-  client?: WebSocket;
+  client: WebSocket;
 
   rows: number;
   cols: number;
 
   marker: Marker;
 
-  activePlot?: Plot;
   plots: Plot[];
-  plotsByType: Record<Plot.Type, number[]>;
+  activePlotIndex?: number;
+  plotIndicesByType: Record<Plot.Type, number[]>;
 
   keybindings: Record<string, Scene.Event | Plot.Event>;
   options: GraphicalOptions;
@@ -106,16 +106,13 @@ export namespace Scene {
     const [rows, cols] = [1, 1];
     const marker = Marker.of(Object.values(data)[0].length);
     const plots = [] as Plot[];
-    const plotsByType = {} as Record<Plot.Type, number[]>;
-
+    const plotIndicesByType = {} as Record<Plot.Type, number[]>;
+    const client = { send: console.log } as WebSocket; // Mock if URL is not provided
     const opts = Object.assign(defaultOptions, options);
 
     for (const [k, v] of Object.entries(data)) {
       if (!Meta.has(v, `name`)) Meta.set(v, { name: k });
     }
-
-    // Mock for just echoing messages back if websocket URL is not provided
-    const client = { send: console.log } as WebSocket;
 
     const scene = Reactive.of()({
       data,
@@ -127,7 +124,7 @@ export namespace Scene {
       marker,
       client,
       plots,
-      plotsByType,
+      plotIndicesByType,
       options: opts,
       keybindings,
     });
@@ -165,11 +162,17 @@ export namespace Scene {
   }
 
   export function addPlot(scene: Scene, plot: Plot) {
-    const { plotsContainer: plotContainer, marker, plots, plotsByType } = scene;
+    const {
+      plotsContainer: plotContainer,
+      marker,
+      plots,
+      plotIndicesByType: plotsByType,
+    } = scene;
 
     Reactive.listen(plot, `activated`, () => {
       for (const p of plots) if (p != plot) Reactive.dispatch(p, `deactivate`);
-      scene.activePlot = plot;
+      const plotIndex = plots.indexOf(plot);
+      scene.activePlotIndex = plotIndex;
     });
 
     Reactive.listen(plot, `lock-others`, () => {
@@ -258,10 +261,10 @@ export namespace Scene {
   }
 
   function removeSpecificPlot(scene: Scene, plot: Plot) {
-    const { plots, plotsByType, plotsContainer: plotContainer } = scene;
+    const { plots, plotIndicesByType, plotsContainer } = scene;
 
     const index = plots.indexOf(plot);
-    for (const ps of Object.values(plotsByType)) {
+    for (const ps of Object.values(plotIndicesByType)) {
       if (ps.indexOf(index) !== -1) {
         remove(ps, index);
         break;
@@ -270,7 +273,7 @@ export namespace Scene {
 
     remove(plots, plot);
 
-    plotContainer.removeChild(plot.container);
+    plotsContainer.removeChild(plot.container);
     Reactive.removeAllListeners(plot);
 
     updatePlotIds(scene);
@@ -285,7 +288,7 @@ export namespace Scene {
   }
 
   export function getPlot(scene: Scene, id: PlotId) {
-    const { plots, plotsByType } = scene;
+    const { plots, plotIndicesByType } = scene;
     let [type, idString] = splitNumericSuffix(id);
     const index = parseInt(idString, 10) - 1; // 0 based indexing;
 
@@ -299,8 +302,8 @@ export namespace Scene {
       type = plotIdShort[type as keyof typeof plotIdShort];
     }
 
-    if (type in plotsByType) {
-      return plots[plotsByType[type as Plot.Type][index]];
+    if (type in plotIndicesByType) {
+      return plots[plotIndicesByType[type as Plot.Type][index]];
     }
   }
 
@@ -313,11 +316,12 @@ export namespace Scene {
   }
 
   export function setDimensions(scene: Scene, rows: number, cols: number) {
-    const { plotsContainer: pc } = scene;
+    const { plotsContainer } = scene;
     scene.rows = rows;
     scene.cols = cols;
-    pc.style.gridTemplateRows = Array(rows).fill(`1fr`).join(` `);
-    pc.style.gridTemplateColumns = Array(cols).fill(`1fr`).join(` `);
+    const gridTemplateRows = Array(rows).fill(`1fr`).join(` `);
+    const gridTemplateColumns = Array(cols).fill(`1fr`).join(` `);
+    DOM.setStyles(plotsContainer, { gridTemplateRows, gridTemplateColumns });
     Scene.resize(scene);
   }
 
@@ -328,33 +332,37 @@ export namespace Scene {
     const s2 = new Set(seq(0, plots.length - 1));
     for (const e of s1) s2.delete(e);
 
-    if (s2.size > 0) {
-      alert(
-        `Warning: Some plots are not included in the layout and will be hidden.`,
-      );
-    }
+    const hiddenWarning = `Warning: Some plots are not included in the layout and will be hidden.`;
+    if (s2.size > 0) alert(hiddenWarning);
 
     for (let i = 0; i < plots.length; i++) {
-      plots[i].container.style.gridArea = `plot${i}`;
+      DOM.setStyles(plots[i].container, { gridArea: `plot${i}` });
     }
 
-    let layoutString = ``;
+    let gridTemplateAreas = ``;
     for (const line of layout) {
-      layoutString += `"${line.map((x) => `plot${x}`).join(` `)}" `;
+      gridTemplateAreas += `"${line.map((x) => `plot${x}`).join(` `)}" `;
     }
 
     const [nrow, ncol] = [layout.length, layout[0].length];
+    const gridTemplateRows = Array(nrow).fill(`1fr`).join(` `);
+    const gridTemplateColumns = Array(ncol).fill(`1fr`).join(` `);
 
-    plotContainer.style.gridTemplateAreas = layoutString;
-    plotContainer.style.gridTemplateRows = Array(nrow).fill(`1fr`).join(` `);
-    plotContainer.style.gridTemplateColumns = Array(ncol).fill(`1fr`).join(` `);
+    DOM.setStyles(plotContainer, {
+      gridTemplateAreas,
+      gridTemplateRows,
+      gridTemplateColumns,
+    });
 
     Scene.resize(scene);
   }
 
   export function clearLayout(scene: Scene) {
-    scene.plotsContainer.style.gridTemplateAreas = ``;
-    for (const plot of scene.plots) plot.container.style.gridArea = `auto`;
+    const { plotsContainer, plots } = scene;
+    DOM.setStyles(plotsContainer, { gridTemplateAreas: `` });
+    for (const plot of plots) {
+      DOM.setStyles(plot.container, { gridArea: `auto` });
+    }
     autoUpdateDimensions(scene);
   }
 
@@ -388,7 +396,7 @@ export namespace Scene {
   ) {
     const [sender, target] = [`scene`, `server`];
     const message = JSON.stringify({ sender, target, type, data });
-    scene.client!.send(message);
+    scene.client.send(message);
   }
 
   export function resize(scene: Scene) {
@@ -397,7 +405,7 @@ export namespace Scene {
     const unit = Math.min(clientWidth, clientHeight) / 100;
     const fontsize = Math.min(Math.max(8, 3 * unit), 16);
 
-    container.style.fontSize = fontsize + `px`;
+    DOM.setStyles(container, { fontSize: fontsize + `px` });
 
     for (const plot of scene.plots) Reactive.dispatch(plot, `resize`);
   }
@@ -460,7 +468,7 @@ function setupEvents(scene: Scene) {
       Frame.clear(plot.frames.user);
     }
     Marker.clearAll(scene.marker);
-    scene.activePlot = undefined;
+    scene.activePlotIndex = undefined;
   });
 
   plotsContainer.addEventListener(
@@ -489,8 +497,12 @@ function setupEvents(scene: Scene) {
 
   window.addEventListener(`keydown`, (e) => {
     const event = keybindings[e.key];
+    const { activePlotIndex } = scene;
     if (!event) return;
-    if (scene.activePlot) Reactive.dispatch(scene.activePlot, event);
+    if (activePlotIndex !== undefined) {
+      const plot = plots[activePlotIndex];
+      Reactive.dispatch(plot, event);
+    }
     Reactive.dispatch(scene, event);
   });
 
@@ -609,6 +621,7 @@ function setupEvents(scene: Scene) {
 const plotIdShort = {
   s: `scatter`,
   b: `bar`,
+  bb: `bibar`,
   h: `histo`,
   f: `fluct`,
   hh: `histo2d`,
