@@ -3,6 +3,10 @@ import { throttle } from "./funs";
 const EVENTS = Symbol(`events`);
 const LISTENERS = Symbol(`listeners`);
 type EventCallback = (data?: Record<string, any>) => void;
+type NonReactive<T extends Reactive> = Omit<
+  T,
+  typeof EVENTS | typeof LISTENERS
+>;
 
 /**
  * A reactive object (Observer pattern).
@@ -112,10 +116,10 @@ export namespace Reactive {
    */
   export function set<T extends Reactive>(
     object: T,
-    setfn: (object: T) => void,
+    setfn: (object: NonReactive<T>) => Partial<NonReactive<T>>,
   ) {
     if (!isReactive(object)) return;
-    setfn(object);
+    Object.assign(object, setfn(object));
     dispatch(object, `changed` as EventOf<T>);
   }
 

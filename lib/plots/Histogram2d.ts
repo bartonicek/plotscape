@@ -82,25 +82,25 @@ export function Histogram2d<T extends Columns>(
 
   Reactive.listen(plot, `set-parameters`, (data) => {
     if (!data) return;
-    if (data.width1) Reactive.set(pars1, (p) => (p.width = data.width1));
-    if (data.anchor1) Reactive.set(pars1, (p) => (p.anchor = data.anchor1));
-    if (data.width2) Reactive.set(pars2, (p) => (p.width = data.width2));
-    if (data.anchor2) Reactive.set(pars2, (p) => (p.anchor = data.anchor2));
+    if (data.width1) Reactive.set(pars1, () => ({ width: data.width1 }));
+    if (data.anchor1) Reactive.set(pars1, () => ({ anchor: data.anchor1 }));
+    if (data.width2) Reactive.set(pars2, () => ({ width: data.width2 }));
+    if (data.anchor2) Reactive.set(pars2, () => ({ anchor: data.anchor2 }));
   });
 
   Reactive.listen(plot, `grow`, () => {
-    Reactive.set(pars1, (p) => (p.width *= 10 / 9));
-    Reactive.set(pars2, (p) => (p.width *= 10 / 9));
+    Reactive.set(pars1, (p) => ({ width: (p.width * 10) / 9 }));
+    Reactive.set(pars2, (p) => ({ width: (p.width * 10) / 9 }));
   });
 
   Reactive.listen(plot, `shrink`, () => {
-    Reactive.set(pars1, (p) => (p.width *= 9 / 10));
-    Reactive.set(pars2, (p) => (p.width *= 9 / 10));
+    Reactive.set(pars1, (p) => ({ width: (p.width * 9) / 10 }));
+    Reactive.set(pars2, (p) => ({ width: (p.width * 9) / 10 }));
   });
 
   Reactive.listen(plot, `reset`, () => {
-    Reactive.set(pars1, (p) => ((p.anchor = min1), (p.width = range1 / 15)));
-    Reactive.set(pars2, (p) => ((p.anchor = min2), (p.width = range2 / 15)));
+    Reactive.set(pars1, () => ({ anchor: min1, width: range1 / 15 }));
+    Reactive.set(pars2, () => ({ anchor: min2, width: range2 / 15 }));
   });
 
   return plot;

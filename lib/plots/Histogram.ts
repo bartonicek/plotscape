@@ -77,28 +77,28 @@ export function Histogram<T extends Columns>(
 
   Reactive.listen(plot, `set-parameters`, (data) => {
     if (!data) return;
-    if (data.width) Reactive.set(pars, (p) => (p.width = data.width));
-    if (data.anchor) Reactive.set(pars, (p) => (p.anchor = data.anchor));
+    if (data.width) Reactive.set(pars, () => ({ width: data.width }));
+    if (data.anchor) Reactive.set(pars, () => ({ anchor: data.anchor }));
   });
 
   Reactive.listen(plot, `grow`, () =>
-    Reactive.set(pars, (p) => (p.width *= 10 / 9)),
+    Reactive.set(pars, (p) => ({ width: (p.width * 10) / 9 })),
   );
 
   Reactive.listen(plot, `shrink`, () =>
-    Reactive.set(pars, (p) => (p.width *= 9 / 10)),
+    Reactive.set(pars, (p) => ({ width: (p.width * 9) / 10 })),
   );
 
   Reactive.listen(plot, `increment-anchor`, () =>
-    Reactive.set(pars, (p) => (p.anchor += inc)),
+    Reactive.set(pars, (p) => ({ anchor: p.anchor + inc })),
   );
 
   Reactive.listen(plot, `decrement-anchor`, () =>
-    Reactive.set(pars, (p) => (p.anchor -= inc)),
+    Reactive.set(pars, (p) => ({ anchor: p.anchor - inc })),
   );
 
   Reactive.listen(plot, `reset`, () => {
-    Reactive.set(pars, (p) => ((p.anchor = min), (p.width = range / 15)));
+    Reactive.set(pars, () => ({ anchor: min, width: range / 15 }));
   });
 
   return plot;
