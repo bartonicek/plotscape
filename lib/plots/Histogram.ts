@@ -38,7 +38,7 @@ export interface Histogram extends Plot {
 export function Histogram<T extends Columns>(
   scene: Scene<T>,
   selectfn: (data: T) => [number[]] | [number[], number[]],
-  options?: {
+  options?: Plot.Options & {
     reducer?: Reducer<number, number>;
     queries?: (data: T) => [any[], Reducer][];
   },
@@ -61,13 +61,14 @@ export function Histogram<T extends Columns>(
 
   const queries = options?.queries ? options.queries(data) : {};
   const stat = [values, reducer] as const;
-  const plotData = Summaries.of({ stat, ...queries }, factors);
 
+  const plotData = Summaries.of({ stat, ...queries }, factors);
   const scales = Scales.of();
-  const props = { type: `histo`, representation: `absolute` } as const;
+  const [type, representation] = [`histo`, `absolute`] as const;
+  const opts: Plot.Options = { ...options, type, representation };
   const rectangles = Rectangles.of([] as Coordinates[], scales);
 
-  const plot = Object.assign(Plot.of(plotData, scales, props), { rectangles });
+  const plot = Object.assign(Plot.of(plotData, scales, opts), { rectangles });
   histogram(plot);
   Plot.addGeom(plot, rectangles);
 

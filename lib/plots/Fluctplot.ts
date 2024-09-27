@@ -38,7 +38,7 @@ export interface Fluctplot extends Plot {
 export function Fluctuationplot<T extends Columns>(
   scene: Scene<T>,
   selectfn: (data: T) => [any[], any[]] | [any[], any[], number[]],
-  options?: {
+  options?: Plot.Options & {
     reducer?: Reducer<number, number>;
     queries?: (data: T) => [any[], Reducer][];
   },
@@ -62,11 +62,12 @@ export function Fluctuationplot<T extends Columns>(
     y: [`band`, `continuous`],
   });
 
-  const props = { type: `fluct`, representation: `absolute` } as const;
+  const [type, representation] = [`fluct`, `absolute`] as const;
+  const opts: Plot.Options = { ...options, type, representation };
   const bars = Bars.of([] as Coordinates[], scales, {
     vAnchor: VAnchor.Middle,
   });
-  const plot = Object.assign(Plot.of(plotData, scales, props), { bars });
+  const plot = Object.assign(Plot.of(plotData, scales, opts), { bars });
 
   Scale.shareCodomain(scales.area, scales.width);
   Scale.shareCodomain(scales.area, scales.height);

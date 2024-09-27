@@ -39,7 +39,7 @@ export interface Bibarplot extends Plot {
 export function Bibarplot<T extends Columns>(
   scene: Scene<T>,
   selectfn: (data: T) => [any[], number[]] | [any[], number[], number[]],
-  options?: {
+  options?: Plot.Options & {
     reducer?: Reducer<number, number>;
     queries?: (data: T) => [any[], Reducer][];
   },
@@ -68,12 +68,7 @@ export function Bibarplot<T extends Columns>(
     heightDown: [`continuous`, `continuous`],
   });
 
-  Scale.shareCodomain(scales.height, scales.heightUp);
-  Scale.shareCodomain(scales.height, scales.heightDown);
-  Scale.set(scales.heightUp, () => ({ one: 0.4 }), { default: true });
-  Scale.set(scales.heightDown, () => ({ one: -0.4 }), { default: true });
-
-  const props = { type: `bar`, representation: `absolute` } as const;
+  const opts = { type: `bar`, representation: `absolute` } as const;
 
   const bars1Scales = { ...scales, height: scales.heightUp };
   const bars2Scales = { ...scales, height: scales.heightDown };
@@ -82,10 +77,15 @@ export function Bibarplot<T extends Columns>(
 
   const bars = { bars1, bars2 };
 
-  const plot = Object.assign(Plot.of(plotData, scales, props), bars);
+  const plot = Object.assign(Plot.of(plotData, scales, opts), bars);
   barplot(plot);
   Plot.addGeom(plot, bars1);
   Plot.addGeom(plot, bars2);
+
+  Scale.shareCodomain(scales.height, scales.heightUp);
+  Scale.shareCodomain(scales.height, scales.heightDown);
+  Scale.set(scales.heightUp, () => ({ one: 0.4 }), { default: true });
+  Scale.set(scales.heightDown, () => ({ one: -0.4 }), { default: true });
   Expanse.set(scales.height.codomain, () => ({ inv: identity }), {
     default: true,
   });

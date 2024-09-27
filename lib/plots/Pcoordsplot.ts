@@ -24,9 +24,7 @@ export interface Pcoordsplot extends Plot {
 export function Pcoordsplot<T extends Columns>(
   scene: Scene<T>,
   selectfn: (data: T) => number[][],
-  options?: {
-    queries?: (data: T) => any[][];
-  },
+  options?: Plot.Options & { queries?: (data: T) => any[][] },
 ): Pcoordsplot {
   const { data, marker } = scene;
 
@@ -45,18 +43,17 @@ export function Pcoordsplot<T extends Columns>(
     x: [`split`, `split`],
     y: [`compound`, `split`],
   });
-  const props = { type: `pcoords`, representation: `absolute` } as const;
   const coordinates = Summaries.translate(plotData, [(d) => d, (d) => d]);
   const lines = Lines.of(coordinates, scales);
+  const [type, representation] = [`pcoords`, `absolute`] as const;
+  const opts: Plot.Options = { ...options, type, representation };
 
-  const plot = Object.assign(Plot.of(plotData, scales, props), { lines });
+  const plot = Object.assign(Plot.of(plotData, scales, opts), { lines });
   Plot.addGeom(plot, lines);
 
   const domains = vars.map((x) => inferExpanse(x));
   scales.x.domain = ExpanseSplit.of(ExpansePoint.of(names));
   scales.y.domain = ExpanseCompound.of(domains);
-  // scales.x.codomain = ExpanseSplit.of(scales.x.codomain);
-  // scales.y.codomain = ExpanseSplit.of(scales.y.codomain);
 
   Meta.set(scales.x, { name: `variable` });
   Meta.set(scales.y, { name: `value` });
