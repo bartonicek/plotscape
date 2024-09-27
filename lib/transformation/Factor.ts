@@ -205,7 +205,7 @@ export namespace Factor {
     }
 
     const factor = compute();
-    if (options && Reactive.is(options)) {
+    if (options && Reactive.isReactive(options)) {
       Reactive.listen(options, `changed`, () => {
         const newFactor = compute();
         Factor.copyFrom(newFactor, factor);

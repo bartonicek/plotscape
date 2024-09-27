@@ -2,18 +2,17 @@ import { throttle } from "./funs";
 
 const EVENTS = Symbol(`events`);
 const LISTENERS = Symbol(`listeners`);
-
 type EventCallback = (data?: Record<string, any>) => void;
 
 /**
  * A reactive object (Observer pattern).
  */
-export interface Reactive<T extends string = string> {
+export interface Reactive<T extends string = string & {}> {
   [EVENTS]: T;
   [LISTENERS]: Record<string, { priority: number; callback: EventCallback }[]>;
 }
 
-export type EventOf<T extends Reactive> = T[typeof EVENTS];
+export type EventOf<T extends Reactive> = T[typeof EVENTS] | `changed`;
 
 export namespace Reactive {
   /**
@@ -33,7 +32,9 @@ export namespace Reactive {
    * @param object An object
    * @returns `true` if the object is `Reactive`
    */
-  export function is(object: Record<PropertyKey, any>): object is Reactive {
+  export function isReactive(
+    object: Record<PropertyKey, any>,
+  ): object is Reactive {
     return object?.[LISTENERS] !== undefined;
   }
 
@@ -54,7 +55,7 @@ export namespace Reactive {
     callback: EventCallback,
     options?: { throttle?: number; priority?: number },
   ) {
-    if (!Reactive.is(object)) return;
+    if (!Reactive.isReactive(object)) return;
     if (options?.throttle) callback = throttle(callback, options.throttle);
 
     const priority = options?.priority ?? 1;
@@ -78,7 +79,7 @@ export namespace Reactive {
     type: EventOf<T>,
     data?: Record<string, any>,
   ) {
-    if (!Reactive.is(object)) return;
+    if (!isReactive(object)) return;
     const listeners = object[LISTENERS][type];
     if (listeners) for (const { callback } of listeners) callback(data);
   }
@@ -91,16 +92,17 @@ export namespace Reactive {
    *
    * @param object1 A `Reactive` object
    * @param object2 Another `Reactive` object
-   * @param type The type of event to propagate (string)
+   * @param event1 The type of event to propagate (string)
    */
   export function propagate<T extends Reactive, U extends Reactive>(
     object1: T,
     object2: U,
-    type: EventOf<T>,
+    event1: EventOf<T>,
+    event2?: EventOf<U>,
   ) {
-    if (!Reactive.is(object1) || !Reactive.is(object2)) return;
-    const propagatefn = () => Reactive.dispatch(object2, type);
-    Reactive.listen(object1, type, propagatefn, { priority: 99 });
+    if (!isReactive(object1) || !isReactive(object2)) return;
+    const propagatefn = () => dispatch(object2, event2 ?? event1);
+    listen(object1, event1, propagatefn, { priority: 99 });
   }
 
   /**
@@ -112,9 +114,9 @@ export namespace Reactive {
     object: T,
     setfn: (object: T) => void,
   ) {
-    if (!Reactive.is(object)) return;
+    if (!isReactive(object)) return;
     setfn(object);
-    Reactive.dispatch(object, `changed` as EventOf<T>);
+    dispatch(object, `changed` as EventOf<T>);
   }
 
   /**
@@ -128,7 +130,7 @@ export namespace Reactive {
     type: EventOf<T>,
     listener: EventCallback,
   ) {
-    if (!Reactive.is(object)) return;
+    if (!isReactive(object)) return;
 
     const listeners = object[LISTENERS][type] ?? [];
 
@@ -143,7 +145,7 @@ export namespace Reactive {
    * @param type The event type (string)
    */
   export function removeAll<T extends Reactive>(object: T, type: EventOf<T>) {
-    if (!Reactive.is(object)) return;
+    if (!isReactive(object)) return;
     if (object[LISTENERS][type]) object[LISTENERS][type].length = 0;
   }
 
@@ -152,7 +154,7 @@ export namespace Reactive {
    * @param object A `Reactive` object
    */
   export function removeAllListeners<T extends Reactive>(object: T) {
-    if (!Reactive.is(object)) return;
+    if (!isReactive(object)) return;
     const listeners = object[LISTENERS];
     if (listeners) for (const ls of Object.values(listeners)) ls.length = 0;
   }

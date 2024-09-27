@@ -24,6 +24,7 @@ import { Group, Marker, Transient } from "./Marker";
 export interface Scene<T extends Columns = Columns>
   extends Reactive<Scene.Event> {
   data: T;
+
   container: HTMLDivElement;
   plotsContainer: HTMLDivElement;
   queryTable: HTMLTableElement;
@@ -45,6 +46,7 @@ export interface Scene<T extends Columns = Columns>
 
 export namespace Scene {
   export type Event =
+    | `activate`
     | `reset`
     | `resize`
     | `set-layout`
@@ -399,13 +401,17 @@ export namespace Scene {
     scene.client.send(message);
   }
 
-  export function resize(scene: Scene) {
+  export function resize(scene: Scene, options?: { fontSize?: number }) {
     const { container } = scene;
-    const { clientWidth, clientHeight } = container;
-    const unit = Math.min(clientWidth, clientHeight) / 100;
-    const fontsize = Math.min(Math.max(8, 3 * unit), 16);
+    let { fontSize } = options ?? {};
 
-    DOM.setStyles(container, { fontSize: fontsize + `px` });
+    if (!fontSize) {
+      const { clientWidth, clientHeight } = container;
+      const unit = Math.min(clientWidth, clientHeight) / 100;
+      fontSize = Math.min(Math.max(8, 3 * unit), 16);
+    }
+
+    DOM.setStyles(container, { fontSize: fontSize + `px` });
 
     for (const plot of scene.plots) Reactive.dispatch(plot, `resize`);
   }

@@ -47,13 +47,8 @@ export namespace Marker {
       factor,
     });
 
-    Reactive.listen(marker, `updated`, () =>
-      Reactive.dispatch(factor, `changed`),
-    );
-
-    Reactive.listen(marker, `cleared`, () =>
-      Reactive.dispatch(factor, `changed`),
-    );
+    Reactive.propagate(marker, factor, `updated`, `changed`);
+    Reactive.propagate(marker, factor, `cleared`, `changed`);
 
     return marker;
   }
