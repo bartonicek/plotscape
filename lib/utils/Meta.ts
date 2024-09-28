@@ -43,9 +43,9 @@ export namespace Meta {
     for (const [k, v] of Object.entries(props)) object[METADATA]![k] = v;
   }
 
-  export function copy<T extends Meta>(
-    target: T | Object,
-    source: T | Object,
+  export function copy<T extends Meta | Object, U extends Meta | Object>(
+    target: T,
+    source: U,
     props?: MetadataKey<T>[],
   ) {
     if (!hasMetadata(source)) return;
@@ -53,7 +53,7 @@ export namespace Meta {
     const keys = props ?? Object.keys(source[METADATA]);
     for (const key of keys as string[]) {
       // Need to use get() here in case e.g. `length`
-      target[METADATA]![key] = get(source, key);
+      target[METADATA]![key] = get(source, key as MetadataKey<U>);
     }
   }
 
