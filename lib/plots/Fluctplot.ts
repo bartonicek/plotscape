@@ -63,14 +63,13 @@ export function Fluctuationplot<T extends Columns>(
   });
 
   const [type, representation] = [`fluct`, `absolute`] as const;
-  const opts: Plot.Options = { ...options, type, representation };
+  const plotOpts: Plot.Options = { ...options, type, representation };
   const bars = Bars.of([] as Coordinates[], scales, {
     vAnchor: VAnchor.Middle,
   });
-  const plot = Object.assign(Plot.of(plotData, scales, opts), { bars });
+  const plot = Object.assign(Plot.of(plotData, scales, plotOpts), { bars });
 
-  Scale.shareCodomain(scales.area, scales.width);
-  Scale.shareCodomain(scales.area, scales.height);
+  Scale.shareCodomain(scales.area, [scales.width, scales.height]);
 
   fluctplot(plot);
   Plot.addGeom(plot, bars);

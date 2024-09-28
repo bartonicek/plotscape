@@ -33,9 +33,9 @@ export function Scatterplot<T extends Columns>(
   const plotData = Summaries.of({}, [factor1, factor2] as const);
   const coordinates = Summaries.translate(plotData, [(d) => d, (d) => d]);
   const scales = Scales.of();
-  const opts: Plot.Options = { ...options, type: `scatter` } as const;
+  const plotOpts: Plot.Options = { ...options, type: `scatter` } as const;
 
-  const plot = Plot.of(plotData, scales, opts);
+  const plot = Plot.of(plotData, scales, plotOpts);
 
   Scale.train(scales.x, x, { default: true });
   Scale.train(scales.y, y, { default: true });

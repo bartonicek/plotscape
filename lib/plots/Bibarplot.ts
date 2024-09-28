@@ -68,7 +68,7 @@ export function Bibarplot<T extends Columns>(
     heightDown: [`continuous`, `continuous`],
   });
 
-  const opts = { type: `bar`, representation: `absolute` } as const;
+  const plotOpts = { type: `bar`, representation: `absolute` } as const;
 
   const bars1Scales = { ...scales, height: scales.heightUp };
   const bars2Scales = { ...scales, height: scales.heightDown };
@@ -77,20 +77,17 @@ export function Bibarplot<T extends Columns>(
 
   const bars = { bars1, bars2 };
 
-  const plot = Object.assign(Plot.of(plotData, scales, opts), bars);
-  barplot(plot);
+  const plot = Object.assign(Plot.of(plotData, scales, plotOpts), bars);
+  bibarplot(plot);
   Plot.addGeom(plot, bars1);
   Plot.addGeom(plot, bars2);
 
-  Scale.shareCodomain(scales.height, scales.heightUp);
-  Scale.shareCodomain(scales.height, scales.heightDown);
-  Scale.set(scales.heightUp, () => ({ one: 0.4 }), { default: true });
-  Scale.set(scales.heightDown, () => ({ one: -0.4 }), { default: true });
-  Expanse.set(scales.height.codomain, () => ({ inv: identity }), {
-    default: true,
-  });
+  const opts = { default: true };
 
-  // Reactive.listen(plot, `normalize`, () => switchRepresentation(plot));
+  Scale.shareCodomain(scales.height, [scales.heightUp, scales.heightDown]);
+  Scale.set(scales.heightUp, () => ({ one: 0.4 }), opts);
+  Scale.set(scales.heightDown, () => ({ one: -0.4 }), opts);
+  Expanse.set(scales.height.codomain, () => ({ inv: identity }), opts);
 
   return plot;
 }
@@ -102,12 +99,8 @@ function sortAxis(domain: ExpanseBand, values: number[]) {
   } else ExpanseBand.reorder(domain);
 }
 
-// function switchRepresentation(plot: Bibarplot) {
-//   //   if (plot.representation === `absolute`) spineplot(plot);
-//   //   else barplot(plot);
-// }
-
-function barplot(plot: Bibarplot) {
+// Spineplot version of Bibarplot doesn't make sense since we can't match width & x-position
+function bibarplot(plot: Bibarplot) {
   const { data, scales, bars1, bars2 } = plot;
 
   const coordinates1 = Summaries.translate(data, [
@@ -143,9 +136,6 @@ function barplot(plot: Bibarplot) {
   Scale.train(scales.heightUp, [0, max1], opts);
   Scale.train(scales.heightDown, [0, max2], opts);
 
-  console.log(scales.heightDown.codomain.props);
-  console.log(Scale.pushforward(scales.heightDown, 1));
-
   ExpanseBand.setWeights(scales.x.domain);
 
   const [s1name, s2name] = [stat1, stat2].map((x) => Meta.get(x, `name`));
@@ -169,43 +159,3 @@ function barplot(plot: Bibarplot) {
 
   return plot;
 }
-
-// function spineplot(plot: Barplot) {
-//   const { data, scales, bars } = plot;
-//   const coordinates = Summaries.translate(data, [
-//     (d) => ({ x: d.label, y: zero, height: one, width: d.stat }),
-//     (d) => ({
-//       x: d.label,
-//       y: zero,
-//       height: Reduced.normalize(Reduced.stack(d.stat), (x, y) => x / y),
-//       width: Reduced.parent(d.stat),
-//     }),
-//   ]);
-
-//   const [flat] = coordinates;
-//   const opts = { default: true, ratio: true };
-
-//   Scale.train(scales.x, flat.x, opts);
-//   Scale.train(scales.y, [0, 1], opts);
-//   Scale.train(scales.width, cumsum(flat.width), opts);
-//   Scale.train(scales.height, [0, 1], opts);
-
-//   Scale.freeze(scales.y, [`zero`]);
-//   Scale.freeze(scales.height, [`zero`]);
-//   ExpanseBand.setWeights(scales.x.domain, flat.width);
-
-//   Scale.link(scales.y, scales.height);
-//   const widthProps = { scale: 1, mult: 1, offset: -1 };
-//   Expanse.set(scales.width.codomain, () => widthProps, { default: true });
-
-//   Meta.set(scales.y, { name: `proportion` });
-
-//   Reactive.removeAll(plot, `reorder`);
-//   Reactive.listen(plot, `reorder`, () => sortAxis(scales.x.domain, flat.width));
-
-//   Geom.setCoordinates(bars, coordinates);
-
-//   plot.representation = `propotion`;
-//   Plot.render(plot);
-//   Plot.renderAxes(plot);
-// }

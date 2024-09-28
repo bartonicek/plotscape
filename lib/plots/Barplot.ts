@@ -34,7 +34,7 @@ export interface Barplot extends Plot {
 export function Barplot<T extends Columns>(
   scene: Scene<T>,
   selectfn: (data: T) => [any[]] | [any[], number[]],
-  options?: {
+  options?: Plot.Options & {
     reducer?: Reducer<number, number>;
     queries?: (data: T) => [any[], Reducer][];
   },
@@ -54,10 +54,11 @@ export function Barplot<T extends Columns>(
   const plotData = Summaries.of({ stat, ...queries }, factors);
 
   const scales = Scales.of({ x: [`band`, `continuous`] });
-  const props = { type: `bar`, representation: `absolute` } as const;
+  const [type, representation] = [`bar`, `absolute`] as const;
+  const plotOpts = { ...options, type, representation } as const;
   const bars = Bars.of([] as Coordinates[], scales);
 
-  const plot = Object.assign(Plot.of(plotData, scales, props), { bars });
+  const plot = Object.assign(Plot.of(plotData, scales, plotOpts), { bars });
   barplot(plot);
   Plot.addGeom(plot, bars);
 

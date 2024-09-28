@@ -236,8 +236,10 @@ export namespace Scale {
     if (!scale1.linked.includes(scale2)) scale1.linked.push(scale2);
   }
 
-  export function shareCodomain(source: Scale, target: Scale) {
-    target.codomain = source.codomain;
+  export function shareCodomain(source: Scale, targets: Scale[]) {
+    for (const target of targets) {
+      target.codomain = source.codomain;
+    }
   }
 
   export function unitRange(scale: Scale) {

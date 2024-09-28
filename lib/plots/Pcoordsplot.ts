@@ -46,9 +46,9 @@ export function Pcoordsplot<T extends Columns>(
   const coordinates = Summaries.translate(plotData, [(d) => d, (d) => d]);
   const lines = Lines.of(coordinates, scales);
   const [type, representation] = [`pcoords`, `absolute`] as const;
-  const opts: Plot.Options = { ...options, type, representation };
+  const plotOpts: Plot.Options = { ...options, type, representation };
 
-  const plot = Object.assign(Plot.of(plotData, scales, opts), { lines });
+  const plot = Object.assign(Plot.of(plotData, scales, plotOpts), { lines });
   Plot.addGeom(plot, lines);
 
   const domains = vars.map((x) => inferExpanse(x));

@@ -65,10 +65,12 @@ export function Histogram<T extends Columns>(
   const plotData = Summaries.of({ stat, ...queries }, factors);
   const scales = Scales.of();
   const [type, representation] = [`histo`, `absolute`] as const;
-  const opts: Plot.Options = { ...options, type, representation };
+  const plotOpts: Plot.Options = { ...options, type, representation };
   const rectangles = Rectangles.of([] as Coordinates[], scales);
 
-  const plot = Object.assign(Plot.of(plotData, scales, opts), { rectangles });
+  const plot = Object.assign(Plot.of(plotData, scales, plotOpts), {
+    rectangles,
+  });
   histogram(plot);
   Plot.addGeom(plot, rectangles);
 
