@@ -1,70 +1,64 @@
-const NAME = Symbol(`name`);
-const LENGTH = Symbol(`length`);
-const MIN = Symbol(`min`);
-const MAX = Symbol(`max`);
-const QUERYABLE = Symbol(`queryable`);
-const REDUCED = Symbol(`reduced`);
-const PARENT_VALUES = Symbol(`parent-values`);
-const IS_DIMENSION = Symbol(`is-dimension`);
-
 declare global {
   interface Object {
-    [NAME]?: string;
-    [LENGTH]?: number;
-    [MIN]?: number;
-    [MAX]?: number;
-    [QUERYABLE]?: boolean;
-    [REDUCED]?: boolean;
-    [PARENT_VALUES]?: any;
-    [IS_DIMENSION]: boolean;
+    [METADATA]?: Record<string, any>;
   }
 }
 
-const keyToSymbolMap = {
-  name: NAME,
-  length: LENGTH,
-  min: MIN,
-  max: MAX,
-  queryable: QUERYABLE,
-  reduced: REDUCED,
-  parent: PARENT_VALUES,
-  isDimension: IS_DIMENSION,
-} as const;
+const METADATA = Symbol(`metadata`);
+export interface Meta<T extends Record<string, any> = Record<string, any>> {
+  [METADATA]: T;
+}
 
-type KeyToSymbolMap = typeof keyToSymbolMap;
-type Prop = keyof KeyToSymbolMap;
+type MetadataKey<T extends Meta | Object> = T extends Meta
+  ? keyof T[typeof METADATA]
+  : string;
 
 export namespace Meta {
-  export function has(object: Object, prop: Prop) {
-    return !!object[keyToSymbolMap[prop]];
+  export function of<T extends Object>(object: T) {
+    object[METADATA] = {};
+    return object as T & Meta;
   }
 
-  export function get<T extends Prop | Prop[]>(object: Object, props: T) {
-    if (Array.isArray(props)) return props.map((x) => getDatum(object, x));
-    return getDatum(object, props);
+  export function hasMetadata(object: Object): object is Meta {
+    return !!object[METADATA];
   }
 
-  function getDatum<T extends Prop>(object: Object, prop: T) {
-    if (prop === `length` && Array.isArray(object)) return object.length;
-    return object[keyToSymbolMap[prop]];
+  export function has(object: Object, key: string) {
+    return !!object[METADATA]?.[key];
   }
 
-  type PropDict = {
-    [key in keyof typeof keyToSymbolMap]: Object[(typeof keyToSymbolMap)[key]];
-  };
-
-  export function set(object: Object, props: Partial<PropDict>) {
-    type Entries = [keyof KeyToSymbolMap, any][];
-    for (const [k, v] of Object.entries(props) as Entries) {
-      object[keyToSymbolMap[k]] = v;
-    }
+  export function get<T extends Meta>(
+    object: T,
+    keys: MetadataKey<T> | MetadataKey<T>[],
+  ) {
+    if (!Array.isArray(keys)) return getDatum(object, keys as string);
+    return keys.map((x) => getDatum(object, x as string));
   }
 
-  export function copy(target: Object, source: Object, props?: Prop[]) {
-    const keys = props ?? Object.keys(keyToSymbolMap);
-    for (const key of keys as Prop[]) {
+  export function set<T extends Meta>(
+    object: Object,
+    props: Partial<T[typeof METADATA]>,
+  ) {
+    if (!hasMetadata(object)) object[METADATA] = {};
+    for (const [k, v] of Object.entries(props)) object[METADATA]![k] = v;
+  }
+
+  export function copy<T extends Meta>(
+    target: T | Object,
+    source: T | Object,
+    props?: MetadataKey<T>[],
+  ) {
+    if (!hasMetadata(source)) return;
+    if (!hasMetadata(target)) target[METADATA] = {};
+    const keys = props ?? Object.keys(source[METADATA]);
+    for (const key of keys as string[]) {
       // Need to use get() here in case e.g. `length`
-      target[keyToSymbolMap[key]] = get(source, key);
+      target[METADATA]![key] = get(source, key);
     }
+  }
+
+  function getDatum<T extends Meta>(object: T, key: string) {
+    if (key === `length` && Array.isArray(object)) return object.length;
+    return object[METADATA]?.[key];
   }
 }

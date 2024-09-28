@@ -113,6 +113,7 @@ export namespace Scene {
     const opts = Object.assign(defaultOptions, options);
 
     for (const [k, v] of Object.entries(data)) {
+      if (!Meta.hasMetadata(v)) (data as any)[k] = Meta.of(v);
       if (!Meta.has(v, `name`)) Meta.set(v, { name: k });
     }
 
