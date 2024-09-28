@@ -53,7 +53,7 @@ export namespace Reduced {
     setIndices(result, parentIndices);
     result[ORIGINAL_VALUES] = reduced[ORIGINAL_VALUES];
 
-    Meta.copy(result, reduced, [`name`, `queryable`, `reduced`]);
+    Meta.copy(reduced, result, [`name`, `queryable`, `reduced`]);
 
     return result;
   }
@@ -84,7 +84,7 @@ export namespace Reduced {
     if (indices) setIndices(result, indices);
     result[ORIGINAL_VALUES] = reduced[ORIGINAL_VALUES];
 
-    Meta.copy(result, reduced, [`name`, `queryable`, `reduced`]);
+    Meta.copy(reduced, result, [`name`, `queryable`, `reduced`]);
 
     return result;
   }
@@ -111,7 +111,7 @@ export namespace Reduced {
     if (indices) setIndices(result, indices);
     result[ORIGINAL_VALUES] = reduced[ORIGINAL_VALUES];
 
-    Meta.copy(result, reduced, [`name`, `queryable`, `reduced`]);
+    Meta.copy(reduced, result, [`name`, `queryable`, `reduced`]);
 
     return result;
   }
@@ -129,7 +129,7 @@ export namespace Reduced {
     if (indices) setIndices(result, indices);
     result[ORIGINAL_VALUES] = reduced[ORIGINAL_VALUES];
 
-    Meta.copy(result, reduced, [`name`, `queryable`]);
+    Meta.copy(reduced, result, [`name`, `queryable`]);
 
     return result;
   }

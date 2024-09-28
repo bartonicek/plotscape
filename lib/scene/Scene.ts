@@ -189,6 +189,7 @@ export namespace Scene {
     Reactive.listen(plot, `clear-transient`, () => {
       for (const p of plots) Plot.clearUserFrame(p);
       Marker.clearTransient(marker);
+      Scene.render(scene);
     });
 
     Reactive.listen(plot, `render-all`, () => {
@@ -526,10 +527,8 @@ function setupEvents(scene: Scene) {
     throttle(() => Scene.resize(scene), 10),
   );
 
-  Reactive.listen(marker, `updated`, () => Scene.render(scene), {
-    throttle: 20,
-  });
-
+  const opts = { throttle: 20 };
+  Reactive.listen(marker, `changed`, () => Scene.render(scene), opts);
   Reactive.listen(marker, `cleared`, () => {
     for (const plot of plots) Reactive.dispatch(plot, `unlock`);
   });

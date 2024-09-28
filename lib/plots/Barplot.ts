@@ -104,7 +104,7 @@ function barplot(plot: Barplot) {
   const widthProps = { scale: k, mult: 0.9, offset: 0 };
   Expanse.set(scales.width.codomain, () => widthProps, { default: true });
 
-  Meta.copy(scales.y, flat.height, [`name`]);
+  Meta.copy(flat.height, scales.y, [`name`]);
 
   Reactive.removeAll(plot, `reorder`);
   Reactive.listen(plot, `reorder`, () =>

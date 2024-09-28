@@ -36,9 +36,7 @@ export namespace Getter {
   ): Getter<T> {
     const getter = Getter.of(indexable);
     const proxyGetter = (index: number) => getter(indices[index]);
-    if (isObject(indexable)) {
-      Meta.copy(proxyGetter, indexable);
-    }
+    if (isObject(indexable)) Meta.copy(indexable, proxyGetter);
 
     Meta.set(proxyGetter, { length: indices.length });
     return proxyGetter;
@@ -47,7 +45,7 @@ export namespace Getter {
   export function multi<T extends Indexable[]>(indexables: T): Getter<any[]> {
     const getters = indexables.map(Getter.of);
     const getter = (index: number) => getters.map((x) => x(index));
-    Meta.copy(getter, indexables[0], [`length`]);
+    Meta.copy(indexables[0], getter, [`length`]);
     return getter;
   }
 

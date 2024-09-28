@@ -43,7 +43,7 @@ export namespace Factor {
     for (const k of Reflect.ownKeys(source.data)) {
       if (Array.isArray(source.data[k]) && Array.isArray(target.data[k])) {
         copyValues(source.data[k], target.data[k]);
-        Meta.copy(target.data[k], source.data[k]);
+        Meta.copy(source.data[k], target.data[k]);
       } else {
         target.data[k] = source.data[k];
       }
@@ -112,7 +112,7 @@ export namespace Factor {
     const arr = array.map((x) => x.toString());
     labels = labels ?? Array.from(new Set(arr)).sort(compareAlphaNumeric);
 
-    if (Meta.has(array, `name`)) Meta.copy(labels, array, [`name`]);
+    if (Meta.has(array, `name`)) Meta.copy(array, labels, [`name`]);
 
     const indices = new Uint32Array(array.length);
     const positions = {} as Record<number, number[]>;
@@ -195,7 +195,7 @@ export namespace Factor {
 
       Meta.set(binMin, { min, max, name: minName, ...opts });
       Meta.set(binMax, { min, max, name: maxName, ...opts });
-      Meta.copy(breaks, array, [`name`]);
+      Meta.copy(array, breaks, [`name`]);
 
       const pos = Object.values(positions);
       const type: Type = `surjection`;
@@ -237,12 +237,12 @@ export namespace Factor {
 
         for (const k of Reflect.ownKeys(factor1.data)) {
           data[k] = Getter.of(factor1.data[k]);
-          Meta.copy(data[k], factor1.data[k]);
+          Meta.copy(factor1.data[k], data[k]);
         }
 
         for (const k of Reflect.ownKeys(factor2.data)) {
           data[k] = Getter.proxy(factor2.data[k], factor2.indices);
-          Meta.copy(data[k], factor2.data[k]);
+          Meta.copy(factor2.data[k], data[k]);
         }
 
         const type: Type = `bijection`;
@@ -332,7 +332,7 @@ export namespace Factor {
           ? subset(oldCol, inds)
           : Getter.proxy(oldCol, inds);
 
-        Meta.copy(newCol, oldCol);
+        Meta.copy(oldCol, newCol);
         data[newKey] = newCol;
       }
 
@@ -346,7 +346,7 @@ export namespace Factor {
           ? subset(oldCol, inds)
           : Getter.proxy(oldCol, inds);
 
-        Meta.copy(newCol, oldCol);
+        Meta.copy(oldCol, newCol);
         data[newKey] = newCol;
       }
 

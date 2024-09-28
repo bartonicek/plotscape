@@ -143,8 +143,8 @@ function histogram(plot: Histogram) {
     Scale.train(scales.y, flat.y1, { default: true, ratio: true });
   });
 
-  Meta.copy(scales.x, data[1].breaks, [`name`]);
-  Meta.copy(scales.y, flat.y1, [`name`]);
+  Meta.copy(data[1].breaks, scales.x, [`name`]);
+  Meta.copy(flat.y1, scales.y, [`name`]);
 
   Geom.setCoordinates(rectangles, coordinates as any);
 

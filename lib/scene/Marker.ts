@@ -28,7 +28,7 @@ export interface Marker extends Reactive<Marker.Event> {
 }
 
 export namespace Marker {
-  export type Event = `updated` | `cleared`;
+  export type Event = `cleared`;
 
   export function of(n: number): Marker {
     const group = Transient;
@@ -47,9 +47,7 @@ export namespace Marker {
       factor,
     });
 
-    Reactive.propagate(marker, factor, `updated`, `changed`);
-    Reactive.propagate(marker, factor, `cleared`, `changed`);
-
+    Reactive.propagate(marker, factor, `changed`);
     return marker;
   }
 
@@ -78,7 +76,7 @@ export namespace Marker {
       }
     }
 
-    if (!options?.silent) Reactive.dispatch(marker, `updated`);
+    if (!options?.silent) Reactive.dispatch(marker, `changed`);
   }
 
   export function clearAll(marker: Marker, options?: { silent?: boolean }) {
@@ -86,7 +84,10 @@ export namespace Marker {
       marker.indices[i] = Group.Base;
     }
 
-    if (!options?.silent) Reactive.dispatch(marker, `cleared`);
+    if (!options?.silent) {
+      Reactive.dispatch(marker, `changed`);
+      Reactive.dispatch(marker, `cleared`);
+    }
   }
 
   export function clearTransient(
@@ -98,7 +99,10 @@ export namespace Marker {
       marker.indices[index] = stripTransient(marker.indices[index]);
     }
 
-    if (!options?.silent) Reactive.dispatch(marker, `cleared`);
+    if (!options?.silent) {
+      Reactive.dispatch(marker, `changed`);
+      Reactive.dispatch(marker, `cleared`);
+    }
   }
 
   export function getLayer(marker: Marker): Indexable<DataLayer> {

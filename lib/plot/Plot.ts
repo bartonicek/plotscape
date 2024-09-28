@@ -342,8 +342,6 @@ export namespace Plot {
     const { container, parameters, frames } = plot;
     if (!parameters.active || !parameters.mousedown) return;
 
-    Reactive.dispatch(plot, `clear-transient`);
-
     const { mousecoords } = parameters;
     const { clientHeight } = container;
     const x = event.offsetX;

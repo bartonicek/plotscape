@@ -1,3 +1,4 @@
+import { isObject } from "../main";
 import { Getter } from "../utils/Getter";
 import { Meta } from "../utils/Meta";
 import { Indexable } from "../utils/types";
@@ -84,7 +85,7 @@ export namespace Reducer {
     }
 
     const result = Reduced.of(array, factor, reducer);
-    Meta.copy(result, values as any);
+    if (isObject(values)) Meta.copy(values, result);
 
     const name = getName(array, reducer) ?? `[unknown summary]`;
     Meta.set(result, { name, queryable: true, reduced: true });

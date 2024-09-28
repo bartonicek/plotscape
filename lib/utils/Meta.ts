@@ -1,7 +1,6 @@
 declare global {
-  interface Object {
-    [METADATA]?: Record<string, any>;
-  }
+  interface Object extends Partial<Meta> {}
+  interface Array<T> extends Partial<Meta> {}
 }
 
 const METADATA = Symbol(`metadata`);
@@ -27,7 +26,7 @@ export namespace Meta {
     return !!object[METADATA]?.[key];
   }
 
-  export function get<T extends Meta>(
+  export function get<T extends Meta | Object>(
     object: T,
     keys: MetadataKey<T> | MetadataKey<T>[],
   ) {
@@ -44,8 +43,8 @@ export namespace Meta {
   }
 
   export function copy<T extends Meta | Object, U extends Meta | Object>(
-    target: T,
-    source: U,
+    source: T,
+    target: U,
     props?: MetadataKey<T>[],
   ) {
     if (!hasMetadata(source)) return;
@@ -53,11 +52,11 @@ export namespace Meta {
     const keys = props ?? Object.keys(source[METADATA]);
     for (const key of keys as string[]) {
       // Need to use get() here in case e.g. `length`
-      target[METADATA]![key] = get(source, key as MetadataKey<U>);
+      target[METADATA]![key] = get(source, key as MetadataKey<T>);
     }
   }
 
-  function getDatum<T extends Meta>(object: T, key: string) {
+  function getDatum<T extends Meta | Object>(object: T, key: string) {
     if (key === `length` && Array.isArray(object)) return object.length;
     return object[METADATA]?.[key];
   }
