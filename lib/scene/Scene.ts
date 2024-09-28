@@ -189,7 +189,6 @@ export namespace Scene {
     Reactive.listen(plot, `clear-transient`, () => {
       for (const p of plots) Plot.clearUserFrame(p);
       Marker.clearTransient(marker);
-      Scene.render(scene);
     });
 
     Reactive.listen(plot, `render-all`, () => {
