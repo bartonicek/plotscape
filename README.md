@@ -35,23 +35,37 @@ const app = document.querySelector<HTMLDivElement>("#app")!;
 if (!app.style.width) app.style.width = `800px`;
 if (!app.style.height) app.style.height = `500px`;
 
+// Fetch data
 const URL = `https://raw.githubusercontent.com/bartonicek/plotscape/master/datasets/sacramento.json`;
 const sacramento = await fetchJSON(URL);
-sacramento.city = sacramento.city.map((x) => formatText(x));
+sacramento.city = sacramento.city.map((x: string) => formatText(x));
 
+// Set up a scene
 const scene = Scene.of(sacramento);
 Scene.append(app, scene);
 
+// Add plots
 const r = { ratio: 1 };
 const plot1 = Plot.scatter(scene, (d) => [d.longitude, d.latitude], r);
-const plot2 = Plot.bar(scene, (d) => [d.city]);
-const plot3 = Plot.histo(scene, (d) => [d.sqft]);
+const plot2 = Plot.histo(scene, (d) => [d.price]);
+const plot3 = Plot.bibar(scene, (d) => [d.city, d.price]);
 const plot4 = Plot.fluct(scene, (d) => [d.beds, d.baths]);
+const plot5 = Plot.histo2d(scene, (d) => [d.sqft, d.price]);
+const plot6 = Plot.pcoords(scene, (d) => Object.values(d));
 
 Scene.addPlot(scene, plot1);
 Scene.addPlot(scene, plot2);
 Scene.addPlot(scene, plot3);
 Scene.addPlot(scene, plot4);
+Scene.addPlot(scene, plot5);
+Scene.addPlot(scene, plot6);
+
+// Set layout
+Scene.setLayout(scene, [
+  [0, 0, 1],
+  [0, 0, 2],
+  [3, 4, 5],
+]);
 ```
 
 Finally, launch the development server:
