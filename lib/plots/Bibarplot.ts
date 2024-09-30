@@ -89,6 +89,8 @@ export function Bibarplot<T extends Columns>(
   Scale.set(scales.heightDown, () => ({ one: -0.4 }), opts);
   Expanse.set(scales.height.codomain, () => ({ inv: identity }), opts);
 
+  Reactive.listen(plot, `normalize`, () => switchRepresentation(plot));
+
   return plot;
 }
 
@@ -99,7 +101,11 @@ function sortAxis(domain: ExpanseBand, values: number[]) {
   } else ExpanseBand.reorder(domain);
 }
 
-// Spineplot version of Bibarplot doesn't make sense since we can't match width & x-position
+function switchRepresentation(plot: Bibarplot) {
+  if (plot.representation === `absolute`) normalizedbibarplot(plot);
+  else bibarplot(plot);
+}
+
 function bibarplot(plot: Bibarplot) {
   const { data, scales, bars1, bars2 } = plot;
 
@@ -154,6 +160,58 @@ function bibarplot(plot: Bibarplot) {
   Geom.setCoordinates(bars2, coordinates2);
 
   plot.representation = `absolute`;
+  Plot.render(plot);
+  Plot.renderAxes(plot);
+
+  return plot;
+}
+
+// Full spineplot doesn't make sense since we can't match width & x-position
+function normalizedbibarplot(plot: Bibarplot) {
+  const { data, scales, bars1, bars2 } = plot;
+
+  const coordinates1 = Summaries.translate(data, [
+    (d) => ({ x: d.label, y: zero, height: one, width: one }),
+    (d) => ({
+      x: d.label,
+      y: zero,
+      height: Reduced.normalize(Reduced.stack(d.stat1), (x, y) => x / y),
+      width: one,
+    }),
+  ]);
+
+  const coordinates2 = Summaries.translate(data, [
+    (d) => ({ x: d.label, y: zero, height: one, width: one }),
+    (d) => ({
+      x: d.label,
+      y: zero,
+      height: Reduced.normalize(Reduced.stack(d.stat2), (x, y) => x / y),
+      width: one,
+    }),
+  ]);
+
+  const [flat1] = coordinates1;
+  const opts = { default: true, ratio: true };
+
+  Scale.train(scales.x, flat1.x, opts);
+  Scale.train(scales.y, [-1, 1], { default: true, ratio: false });
+  Scale.train(scales.width, [0, 1], opts);
+  Scale.train(scales.heightUp, [0, 1], opts);
+  Scale.train(scales.heightDown, [0, 1], opts);
+
+  ExpanseBand.setWeights(scales.x.domain);
+  Meta.set(scales.y, { name: `proportion` });
+
+  const k = 1 / new Set(flat1.x).size;
+  const widthProps = { scale: k, mult: 0.9, offset: 0 };
+  Expanse.set(scales.width.codomain, () => widthProps, { default: true });
+
+  Reactive.removeAll(plot, `reorder`);
+
+  Geom.setCoordinates(bars1, coordinates1);
+  Geom.setCoordinates(bars2, coordinates2);
+
+  plot.representation = `propotion`;
   Plot.render(plot);
   Plot.renderAxes(plot);
 
