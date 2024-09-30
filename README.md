@@ -21,7 +21,7 @@ Next, install plotscape:
 bun i @abartonicek/plotscape
 ```
 
-(if you prefer Node over Bun, you can achieve the same with `npm create vite@latest my-new-figure` and `npm i @abartonicek/plotscape`)
+(or, if you use Node, `npm create vite@latest my-new-figure` and `npm i @abartonicek/plotscape`)
 
 Now you should be ready to create your first interactive figure. Copy the following code into `src/index.ts`:
 
@@ -31,7 +31,7 @@ import { fetchJSON, formatText, Plot, Scene } from "@abartonicek/plotscape";
 // Where you want to mount your figure
 const app = document.querySelector<HTMLDivElement>("#app")!;
 
-// Update app width and height if not set (Vite default)
+// Set fixed app width and height
 if (!app.style.width) app.style.width = `800px`;
 if (!app.style.height) app.style.height = `500px`;
 
@@ -78,7 +78,7 @@ You should now see the following figure:
 
 ![plotscape figure showing a scatterplot, a barplot, a histogram, and a fluctuation diagram](https://github.com/bartonicek/plotscape/blob/master/images/screenshot.png?raw=true)
 
-Your version will be fully interactive (the above above is just a snapshot, since Github doesn't allow JavaScript in README.md files).
+Your version will be fully interactive (the above above is just a static snapshot, since Github doesn't allow JavaScript in README.md files).
 
 Try clicking and dragging to select some points in the scatterplot in the top left corner of the the figure.
 
