@@ -9,29 +9,34 @@ import type { ExpanseSplit } from "./ExpanseSplit";
 
 /** Converts values from some type to the interval [0, 1] and back. */
 export interface Expanse<T = any> extends Reactive {
-  readonly value: T; // Only a type-level tag
-  type: Expanse.Type;
+  // Type-level tags
+  readonly value: T;
+  readonly normalized: number | number[];
 
+  type: Expanse.Type;
   props: Record<string, any>;
   defaults: Record<string, any>;
   frozen: string[];
 }
 
+type Val<T extends Expanse> = T[`value`];
+type Norm<T extends Expanse> = T[`normalized`];
+
 export namespace Expanse {
+  export type Opaque = `value` | `dimensionality`;
   export type Type = `continuous` | `point` | `band` | `compound` | `split`;
 
   // Polymorphic functions
-  export const normalize = Poly.of(normalizeDefault);
+  export const normalize = Poly.of(normalizeDef);
   export const unnormalize = Poly.of(unnormalizeDefault);
   export const train = Poly.of(trainDefault);
   export const breaks = Poly.of(breaksDefault);
   export const reorder = Poly.of(reorderDefault);
 
-  function normalizeDefault<T extends Expanse>(
+  function normalizeDef<T extends Expanse>(
     expanse: T,
-    // @ts-ignore - Need to infer function signatures
-    value: T[`value`],
-  ): number | number[] {
+    _value: Val<T>,
+  ): Norm<T> {
     throw new Error(
       `Method 'normalize' not implemented for expanse of type '${expanse.type}'`,
     );
@@ -39,9 +44,8 @@ export namespace Expanse {
 
   function unnormalizeDefault<T extends Expanse>(
     expanse: T,
-    // @ts-ignore
-    value: number | number[],
-  ): T[`value`] {
+    _value: Norm<T>,
+  ): Val<T> {
     throw new Error(
       `Method 'unnormalize' not implemented for expanse of type '${expanse.type}'`,
     );
@@ -49,10 +53,8 @@ export namespace Expanse {
 
   export function trainDefault<T extends Expanse>(
     expanse: T,
-    // @ts-ignore
-    array: T[`value`][],
-    // @ts-ignore
-    options?: { default?: boolean; silent?: boolean },
+    _array: Val<T>[],
+    _options?: { default?: boolean; silent?: boolean },
   ) {
     throw new Error(
       `Method 'train' not implemented for expanse of type '${expanse.type}'`,
@@ -61,19 +63,15 @@ export namespace Expanse {
 
   function breaksDefault<T extends Expanse>(
     expanse: T,
-    // @ts-ignore
-    zero?: number,
-    // @ts-ignore
-    one?: number,
-    // @ts-ignore
-  ): T[`value`][] {
+    _zero?: number,
+    _one?: number,
+  ): Val<T>[] {
     throw new Error(
       `Method 'breaks' not implemented for expanse of type '${expanse.type}'`,
     );
   }
 
-  // @ts-ignore
-  function reorderDefault(expanse: Expanse<string>, indices?: number[]) {
+  function reorderDefault(expanse: Expanse<string>, _indices?: number[]) {
     throw new Error(
       `Method 'reorder' not implemented for expanse of type '${expanse.type}'`,
     );

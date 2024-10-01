@@ -5,6 +5,8 @@ import { ExpanseContinuous } from "./ExpanseContinuous";
 
 export interface ExpanseSplit<T = any> extends Expanse<T[]> {
   type: `split`;
+  value: T[];
+  normalized: number[];
   innerType: Expanse.Type;
 }
 
@@ -12,11 +14,10 @@ export namespace ExpanseSplit {
   const type = `split`;
 
   export function of<T>(expanse?: Expanse<T>): ExpanseSplit<T> {
-    const value = [] as T[];
     const exp = expanse ?? ExpanseContinuous.of();
     const innerType = exp.type;
 
-    return { ...exp, value, type, innerType };
+    return { ...exp, type, innerType } as unknown as ExpanseSplit;
   }
 
   // Expanse methods implementations

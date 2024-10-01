@@ -15,14 +15,16 @@ import { Expanse } from "./Expanse";
  * label is placed in the middle of its corresponding bin.
  */
 export interface ExpanseBand extends Expanse<string> {
+  type: `band`;
   value: string;
+  normalized: number;
 
   props: ExpanseBand.Props;
   defaults: ExpanseBand.Props;
 }
 
 export namespace ExpanseBand {
-  const type = `band`;
+  const type = `band` as const;
 
   export interface Props {
     ordered: boolean;
@@ -33,7 +35,6 @@ export namespace ExpanseBand {
   }
 
   export function of(labels: string[] = []): ExpanseBand {
-    const value = ``;
     const base = Expanse.base();
 
     const [ordered, order] = [false, seqLength(0, labels.length)];
@@ -44,7 +45,7 @@ export namespace ExpanseBand {
     const defaults = structuredClone(props);
     const frozen = [] as (keyof Props)[];
 
-    return { ...base, type, value, props, defaults, frozen };
+    return { ...base, type, props, defaults, frozen } as ExpanseBand;
   }
 
   // Expanse methods implementations

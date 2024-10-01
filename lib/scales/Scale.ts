@@ -61,13 +61,13 @@ export namespace Scale {
     const { zero, one, direction } = props;
 
     let normalized = Expanse.normalize(domain, value);
-    if (!Array.isArray(normalized)) {
-      normalized = zero + normalized * (one - zero);
-      normalized = applyDirection(normalized, direction);
-    } else {
+    if (Array.isArray(normalized)) {
       normalized = normalized.map((x) =>
         applyDirection(zero + x * (one - zero), direction),
       );
+    } else {
+      normalized = zero + (normalized as number) * (one - zero);
+      normalized = applyDirection(normalized, direction);
     }
 
     return Expanse.unnormalize(codomain, normalized);
@@ -82,10 +82,10 @@ export namespace Scale {
     const { zero, one } = props;
 
     let normalized = Expanse.normalize(codomain, value);
-    if (!Array.isArray(normalized)) {
-      normalized = (normalized - zero) / (one - zero);
-    } else {
+    if (Array.isArray(normalized)) {
       normalized = normalized.map((x) => (x - zero) / (one - zero));
+    } else {
+      normalized = ((normalized as number) - zero) / (one - zero);
     }
 
     return Expanse.unnormalize(domain, normalized);
@@ -118,22 +118,6 @@ export namespace Scale {
   export function freeze(scale: Scale, props: (keyof Props)[]) {
     for (const p of props) if (!scale.frozen.includes(p)) scale.frozen.push(p);
   }
-
-  // export function setDomain<T extends Expanse, U extends Scale<T, Expanse>>(
-  //   scale: U,
-  //   setfn: (props: U[`[props]`]) => U[`props`],
-  //   options?: { default?: boolean; silent?: boolean; unfreeze?: boolean },
-  // ) {
-  //   Expanse.set(scale.domain, setfn, options);
-  // }
-
-  // export function setCodomain<T extends Expanse, U extends Scale<T, Expanse>>(
-  //   scale: U,
-  //   setfn: (props: U[`[props]`]) => U[`props`],
-  //   options?: { default?: boolean; silent?: boolean; unfreeze?: boolean },
-  // ) {
-  //   Expanse.set(scale.codomain, setfn, options);
-  // }
 
   export function flip(scale: Scale) {
     Scale.set(scale, (s) => ({ direction: (-1 * s.direction) as Direction }));

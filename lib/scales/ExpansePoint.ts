@@ -13,6 +13,8 @@ import { Expanse } from "./Expanse";
  */
 export interface ExpansePoint extends Expanse<string> {
   type: `point`;
+  value: string;
+  normalized: number;
 
   props: ExpansePoint.Props;
   defaults: ExpansePoint.Props;
@@ -29,15 +31,13 @@ export namespace ExpansePoint {
   }
 
   export function of(labels: string[] = []): ExpansePoint {
-    const value = ``;
-
     const base = Expanse.base();
     const [ordered, order] = [false, seqLength(0, labels.length)];
     const props = { labels, ordered, order };
     const defaults = structuredClone(props);
     const frozen = [] as (keyof Props)[];
 
-    return { ...base, type, value, props, defaults, frozen };
+    return { ...base, type, props, defaults, frozen } as ExpansePoint;
   }
 
   // Expanse methods implementations

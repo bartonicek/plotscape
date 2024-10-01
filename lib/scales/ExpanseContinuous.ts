@@ -9,6 +9,7 @@ import { Expanse } from "./Expanse";
 export interface ExpanseContinuous extends Expanse<number> {
   type: `continuous`;
   value: number;
+  normalized: number;
 
   props: ExpanseContinuous.Props;
   defaults: ExpanseContinuous.Props;
@@ -29,17 +30,16 @@ export namespace ExpanseContinuous {
     inv: (x: number) => number;
   }
 
-  export function of(min = 0, max = 1): ExpanseContinuous {
-    const value = 0;
-
+  export function of(min = 0, max = 1) {
     const base = Expanse.base();
     const [trans, inv] = [identity, identity];
     const [scale, mult, offset, ratio] = [1, 1, 0, false];
-    const props = { min, max, scale, mult, offset, ratio, trans, inv };
+    const props: Props = { min, max, scale, mult, offset, ratio, trans, inv };
     const defaults = { ...props, trans, inv };
     const frozen = [] as (keyof Props)[];
 
-    return { ...base, value, type, props, defaults, frozen };
+    const result = { ...base, type, props, defaults, frozen };
+    return result as ExpanseContinuous;
   }
 
   // Expanse methods implementations
@@ -48,10 +48,7 @@ export namespace ExpanseContinuous {
   Poly.set(Expanse.train, type, train);
   Poly.set(Expanse.breaks, type, breaks);
 
-  export function normalize(
-    expanse: ExpanseContinuous,
-    value: number,
-  ): number | number[] {
+  export function normalize(expanse: ExpanseContinuous, value: number) {
     const { min, max, scale, mult, offset, trans } = expanse.props;
     const range = trans(max) - trans(min);
 

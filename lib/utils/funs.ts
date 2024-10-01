@@ -933,11 +933,15 @@ export function isIntegerString(x: string) {
  * Checks whether an array is an array of numbers
  * (by checking the first and last values only).
  *
- * @param array An array
+ * @param object An array
  * @returns `true` if the first and last element is a number
  */
-export function isNumberArray(array: any[]): array is number[] {
-  return typeof array[0] === `number` && typeof last(array) === `number`;
+export function isNumberArray(object: any): object is number[] {
+  return (
+    Array.isArray(object) &&
+    typeof object[0] === `number` &&
+    typeof last(object) === `number`
+  );
 }
 
 /**

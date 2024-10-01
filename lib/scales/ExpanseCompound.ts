@@ -4,21 +4,21 @@ import { ExpanseContinuous } from "./ExpanseContinuous";
 
 export interface ExpanseCompound<T extends Expanse[] = Expanse[]>
   extends Expanse<any[]> {
+  type: `compound`;
+  value: any[];
+  normalized: number[];
+
   expanses: T;
 }
 
 export namespace ExpanseCompound {
   const type = `compound` as const;
 
-  export function of<T extends Expanse[] = Expanse[]>(
-    expanses?: T,
-  ): ExpanseCompound<T> {
-    const value = [] as any[];
+  export function of<T extends Expanse[] = Expanse[]>(expanses?: T) {
     const base = ExpanseContinuous.of();
     const exps = expanses ?? ([] as unknown as T);
 
-    const result = { ...base, type, value, expanses: exps };
-    return result;
+    return { ...base, type, expanses: exps } as unknown as ExpanseCompound<T>;
   }
 
   // Expanse methods implementations
