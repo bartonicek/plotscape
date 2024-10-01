@@ -22,9 +22,9 @@ export namespace ExpanseCompound {
   }
 
   // Expanse methods implementations
-  Poly.set(Expanse.normalize, type, normalize as any);
-  Poly.set(Expanse.unnormalize, type, unnormalize as any);
-  Poly.set(Expanse.train, type, train as any);
+  Poly.set(Expanse.normalize, type, normalize);
+  Poly.set(Expanse.unnormalize, type, unnormalize);
+  Poly.set(Expanse.train, type, train);
   Poly.set(Expanse.breaks, type, breaks);
 
   export function normalize(expanse: ExpanseCompound, value: any[]) {

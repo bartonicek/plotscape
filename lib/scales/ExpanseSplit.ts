@@ -7,7 +7,9 @@ export interface ExpanseSplit<T = any> extends Expanse<T[]> {
   type: `split`;
   value: T[];
   normalized: number[];
-  innerType: Expanse.Type;
+  props: {
+    innerType: Expanse.Type;
+  };
 }
 
 export namespace ExpanseSplit {
@@ -15,30 +17,28 @@ export namespace ExpanseSplit {
 
   export function of<T>(expanse?: Expanse<T>): ExpanseSplit<T> {
     const exp = expanse ?? ExpanseContinuous.of();
-    const innerType = exp.type;
+    const props = { ...exp.props, innerType: exp.type };
 
-    return { ...exp, type, innerType } as unknown as ExpanseSplit;
+    return { ...exp, type, props } as ExpanseSplit;
   }
 
   // Expanse methods implementations
-  Poly.set(Expanse.normalize, type, normalize as any);
-  Poly.set(Expanse.unnormalize, type, unnormalize as any);
+  Poly.set(Expanse.normalize, type, normalize);
+  Poly.set(Expanse.unnormalize, type, unnormalize);
   Poly.set(Expanse.train, type, train as any);
   Poly.set(Expanse.breaks, type, breaks);
 
-  export function normalize<T>(expanse: ExpanseSplit<T>, values: T | T[]) {
-    const { innerType } = expanse;
+  export function normalize<T>(expanse: ExpanseSplit<T>, values: T[]) {
+    const { innerType } = expanse.props;
+
     const fn = Poly.dispatch(Expanse.normalize, identity, innerType);
 
     if (Array.isArray(values)) return values.map((x) => fn(expanse, x));
     return fn(expanse, values);
   }
 
-  export function unnormalize<T>(
-    expanse: ExpanseSplit<T>,
-    values: number | number[],
-  ) {
-    const { innerType } = expanse;
+  export function unnormalize<T>(expanse: ExpanseSplit<T>, values: number[]) {
+    const { innerType } = expanse.props;
     const fn = Poly.dispatch(Expanse.unnormalize, identity, innerType);
 
     if (Array.isArray(values)) return values.map((x) => fn(expanse, x));
@@ -46,13 +46,13 @@ export namespace ExpanseSplit {
   }
 
   export function train<T>(expanse: ExpanseSplit<T>, array: T[]) {
-    const { innerType } = expanse;
+    const { innerType } = expanse.props;
     const fn = Poly.dispatch(Expanse.train, identity, innerType);
     fn(expanse, array);
   }
 
   export function breaks<T>(expanse: ExpanseSplit<T>) {
-    const { innerType } = expanse;
+    const { innerType } = expanse.props;
     const fn = Poly.dispatch(Expanse.breaks, identity, innerType);
     return fn(expanse);
   }
