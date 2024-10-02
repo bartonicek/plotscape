@@ -54,7 +54,7 @@ export namespace Reactive {
    * @param options A list of options
    */
   export function listen<T extends Reactive>(
-    object: T,
+    object: T | Object,
     type: EventOf<T>,
     callback: EventCallback,
     options?: { throttle?: number; priority?: number },
@@ -79,7 +79,7 @@ export namespace Reactive {
    * @param data An optional dictionary with additional data
    */
   export function dispatch<T extends Reactive>(
-    object: T,
+    object: T | Object,
     type: EventOf<T>,
     data?: Record<string, any>,
   ) {
@@ -99,8 +99,8 @@ export namespace Reactive {
    * @param event1 The type of event to propagate (string)
    */
   export function propagate<T extends Reactive, U extends Reactive>(
-    object1: T,
-    object2: U,
+    object1: T | Object,
+    object2: U | Object,
     event1: EventOf<T>,
     event2?: EventOf<U>,
     options?: { throttle?: number; priority?: number },
@@ -131,7 +131,7 @@ export namespace Reactive {
    * @param listener A callback
    */
   export function remove<T extends Reactive>(
-    object: T,
+    object: T | Object,
     type: EventOf<T>,
     listener: EventCallback,
   ) {
@@ -149,7 +149,10 @@ export namespace Reactive {
    * @param object A `Reactive` object
    * @param type The event type (string)
    */
-  export function removeAll<T extends Reactive>(object: T, type: EventOf<T>) {
+  export function removeAll<T extends Reactive>(
+    object: T | Object,
+    type: EventOf<T>,
+  ) {
     if (!isReactive(object)) return;
     if (object[LISTENERS][type]) object[LISTENERS][type].length = 0;
   }
@@ -158,7 +161,7 @@ export namespace Reactive {
    * Remove all listeners from an object.
    * @param object A `Reactive` object
    */
-  export function removeAllListeners<T extends Reactive>(object: T) {
+  export function removeAllListeners<T extends Reactive>(object: T | Object) {
     if (!isReactive(object)) return;
     const listeners = object[LISTENERS];
     if (listeners) for (const ls of Object.values(listeners)) ls.length = 0;

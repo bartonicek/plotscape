@@ -47,7 +47,7 @@ export namespace Marker {
       factor,
     });
 
-    Reactive.propagate(marker, factor, `changed`);
+    Reactive.propagate(marker, factor, `changed`, `changed`, { throttle: 10 });
     return marker;
   }
 

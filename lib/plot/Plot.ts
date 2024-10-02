@@ -209,6 +209,10 @@ export namespace Plot {
     for (const e of [renderables, selectables, queryables]) {
       e.push(geom);
     }
+
+    Reactive.listen(Geom.groupedData(geom), `changed`, () => {
+      Plot.render(plot);
+    });
   }
 
   export function deleteGeom(plot: Plot, geom: Geom) {
@@ -216,6 +220,8 @@ export namespace Plot {
     for (const e of [renderables, selectables, queryables]) {
       remove(e, geom);
     }
+
+    Reactive.removeAllListeners(Geom.groupedData(geom));
   }
 
   const activeClasses = tw("tw-outline tw-outline-2 tw-outline-slate-600");
@@ -319,9 +325,8 @@ export namespace Plot {
       for (let i = 0; i < selected.length; i++) selectedCases.add(selected[i]);
     }
 
-    Reactive.dispatch(plot, `set-selected`, {
-      cases: Array.from(selectedCases),
-    });
+    const cases = Array.from(selectedCases);
+    Reactive.dispatch(plot, `set-selected`, { cases });
   }
 
   export function setMode(plot: Plot, mode: Mode) {

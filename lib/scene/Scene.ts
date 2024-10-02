@@ -526,8 +526,6 @@ function setupEvents(scene: Scene) {
     throttle(() => Scene.resize(scene), 10),
   );
 
-  const opts = { throttle: 20 };
-  Reactive.listen(marker, `changed`, () => Scene.render(scene), opts);
   Reactive.listen(marker, `cleared`, () => {
     for (const plot of plots) Reactive.dispatch(plot, `unlock`);
   });

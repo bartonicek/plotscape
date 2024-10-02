@@ -11,11 +11,11 @@ export interface Scale<T extends Expanse = Expanse, U extends Expanse = Expanse>
   extends Reactive {
   domain: T;
   codomain: U;
-  linked: Scale[];
 
   props: Scale.Props;
   defaults: Scale.Props;
   frozen: string[];
+  linked: Scale[];
 }
 
 export namespace Scale {
@@ -23,17 +23,22 @@ export namespace Scale {
     zero: number;
     one: number;
     direction: Direction;
+    scale: number;
+    mult: number;
+    offset: number;
   }
 
   export function of<T extends Expanse, U extends Expanse>(
     domain: T,
     codomain: U,
   ): Scale<T, U> {
-    const props = { zero: 0, one: 1, direction: 1 as Direction };
+    const [zero, one, direction] = [0, 1, 1] as const;
+    const [scale, mult, offset] = [1, 1, 0];
+    const props = { zero, one, direction, scale, mult, offset };
     const defaults = { ...props };
     const [linked, frozen] = [[], []] as [Scale[], string[]];
 
-    const scale = Reactive.of()({
+    const result = Reactive.of()({
       domain,
       codomain,
       props,
@@ -42,10 +47,10 @@ export namespace Scale {
       linked,
     });
 
-    Reactive.propagate(domain, scale, `changed`);
-    Reactive.propagate(codomain, scale, `changed`);
+    Reactive.propagate(domain, result, `changed`);
+    Reactive.propagate(codomain, result, `changed`);
 
-    return scale;
+    return result;
   }
 
   // 'default' is a keyword, unfortunately
@@ -58,16 +63,13 @@ export namespace Scale {
     value: T[`value`],
   ): U[`value`] {
     const { domain, codomain, props } = scale;
-    const { zero, one, direction } = props;
 
     let normalized = Expanse.normalize(domain, value);
+
     if (Array.isArray(normalized)) {
-      normalized = normalized.map((x) =>
-        applyDirection(zero + x * (one - zero), direction),
-      );
+      normalized = normalized.map((x) => applyPropsForward(x, props));
     } else {
-      normalized = zero + (normalized as number) * (one - zero);
-      normalized = applyDirection(normalized, direction);
+      normalized = applyPropsForward(normalized, props);
     }
 
     return Expanse.unnormalize(codomain, normalized);
@@ -82,6 +84,7 @@ export namespace Scale {
     const { zero, one } = props;
 
     let normalized = Expanse.normalize(codomain, value);
+
     if (Array.isArray(normalized)) {
       normalized = normalized.map((x) => (x - zero) / (one - zero));
     } else {
@@ -89,6 +92,20 @@ export namespace Scale {
     }
 
     return Expanse.unnormalize(domain, normalized);
+  }
+
+  function applyPropsForward(x: number, props: Props) {
+    const { zero, one, direction, scale, mult, offset } = props;
+    x = x * scale * mult + offset;
+    x = zero + x * (one - zero);
+    return applyDirection(x, direction);
+  }
+
+  // Does not use direction since [0, 1] already encodes direction
+  function applyPropsBackward(x: number, props: Props) {
+    const { zero, one, scale, mult, offset } = props;
+    x = (x - zero) / (one - zero);
+    return (x - offset) / (scale * mult);
   }
 
   function applyDirection(x: number, direction: 1 | -1) {
