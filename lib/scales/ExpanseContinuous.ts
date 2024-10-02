@@ -22,6 +22,7 @@ export namespace ExpanseContinuous {
   export interface Props {
     min: number;
     max: number;
+    offset: number;
     ratio: boolean;
     trans: (x: number) => number;
     inv: (x: number) => number;
@@ -29,9 +30,8 @@ export namespace ExpanseContinuous {
 
   export function of(min = 0, max = 1) {
     const base = Expanse.base();
-    const [trans, inv] = [identity, identity];
-    const [scale, mult, offset, ratio] = [1, 1, 0, false];
-    const props: Props = { min, max, ratio, trans, inv };
+    const [trans, inv, offset, ratio] = [identity, identity, 0, false];
+    const props: Props = { min, max, offset, ratio, trans, inv };
     const defaults = { ...props, trans, inv };
     const frozen = [] as (keyof Props)[];
 
@@ -46,21 +46,13 @@ export namespace ExpanseContinuous {
   Poly.set(Expanse.breaks, type, breaks);
 
   export function normalize(expanse: ExpanseContinuous, value: number) {
-    const { min, max, trans } = expanse.props;
-    const range = trans(max) - trans(min);
-
-    const result = (trans(value) - trans(min)) / range;
-    return result;
+    const { min, max, offset, trans } = expanse.props;
+    return (trans(value - offset) - trans(min)) / (trans(max) - trans(min));
   }
 
   export function unnormalize(expanse: ExpanseContinuous, value: number) {
-    const { min, max, trans, inv } = expanse.props;
-    const range = trans(max) - trans(min);
-
-    let result = inv(trans(min) + value * range);
-    result = result;
-
-    return result;
+    const { min, max, offset, trans, inv } = expanse.props;
+    return inv(trans(min) + value * (trans(max) - trans(min))) + offset;
   }
 
   export function train(

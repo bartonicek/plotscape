@@ -25,7 +25,6 @@ export namespace Scale {
     direction: Direction;
     scale: number;
     mult: number;
-    offset: number;
   }
 
   export function of<T extends Expanse, U extends Expanse>(
@@ -33,8 +32,8 @@ export namespace Scale {
     codomain: U,
   ): Scale<T, U> {
     const [zero, one, direction] = [0, 1, 1] as const;
-    const [scale, mult, offset] = [1, 1, 0];
-    const props = { zero, one, direction, scale, mult, offset };
+    const [scale, mult] = [1, 1];
+    const props = { zero, one, direction, scale, mult };
     const defaults = { ...props };
     const [linked, frozen] = [[], []] as [Scale[], string[]];
 
@@ -54,7 +53,7 @@ export namespace Scale {
   }
 
   // 'default' is a keyword, unfortunately
-  export function basic() {
+  export function linear() {
     return Scale.of(ExpanseContinuous.of(), ExpanseContinuous.of());
   }
 
@@ -91,17 +90,17 @@ export namespace Scale {
   }
 
   function applyPropsForward(x: number, props: Props) {
-    const { zero, one, direction, scale, mult, offset } = props;
-    x = x * scale * mult + offset;
+    const { zero, one, direction, scale, mult } = props;
+    x = x * scale * mult;
     x = zero + x * (one - zero);
     return applyDirection(x, direction);
   }
 
   // Does not use direction since [0, 1] already encodes direction
   function applyPropsBackward(x: number, props: Props) {
-    const { zero, one, scale, mult, offset } = props;
+    const { zero, one, scale, mult } = props;
     x = (x - zero) / (one - zero);
-    return (x - offset) / (scale * mult);
+    return x / (scale * mult);
   }
 
   function applyDirection(x: number, direction: 1 | -1) {

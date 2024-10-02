@@ -61,6 +61,10 @@ export function Barplot<T extends Columns>(
   barplot(plot);
   Plot.addGeom(plot, bars);
 
+  Scale.link(scales.y, [scales.height]);
+  Scale.freeze(scales.y, [`zero`]);
+  Scale.freeze(scales.height, [`zero`]);
+
   Reactive.listen(plot, `normalize`, () => switchRepresentation(plot));
 
   return plot;
@@ -93,13 +97,9 @@ function barplot(plot: Barplot) {
   Scale.train(scales.width, [0, 1], opts);
   Scale.train(scales.height, flat.height, opts);
 
-  Scale.freeze(scales.y, [`zero`]);
-  Scale.freeze(scales.height, [`zero`]);
   ExpanseBand.setWeights(scales.x.domain);
 
   const k = 1 / new Set(flat.x).size;
-  Scale.link(scales.y, [scales.height]);
-
   const widthProps = { scale: k, mult: 0.9, offset: 0 };
   Scale.set(scales.width, () => widthProps, { default: true });
 
@@ -139,11 +139,8 @@ function spineplot(plot: Barplot) {
   Scale.train(scales.width, cumsum(flat.width), opts);
   Scale.train(scales.height, [0, 1], opts);
 
-  Scale.freeze(scales.y, [`zero`]);
-  Scale.freeze(scales.height, [`zero`]);
   ExpanseBand.setWeights(scales.x.domain, flat.width);
 
-  Scale.link(scales.y, [scales.height]);
   const widthProps = { scale: 1, mult: 1, offset: -1 };
   Scale.set(scales.width, () => widthProps, { default: true });
 

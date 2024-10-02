@@ -135,20 +135,19 @@ function histogram2d(plot: Histogram2D) {
   const { scales } = plot;
   const [, flat] = coordinates;
 
-  Scale.train(scales.x, flat.x1, { default: true });
-  Scale.train(scales.y, flat.y1, { default: true });
-  Scale.train(scales.areaPct, flat.area, { default: true });
+  const opts = { default: true };
+  Scale.train(scales.x, flat.x1, opts);
+  Scale.train(scales.y, flat.y1, opts);
+  Scale.train(scales.areaPct, flat.area, opts);
 
-  Expanse.set(scales.area.codomain, () => ({ min: 0, max: 1 }), {
-    default: true,
-  });
+  Expanse.set(scales.area.codomain, () => ({ min: 0, max: 1 }), opts);
   Expanse.freeze(scales.area.codomain, [`min`, `max`]);
 
-  Reactive.removeAll(rectangles.coordinates[0] as any, `changed`);
-  Reactive.listen(coordinates[0] as any, `changed`, () => {
+  Reactive.removeAll(rectangles.coordinates[0], `changed`);
+  Reactive.listen(coordinates[0], `changed`, () => {
     Scale.train(scales.x, flat.x1, { default: true, name: false });
     Scale.train(scales.y, flat.y1, { default: true, name: false });
-    Scale.train(scales.areaPct, flat.area, { default: true });
+    Scale.train(scales.areaPct, flat.area, opts);
   });
 
   plot.representation = `absolute`;
@@ -183,17 +182,16 @@ function spinogram2d(plot: Histogram2D) {
   const { scales } = plot;
   const [, flat] = coordinates;
 
-  Scale.train(scales.x, flat.x1, { default: true });
-  Scale.train(scales.y, flat.y1, { default: true });
-  Scale.train(scales.areaPct, [0, 1], { default: true });
+  const opts = { default: true };
+  Scale.train(scales.x, flat.x1, opts);
+  Scale.train(scales.y, flat.y1, opts);
+  Scale.train(scales.areaPct, [0, 1], opts);
 
-  Expanse.set(scales.area.codomain, () => ({ min: 0, max: 1 }), {
-    default: true,
-  });
+  Expanse.set(scales.area.codomain, () => ({ min: 0, max: 1 }), opts);
   Expanse.freeze(scales.area.codomain, [`min`, `max`]);
 
-  Reactive.removeAll(rectangles.coordinates[0] as any, `changed`);
-  Reactive.listen(coordinates[0] as any, `changed`, () => {
+  Reactive.removeAll(rectangles.coordinates[0], `changed`);
+  Reactive.listen(coordinates[0], `changed`, () => {
     Scale.train(scales.x, flat.x1, { default: true, name: false });
     Scale.train(scales.y, flat.y1, { default: true, name: false });
   });

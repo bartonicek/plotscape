@@ -51,7 +51,7 @@ export type InferScales<T extends ScaleOptions = {}> = Flat<{
 export namespace Scales {
   export function of<T extends ScaleOptions>(options?: T): InferScales<T> {
     const result = {} as Record<string, Scale>;
-    for (const name of scaleNames) result[name] = Scale.basic();
+    for (const name of scaleNames) result[name] = Scale.linear();
 
     for (const [k, [domain, codomain]] of Object.entries(options ?? {})) {
       // @ts-ignore
