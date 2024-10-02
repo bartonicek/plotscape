@@ -16,7 +16,7 @@ import {
 } from "../utils/funs";
 import { Meta } from "../utils/Meta";
 import { Reactive } from "../utils/Reactive";
-import { Columns } from "../utils/types";
+import { Columns, KeyboardKey } from "../utils/types";
 import { defaultOptions, GraphicalOptions } from "./defaultOptions";
 import { KeybindingsMenu } from "./KeybindingsMenu";
 import { Group, Marker, Transient } from "./Marker";
@@ -47,6 +47,7 @@ export interface Scene<T extends Columns = Columns>
 
 export namespace Scene {
   export type Event =
+    | `changed`
     | `activate`
     | `reset`
     | `resize`
@@ -54,13 +55,18 @@ export namespace Scene {
     | `clear-layout`
     | `connected`
     | `set-dims`
+    | `get-plot`
     | `add-plot`
     | `pop-plot`
+    | `render`
     | `remove-plot`
     | `set-selected`
     | `set-assigned`
+    | `set-parameters`
     | `get-selected`
     | `get-assigned`
+    | `get-scale`
+    | `normalize`
     | `clear-selection`
     | `set-scale`
     | `zoom`
@@ -68,7 +74,7 @@ export namespace Scene {
     | `group-1`
     | `group-2`
     | `group-3`
-    | (string & {});
+    | KeyboardKey;
 
   export function of<T extends Columns>(
     data: T,
@@ -388,10 +394,11 @@ export namespace Scene {
   export function handleMessage(scene: Scene, message: Message) {
     if (!scene.client) return;
 
-    const { type, target: targetId, data } = message;
-    const target = getTarget(scene, targetId);
+    const { target, data } = message;
+    const type = message.type as Event;
+    const messageTarget = getTarget(scene, target);
 
-    if (target) Reactive.dispatch(target, type, data);
+    if (messageTarget && type) Reactive.dispatch(messageTarget, type, data);
   }
 
   export function sendMessage(
@@ -519,9 +526,9 @@ function setupEvents(scene: Scene) {
     if (!event || !active) return;
     if (activePlotIndex !== undefined) {
       const plot = plots[activePlotIndex];
-      Reactive.dispatch(plot, event);
+      Reactive.dispatch(plot, event as Plot.Event);
     }
-    Reactive.dispatch(scene, event);
+    Reactive.dispatch(scene, event as Scene.Event);
   });
 
   window.addEventListener(`keyup`, () => {
@@ -560,6 +567,10 @@ function setupEvents(scene: Scene) {
   Reactive.listen(scene, `add-plot`, (data) => {
     if (!data) return;
     Scene.addPlotBySpec(scene, data);
+  });
+
+  Reactive.listen(scene, `get-plot`, (data) => {
+    if (!data || !data.id) return;
   });
 
   Reactive.listen(scene, `pop-plot`, () => Scene.popPlot(scene));

@@ -17,7 +17,7 @@ export interface Scale<T extends Expanse = Expanse, U extends Expanse = Expanse>
 
   props: Scale.Props;
   defaults: Scale.Props;
-  frozen: string[];
+  frozen: (keyof Scale.Props)[];
   linked: Scale[];
 }
 
@@ -38,7 +38,7 @@ export namespace Scale {
     const [scale, mult] = [1, 1];
     const props = { zero, one, direction, scale, mult };
     const defaults = { ...props };
-    const [linked, frozen] = [[], []] as [Scale[], string[]];
+    const [linked, frozen] = [[], []] as [Scale[], (keyof Props)[]];
 
     const result = Reactive.of()({
       domain,

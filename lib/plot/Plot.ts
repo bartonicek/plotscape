@@ -34,6 +34,7 @@ import {
   dataLayers,
   DataLayers,
   Direction,
+  KeyboardKey,
   MouseButton,
   Rect,
   Representation,
@@ -164,6 +165,7 @@ export namespace Plot {
   }
 
   export type Event =
+    | `changed`
     | `reset`
     | `resize`
     | `render`
@@ -176,10 +178,7 @@ export namespace Plot {
     | `lock`
     | `unlock`
     | `clear-transient`
-    | `clear-others`
     | `lock-others`
-    | `set-selected`
-    | `set-scale`
     | `grow`
     | `shrink`
     | `fade`
@@ -188,8 +187,15 @@ export namespace Plot {
     | `pop-zoom`
     | `query-mode`
     | `normalize`
+    | `get-scale`
+    | `get-parameters`
+    | `set-selected`
+    | `set-scale`
     | `set-parameters`
-    | (string & {});
+    | `reorder`
+    | `increment-anchor`
+    | `decrement-anchor`
+    | KeyboardKey;
 
   export const scatter = Scatterplot;
   export const bar = Barplot;
@@ -607,7 +613,7 @@ export namespace Plot {
   }
 
   export function getScale(plot: Plot, scale: Exclude<keyof Scales, symbol>) {
-    return plot.scales[scale].domain;
+    return plot.scales[scale];
   }
 
   export function setScale(
@@ -753,7 +759,7 @@ function setupEvents(plot: Plot) {
   const { mousecoords } = parameters;
 
   for (const [k, v] of Object.entries(Plot.keybindings)) {
-    Reactive.listen(plot, k, () => Reactive.dispatch(plot, v));
+    Reactive.listen(plot, k as KeyboardKey, () => Reactive.dispatch(plot, v));
   }
 
   container.addEventListener(`mousedown`, (e) => {
