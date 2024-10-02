@@ -179,7 +179,12 @@ export namespace Scene {
     });
 
     Reactive.listen(plot, `lock-others`, () => {
-      for (const p of plots) if (p !== plot) Reactive.dispatch(p, `lock`);
+      for (const p of plots) {
+        if (p !== plot) {
+          Plot.clearUserFrame(p);
+          Reactive.dispatch(p, `lock`);
+        }
+      }
     });
 
     Reactive.listen(plot, `set-selected`, (data) => {

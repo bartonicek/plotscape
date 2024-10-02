@@ -176,9 +176,9 @@ export namespace Plot {
     | `lock`
     | `unlock`
     | `clear-transient`
+    | `clear-others`
     | `lock-others`
     | `set-selected`
-    | `clear-transient`
     | `set-scale`
     | `grow`
     | `shrink`
@@ -355,7 +355,7 @@ export namespace Plot {
 
     Plot.checkSelection(plot);
     Reactive.dispatch(plot, `lock-others`);
-    Frame.clear(frames.user);
+    Plot.clearUserFrame(plot);
     Frame.rectangleXY(frames.user, ...parameters.mousecoords, 1);
   }
 
@@ -795,7 +795,7 @@ function setupEvents(plot: Plot) {
     mousecoords[0] = e.offsetX;
     mousecoords[1] = container.clientHeight - e.offsetY;
 
-    Frame.clear(frames.user);
+    Plot.clearUserFrame(plot);
   });
 
   container.addEventListener(`mouseup`, () => Plot.setMousedown(plot, false));
