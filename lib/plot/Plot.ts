@@ -628,7 +628,6 @@ export namespace Plot {
     let { min, max, zero, one, mult, labels, direction } = options;
     const scale_ = plot.scales[scale];
     const domain = scale_.domain;
-    const codomain = scale_.codomain;
 
     if (!Object.keys(plot.scales).includes(scale)) {
       throw new Error(`Unrecognized scale '${scale}'`);
@@ -652,6 +651,7 @@ export namespace Plot {
         throw new Error(`Limits can only be set with a continuous domain`);
       }
 
+      // If we're setting either min or max manually, clear zero
       zero = min ? (zero ?? 0) : scale_.props.zero;
       one = max ? (one ?? 1) : scale_.props.one;
       min = min ?? domain.props.min;
@@ -676,7 +676,7 @@ export namespace Plot {
     }
 
     if (direction) Scale.set(scale_, () => ({ direction }), opts);
-    if (mult) Expanse.set(codomain, () => ({ mult }), opts);
+    if (mult) Scale.set(scale_, () => ({ mult }), opts);
   }
 }
 
@@ -749,7 +749,7 @@ function setupFrames(plot: Plot, options: GraphicalOptions) {
 }
 
 function setupEvents(plot: Plot) {
-  const { container, parameters, frames } = plot;
+  const { container, parameters } = plot;
   const { mousecoords } = parameters;
 
   for (const [k, v] of Object.entries(Plot.keybindings)) {

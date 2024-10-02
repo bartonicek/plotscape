@@ -7,6 +7,9 @@ import { ExpanseContinuous } from "./ExpanseContinuous";
 
 type Direction = 1 | -1;
 
+/**
+ * Translates values from domain to codomain and back.
+ */
 export interface Scale<T extends Expanse = Expanse, U extends Expanse = Expanse>
   extends Reactive {
   domain: T;
@@ -52,7 +55,6 @@ export namespace Scale {
     return result;
   }
 
-  // 'default' is a keyword, unfortunately
   export function linear() {
     return Scale.of(ExpanseContinuous.of(), ExpanseContinuous.of());
   }
