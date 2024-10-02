@@ -210,9 +210,7 @@ export namespace Plot {
       e.push(geom);
     }
 
-    Reactive.listen(Geom.groupedData(geom), `changed`, () => {
-      Plot.render(plot);
-    });
+    Reactive.listen(geom, `coords-changed`, () => Plot.render(plot));
   }
 
   export function deleteGeom(plot: Plot, geom: Geom) {
@@ -221,7 +219,7 @@ export namespace Plot {
       remove(e, geom);
     }
 
-    Reactive.removeAllListeners(Geom.groupedData(geom));
+    Reactive.removeAllListeners(geom);
   }
 
   const activeClasses = tw("tw-outline tw-outline-2 tw-outline-slate-600");
