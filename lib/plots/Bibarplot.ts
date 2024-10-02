@@ -149,7 +149,7 @@ function bibarplot(plot: Bibarplot) {
 
   const k = 1 / new Set(flat1.x).size;
   const widthProps = { scale: k, mult: 0.9, offset: 0 };
-  Expanse.set(scales.width.codomain, () => widthProps, { default: true });
+  Scale.set(scales.width, () => widthProps, { default: true });
 
   Reactive.removeAll(plot, `reorder`);
   Reactive.listen(plot, `reorder`, () =>
@@ -204,7 +204,7 @@ function normalizedbibarplot(plot: Bibarplot) {
 
   const k = 1 / new Set(flat1.x).size;
   const widthProps = { scale: k, mult: 0.9, offset: 0 };
-  Expanse.set(scales.width.codomain, () => widthProps, { default: true });
+  Scale.set(scales.width, () => widthProps, { default: true });
 
   Reactive.removeAll(plot, `reorder`);
 

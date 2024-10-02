@@ -19,12 +19,13 @@ export interface Expanse<T = any> extends Reactive {
   frozen: string[];
 }
 
-type Val<T extends Expanse> = T[`value`];
-type Norm<T extends Expanse> = T[`normalized`];
-
 export namespace Expanse {
   export type Opaque = `value` | `dimensionality`;
   export type Type = `continuous` | `point` | `band` | `compound` | `split`;
+
+  export type Value<T extends Expanse> = T[`value`];
+  export type Normalized<T extends Expanse> = T[`normalized`];
+  export type Props<T extends Expanse> = T[`props`];
 
   // Polymorphic functions
   export const normalize = Poly.of(normalizeDef);
@@ -35,8 +36,8 @@ export namespace Expanse {
 
   function normalizeDef<T extends Expanse>(
     expanse: T,
-    _value: Val<T>,
-  ): Norm<T> {
+    _value: Value<T>,
+  ): Normalized<T> {
     throw new Error(
       `Method 'normalize' not implemented for expanse of type '${expanse.type}'`,
     );
@@ -44,8 +45,8 @@ export namespace Expanse {
 
   function unnormalizeDefault<T extends Expanse>(
     expanse: T,
-    _value: Norm<T>,
-  ): Val<T> {
+    _value: Normalized<T>,
+  ): Value<T> {
     throw new Error(
       `Method 'unnormalize' not implemented for expanse of type '${expanse.type}'`,
     );
@@ -53,7 +54,7 @@ export namespace Expanse {
 
   export function trainDefault<T extends Expanse>(
     expanse: T,
-    _array: Val<T>[],
+    _array: Value<T>[],
     _options?: { default?: boolean; silent?: boolean },
   ) {
     throw new Error(
@@ -65,7 +66,7 @@ export namespace Expanse {
     expanse: T,
     _zero?: number,
     _one?: number,
-  ): Val<T>[] {
+  ): Value<T>[] {
     throw new Error(
       `Method 'breaks' not implemented for expanse of type '${expanse.type}'`,
     );
@@ -83,7 +84,7 @@ export namespace Expanse {
 
   export function set<T extends Expanse>(
     expanse: T,
-    setfn: (props: T[`props`]) => Partial<T[`props`]>,
+    setfn: (props: Props<T>) => Partial<Props<T>>,
     options?: { default?: boolean; silent?: boolean; unfreeze?: boolean },
   ) {
     const { frozen, props } = expanse;
@@ -91,7 +92,7 @@ export namespace Expanse {
 
     if (!options?.unfreeze) {
       // Frozen properties don't get copied
-      for (const k of frozen as (keyof T[`props`])[]) delete modified[k];
+      for (const k of frozen as (keyof Props<T>)[]) delete modified[k];
     }
 
     for (const k of Object.keys(modified)) {
@@ -105,7 +106,7 @@ export namespace Expanse {
 
   export function freeze<T extends Expanse>(
     expanse: T,
-    props: (keyof T[`props`])[],
+    props: (keyof Props<T>)[],
   ) {
     for (const prop of props as string[]) {
       if (!expanse.frozen.includes(prop)) expanse.frozen.push(prop);

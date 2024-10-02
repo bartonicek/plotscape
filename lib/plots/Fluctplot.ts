@@ -1,7 +1,6 @@
 import { Bars } from "../geoms/Bars";
 import { Geom } from "../geoms/Geom";
 import { Plot } from "../plot/Plot";
-import { Expanse } from "../scales/Expanse";
 import { Scale } from "../scales/Scale";
 import { InferScales, Scales } from "../scales/Scales";
 import { Scene } from "../scene/Scene";
@@ -70,6 +69,7 @@ export function Fluctuationplot<T extends Columns>(
   const plot = Object.assign(Plot.of(plotData, scales, plotOpts), { bars });
 
   Scale.shareCodomain(scales.area, [scales.width, scales.height]);
+  Scale.link(scales.area, [scales.width, scales.height]);
 
   fluctplot(plot);
   Plot.addGeom(plot, bars);
@@ -107,8 +107,8 @@ function fluctplot(plot: Fluctplot) {
 
   const k = max(new Set(flat.x).size, new Set(flat.y).size);
 
-  const widthProps = { scale: 1 / k, mult: 0.9, offset: 0 };
-  Expanse.set(scales.area.codomain, () => widthProps, { default: true });
+  const areaProps = { scale: 1 / k, mult: 0.9, offset: 0 };
+  Scale.set(scales.area, () => areaProps, { default: true });
 
   Geom.setCoordinates(bars, coordinates);
   plot.representation = `absolute`;
@@ -140,7 +140,7 @@ function pctfluctplot(plot: Fluctplot) {
   const k = max(new Set(flat.x).size, new Set(flat.y).size);
 
   const widthProps = { scale: 1 / k, mult: 0.9, offset: -1 };
-  Expanse.set(scales.area.codomain, () => widthProps, { default: true });
+  Scale.set(scales.area, () => widthProps, { default: true });
 
   Geom.setCoordinates(bars, coordinates);
   plot.representation = `propotion`;

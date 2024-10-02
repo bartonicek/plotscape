@@ -54,16 +54,15 @@ export namespace Scale {
   }
 
   // 'default' is a keyword, unfortunately
-  export function standard() {
+  export function basic() {
     return Scale.of(ExpanseContinuous.of(), ExpanseContinuous.of());
   }
 
   export function pushforward<T extends Expanse, U extends Expanse>(
     scale: Scale<T, U>,
-    value: T[`value`],
-  ): U[`value`] {
+    value: Expanse.Value<T>,
+  ): Expanse.Value<U> {
     const { domain, codomain, props } = scale;
-
     let normalized = Expanse.normalize(domain, value);
 
     if (Array.isArray(normalized)) {
@@ -75,20 +74,17 @@ export namespace Scale {
     return Expanse.unnormalize(codomain, normalized);
   }
 
-  // Pullback does not use direction since [0, 1] already encodes direction
   export function pullback<T extends Expanse, U extends Expanse>(
     scale: Scale<T, U>,
-    value: U[`value`],
-  ): T[`value`] {
+    value: Expanse.Value<U>,
+  ): Expanse.Value<T> {
     const { domain, codomain, props } = scale;
-    const { zero, one } = props;
-
     let normalized = Expanse.normalize(codomain, value);
 
     if (Array.isArray(normalized)) {
-      normalized = normalized.map((x) => (x - zero) / (one - zero));
+      normalized = normalized.map((x) => applyPropsBackward(x, props));
     } else {
-      normalized = ((normalized as number) - zero) / (one - zero);
+      normalized = applyPropsBackward(normalized, props);
     }
 
     return Expanse.unnormalize(domain, normalized);
@@ -233,8 +229,10 @@ export namespace Scale {
     return { labels, positions };
   }
 
-  export function link(scale1: Scale, scale2: Scale) {
-    if (!scale1.linked.includes(scale2)) scale1.linked.push(scale2);
+  export function link(source: Scale, targets: Scale[]) {
+    for (const target of targets) {
+      if (!source.linked.includes(target)) source.linked.push(target);
+    }
   }
 
   export function shareCodomain(source: Scale, targets: Scale[]) {
