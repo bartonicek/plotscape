@@ -238,7 +238,8 @@ export namespace Scene {
 
     const selectfn = keysToSelectors(variables as string[]);
 
-    const opts = {} as any;
+    const opts = {} as Record<string, any>;
+    opts.ratio = spec?.ratio;
 
     if (r) opts.reducer = Reducer.parse(r);
     if (q) {
