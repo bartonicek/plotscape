@@ -757,8 +757,6 @@ function setupEvents(plot: Plot) {
   }
 
   container.addEventListener(`mousedown`, (e) => {
-    e.stopPropagation();
-
     const { locked } = parameters;
 
     Plot.activate(plot);

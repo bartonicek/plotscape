@@ -31,6 +31,7 @@ export interface Scene<T extends Columns = Columns>
 
   client: WebSocket;
 
+  active: boolean;
   rows: number;
   cols: number;
 
@@ -105,7 +106,7 @@ export namespace Scene {
     DOM.append(container, keybindingsMenu);
     DOM.append(container, queryTable);
 
-    const [rows, cols] = [1, 1];
+    const [rows, cols, active] = [1, 1, false];
     const marker = Marker.of(Object.values(data)[0].length);
     const plots = [] as Plot[];
     const plotIndicesByType = {} as Record<Plot.Type, number[]>;
@@ -124,6 +125,7 @@ export namespace Scene {
       queryTable,
       rows,
       cols,
+      active,
       marker,
       client,
       plots,
@@ -465,8 +467,15 @@ function setupEvents(scene: Scene) {
     Scene.render(scene);
   });
 
-  container.addEventListener(`mousedown`, () => {
-    for (const plot of plots) Reactive.dispatch(plot, `deactivate`);
+  window.addEventListener(`mousedown`, (event) => {
+    if (container.contains(event.target as Node)) scene.active = true;
+    else scene.active = false;
+  });
+
+  container.addEventListener(`mousedown`, (event) => {
+    if (event.target === container) {
+      for (const plot of plots) Reactive.dispatch(plot, `deactivate`);
+    }
   });
 
   container.addEventListener(`dblclick`, () => {
@@ -504,8 +513,8 @@ function setupEvents(scene: Scene) {
 
   window.addEventListener(`keydown`, (e) => {
     const event = keybindings[e.key];
-    const { activePlotIndex } = scene;
-    if (!event) return;
+    const { active, activePlotIndex } = scene;
+    if (!event || !active) return;
     if (activePlotIndex !== undefined) {
       const plot = plots[activePlotIndex];
       Reactive.dispatch(plot, event);
