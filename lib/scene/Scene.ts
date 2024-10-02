@@ -165,12 +165,7 @@ export namespace Scene {
   }
 
   export function addPlot(scene: Scene, plot: Plot) {
-    const {
-      plotsContainer: plotContainer,
-      marker,
-      plots,
-      plotIndicesByType: plotsByType,
-    } = scene;
+    const { plotsContainer, marker, plots, plotIndicesByType } = scene;
 
     Reactive.listen(plot, `activated`, () => {
       for (const p of plots) if (p != plot) Reactive.dispatch(p, `deactivate`);
@@ -201,11 +196,11 @@ export namespace Scene {
     });
 
     const { type } = plot;
-    if (!plotsByType[type]) plotsByType[type] = [];
-    plotsByType[type].push(plots.length);
+    if (!plotIndicesByType[type]) plotIndicesByType[type] = [];
+    plotIndicesByType[type].push(plots.length);
     plots.push(plot);
 
-    Plot.append(plotContainer, plot);
+    Plot.append(plotsContainer, plot);
     plot.queryTable = scene.queryTable;
 
     updatePlotIds(scene);
