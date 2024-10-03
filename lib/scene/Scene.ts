@@ -29,7 +29,8 @@ export interface Scene<T extends Columns = Columns>
   plotsContainer: HTMLDivElement;
   queryTable: HTMLTableElement;
 
-  client: WebSocket;
+  echo: boolean;
+  client?: WebSocket;
 
   active: boolean;
   rows: number;
@@ -55,6 +56,7 @@ export namespace Scene {
     | `clear-layout`
     | `connected`
     | `set-dims`
+    | `get-plot-ids`
     | `get-plot`
     | `add-plot`
     | `pop-plot`
@@ -80,6 +82,7 @@ export namespace Scene {
     data: T,
     options?: {
       id?: string;
+      echo?: boolean;
       websocketURL?: string;
     } & Partial<GraphicalOptions>,
   ): Scene<T> {
@@ -116,7 +119,8 @@ export namespace Scene {
     const marker = Marker.of(Object.values(data)[0].length);
     const plots = [] as Plot[];
     const plotIndicesByType = {} as Record<Plot.Type, number[]>;
-    const client = { send: console.log } as WebSocket; // Mock if URL is not provided
+    const client = undefined as WebSocket | undefined;
+    const echo = options?.echo ?? false;
     const opts = Object.assign(defaultOptions, options);
 
     for (const [k, v] of Object.entries(data)) {
@@ -132,6 +136,7 @@ export namespace Scene {
       rows,
       cols,
       active,
+      echo,
       marker,
       client,
       plots,
@@ -299,6 +304,21 @@ export namespace Scene {
     else return getPlot(scene, id as PlotId);
   }
 
+  export function getPlotIds(scene: Scene) {
+    const counts = {} as Record<Plot.Type, number>;
+    const result = [] as `${Plot.Type}${number}`[];
+
+    for (const plot of scene.plots) {
+      const { type } = plot;
+      if (counts[type] === undefined) counts[type] = 0;
+
+      result.push(`${type}${counts[type]}`);
+      counts[type]++;
+    }
+
+    return result;
+  }
+
   export function getPlot(scene: Scene, id: PlotId) {
     const { plots, plotIndicesByType } = scene;
     let [type, idString] = splitNumericSuffix(id);
@@ -393,7 +413,11 @@ export namespace Scene {
   }
 
   export function handleMessage(scene: Scene, message: Message) {
-    if (!scene.client) return;
+    const { echo } = scene;
+
+    if (echo) {
+      console.log(`Scene recieved message: "${JSON.stringify(message)}"`);
+    }
 
     const { target, data } = message;
     const type = message.type as Event;
@@ -409,7 +433,15 @@ export namespace Scene {
   ) {
     const [sender, target] = [`scene`, `server`];
     const message = JSON.stringify({ sender, target, type, data });
-    scene.client.send(message);
+
+    const { client, echo } = scene;
+
+    if (!client) return;
+    if (echo) {
+      console.log(`Scene sent message: "${message}"`);
+    }
+
+    client.send(message);
   }
 
   export function resize(scene: Scene, options?: { fontSize?: number }) {
@@ -565,6 +597,11 @@ function setupEvents(scene: Scene) {
     Scene.setDimensions(scene, data!.rows, data!.cols);
   });
 
+  Reactive.listen(scene, `get-plot-ids`, () => {
+    const ids = Scene.getPlotIds(scene);
+    Scene.sendMessage(scene, `get-plot-ids`, { ids });
+  });
+
   Reactive.listen(scene, `add-plot`, (data) => {
     if (!data) return;
     Scene.addPlotBySpec(scene, data);
@@ -607,9 +644,13 @@ function setupEvents(scene: Scene) {
   Reactive.listen(scene, `clear-selection`, () => Marker.clearAll(marker));
 
   Reactive.listen(scene, `get-scale`, (data) => {
-    if (!data || !data.id) return;
+    if (!data || !data.id || !data.scale) return;
+
     const plot = Scene.getPlot(scene, data.id);
-    if (plot) Reactive.dispatch(plot, `get-scale`, data);
+    if (!plot) return;
+
+    const scale = Plot.getScale(plot, data.scale);
+    Scene.sendMessage(scene, `get-scale`, { scale });
   });
 
   Reactive.listen(scene, `set-scale`, (data) => {
