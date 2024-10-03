@@ -1,5 +1,6 @@
 import { Bars } from "../geoms/Bars";
 import { Geom } from "../geoms/Geom";
+import { Expanse } from "../main";
 import { Plot } from "../plot/Plot";
 import { ExpanseBand } from "../scales/ExpanseBand";
 import { Scale } from "../scales/Scale";
@@ -100,8 +101,9 @@ function barplot(plot: Barplot) {
   ExpanseBand.setWeights(scales.x.domain);
 
   const k = 1 / new Set(flat.x).size;
-  const widthProps = { scale: k, mult: 0.9, offset: 0 };
+  const widthProps = { scale: k, mult: 0.9 };
   Scale.set(scales.width, () => widthProps, { default: true });
+  Expanse.set(scales.width.codomain, () => ({ offset: 0 }), { default: true });
 
   Meta.copy(flat.height, scales.y, [`name`]);
 
@@ -141,8 +143,9 @@ function spineplot(plot: Barplot) {
 
   ExpanseBand.setWeights(scales.x.domain, flat.width);
 
-  const widthProps = { scale: 1, mult: 1, offset: -1 };
+  const widthProps = { scale: 1, mult: 1 };
   Scale.set(scales.width, () => widthProps, { default: true });
+  Expanse.set(scales.width.codomain, () => ({ offset: -1 }), { default: true });
 
   Meta.set(scales.y, { name: `proportion` });
 

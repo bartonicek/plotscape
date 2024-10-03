@@ -6,22 +6,23 @@ import { DataLayer, Indexable } from "../utils/types";
 export const Transient = 255 as const;
 export type Transient = typeof Transient;
 
-export enum Group {
-  Base = 7,
-  First = 6,
-  Second = 5,
-  Third = 4,
-  BaseTransient = 3,
-  FirstTransient = 2,
-  SecondTransient = 1,
-  ThirdTransient = 0,
-}
+export const Group = {
+  Base: 7,
+  First: 6,
+  Second: 5,
+  Third: 4,
+  BaseTransient: 3,
+  FirstTransient: 2,
+  SecondTransient: 1,
+  ThirdTransient: 0,
+} as const;
 
-type GroupType = Group | Transient;
+export type Group = typeof Group;
+export type GroupId = Group[keyof Group] | Transient;
 export const LAYER = Symbol(`layer`);
 
 export interface Marker extends Reactive<Marker.Event> {
-  group: GroupType;
+  group: GroupId;
   indices: Uint32Array;
   transientIndices: number[];
   factor: Factor<{ [LAYER]: number[] }>;
@@ -51,14 +52,14 @@ export namespace Marker {
     return marker;
   }
 
-  export function setGroup(marker: Marker, group: GroupType) {
+  export function setGroup(marker: Marker, group: GroupId) {
     marker.group = group;
   }
 
   export function update(
     marker: Marker,
     indices: number[],
-    options?: { group?: GroupType; silent?: boolean },
+    options?: { group?: GroupId; silent?: boolean },
   ) {
     const group = options?.group ?? marker.group;
     clearTransient(marker, { silent: true });

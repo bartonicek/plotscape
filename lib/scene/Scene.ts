@@ -19,7 +19,7 @@ import { Reactive } from "../utils/Reactive";
 import { Columns, KeyboardKey } from "../utils/types";
 import { defaultOptions, GraphicalOptions } from "./defaultOptions";
 import { KeybindingsMenu } from "./KeybindingsMenu";
-import { Group, Marker, Transient } from "./Marker";
+import { Group, GroupId, Marker, Transient } from "./Marker";
 
 export interface Scene<T extends Columns = Columns>
   extends Reactive<Scene.Event> {
@@ -535,7 +535,7 @@ function setupEvents(scene: Scene) {
   window.addEventListener(`keyup`, () => {
     Marker.setGroup(marker, Transient);
     for (const p of scene.plots) {
-      p.parameters.mode = Plot.Mode.Select;
+      p.parameters.mode = `select`;
       DOM.setStyles(queryTable, { display: `none` });
     }
   });
@@ -588,7 +588,7 @@ function setupEvents(scene: Scene) {
 
   Reactive.listen(scene, `set-assigned`, (data) => {
     if (!data || !data.group) return;
-    const group = 7 - Math.min(data.group, 3);
+    const group = (7 - Math.min(data.group, 3)) as GroupId;
     Marker.update(marker, data.cases, { group });
   });
 

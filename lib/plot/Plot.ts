@@ -84,11 +84,7 @@ export interface Plot<
 }
 
 export namespace Plot {
-  export enum Mode {
-    Select = "select",
-    Pan = "pan",
-    Query = "query",
-  }
+  export type Mode = `select` | `pan` | `query`;
 
   export type Type =
     | `unknown`
@@ -133,11 +129,11 @@ export namespace Plot {
       locked: false,
       mousedown: false,
       mousebutton: MouseButton.Left,
-      mode: Mode.Select,
+      mode: `select`,
       mousecoords: [0, 0, 0, 0] as Rect,
       lastkey: ``,
       ratio: options?.ratio ?? undefined,
-    };
+    } as const;
 
     const type = options.type ?? `unknown`;
     const representation = options.representation ?? `absolute`;
@@ -479,7 +475,7 @@ export namespace Plot {
   }
 
   export function setQueryMode(plot: Plot) {
-    Plot.setMode(plot, Mode.Query);
+    Plot.setMode(plot, `query`);
   }
 
   export function zoom(
@@ -767,12 +763,12 @@ function setupEvents(plot: Plot) {
 
     Plot.activate(plot);
     Plot.setMousedown(plot, true);
-    Plot.setMouseButton(plot, e.button);
+    Plot.setMouseButton(plot, e.button as MouseButton);
 
     if (e.button === MouseButton.Left) {
-      Plot.setMode(plot, Plot.Mode.Select);
+      Plot.setMode(plot, `select`);
     } else if (e.button === MouseButton.Right) {
-      Plot.setMode(plot, Plot.Mode.Pan);
+      Plot.setMode(plot, `pan`);
     }
 
     const x = e.offsetX;
@@ -780,7 +776,7 @@ function setupEvents(plot: Plot) {
 
     copyValues([x, y, x, y], mousecoords);
 
-    if (!locked && parameters.mode === Plot.Mode.Select) {
+    if (!locked && parameters.mode === `select`) {
       // Need to notify marker & all other plots
       Reactive.dispatch(plot, `clear-transient`);
       Plot.checkSelection(plot);
@@ -794,7 +790,7 @@ function setupEvents(plot: Plot) {
 
     Plot.setMousedown(plot, true);
     Plot.setMouseButton(plot, MouseButton.Right);
-    Plot.setMode(plot, Plot.Mode.Pan);
+    Plot.setMode(plot, `pan`);
 
     mousecoords[0] = e.offsetX;
     mousecoords[1] = container.clientHeight - e.offsetY;
@@ -818,9 +814,7 @@ function setupEvents(plot: Plot) {
   Reactive.listen(plot, `render`, () => Plot.render(plot));
   Reactive.listen(plot, `lock`, () => Plot.lock(plot));
   Reactive.listen(plot, `unlock`, () => Plot.unlock(plot));
-  Reactive.listen(plot, `query-mode`, () =>
-    Plot.setMode(plot, Plot.Mode.Query),
-  );
+  Reactive.listen(plot, `query-mode`, () => Plot.setMode(plot, `query`));
   Reactive.listen(plot, `render-axes`, () => Plot.renderAxes(plot));
   Reactive.listen(plot, `clear-transient`, () => Plot.clearUserFrame(plot));
 

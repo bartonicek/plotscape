@@ -3,6 +3,7 @@ import { Frame } from "../plot/Frame";
 export type Primitive = string | number | boolean | undefined | null;
 export type Flat<T> = { [key in keyof T]: T[key] } & {};
 export type Entries<T> = [keyof T, T[keyof T]][];
+export type ValuesOf<T extends Object> = T[keyof T];
 
 export type AnyFn = (...args: any[]) => any;
 export type MapFn<T> = (next: T) => T;
@@ -29,22 +30,25 @@ export type Margins = [
   right: number,
 ];
 
-export enum VAnchor {
-  Middle = 1 / 2,
-  Top = 1,
-  Bottom = 0,
-}
+export type VAnchor = ValuesOf<typeof VAnchor>;
+export const VAnchor = {
+  Top: 1,
+  Middle: 1 / 2,
+  Bottom: 0,
+} as const;
 
-export enum HAnchor {
-  Center = 1 / 2,
-  Left = 1,
-  Right = 0,
-}
+export type HAnchor = ValuesOf<typeof HAnchor>;
+export const HAnchor = {
+  Left: 1,
+  Center: 1 / 2,
+  Right: 0,
+};
 
-export enum MouseButton {
-  Left = 0,
-  Right = 2,
-}
+export type MouseButton = ValuesOf<typeof MouseButton>;
+export const MouseButton = {
+  Left: 0,
+  Right: 2,
+} as const;
 
 export type StringToUnion<T extends string> =
   T extends `${infer U}${infer Rest}` ? [U, ...StringToUnion<Rest>] : [];
