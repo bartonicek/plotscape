@@ -2,6 +2,7 @@ import { Dataframe } from "./Dataframe";
 import { Getter } from "./Getter";
 import { Meta } from "./Meta";
 import {
+  AnyFn,
   Entries,
   Flat,
   Indexable,
@@ -1067,4 +1068,25 @@ export function stringArraysMatch(array1: string[], array2: string[]) {
   const s1 = array1.toSorted(compareAlphaNumeric).join(``);
   const s2 = array2.toSorted(compareAlphaNumeric).join(``);
   return s1 === s2;
+}
+
+/**
+ * Stringifies a function (for use with `JSON.stringify`).
+ *
+ * @param fn Any function
+ * @returns A string representation of the function
+ */
+export function stringifyFunction(fn: AnyFn) {
+  return `` + fn;
+}
+
+export function deepModifyProp(
+  object: Record<PropertyKey, any>,
+  key: string,
+  fn: (x: any) => any,
+) {
+  if (key in object) object[key] = fn(object[key]);
+  for (const v of Object.values(object)) {
+    if (isObject(v)) deepModifyProp(v, key, fn);
+  }
 }

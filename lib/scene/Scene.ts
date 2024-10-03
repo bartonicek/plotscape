@@ -3,6 +3,7 @@ import { Plot } from "../plot/Plot";
 import { Reducer } from "../transformation/Reducer";
 import { DOM } from "../utils/DOM";
 import {
+  deepModifyProp,
   fetchJSON,
   filterIndices,
   isStringArray,
@@ -11,6 +12,7 @@ import {
   remove,
   seq,
   splitNumericSuffix,
+  stringifyFunction,
   throttle,
   tw,
 } from "../utils/funs";
@@ -649,7 +651,10 @@ function setupEvents(scene: Scene) {
     const plot = Scene.getPlot(scene, data.id);
     if (!plot) return;
 
-    const scale = Plot.getScale(plot, data.scale);
+    const scale = { ...Plot.getScale(plot, data.scale) };
+    deepModifyProp(scale, `trans`, stringifyFunction);
+    deepModifyProp(scale, `inv`, stringifyFunction);
+
     Scene.sendMessage(scene, `get-scale`, { scale });
   });
 
