@@ -154,7 +154,7 @@ function spineplot(plot: Barplot) {
 
   Geom.setCoordinates(bars, coordinates);
 
-  plot.representation = `propotion`;
+  plot.representation = `proportion`;
   Plot.render(plot);
   Plot.renderAxes(plot);
 }

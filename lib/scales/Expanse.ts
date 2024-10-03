@@ -28,13 +28,14 @@ export namespace Expanse {
   export type Props<T extends Expanse> = T[`props`];
 
   // Polymorphic functions
-  export const normalize = Poly.of(normalizeDef);
+  export const normalize = Poly.of(normalizeDefault);
   export const unnormalize = Poly.of(unnormalizeDefault);
   export const train = Poly.of(trainDefault);
   export const breaks = Poly.of(breaksDefault);
   export const reorder = Poly.of(reorderDefault);
+  export const reset = Poly.of(resetDefault);
 
-  function normalizeDef<T extends Expanse>(
+  function normalizeDefault<T extends Expanse>(
     expanse: T,
     _value: Value<T>,
   ): Normalized<T> {
@@ -70,6 +71,21 @@ export namespace Expanse {
     throw new Error(
       `Method 'breaks' not implemented for expanse of type '${expanse.type}'`,
     );
+  }
+
+  export function resetDefault<T extends Expanse>(
+    expanse: T,
+    options?: { silent?: boolean },
+  ) {
+    const { defaults } = expanse;
+
+    for (const [k, v] of Object.entries(defaults)) {
+      if (Array.isArray(v) && Array.isArray(expanse.props[k])) {
+        copyValues(v, expanse.props[k]);
+      } else expanse.props[k] = v;
+    }
+
+    if (!options?.silent) Reactive.dispatch(expanse, `changed`);
   }
 
   function reorderDefault(expanse: Expanse<string>, _indices?: number[]) {
@@ -113,21 +129,6 @@ export namespace Expanse {
     }
   }
 
-  export function reset<T extends Expanse>(
-    expanse: T,
-    options?: { silent?: boolean },
-  ) {
-    const { defaults } = expanse;
-
-    for (const [k, v] of Object.entries(defaults)) {
-      if (Array.isArray(v) && Array.isArray(expanse.props[k])) {
-        copyValues(v, expanse.props[k]);
-      } else expanse.props[k] = v;
-    }
-
-    if (!options?.silent) Reactive.dispatch(expanse, `changed`);
-  }
-
   export function isContinuous(expanse: Expanse): expanse is ExpanseContinuous {
     return expanse.type === `continuous` || expanse.type === `split`;
   }
@@ -152,5 +153,11 @@ export namespace Expanse {
 
   export function isSplit(expanse: Expanse): expanse is ExpanseSplit {
     return expanse.type === `split`;
+  }
+
+  export function isUnivariate(
+    expanse: Expanse,
+  ): expanse is ExpanseContinuous | ExpansePoint | ExpanseBand {
+    return !isCompound(expanse) && !isSplit(expanse);
   }
 }

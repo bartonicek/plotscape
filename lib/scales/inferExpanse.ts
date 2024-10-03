@@ -7,6 +7,6 @@ import { ExpansePoint } from "./ExpansePoint";
 export function inferExpanse(values: any[], options = { train: true }) {
   const isNumeric = isNumberArray(values);
   const expanse = isNumeric ? ExpanseContinuous.of() : ExpansePoint.of();
-  if (options.train) Expanse.train(expanse, values);
+  if (options.train) Expanse.train(expanse, values, { default: true });
   return expanse;
 }

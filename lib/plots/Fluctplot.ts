@@ -146,7 +146,7 @@ function pctfluctplot(plot: Fluctplot) {
   Expanse.set(scales.area.codomain, () => ({ offset: -2 }));
 
   Geom.setCoordinates(bars, coordinates);
-  plot.representation = `propotion`;
+  plot.representation = `proportion`;
 
   Plot.render(plot);
 }

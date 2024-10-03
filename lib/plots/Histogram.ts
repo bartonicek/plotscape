@@ -190,7 +190,7 @@ function spinogram(plot: Histogram) {
   Meta.set(scales.y, { name: `proportion` });
 
   Geom.setCoordinates(rectangles, coordinates as any);
-  plot.representation = `propotion`;
+  plot.representation = `proportion`;
   Plot.render(plot);
   Plot.renderAxes(plot);
 }

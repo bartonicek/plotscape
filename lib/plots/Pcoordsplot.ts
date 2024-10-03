@@ -1,4 +1,5 @@
 import { Lines } from "../geoms/Lines";
+import { Scale } from "../main";
 import { Plot } from "../plot/Plot";
 import { ExpanseCompound } from "../scales/ExpanseCompound";
 import { ExpansePoint } from "../scales/ExpansePoint";
@@ -10,6 +11,7 @@ import { Factor } from "../transformation/Factor";
 import { Summaries } from "../transformation/Summaries";
 import { Getter } from "../utils/Getter";
 import { Meta } from "../utils/Meta";
+import { Reactive } from "../utils/Reactive";
 import { Columns } from "../utils/types";
 
 export interface Pcoordsplot extends Plot {
@@ -45,18 +47,32 @@ export function Pcoordsplot<T extends Columns>(
   });
   const coordinates = Summaries.translate(plotData, [(d) => d, (d) => d]);
   const lines = Lines.of(coordinates, scales);
-  const [type, representation] = [`pcoords`, `absolute`] as const;
+  const [type, representation] = [`pcoords`, `proportion`] as const;
   const plotOpts: Plot.Options = { ...options, type, representation };
 
   const plot = Object.assign(Plot.of(plotData, scales, plotOpts), { lines });
   Plot.addGeom(plot, lines);
 
   const domains = vars.map((x) => inferExpanse(x));
-  scales.x.domain = ExpanseSplit.of(ExpansePoint.of(names));
-  scales.y.domain = ExpanseCompound.of(domains);
+  Scale.setDomain(scales.x, ExpanseSplit.of(ExpansePoint.of(names)));
+  Scale.setDomain(scales.y, ExpanseCompound.of(domains));
 
   Meta.set(scales.x, { name: `variable` });
   Meta.set(scales.y, { name: `value` });
 
+  Reactive.listen(plot, `normalize`, () => switchRepresentation(plot));
+
   return plot;
+}
+
+function switchRepresentation(plot: Pcoordsplot) {
+  if (plot.representation === `proportion`) {
+    ExpanseCompound.setCommonScale(plot.scales.y.domain, true);
+    plot.representation = `absolute`;
+  } else {
+    ExpanseCompound.setCommonScale(plot.scales.y.domain, false);
+    plot.representation = `proportion`;
+  }
+
+  Plot.renderAxes(plot); // For some reason one render doesn't work
 }

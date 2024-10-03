@@ -129,6 +129,18 @@ export namespace Scale {
     for (const s of linked) Scale.set(s, setfn, options);
   }
 
+  export function setDomain(scale: Scale, domain: Expanse) {
+    Reactive.removeAll(scale.domain, `changed`);
+    scale.domain = domain;
+    Reactive.propagate(scale.domain, scale, `changed`);
+  }
+
+  export function setCodomain(scale: Scale, codomain: Expanse) {
+    Reactive.removeAll(scale.codomain, `changed`);
+    scale.codomain = codomain;
+    Reactive.propagate(scale.codomain, scale, `changed`);
+  }
+
   export function freeze(scale: Scale, props: (keyof Props)[]) {
     for (const p of props) if (!scale.frozen.includes(p)) scale.frozen.push(p);
   }
@@ -203,30 +215,25 @@ export namespace Scale {
     labels: string[];
     positions: number[];
   } {
-    const { domain, props } = scale;
+    const { domain, codomain, props } = scale;
     let { zero, one } = props;
     [zero, one] = invertRange(zero, one);
 
-    const breaks = Expanse.breaks(domain, zero, one) as any;
+    let breaks = Expanse.breaks(domain, zero, one) as any;
     let labels = formatAxisLabels(breaks);
+    let positions: number[];
 
-    if (Expanse.isCompound(scale.domain)) {
+    if (Expanse.isCompound(domain)) {
       labels = formatAxisLabels(breaks, { decimals: 1 });
-
-      const positions = breaks.map((x: number) =>
-        Expanse.unnormalize(
-          scale.codomain,
-          ExpanseContinuous.normalize(scale.domain as any, x),
-        ),
-      );
-
-      return { labels, positions };
-    } else if (Expanse.isSplit(scale.codomain)) {
-      const positions = Scale.pushforward(scale, breaks);
-      return { labels, positions };
+      if (domain.commonScale) breaks = Expanse.normalize(domain, breaks);
+      breaks = breaks.map((x: number) => applyPropsForward(x, props));
+      positions = Expanse.unnormalize(scale.codomain, breaks);
+    } else if (Expanse.isSplit(codomain)) {
+      positions = Scale.pushforward(scale, breaks);
+    } else {
+      positions = breaks.map((x: any) => Scale.pushforward(scale, x));
     }
 
-    const positions = breaks.map((x: any) => Scale.pushforward(scale, x));
     return { labels, positions };
   }
 

@@ -83,7 +83,7 @@ export type TypedArray =
   | Uint32Array
   | Float32Array
   | Float64Array;
-export type Representation = `absolute` | `propotion`;
+export type Representation = `absolute` | `proportion`;
 
 export type KeyboardKey =
   | `1`

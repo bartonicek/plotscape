@@ -211,7 +211,7 @@ function normalizedbibarplot(plot: Bibarplot) {
   Geom.setCoordinates(bars1, coordinates1);
   Geom.setCoordinates(bars2, coordinates2);
 
-  plot.representation = `propotion`;
+  plot.representation = `proportion`;
   Plot.render(plot);
   Plot.renderAxes(plot);
 

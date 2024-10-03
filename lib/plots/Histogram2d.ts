@@ -196,7 +196,7 @@ function spinogram2d(plot: Histogram2D) {
     Scale.train(scales.y, flat.y1, { default: true, name: false });
   });
 
-  plot.representation = `propotion`;
+  plot.representation = `proportion`;
   Geom.setCoordinates(rectangles, coordinates);
 
   Meta.copy(data[1].breaks, scales.x, [`name`]);

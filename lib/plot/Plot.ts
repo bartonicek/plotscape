@@ -252,9 +252,6 @@ export namespace Plot {
   }
 
   export function renderAxes(plot: Plot) {
-    for (const layer of [`base`, `xAxis`, `yAxis`] as const) {
-      Frame.clear(plot.frames[layer]);
-    }
     renderAxisLabels(plot);
     renderAxisTitles(plot);
   }
