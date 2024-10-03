@@ -1084,9 +1084,10 @@ export function deepModifyProp(
   object: Record<PropertyKey, any>,
   key: string,
   fn: (x: any) => any,
+  result: Record<PropertyKey, any> = {},
 ) {
-  if (key in object) object[key] = fn(object[key]);
+  if (key in object) result[key] = fn(object[key]);
   for (const v of Object.values(object)) {
-    if (isObject(v)) deepModifyProp(v, key, fn);
+    if (isObject(v)) deepModifyProp(v, key, fn, result);
   }
 }
