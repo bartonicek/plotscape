@@ -651,8 +651,8 @@ export namespace Plot {
       }
 
       // If we're setting either min or max manually, clear zero
-      zero = min ? (zero ?? 0) : scale_.props.zero;
-      one = max ? (one ?? 1) : scale_.props.one;
+      zero = isDefined(min) ? (zero ?? 0) : scale_.props.zero;
+      one = isDefined(max) ? (one ?? 1) : scale_.props.one;
       min = min ?? domain.props.min;
       max = max ?? domain.props.max;
 

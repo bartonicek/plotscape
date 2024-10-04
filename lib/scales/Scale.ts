@@ -172,7 +172,7 @@ export namespace Scale {
     [zero, one] = [zero, one].map((x) => (x - currZero) / currRange);
     [zero, one] = invertRange(zero, one);
 
-    // Finally, reflect again
+    // Reflect back
     if (direction === -1) [zero, one] = [1 - zero, 1 - one];
 
     Scale.set(scale, () => ({ zero, one }), options);
