@@ -313,17 +313,51 @@ export namespace Plot {
     Plot.renderAxes(plot);
   }
 
-  export function checkSelection(plot: Plot) {
+  export function checkSelection(plot: Plot, coords?: Rect) {
     const { selectables, parameters } = plot;
+    coords = coords ?? parameters.mousecoords;
     const selectedCases = new Set<number>();
 
+    console.log(coords);
+
     for (const geom of selectables) {
-      const selected = Geom.check(geom, parameters.mousecoords);
+      const selected = Geom.check(geom, coords);
       for (let i = 0; i < selected.length; i++) selectedCases.add(selected[i]);
     }
 
     const cases = Array.from(selectedCases);
     Reactive.dispatch(plot, `set-selected`, { cases });
+  }
+
+  export function selectRegion(
+    plot: Plot,
+    coords: [any, any, any, any],
+    options?: { units?: `data` | `screen` | `pct` },
+  ) {
+    const { frames, scales, options: opts } = plot;
+    const { margins } = opts;
+    const units = options?.units ?? `pct`;
+
+    if (units === `screen`) {
+      coords[0] += margins[1];
+      coords[1] += margins[0];
+      coords[2] += margins[1];
+      coords[3] += margins[0];
+    } else if (units === `pct`) {
+      coords[0] = Expanse.unnormalize(scales.x.codomain, coords[0]);
+      coords[1] = Expanse.unnormalize(scales.y.codomain, coords[1]);
+      coords[2] = Expanse.unnormalize(scales.x.codomain, coords[2]);
+      coords[3] = Expanse.unnormalize(scales.y.codomain, coords[3]);
+    } else if (units === `data`) {
+      coords[0] = Scale.pushforward(scales.x, coords[0]);
+      coords[1] = Scale.pushforward(scales.y, coords[1]);
+      coords[2] = Scale.pushforward(scales.x, coords[2]);
+      coords[3] = Scale.pushforward(scales.y, coords[3]);
+    }
+
+    checkSelection(plot, coords);
+    Plot.clearUserFrame(plot);
+    Frame.rectangleXY(frames.user, ...coords, 1);
   }
 
   export function setMode(plot: Plot, mode: Mode) {
