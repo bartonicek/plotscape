@@ -24,7 +24,6 @@ export interface Factor<T extends Dataframe = Dataframe> extends Reactive {
 export namespace Factor {
   export type Type = `bijection` | `constant` | `surjection`;
   export const POSITIONS = Symbol(`positions`);
-  export const DIMENSION = Symbol(`dimension`);
   export const CHILD_INDICES = Symbol(`child-indices`);
 
   export function of<T extends Dataframe>(
