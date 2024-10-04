@@ -39,7 +39,7 @@ import {
   Rect,
   Representation,
 } from "../utils/types";
-import { renderAxisLabels, renderAxisTitles } from "./axes";
+import { Axes } from "./Axes";
 import { Frame } from "./Frame";
 import { QueryTable } from "./Querytable";
 
@@ -252,8 +252,8 @@ export namespace Plot {
   }
 
   export function renderAxes(plot: Plot) {
-    renderAxisLabels(plot);
-    renderAxisTitles(plot);
+    Axes.renderLabels(plot);
+    Axes.renderTitles(plot);
   }
 
   export function clearUserFrame(plot: Plot) {
