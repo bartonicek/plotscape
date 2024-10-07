@@ -76,7 +76,7 @@ bun run dev    # Or "npm run dev"
 
 You should now see the following figure:
 
-![an animated GIF of an interacative plotscape figure](https://github.com/bartonicek/plotscape/blob/master/images/plotscape-v0-1-11.gif?raw=true)
+<img src="https://github.com/bartonicek/plotscape/blob/master/images/plotscape-v0-1-11.gif?raw=true" alt="An animated gif of an interactive plotscape figure" width="500"/>
 
 Your version will be fully interactive (the above above is just a static snapshot, since Github doesn't allow JavaScript in README.md files).
 
