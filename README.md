@@ -76,7 +76,7 @@ bun run dev    # Or "npm run dev"
 
 You should now see the following figure:
 
-![plotscape figure showing a scatterplot, a barplot, a histogram, and a fluctuation diagram](https://github.com/bartonicek/plotscape/blob/master/images/screenshot.png?raw=true)
+![an animated GIF of an interacative plotscape figure](https://github.com/bartonicek/plotscape/blob/master/images/plotscape-v0-1-11.gif?raw=true)
 
 Your version will be fully interactive (the above above is just a static snapshot, since Github doesn't allow JavaScript in README.md files).
 
