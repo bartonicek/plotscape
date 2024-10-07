@@ -98,9 +98,9 @@ export namespace Scale {
     return applyDirection(x, direction);
   }
 
-  // Does not use direction since [0, 1] already encodes direction
   function applyPropsBackward(x: number, props: Props) {
-    const { zero, one, scale, mult } = props;
+    const { zero, one, direction, scale, mult } = props;
+    x = applyDirection(x, direction);
     x = (x - zero) / (one - zero);
     return x / (scale * mult);
   }
