@@ -896,22 +896,33 @@ export function convertToSuperscript(n: string) {
 
 /**
  * Checks whether a value is defined.
- * @param value A value
+ * @param x A value
  * @returns `true` if the value is not `undefined` or `null`
  */
-export function isDefined<T>(value: T | undefined | null): value is T {
-  return value !== undefined && value !== null;
+export function isDefined<T>(x: T | undefined | null): x is T {
+  return x !== undefined && x !== null;
 }
 
 const primitives = [`string`, `number`, `boolean`, `undefined`];
 
-/**
- * Checks whether a value is primitive
- * @param value A value
- * @returns `true` if the value is primitive
- */
-export function isPrimitive(value: any): value is Primitive {
-  return value === null || primitives.includes(typeof value);
+export function isPrimitive(x: any): x is Primitive {
+  return x === null || primitives.includes(typeof x);
+}
+
+export function isFunction(x: any): x is (...args: any) => any {
+  return typeof x === `function`;
+}
+
+export function isSerializable(x: any) {
+  if (isPrimitive(x) || x === null) return true;
+  if (isFunction(x)) return false;
+
+  const values = isObject(x) ? Object.values(x) : x;
+  for (const v of values) {
+    if (!isSerializable(v)) return false;
+  }
+
+  return true;
 }
 
 export function isObject(x: any): x is Object {
@@ -934,15 +945,11 @@ export function isIntegerString(x: string) {
  * Checks whether an array is an array of numbers
  * (by checking the first and last values only).
  *
- * @param object An array
+ * @param x An array
  * @returns `true` if the first and last element is a number
  */
-export function isNumberArray(object: any): object is number[] {
-  return (
-    Array.isArray(object) &&
-    typeof object[0] === `number` &&
-    typeof last(object) === `number`
-  );
+export function isNumberArray(x: any): x is number[] {
+  return Array.isArray(x) && isNumber(x[0]) && isNumber(last(x));
 }
 
 /**

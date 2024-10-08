@@ -1,3 +1,5 @@
+import { isSerializable } from "./funs";
+
 declare global {
   interface Object extends Partial<Meta> {}
   interface Array<T> extends Partial<Meta> {}
@@ -52,8 +54,10 @@ export namespace Meta {
     const keys = props ?? Object.keys(source[METADATA]);
     for (const key of keys as string[]) {
       // Need to use get() here in case e.g. `length`
-      const copy = structuredClone(get(source, key as MetadataKey<T>));
-      target[METADATA]![key] = copy;
+      let value = get(source, key as MetadataKey<T>);
+      // Clone if serializable
+      if (isSerializable(value)) value = structuredClone(value);
+      target[METADATA]![key] = value;
     }
   }
 
