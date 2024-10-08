@@ -12,7 +12,7 @@ type Computed<T extends Record<string, ReducerTuple>> = {
   [key in keyof T]: Reduced<ReturnType<T[key][1][`reducefn`]>>;
 } & Reactive;
 
-type TranslateFn<T extends Dataframe = Dataframe> = (data: T) => Dataframe;
+type TranslateFn<T extends Dataframe = any> = (data: T) => Dataframe;
 type TranslateFns<T extends readonly Dataframe[]> = T extends readonly [
   infer U extends Dataframe,
   ...infer Rest extends readonly Dataframe[],
