@@ -1,4 +1,4 @@
-import { Frame } from "../plot/Frame";
+import { CanvasFrame } from "../plot/CanvasFrame";
 
 export type Primitive = string | number | boolean | undefined | null;
 export type Flat<T> = { [key in keyof T]: T[key] } & {};
@@ -6,7 +6,7 @@ export type Entries<T> = [keyof T, T[keyof T]][];
 export type ValuesOf<T extends Object> = T[keyof T];
 
 export type AnyFn = (...args: any[]) => any;
-export type MapFn<T> = (next: T) => T;
+export type MapFn<T, U = T> = (next: T) => U;
 export type ReduceFn<T, U> = (prev: U, next: T) => U;
 
 export type Stringable = { toString(): string };
@@ -50,7 +50,7 @@ export type StringToUnion<T extends string> =
 export const dataLayers = [0, 1, 2, 3, 4, 5, 6, 7] as const;
 export const baseLayers = [4, 5, 6, 7] as const;
 export type DataLayer = (typeof dataLayers)[number];
-export type DataLayers = { [key in DataLayer]: Frame };
+export type DataLayers = { [key in DataLayer]: CanvasFrame };
 
 export type TaggedUnion<
   T extends Record<string, any> | undefined,

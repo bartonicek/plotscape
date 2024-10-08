@@ -1,7 +1,7 @@
 import { Expanse } from "../scales/Expanse";
 import { Scale } from "../scales/Scale";
 import { Metadata } from "../utils/Metadata";
-import { Frame } from "./Frame";
+import { CanvasFrame } from "./CanvasFrame";
 import { Plot } from "./Plot";
 
 export namespace Axes {
@@ -24,20 +24,20 @@ export namespace Axes {
 
     const [, left, , right] = margins;
     const { labels, positions } = Scale.breaks(scale);
-    Frame.clear(frame);
+    CanvasFrame.clear(frame);
 
     let [lastX, lastW] = [0, 0];
 
     for (let i = 0; i < labels.length; i++) {
       const label = labels[i];
       const x = positions[i];
-      const w = Frame.textWidth(frame, label) + 1;
+      const w = CanvasFrame.textWidth(frame, label) + 1;
 
       if (isOutside(x, left, width - right)) continue;
       if (overlaps(lastX, x, lastW, w)) continue;
 
       [lastX, lastW] = [x, w];
-      Frame.text(frame, x, base, label);
+      CanvasFrame.text(frame, x, base, label);
     }
   }
 
@@ -55,15 +55,15 @@ export namespace Axes {
 
     const [bottom, , top] = margins;
     const { labels, positions } = Scale.breaks(scale);
-    Frame.clear(frame);
+    CanvasFrame.clear(frame);
 
     let [lastY, lastH] = [0, 0];
 
     for (let i = 0; i < labels.length; i++) {
       const label = labels[i];
       const y = positions[i];
-      const w = Frame.textWidth(frame, label) + 1;
-      const h = Frame.textHeight(frame, label) + 1;
+      const w = CanvasFrame.textWidth(frame, label) + 1;
+      const h = CanvasFrame.textHeight(frame, label) + 1;
 
       if (isOutside(y, bottom, height - top)) continue;
       if (overlaps(lastY, y, lastH, h)) continue;
@@ -75,12 +75,12 @@ export namespace Axes {
       }
 
       [lastY, lastH] = [y, h];
-      Frame.text(frame, base, y, label);
+      CanvasFrame.text(frame, base, y, label);
     }
   }
 
   export function renderTitles(plot: Plot) {
-    Frame.clear(plot.frames.base);
+    CanvasFrame.clear(plot.frames.base);
     renderXAxisTitle(plot);
     renderYAxisTitle(plot);
   }
@@ -98,7 +98,7 @@ export namespace Axes {
     const x = Expanse.unnormalize(scale.codomain, 0.5);
     const y = Expanse.unnormalize(other.codomain, 0) - (offset * 2) / 3;
 
-    Frame.text(frame, x, y, name);
+    CanvasFrame.text(frame, x, y, name);
   }
 
   function renderYAxisTitle(plot: Plot) {
@@ -114,7 +114,7 @@ export namespace Axes {
     const y = Expanse.unnormalize(scale.codomain, 0.5);
     const x = Expanse.unnormalize(other.codomain, 0) - (offset * 2) / 3;
 
-    Frame.text(frame, x, y, name, { vertical: true });
+    CanvasFrame.text(frame, x, y, name, { vertical: true });
   }
 
   function isOutside(pos: number, lim1: number, lim2: number) {

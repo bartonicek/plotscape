@@ -1,4 +1,4 @@
-import { Frame } from "../plot/Frame";
+import { CanvasFrame } from "../plot/CanvasFrame";
 import { Scale } from "../scales/Scale";
 import { Scales } from "../scales/Scales";
 import { LAYER } from "../scene/Marker";
@@ -44,7 +44,7 @@ export namespace Lines {
     ]);
 
     const frames = Geom.frames(n, data[LAYER], layers);
-    Frame.lines(frames, x, y);
+    CanvasFrame.lines(frames, x, y);
   }
 
   export function check(lines: Lines, selection: Rect) {

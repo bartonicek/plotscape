@@ -1,4 +1,4 @@
-import { Frame } from "../plot/Frame";
+import { CanvasFrame } from "../plot/CanvasFrame";
 import { Plot } from "../plot/Plot";
 import { Reducer } from "../transformation/Reducer";
 import { DOM } from "../utils/DOM";
@@ -525,7 +525,7 @@ function setupEvents(scene: Scene) {
   container.addEventListener(`dblclick`, () => {
     for (const plot of plots) {
       Reactive.dispatch(plot, `deactivate`);
-      Frame.clear(plot.frames.user);
+      CanvasFrame.clear(plot.frames.user);
     }
     Marker.clearAll(scene.marker);
     scene.activePlotIndex = undefined;

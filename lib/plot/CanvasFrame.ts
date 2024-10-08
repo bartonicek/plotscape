@@ -2,7 +2,7 @@ import { DOM } from "../utils/DOM";
 import { tw } from "../utils/funs";
 import { HAnchor, MapFn, Margins, VAnchor } from "../utils/types";
 
-export interface Frame {
+export interface CanvasFrame {
   canvas: HTMLCanvasElement;
   context: CanvasRenderingContext2D;
   parent?: HTMLElement;
@@ -15,20 +15,20 @@ export interface Frame {
   contextProps: Partial<ContextProps>;
 }
 
-type ContextProps<
+export type ContextProps<
   K extends keyof CanvasRenderingContext2D = keyof CanvasRenderingContext2D,
 > = {
   [key in K]: CanvasRenderingContext2D[key];
 };
 
-export namespace Frame {
+export namespace CanvasFrame {
   export function of(options: {
     classes?: string;
     margins?: [number, number, number, number];
     zIndex?: number;
     canvasStyles?: Partial<CSSStyleDeclaration>;
     contextProps?: Partial<ContextProps>;
-  }): Frame {
+  }): CanvasFrame {
     const canvas = DOM.element(`canvas`);
     const context = canvas.getContext("2d")!;
 
@@ -55,14 +55,14 @@ export namespace Frame {
     };
   }
 
-  export function append(frame: Frame, container: HTMLElement) {
+  export function append(frame: CanvasFrame, container: HTMLElement) {
     container.appendChild(frame.canvas);
     frame.parent = container;
-    Frame.resize(frame);
+    CanvasFrame.resize(frame);
   }
 
   export function setContext<K extends keyof CanvasRenderingContext2D>(
-    frame: Frame,
+    frame: CanvasFrame,
     props: ContextProps<K>,
   ) {
     for (const [k, v] of Object.entries(props) as [K, ContextProps<K>[K]][]) {
@@ -71,7 +71,7 @@ export namespace Frame {
     }
   }
 
-  export function resize(frame: Frame) {
+  export function resize(frame: CanvasFrame) {
     const { context, canvas, scalingFactor } = frame;
     const { clientWidth, clientHeight, clientLeft, clientTop } = canvas;
 
@@ -88,10 +88,10 @@ export namespace Frame {
     }
 
     context.scale(scalingFactor, scalingFactor);
-    Frame.clip(frame);
+    CanvasFrame.clip(frame);
   }
 
-  export function clip(frame: Frame) {
+  export function clip(frame: CanvasFrame) {
     const { context } = frame;
     let { width, height } = frame;
     const [bottom, left, top, right] = frame.margins;
@@ -104,23 +104,23 @@ export namespace Frame {
     context.clip();
   }
 
-  export function clear(frame: Frame) {
+  export function clear(frame: CanvasFrame) {
     frame.context.clearRect(0, 0, frame.width, frame.height);
   }
 
-  export function setAlpha(frame: Frame, setfn: MapFn<number>) {
+  export function setAlpha(frame: CanvasFrame, setfn: MapFn<number>) {
     frame.context.globalAlpha = setfn(frame.context.globalAlpha);
   }
 
-  export function resetAlpha(frame: Frame) {
+  export function resetAlpha(frame: CanvasFrame) {
     frame.context.globalAlpha = 1;
   }
 
-  export function textWidth(frame: Frame, text: string) {
+  export function textWidth(frame: CanvasFrame, text: string) {
     return frame.context.measureText(text).width;
   }
 
-  export function textHeight(frame: Frame, text: string) {
+  export function textHeight(frame: CanvasFrame, text: string) {
     const dims = frame.context.measureText(text);
     return dims.actualBoundingBoxAscent + dims.actualBoundingBoxDescent;
   }
@@ -131,7 +131,7 @@ export namespace Frame {
   };
 
   export function point(
-    frame: Frame,
+    frame: CanvasFrame,
     x: number,
     y: number,
     radius: number,
@@ -151,7 +151,7 @@ export namespace Frame {
   }
 
   export function points(
-    frames: Frame[],
+    frames: CanvasFrame[],
     x: number[],
     y: number[],
     radius: number[],
@@ -163,7 +163,7 @@ export namespace Frame {
   }
 
   export function rectangleXY(
-    frame: Frame,
+    frame: CanvasFrame,
     x0: number,
     y0: number,
     x1: number,
@@ -184,7 +184,7 @@ export namespace Frame {
   }
 
   export function rectanglesXY(
-    frames: Frame[],
+    frames: CanvasFrame[],
     x0: number[],
     y0: number[],
     x1: number[],
@@ -197,7 +197,7 @@ export namespace Frame {
   }
 
   export function rectangleWH(
-    frame: Frame,
+    frame: CanvasFrame,
     x: number,
     y: number,
     w: number,
@@ -215,7 +215,7 @@ export namespace Frame {
   }
 
   export function rectanglesWH(
-    frames: Frame[],
+    frames: CanvasFrame[],
     x: number[],
     y: number[],
     w: number[],
@@ -227,7 +227,7 @@ export namespace Frame {
     }
   }
 
-  export function line(frame: Frame, x: number[], y: number[]) {
+  export function line(frame: CanvasFrame, x: number[], y: number[]) {
     const { context, height } = frame;
 
     context.beginPath();
@@ -240,12 +240,12 @@ export namespace Frame {
     context.stroke();
   }
 
-  export function lines(frames: Frame[], x: number[][], y: number[][]) {
+  export function lines(frames: CanvasFrame[], x: number[][], y: number[][]) {
     for (let i = 0; i < x.length; i++) line(frames[i], x[i], y[i]);
   }
 
   export function text(
-    frame: Frame,
+    frame: CanvasFrame,
     x: number,
     y: number,
     label: string,

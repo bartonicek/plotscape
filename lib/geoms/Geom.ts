@@ -1,4 +1,4 @@
-import { Frame } from "../plot/Frame";
+import { CanvasFrame } from "../plot/CanvasFrame";
 import { Scale } from "../scales/Scale";
 import { Scales } from "../scales/Scales";
 import { LAYER } from "../scene/Marker";
@@ -103,7 +103,7 @@ export namespace Geom {
     length: number,
     layerId: Indexable<DataLayer>,
     layers: DataLayers,
-  ): Frame[] {
+  ): CanvasFrame[] {
     const [layer, getter] = [Array(length), Getter.of(layerId)];
     for (let i = 0; i < length; i++) layer[i] = layers[getter(i)];
     return layer;

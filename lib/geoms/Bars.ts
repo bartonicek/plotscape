@@ -1,4 +1,4 @@
-import { Frame } from "../plot/Frame";
+import { CanvasFrame } from "../plot/CanvasFrame";
 import { Scale } from "../scales/Scale";
 import { Scales } from "../scales/Scales";
 import { LAYER } from "../scene/Marker";
@@ -59,7 +59,7 @@ export namespace Bars {
     ]);
 
     const frames = Geom.frames(n, data[LAYER], layers);
-    Frame.rectanglesWH(frames, x, y, width, height, { hAnchor, vAnchor });
+    CanvasFrame.rectanglesWH(frames, x, y, width, height, { hAnchor, vAnchor });
   }
 
   function check(bars: Bars, selection: Rect) {

@@ -40,11 +40,11 @@ import {
   Representation,
 } from "../utils/types";
 import { Axes } from "./Axes";
-import { Frame } from "./Frame";
+import { CanvasFrame } from "./CanvasFrame";
 import { QueryTable } from "./Querytable";
 
 export type Frames = DataLayers & {
-  [key in `base` | `under` | `over` | `user` | `xAxis` | `yAxis`]: Frame;
+  [key in `base` | `under` | `over` | `user` | `xAxis` | `yAxis`]: CanvasFrame;
 };
 
 /**
@@ -247,7 +247,7 @@ export namespace Plot {
   }
 
   export function render(plot: Plot) {
-    for (const layer of dataLayers) Frame.clear(plot.frames[layer]);
+    for (const layer of dataLayers) CanvasFrame.clear(plot.frames[layer]);
     for (const geom of plot.renderables) Geom.render(geom, plot.frames);
   }
 
@@ -257,7 +257,7 @@ export namespace Plot {
   }
 
   export function clearUserFrame(plot: Plot) {
-    Frame.clear(plot.frames.user);
+    CanvasFrame.clear(plot.frames.user);
   }
 
   export function resize(plot: Plot) {
@@ -273,7 +273,7 @@ export namespace Plot {
       margins[i] = marginLines[i] * em;
     }
 
-    for (const frame of Object.values(plot.frames)) Frame.resize(frame);
+    for (const frame of Object.values(plot.frames)) CanvasFrame.resize(frame);
 
     const [bottom, left] = [margins[0], margins[1]];
     const [top, right] = [clientHeight - margins[2], clientWidth - margins[3]];
@@ -355,7 +355,7 @@ export namespace Plot {
 
     checkSelection(plot, coords);
     Plot.clearUserFrame(plot);
-    Frame.rectangleXY(frames.user, ...coords, 1);
+    CanvasFrame.rectangleXY(frames.user, ...coords, 1);
   }
 
   export function setMode(plot: Plot, mode: Mode) {
@@ -387,7 +387,7 @@ export namespace Plot {
     Plot.checkSelection(plot);
     Reactive.dispatch(plot, `lock-others`);
     Plot.clearUserFrame(plot);
-    Frame.rectangleXY(frames.user, ...parameters.mousecoords, 1);
+    CanvasFrame.rectangleXY(frames.user, ...parameters.mousecoords, 1);
   }
 
   function pan(plot: Plot, event: MouseEvent) {
@@ -480,7 +480,7 @@ export namespace Plot {
   export function fade(plot: Plot) {
     const { frames } = plot;
     for (const layer of baseLayers) {
-      Frame.setAlpha(frames[layer], (a) => (a * 9) / 10);
+      CanvasFrame.setAlpha(frames[layer], (a) => (a * 9) / 10);
     }
     Plot.render(plot);
   }
@@ -488,7 +488,7 @@ export namespace Plot {
   export function unfade(plot: Plot) {
     const { frames } = plot;
     for (const layer of baseLayers) {
-      Frame.setAlpha(frames[layer], (a) => (a * 10) / 9);
+      CanvasFrame.setAlpha(frames[layer], (a) => (a * 10) / 9);
     }
     Plot.render(plot);
   }
@@ -496,7 +496,7 @@ export namespace Plot {
   export function reset(plot: Plot) {
     const { frames, scales } = plot;
 
-    for (const layer of baseLayers) Frame.resetAlpha(frames[layer]);
+    for (const layer of baseLayers) CanvasFrame.resetAlpha(frames[layer]);
     for (const scale of Object.values(scales)) Scale.restore(scale);
 
     plot.zoomStack.length = 1;
@@ -726,12 +726,17 @@ function setupFrames(plot: Plot, options: GraphicalOptions) {
     const color = colors[layer];
     const contextProps = { fillStyle: color, strokeStyle: color };
 
-    const frame = Frame.of({ classes, contextProps, canvasStyles, margins });
+    const frame = CanvasFrame.of({
+      classes,
+      contextProps,
+      canvasStyles,
+      margins,
+    });
     frames[layer] = frame;
   }
 
-  const base = Frame.of({ classes: classes + "tw-bg-gray-100" });
-  Frame.setContext(base, {
+  const base = CanvasFrame.of({ classes: classes + "tw-bg-gray-100" });
+  CanvasFrame.setContext(base, {
     font: `${ts}em sans-serif`,
     textBaseline: `middle`,
     textAlign: `center`,
@@ -741,29 +746,29 @@ function setupFrames(plot: Plot, options: GraphicalOptions) {
   const width = `calc(100% - ${left}px - ${right}px)`;
   const height = `calc(100% - ${bottom}px - ${top}px)`;
   const canvasStyles = { width, height, top: top + `px`, right: right + `px` };
-  const under = Frame.of({
+  const under = CanvasFrame.of({
     classes: classes + "tw-z-1 tw-bg-white",
     canvasStyles,
   });
 
   const overClasses = "tw-z-10 tw-border tw-border-b-black tw-border-l-black";
-  const over = Frame.of({ classes: classes + overClasses, canvasStyles });
+  const over = CanvasFrame.of({ classes: classes + overClasses, canvasStyles });
 
-  const user = Frame.of({ classes: classes + "tw-z-10", margins });
-  Frame.setContext(user, { globalAlpha: 1 / 15 });
+  const user = CanvasFrame.of({ classes: classes + "tw-z-10", margins });
+  CanvasFrame.setContext(user, { globalAlpha: 1 / 15 });
 
   const fillStyle = `#3B4854`;
 
-  const xAxis = Frame.of({ classes: classes });
-  Frame.setContext(xAxis, {
+  const xAxis = CanvasFrame.of({ classes: classes });
+  CanvasFrame.setContext(xAxis, {
     fillStyle,
     textBaseline: `top`,
     textAlign: `center`,
     font: `${ls}em serif`,
   });
 
-  const yAxis = Frame.of({ classes: classes });
-  Frame.setContext(yAxis, {
+  const yAxis = CanvasFrame.of({ classes: classes });
+  CanvasFrame.setContext(yAxis, {
     fillStyle: `#3B4854`,
     textBaseline: `middle`,
     textAlign: `right`,
@@ -775,7 +780,7 @@ function setupFrames(plot: Plot, options: GraphicalOptions) {
   for (let [k, v] of Object.entries(frames)) {
     if (!isNaN(parseFloat(k))) k = `data-` + k;
     v.canvas.id = `frame-${k}`;
-    Frame.append(v, container);
+    CanvasFrame.append(v, container);
   }
 }
 
