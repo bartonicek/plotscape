@@ -52,7 +52,8 @@ export namespace Meta {
     const keys = props ?? Object.keys(source[METADATA]);
     for (const key of keys as string[]) {
       // Need to use get() here in case e.g. `length`
-      target[METADATA]![key] = get(source, key as MetadataKey<T>);
+      const copy = structuredClone(get(source, key as MetadataKey<T>));
+      target[METADATA]![key] = copy;
     }
   }
 

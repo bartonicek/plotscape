@@ -70,8 +70,7 @@ export namespace Factor {
     const positions = (index: number) => [index];
 
     data = data ?? ({} as T);
-
-    for (const v of Object.values(data!)) Meta.set(v, { queryable: true });
+    for (const v of Object.values(data)) Meta.set(v, { queryable: true });
 
     const type: Type = `bijection`;
     const factorData = { ...data, [Factor.POSITIONS]: positions };
