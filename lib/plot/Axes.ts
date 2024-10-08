@@ -80,6 +80,7 @@ export namespace Axes {
   }
 
   export function renderTitles(plot: Plot) {
+    Frame.clear(plot.frames.base);
     renderXAxisTitle(plot);
     renderYAxisTitle(plot);
   }
