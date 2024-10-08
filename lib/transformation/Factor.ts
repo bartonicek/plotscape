@@ -61,9 +61,9 @@ export namespace Factor {
    * @param data An optional dataframe
    * @returns The factor
    */
-  export function bijection<T extends Dataframe | undefined>(
+  export function bijection<T extends Dataframe>(
     n: number,
-    data: T,
+    data?: T,
   ): Factor<Flat<T & { [Factor.POSITIONS]: Indexable<number[]> }>> {
     const cardinality = Infinity;
     const indices = new Uint32Array(seq(0, n));

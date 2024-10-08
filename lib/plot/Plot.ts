@@ -467,13 +467,13 @@ export namespace Plot {
   }
 
   export function shrink(plot: Plot) {
-    const { area: a, size: sz, width: w } = plot.scales;
+    const { area: a, size: s, width: w } = plot.scales;
     const k = 9 / 10;
 
     // Silent to avoid unnecessary re-renders
     const opts = { silent: true };
     Expanse.set(a.codomain, (e) => ({ min: e.min * k, max: e.max * k }), opts);
-    Expanse.set(sz.codomain, (e) => ({ min: e.min * k, max: e.max * k }), opts);
+    Expanse.set(s.codomain, (e) => ({ min: e.min * k, max: e.max * k }), opts);
     Expanse.set(w.codomain, (e) => ({ mult: (e.mult * 9) / 10 }), opts);
 
     Plot.render(plot);
