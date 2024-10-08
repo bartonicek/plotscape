@@ -10,12 +10,6 @@ export type MapFn<T> = (next: T) => T;
 export type ReduceFn<T, U> = (prev: U, next: T) => U;
 
 export type Stringable = { toString(): string };
-
-export type Indexable<T = any> = T | ((index: number) => T) | T[];
-export type IndexableValue<T extends Indexable> =
-  T extends Indexable<infer U> ? U : never;
-export type Indexables = Record<string, Indexable>;
-
 export type Columns = Record<string, any[]>;
 export type UntypedColumns<S extends string[]> = { [key in S[number]]: any[] };
 export type Direction = 1 | -1;

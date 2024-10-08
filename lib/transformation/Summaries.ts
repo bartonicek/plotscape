@@ -1,7 +1,8 @@
 import { Dataframe } from "../utils/Dataframe";
+import { Indexable } from "../utils/Indexable";
 import { Reactive } from "../utils/Reactive";
 import { copyValues, isIntegerString, merge } from "../utils/funs";
-import { Columns, Flat, Indexable } from "../utils/types";
+import { Columns, Flat } from "../utils/types";
 import { Factor } from "./Factor";
 import { Reduced } from "./Reduced";
 import { Reducer } from "./Reducer";

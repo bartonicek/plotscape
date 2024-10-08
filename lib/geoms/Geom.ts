@@ -7,10 +7,11 @@ import { Reduced } from "../transformation/Reduced";
 import { Dataframe } from "../utils/Dataframe";
 import { last } from "../utils/funs";
 import { Getter } from "../utils/Getter";
+import { Indexable } from "../utils/Indexable";
 import { Meta } from "../utils/Meta";
 import { Poly } from "../utils/Poly";
 import { Reactive } from "../utils/Reactive";
-import { DataLayer, DataLayers, Indexable, Point, Rect } from "../utils/types";
+import { DataLayer, DataLayers, Point, Rect } from "../utils/types";
 
 export type FlatData = { [Factor.POSITIONS]: Indexable<number[]> };
 export type GroupedData = {

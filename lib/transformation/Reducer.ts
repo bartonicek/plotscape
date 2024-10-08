@@ -1,7 +1,7 @@
 import { isObject } from "../main";
 import { Getter } from "../utils/Getter";
+import { Indexable } from "../utils/Indexable";
 import { Meta } from "../utils/Meta";
-import { Indexable } from "../utils/types";
 import { Factor } from "./Factor";
 import { Reduced } from "./Reduced";
 

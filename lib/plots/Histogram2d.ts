@@ -10,9 +10,10 @@ import { Reduced } from "../transformation/Reduced";
 import { Reducer } from "../transformation/Reducer";
 import { Summaries } from "../transformation/Summaries";
 import { minmax, one } from "../utils/funs";
+import { Indexable } from "../utils/Indexable";
 import { Meta } from "../utils/Meta";
 import { Reactive } from "../utils/Reactive";
-import { Columns, Indexable } from "../utils/types";
+import { Columns } from "../utils/types";
 
 interface Coordinates {
   x0: Indexable<number>;

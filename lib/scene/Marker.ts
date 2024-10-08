@@ -1,7 +1,8 @@
 import { Factor } from "../transformation/Factor";
+import { Indexable } from "../utils/Indexable";
 import { Meta } from "../utils/Meta";
 import { Reactive } from "../utils/Reactive";
-import { DataLayer, Indexable } from "../utils/types";
+import { DataLayer } from "../utils/types";
 
 export const Transient = 255 as const;
 export type Transient = typeof Transient;

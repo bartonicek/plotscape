@@ -10,8 +10,9 @@ import { Reduced } from "../transformation/Reduced";
 import { Reducer } from "../transformation/Reducer";
 import { Summaries } from "../transformation/Summaries";
 import { max, one } from "../utils/funs";
+import { Indexable } from "../utils/Indexable";
 import { Reactive } from "../utils/Reactive";
-import { Columns, Indexable, VAnchor } from "../utils/types";
+import { Columns, VAnchor } from "../utils/types";
 
 interface Summaries {
   label: string[];

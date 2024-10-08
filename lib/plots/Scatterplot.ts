@@ -6,7 +6,8 @@ import { InferScales, Scales } from "../scales/Scales";
 import { Scene } from "../scene/Scene";
 import { Factor } from "../transformation/Factor";
 import { Summaries } from "../transformation/Summaries";
-import { Columns, Indexable } from "../utils/types";
+import { Indexable } from "../utils/Indexable";
+import { Columns } from "../utils/types";
 
 export interface Scatterplot extends Plot {
   scales: InferScales<{}>;

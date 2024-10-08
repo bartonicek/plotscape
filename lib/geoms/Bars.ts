@@ -5,15 +5,9 @@ import { LAYER } from "../scene/Marker";
 import { Factor } from "../transformation/Factor";
 import { findLength, pointInRect, rectsIntersect } from "../utils/funs";
 import { Getter } from "../utils/Getter";
+import { Indexable } from "../utils/Indexable";
 import { Poly } from "../utils/Poly";
-import {
-  DataLayers,
-  HAnchor,
-  Indexable,
-  Point,
-  Rect,
-  VAnchor,
-} from "../utils/types";
+import { DataLayers, HAnchor, Point, Rect, VAnchor } from "../utils/types";
 import { Geom } from "./Geom";
 
 interface Data {

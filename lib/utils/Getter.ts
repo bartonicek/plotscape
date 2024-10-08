@@ -1,7 +1,8 @@
 import { Dataframe } from "./Dataframe";
 import { isObject, isTypedArray } from "./funs";
+import { Indexable } from "./Indexable";
 import { Meta } from "./Meta";
-import { Indexable, IndexableValue, TypedArray } from "./types";
+import { TypedArray } from "./types";
 
 type Getter<T> = (index: number) => T;
 
@@ -54,7 +55,7 @@ export namespace Getter {
     for (const k of Reflect.ownKeys(indexables)) {
       result[k] = Getter.of(indexables[k]);
     }
-    return result as { [key in keyof T]: Getter<IndexableValue<T[key]>> };
+    return result as { [key in keyof T]: Getter<Indexable.Value<T[key]>> };
   }
 
   export function array<T>(n: number, indexable: Indexable<T>) {

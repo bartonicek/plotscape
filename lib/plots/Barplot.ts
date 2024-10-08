@@ -11,9 +11,10 @@ import { Reduced } from "../transformation/Reduced";
 import { Reducer } from "../transformation/Reducer";
 import { Summaries } from "../transformation/Summaries";
 import { cumsum, one, orderIndices, zero } from "../utils/funs";
+import { Indexable } from "../utils/Indexable";
 import { Meta } from "../utils/Meta";
 import { Reactive } from "../utils/Reactive";
-import { Columns, Indexable } from "../utils/types";
+import { Columns } from "../utils/types";
 
 interface Coordinates extends Reactive {
   x: Indexable;

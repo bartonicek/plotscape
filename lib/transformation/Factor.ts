@@ -9,9 +9,10 @@ import {
   subset,
 } from "../utils/funs";
 import { Getter } from "../utils/Getter";
+import { Indexable } from "../utils/Indexable";
 import { Meta } from "../utils/Meta";
 import { Reactive } from "../utils/Reactive";
-import { Flat, Indexable, Stringable, TaggedUnion } from "../utils/types";
+import { Flat, Stringable, TaggedUnion } from "../utils/types";
 
 export interface Factor<T extends Dataframe = Dataframe> extends Reactive {
   type: Factor.Type;

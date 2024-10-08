@@ -1,11 +1,11 @@
 import { Dataframe } from "./Dataframe";
 import { Getter } from "./Getter";
+import { Indexable } from "./Indexable";
 import { Meta } from "./Meta";
 import {
   AnyFn,
   Entries,
   Flat,
-  Indexable,
   Point,
   Primitive,
   Rect,
