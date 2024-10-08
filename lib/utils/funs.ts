@@ -1098,3 +1098,57 @@ export function deepModifyProp(
     if (isObject(v)) deepModifyProp(v, key, fn, result);
   }
 }
+
+export function swap(array: unknown[], i: number, j: number) {
+  const temp = array[i];
+  array[i] = array[j];
+  array[j] = temp;
+}
+
+export function cycles(indices: number[]) {
+  const cycles = [] as number[][];
+  const seen = Array(indices.length).fill(false);
+  let [nSeen, startIndex] = [0, 0];
+
+  while (nSeen < indices.length) {
+    let [prevIndex, currentIndex] = [startIndex, indices[startIndex]];
+    seen[prevIndex] = true;
+
+    // If fixed point, push and continue
+    if (prevIndex === currentIndex) {
+      cycles.push([currentIndex]);
+      startIndex = seen.indexOf(false); // First unseen position
+      nSeen++;
+      continue;
+    }
+
+    seen[currentIndex] = true;
+    const cycle = [prevIndex, currentIndex];
+    nSeen += 2; // We've seen two indices: start index & where it goes
+
+    prevIndex = currentIndex; // Move one step forward in the cycle
+    currentIndex = indices[currentIndex];
+
+    while (currentIndex !== startIndex) {
+      cycle.push(currentIndex);
+      seen[currentIndex] = true;
+
+      prevIndex = currentIndex; // Move one step forward in the cycle
+      currentIndex = indices[currentIndex];
+      nSeen++;
+    }
+
+    cycles.push(cycle);
+    startIndex = seen.indexOf(false); // First unseen position
+  }
+
+  return cycles;
+}
+
+export function permuteWithCycles(array: unknown[], cycles: number[][]) {
+  for (const cycle of cycles) {
+    for (let i = 1; i < cycle.length; i++) {
+      swap(array, cycle[i - 1], cycle[i]);
+    }
+  }
+}
