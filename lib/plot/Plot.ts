@@ -318,8 +318,6 @@ export namespace Plot {
     coords = coords ?? parameters.mousecoords;
     const selectedCases = new Set<number>();
 
-    console.log(coords);
-
     for (const geom of selectables) {
       const selected = Geom.check(geom, coords);
       for (let i = 0; i < selected.length; i++) selectedCases.add(selected[i]);
