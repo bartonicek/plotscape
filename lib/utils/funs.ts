@@ -1,7 +1,7 @@
 import { Dataframe } from "./Dataframe";
 import { Getter } from "./Getter";
 import { Indexable } from "./Indexable";
-import { Meta } from "./Meta";
+import { Metadata } from "./Metadata";
 import {
   AnyFn,
   Entries,
@@ -982,7 +982,7 @@ export function isEventTarget(object: Object): object is EventTarget {
 export function findLength(indexables: (Indexable | undefined)[]) {
   for (const indexable of indexables) {
     if (!indexable) continue;
-    const length = Meta.get(indexable, `length`);
+    const length = Metadata.get(indexable, `length`);
     if (length) return length;
   }
 

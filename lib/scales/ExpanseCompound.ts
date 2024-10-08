@@ -1,4 +1,4 @@
-import { Poly } from "../utils/Poly";
+import { Polymorphic } from "../utils/Polymorphic";
 import { Reactive } from "../utils/Reactive";
 import { Expanse } from "./Expanse";
 import { ExpanseContinuous } from "./ExpanseContinuous";
@@ -28,11 +28,11 @@ export namespace ExpanseCompound {
   }
 
   // Expanse methods implementations
-  Poly.set(Expanse.normalize, type, normalize);
-  Poly.set(Expanse.unnormalize, type, unnormalize);
-  Poly.set(Expanse.train, type, train);
-  Poly.set(Expanse.breaks, type, breaks as any);
-  Poly.set(Expanse.reset, type, reset);
+  Polymorphic.set(Expanse.normalize, type, normalize);
+  Polymorphic.set(Expanse.unnormalize, type, unnormalize);
+  Polymorphic.set(Expanse.train, type, train);
+  Polymorphic.set(Expanse.breaks, type, breaks as any);
+  Polymorphic.set(Expanse.reset, type, reset);
 
   export function normalize(expanse: ExpanseCompound, values: any[]) {
     const { expanses } = expanse;

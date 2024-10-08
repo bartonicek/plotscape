@@ -1,5 +1,5 @@
 import { copyProps, copyValues } from "../utils/funs";
-import { Poly } from "../utils/Poly";
+import { Polymorphic } from "../utils/Polymorphic";
 import { Reactive } from "../utils/Reactive";
 import type { ExpanseBand } from "./ExpanseBand";
 import type { ExpanseCompound } from "./ExpanseCompound";
@@ -28,12 +28,12 @@ export namespace Expanse {
   export type Props<T extends Expanse> = T[`props`];
 
   // Polymorphic functions
-  export const normalize = Poly.of(normalizeDefault);
-  export const unnormalize = Poly.of(unnormalizeDefault);
-  export const train = Poly.of(trainDefault);
-  export const breaks = Poly.of(breaksDefault);
-  export const reorder = Poly.of(reorderDefault);
-  export const reset = Poly.of(resetDefault);
+  export const normalize = Polymorphic.of(normalizeDefault);
+  export const unnormalize = Polymorphic.of(unnormalizeDefault);
+  export const train = Polymorphic.of(trainDefault);
+  export const breaks = Polymorphic.of(breaksDefault);
+  export const reorder = Polymorphic.of(reorderDefault);
+  export const reset = Polymorphic.of(resetDefault);
 
   function normalizeDefault<T extends Expanse>(
     expanse: T,

@@ -16,7 +16,7 @@ import {
   throttle,
   tw,
 } from "../utils/funs";
-import { Meta } from "../utils/Meta";
+import { Metadata } from "../utils/Metadata";
 import { Reactive } from "../utils/Reactive";
 import { Columns, KeyboardKey } from "../utils/types";
 import { defaultOptions, GraphicalOptions } from "./defaultOptions";
@@ -126,8 +126,8 @@ export namespace Scene {
     const opts = Object.assign(defaultOptions, options);
 
     for (const [k, v] of Object.entries(data)) {
-      if (!Meta.hasMetadata(v)) (data as any)[k] = Meta.of(v);
-      if (!Meta.has(v, `name`)) Meta.set(v, { name: k });
+      if (!Metadata.hasMetadata(v)) (data as any)[k] = Metadata.of(v);
+      if (!Metadata.has(v, `name`)) Metadata.set(v, { name: k });
     }
 
     const scene = Reactive.of()({

@@ -1,5 +1,5 @@
 import { formatAxisLabels, invertRange } from "../utils/funs";
-import { Meta } from "../utils/Meta";
+import { Metadata } from "../utils/Metadata";
 import { Reactive } from "../utils/Reactive";
 import { Expanse } from "./Expanse";
 import { ExpanseBand } from "./ExpanseBand";
@@ -189,7 +189,8 @@ export namespace Scale {
     },
   ) {
     const setName = options?.name ?? true;
-    if (setName && Meta.has(array, `name`)) Meta.copy(array, scale, [`name`]);
+    if (setName && Metadata.has(array, `name`))
+      Metadata.copy(array, scale, [`name`]);
 
     // Automatically coerce expanse to band if array is string[]
     if (typeof array[0] === "string" && Expanse.isContinuous(scale.domain)) {

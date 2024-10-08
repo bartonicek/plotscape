@@ -11,7 +11,7 @@ import { Reducer } from "../transformation/Reducer";
 import { Summaries } from "../transformation/Summaries";
 import { minmax, one } from "../utils/funs";
 import { Indexable } from "../utils/Indexable";
-import { Meta } from "../utils/Meta";
+import { Metadata } from "../utils/Metadata";
 import { Reactive } from "../utils/Reactive";
 import { Columns } from "../utils/types";
 
@@ -154,8 +154,8 @@ function histogram2d(plot: Histogram2D) {
   plot.representation = `absolute`;
   Geom.setCoordinates(rectangles, coordinates);
 
-  Meta.copy(data[1].breaks, scales.x, [`name`]);
-  Meta.copy(data[1].breaks$, scales.y, [`name`]);
+  Metadata.copy(data[1].breaks, scales.x, [`name`]);
+  Metadata.copy(data[1].breaks$, scales.y, [`name`]);
 
   Plot.render(plot);
   Plot.renderAxes(plot);
@@ -200,8 +200,8 @@ function spinogram2d(plot: Histogram2D) {
   plot.representation = `proportion`;
   Geom.setCoordinates(rectangles, coordinates);
 
-  Meta.copy(data[1].breaks, scales.x, [`name`]);
-  Meta.copy(data[1].breaks$, scales.y, [`name`]);
+  Metadata.copy(data[1].breaks, scales.x, [`name`]);
+  Metadata.copy(data[1].breaks$, scales.y, [`name`]);
 
   Plot.render(plot);
   Plot.renderAxes(plot);

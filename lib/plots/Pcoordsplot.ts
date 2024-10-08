@@ -10,7 +10,7 @@ import { Scene } from "../scene/Scene";
 import { Factor } from "../transformation/Factor";
 import { Summaries } from "../transformation/Summaries";
 import { Getter } from "../utils/Getter";
-import { Meta } from "../utils/Meta";
+import { Metadata } from "../utils/Metadata";
 import { Reactive } from "../utils/Reactive";
 import { Columns } from "../utils/types";
 
@@ -31,7 +31,7 @@ export function Pcoordsplot<T extends Columns>(
   const { data, marker } = scene;
 
   const vars = selectfn(data);
-  const names = vars.map((x) => Meta.get(x, `name`)) as string[];
+  const names = vars.map((x) => Metadata.get(x, `name`)) as string[];
 
   const x = Getter.constant(names);
   const y = Getter.multi(vars);
@@ -57,8 +57,8 @@ export function Pcoordsplot<T extends Columns>(
   Scale.setDomain(scales.x, ExpanseSplit.of(ExpansePoint.of(names)));
   Scale.setDomain(scales.y, ExpanseCompound.of(domains));
 
-  Meta.set(scales.x, { name: `variable` });
-  Meta.set(scales.y, { name: `value` });
+  Metadata.set(scales.x, { name: `variable` });
+  Metadata.set(scales.y, { name: `value` });
 
   Reactive.listen(plot, `normalize`, () => switchRepresentation(plot));
 

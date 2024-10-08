@@ -12,7 +12,7 @@ import { Reducer } from "../transformation/Reducer";
 import { Summaries } from "../transformation/Summaries";
 import { identity, one, orderIndices, zero } from "../utils/funs";
 import { Indexable } from "../utils/Indexable";
-import { Meta } from "../utils/Meta";
+import { Metadata } from "../utils/Metadata";
 import { Reactive } from "../utils/Reactive";
 import { Columns } from "../utils/types";
 
@@ -145,8 +145,8 @@ function bibarplot(plot: Bibarplot) {
 
   ExpanseBand.setWeights(scales.x.domain);
 
-  const [s1name, s2name] = [stat1, stat2].map((x) => Meta.get(x, `name`));
-  Meta.set(scales.y, { name: `${s2name} / ${s1name}` });
+  const [s1name, s2name] = [stat1, stat2].map((x) => Metadata.get(x, `name`));
+  Metadata.set(scales.y, { name: `${s2name} / ${s1name}` });
 
   const k = 1 / new Set(flat1.x).size;
   const widthProps = { scale: k, mult: 0.9, offset: 0 };
@@ -201,7 +201,7 @@ function normalizedbibarplot(plot: Bibarplot) {
   Scale.train(scales.heightDown, [0, 1], opts);
 
   ExpanseBand.setWeights(scales.x.domain);
-  Meta.set(scales.y, { name: `proportion` });
+  Metadata.set(scales.y, { name: `proportion` });
 
   const k = 1 / new Set(flat1.x).size;
   const widthProps = { scale: k, mult: 0.9, offset: 0 };

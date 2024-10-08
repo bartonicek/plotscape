@@ -1,6 +1,6 @@
 import { Expanse } from "../scales/Expanse";
 import { Scale } from "../scales/Scale";
-import { Meta } from "../utils/Meta";
+import { Metadata } from "../utils/Metadata";
 import { Frame } from "./Frame";
 import { Plot } from "./Plot";
 
@@ -91,7 +91,7 @@ export namespace Axes {
     const other = scales.y;
 
     const frame = frames.base;
-    const name = Meta.get(scale, `name`);
+    const name = Metadata.get(scale, `name`);
     const offset = margins[0];
 
     const x = Expanse.unnormalize(scale.codomain, 0.5);
@@ -107,7 +107,7 @@ export namespace Axes {
     const other = scales.x;
 
     const frame = frames.base;
-    const name = Meta.get(scale, `name`);
+    const name = Metadata.get(scale, `name`);
     const offset = margins[1];
 
     const y = Expanse.unnormalize(scale.codomain, 0.5);

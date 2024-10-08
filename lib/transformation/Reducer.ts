@@ -1,7 +1,7 @@
 import { isObject } from "../main";
 import { Getter } from "../utils/Getter";
 import { Indexable } from "../utils/Indexable";
-import { Meta } from "../utils/Meta";
+import { Metadata } from "../utils/Metadata";
 import { Factor } from "./Factor";
 import { Reduced } from "./Reduced";
 
@@ -85,16 +85,16 @@ export namespace Reducer {
     }
 
     const result = Reduced.of(array, factor, reducer);
-    if (isObject(values)) Meta.copy(values, result);
+    if (isObject(values)) Metadata.copy(values, result);
 
     const name = getName(array, reducer) ?? `[unknown summary]`;
-    Meta.set(result, { name, queryable: true, reduced: true });
+    Metadata.set(result, { name, queryable: true, reduced: true });
 
     return result;
   }
 
   export function getName(reducable: Indexable, reducer: Reducer) {
-    if (!Meta.has(reducable, `name`)) return reducer.fallback;
-    return `${reducer.name} of ${Meta.get(reducable, `name`)}`;
+    if (!Metadata.has(reducable, `name`)) return reducer.fallback;
+    return `${reducer.name} of ${Metadata.get(reducable, `name`)}`;
   }
 }

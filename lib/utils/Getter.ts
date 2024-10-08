@@ -1,7 +1,7 @@
 import { Dataframe } from "./Dataframe";
 import { isObject, isTypedArray } from "./funs";
 import { Indexable } from "./Indexable";
-import { Meta } from "./Meta";
+import { Metadata } from "./Metadata";
 import { TypedArray } from "./types";
 
 type Getter<T> = (index: number) => T;
@@ -14,13 +14,13 @@ export namespace Getter {
 
     if (Array.isArray(indexable)) {
       const getter = (index: number) => indexable[index];
-      Meta.set(getter, { length: indexable.length });
+      Metadata.set(getter, { length: indexable.length });
       return getter;
     }
 
     if (isTypedArray(indexable)) {
       const getter = (index: number) => indexable[index];
-      Meta.set(getter, { length: indexable.length });
+      Metadata.set(getter, { length: indexable.length });
       return getter;
     }
 
@@ -37,16 +37,16 @@ export namespace Getter {
   ): Getter<T> {
     const getter = Getter.of(indexable);
     const proxyGetter = (index: number) => getter(indices[index]);
-    if (isObject(indexable)) Meta.copy(indexable, proxyGetter);
+    if (isObject(indexable)) Metadata.copy(indexable, proxyGetter);
 
-    Meta.set(proxyGetter, { length: indices.length });
+    Metadata.set(proxyGetter, { length: indices.length });
     return proxyGetter;
   }
 
   export function multi<T extends Indexable[]>(indexables: T): Getter<any[]> {
     const getters = indexables.map(Getter.of);
     const getter = (index: number) => getters.map((x) => x(index));
-    Meta.copy(indexables[0], getter, [`length`]);
+    Metadata.copy(indexables[0], getter, [`length`]);
     return getter;
   }
 

@@ -6,7 +6,7 @@ import {
   ordered,
   seqLength,
 } from "../utils/funs";
-import { Poly } from "../utils/Poly";
+import { Polymorphic } from "../utils/Polymorphic";
 import { Reactive } from "../utils/Reactive";
 import { Expanse } from "./Expanse";
 
@@ -49,11 +49,11 @@ export namespace ExpanseBand {
   }
 
   // Expanse methods implementations
-  Poly.set(Expanse.normalize, type, normalize);
-  Poly.set(Expanse.unnormalize, type, unnormalize);
-  Poly.set(Expanse.train, type, train);
-  Poly.set(Expanse.breaks, type, breaks);
-  Poly.set(Expanse.reorder, type, reorder);
+  Polymorphic.set(Expanse.normalize, type, normalize);
+  Polymorphic.set(Expanse.unnormalize, type, unnormalize);
+  Polymorphic.set(Expanse.train, type, train);
+  Polymorphic.set(Expanse.breaks, type, breaks);
+  Polymorphic.set(Expanse.reorder, type, reorder);
 
   export function normalize(
     expanse: ExpanseBand,

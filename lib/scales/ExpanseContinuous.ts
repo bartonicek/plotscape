@@ -1,6 +1,6 @@
 import { diff, identity, minmax, prettyBreaks } from "../utils/funs";
-import { Meta } from "../utils/Meta";
-import { Poly } from "../utils/Poly";
+import { Metadata } from "../utils/Metadata";
+import { Polymorphic } from "../utils/Polymorphic";
 import { Expanse } from "./Expanse";
 
 /**
@@ -40,10 +40,10 @@ export namespace ExpanseContinuous {
   }
 
   // Expanse methods implementations
-  Poly.set(Expanse.normalize, type, normalize);
-  Poly.set(Expanse.unnormalize, type, unnormalize);
-  Poly.set(Expanse.train, type, train);
-  Poly.set(Expanse.breaks, type, breaks);
+  Polymorphic.set(Expanse.normalize, type, normalize);
+  Polymorphic.set(Expanse.unnormalize, type, unnormalize);
+  Polymorphic.set(Expanse.train, type, train);
+  Polymorphic.set(Expanse.breaks, type, breaks);
 
   export function normalize(expanse: ExpanseContinuous, value: number) {
     const { min, max, offset, trans } = expanse.props;
@@ -61,7 +61,7 @@ export namespace ExpanseContinuous {
     options?: { default?: boolean; silent?: boolean; ratio?: true },
   ) {
     const { ratio } = expanse.props;
-    let [min, max] = Meta.get(array, [`min`, `max`]);
+    let [min, max] = Metadata.get(array, [`min`, `max`]);
     if (!min || !max) [min, max] = minmax(array);
 
     min = ratio || options?.ratio ? 0 : min;

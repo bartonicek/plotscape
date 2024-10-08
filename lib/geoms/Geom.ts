@@ -8,8 +8,8 @@ import { Dataframe } from "../utils/Dataframe";
 import { last } from "../utils/funs";
 import { Getter } from "../utils/Getter";
 import { Indexable } from "../utils/Indexable";
-import { Meta } from "../utils/Meta";
-import { Poly } from "../utils/Poly";
+import { Metadata } from "../utils/Metadata";
+import { Polymorphic } from "../utils/Polymorphic";
 import { Reactive } from "../utils/Reactive";
 import { DataLayer, DataLayers, Point, Rect } from "../utils/types";
 
@@ -47,9 +47,9 @@ export namespace Geom {
   }
 
   // Polymorphic functions
-  export const render = Poly.of(renderDefault);
-  export const check = Poly.of(checkDefault);
-  export const query = Poly.of(queryDefault);
+  export const render = Polymorphic.of(renderDefault);
+  export const check = Polymorphic.of(checkDefault);
+  export const query = Polymorphic.of(queryDefault);
 
   // @ts-ignore - Need to infer function signatures
   function renderDefault<T extends Geom>(geom: T, layers: DataLayers) {
@@ -151,10 +151,10 @@ export namespace Geom {
     const dimension = options?.dimension;
 
     for (const v of Object.values(data)) {
-      if (dimension === `exclude` && Meta.get(v, `isDimension`)) continue;
-      if (dimension === `only` && !Meta.get(v, `isDimension`)) continue;
+      if (dimension === `exclude` && Metadata.get(v, `isDimension`)) continue;
+      if (dimension === `only` && !Metadata.get(v, `isDimension`)) continue;
 
-      const [n, q, r] = Meta.get(v, [`name`, `queryable`, `reduced`]);
+      const [n, q, r] = Metadata.get(v, [`name`, `queryable`, `reduced`]);
       if (!n || !q) continue;
 
       // Get original values because might be e.g. stacked/shifted otherwise

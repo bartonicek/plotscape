@@ -9,4 +9,4 @@ export * from "./transformation/Factor";
 export * from "./transformation/Reducer";
 export * from "./utils/datasetSchemas";
 export * from "./utils/funs";
-export * from "./utils/Poly";
+export * from "./utils/Polymorphic";

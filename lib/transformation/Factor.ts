@@ -10,7 +10,7 @@ import {
 } from "../utils/funs";
 import { Getter } from "../utils/Getter";
 import { Indexable } from "../utils/Indexable";
-import { Meta } from "../utils/Meta";
+import { Metadata } from "../utils/Metadata";
 import { Reactive } from "../utils/Reactive";
 import { Flat, Stringable, TaggedUnion } from "../utils/types";
 
@@ -43,7 +43,7 @@ export namespace Factor {
     for (const k of Reflect.ownKeys(source.data)) {
       if (Array.isArray(source.data[k]) && Array.isArray(target.data[k])) {
         copyValues(source.data[k], target.data[k]);
-        Meta.copy(source.data[k], target.data[k]);
+        Metadata.copy(source.data[k], target.data[k]);
       } else {
         target.data[k] = source.data[k];
       }
@@ -71,7 +71,7 @@ export namespace Factor {
     const positions = (index: number) => [index];
 
     data = data ?? ({} as T);
-    for (const v of Object.values(data)) Meta.set(v, { queryable: true });
+    for (const v of Object.values(data)) Metadata.set(v, { queryable: true });
 
     const type: Type = `bijection`;
     const factorData = { ...data, [Factor.POSITIONS]: positions };
@@ -111,7 +111,7 @@ export namespace Factor {
     const arr = array.map((x) => x.toString());
     labels = labels ?? Array.from(new Set(arr)).sort(compareAlphaNumeric);
 
-    if (Meta.has(array, `name`)) Meta.copy(array, labels, [`name`]);
+    if (Metadata.has(array, `name`)) Metadata.copy(array, labels, [`name`]);
 
     const indices = new Uint32Array(array.length);
     const positions = {} as Record<number, number[]>;
@@ -124,7 +124,7 @@ export namespace Factor {
       positions[index].push(i);
     }
 
-    Meta.set(labels, { queryable: true, isDimension: true });
+    Metadata.set(labels, { queryable: true, isDimension: true });
 
     const pos = Object.values(positions);
     const type: Type = `surjection`;
@@ -187,14 +187,14 @@ export namespace Factor {
 
       const [min, max] = [breaks[sorted[0]], breaks[last(sorted) + 1]];
 
-      const minName = `min of ${Meta.get(array, `name`)}`;
-      const maxName = `max of ${Meta.get(array, `name`)}`;
+      const minName = `min of ${Metadata.get(array, `name`)}`;
+      const maxName = `max of ${Metadata.get(array, `name`)}`;
 
       const opts = { queryable: true, isDimension: true };
 
-      Meta.set(binMin, { min, max, name: minName, ...opts });
-      Meta.set(binMax, { min, max, name: maxName, ...opts });
-      Meta.copy(array, breaks, [`name`]);
+      Metadata.set(binMin, { min, max, name: minName, ...opts });
+      Metadata.set(binMax, { min, max, name: maxName, ...opts });
+      Metadata.copy(array, breaks, [`name`]);
 
       const pos = Object.values(positions);
       const type: Type = `surjection`;
@@ -236,12 +236,12 @@ export namespace Factor {
 
         for (const k of Reflect.ownKeys(factor1.data)) {
           data[k] = Getter.of(factor1.data[k]);
-          Meta.copy(factor1.data[k], data[k]);
+          Metadata.copy(factor1.data[k], data[k]);
         }
 
         for (const k of Reflect.ownKeys(factor2.data)) {
           data[k] = Getter.proxy(factor2.data[k], factor2.indices);
-          Meta.copy(factor2.data[k], data[k]);
+          Metadata.copy(factor2.data[k], data[k]);
         }
 
         const type: Type = `bijection`;
@@ -331,7 +331,7 @@ export namespace Factor {
           ? subset(oldCol, inds)
           : Getter.proxy(oldCol, inds);
 
-        Meta.copy(oldCol, newCol);
+        Metadata.copy(oldCol, newCol);
         data[newKey] = newCol;
       }
 
@@ -345,7 +345,7 @@ export namespace Factor {
           ? subset(oldCol, inds)
           : Getter.proxy(oldCol, inds);
 
-        Meta.copy(oldCol, newCol);
+        Metadata.copy(oldCol, newCol);
         data[newKey] = newCol;
       }
 

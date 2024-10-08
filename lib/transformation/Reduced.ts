@@ -1,6 +1,6 @@
 import { subset } from "../utils/funs";
 import { Getter } from "../utils/Getter";
-import { Meta } from "../utils/Meta";
+import { Metadata } from "../utils/Metadata";
 import { Factor } from "./Factor";
 import { Reducer } from "./Reducer";
 
@@ -53,7 +53,7 @@ export namespace Reduced {
     setIndices(result, parentIndices);
     result[ORIGINAL_VALUES] = reduced[ORIGINAL_VALUES];
 
-    Meta.copy(reduced, result, [`name`, `queryable`, `reduced`]);
+    Metadata.copy(reduced, result, [`name`, `queryable`, `reduced`]);
 
     return result;
   }
@@ -84,7 +84,7 @@ export namespace Reduced {
     if (indices) setIndices(result, indices);
     result[ORIGINAL_VALUES] = reduced[ORIGINAL_VALUES];
 
-    Meta.copy(reduced, result, [`name`, `queryable`, `reduced`]);
+    Metadata.copy(reduced, result, [`name`, `queryable`, `reduced`]);
 
     return result;
   }
@@ -111,7 +111,7 @@ export namespace Reduced {
     if (indices) setIndices(result, indices);
     result[ORIGINAL_VALUES] = reduced[ORIGINAL_VALUES];
 
-    Meta.copy(reduced, result, [`name`, `queryable`, `reduced`]);
+    Metadata.copy(reduced, result, [`name`, `queryable`, `reduced`]);
 
     return result;
   }
@@ -129,7 +129,7 @@ export namespace Reduced {
     if (indices) setIndices(result, indices);
     result[ORIGINAL_VALUES] = reduced[ORIGINAL_VALUES];
 
-    Meta.copy(reduced, result, [`name`, `queryable`]);
+    Metadata.copy(reduced, result, [`name`, `queryable`]);
 
     return result;
   }

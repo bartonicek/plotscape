@@ -6,7 +6,7 @@ import { Factor } from "../transformation/Factor";
 import { findLength, pointInRect, rectsIntersect } from "../utils/funs";
 import { Getter } from "../utils/Getter";
 import { Indexable } from "../utils/Indexable";
-import { Poly } from "../utils/Poly";
+import { Polymorphic } from "../utils/Polymorphic";
 import { DataLayers, HAnchor, Point, Rect, VAnchor } from "../utils/types";
 import { Geom } from "./Geom";
 
@@ -41,9 +41,9 @@ export namespace Bars {
   }
 
   // Polymorphic method implementations
-  Poly.set(Geom.render, type, render);
-  Poly.set(Geom.check, type, check);
-  Poly.set(Geom.query, type, query);
+  Polymorphic.set(Geom.render, type, render);
+  Polymorphic.set(Geom.check, type, check);
+  Polymorphic.set(Geom.query, type, query);
 
   function render(bars: Bars, layers: DataLayers) {
     const { scales, hAnchor, vAnchor } = bars;

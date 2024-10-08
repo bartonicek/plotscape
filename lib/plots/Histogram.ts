@@ -11,7 +11,7 @@ import { Summaries } from "../transformation/Summaries";
 import { Dataframe } from "../utils/Dataframe";
 import { minmax, one, zero } from "../utils/funs";
 import { Indexable } from "../utils/Indexable";
-import { Meta } from "../utils/Meta";
+import { Metadata } from "../utils/Metadata";
 import { Reactive } from "../utils/Reactive";
 import { Columns } from "../utils/types";
 
@@ -144,8 +144,8 @@ function histogram(plot: Histogram) {
     Scale.train(scales.y, flat.y1, { default: true, ratio: true });
   });
 
-  Meta.copy(data[1].breaks, scales.x, [`name`]);
-  Meta.copy(flat.y1, scales.y, [`name`]);
+  Metadata.copy(data[1].breaks, scales.x, [`name`]);
+  Metadata.copy(flat.y1, scales.y, [`name`]);
 
   Geom.setCoordinates(rectangles, coordinates as any);
 
@@ -187,8 +187,8 @@ function spinogram(plot: Histogram) {
     Scale.train(scales.x, [0, ...flat.x1], { default: true, name: false });
   });
 
-  Meta.set(scales.x, { name: `cumulative count` });
-  Meta.set(scales.y, { name: `proportion` });
+  Metadata.set(scales.x, { name: `cumulative count` });
+  Metadata.set(scales.y, { name: `proportion` });
 
   Geom.setCoordinates(rectangles, coordinates as any);
   plot.representation = `proportion`;

@@ -12,7 +12,7 @@ import { Reducer } from "../transformation/Reducer";
 import { Summaries } from "../transformation/Summaries";
 import { cumsum, one, orderIndices, zero } from "../utils/funs";
 import { Indexable } from "../utils/Indexable";
-import { Meta } from "../utils/Meta";
+import { Metadata } from "../utils/Metadata";
 import { Reactive } from "../utils/Reactive";
 import { Columns } from "../utils/types";
 
@@ -106,7 +106,7 @@ function barplot(plot: Barplot) {
   Scale.set(scales.width, () => widthProps, { default: true });
   Expanse.set(scales.width.codomain, () => ({ offset: 0 }), { default: true });
 
-  Meta.copy(flat.height, scales.y, [`name`]);
+  Metadata.copy(flat.height, scales.y, [`name`]);
 
   Reactive.removeAll(plot, `reorder`);
   Reactive.listen(plot, `reorder`, () =>
@@ -148,7 +148,7 @@ function spineplot(plot: Barplot) {
   Scale.set(scales.width, () => widthProps, { default: true });
   Expanse.set(scales.width.codomain, () => ({ offset: -1 }), { default: true });
 
-  Meta.set(scales.y, { name: `proportion` });
+  Metadata.set(scales.y, { name: `proportion` });
 
   Reactive.removeAll(plot, `reorder`);
   Reactive.listen(plot, `reorder`, () => sortAxis(scales.x.domain, flat.width));

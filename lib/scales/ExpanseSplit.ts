@@ -1,5 +1,5 @@
 import { identity } from "../utils/funs";
-import { Poly } from "../utils/Poly";
+import { Polymorphic } from "../utils/Polymorphic";
 import { Expanse } from "./Expanse";
 import { ExpanseContinuous } from "./ExpanseContinuous";
 
@@ -23,15 +23,15 @@ export namespace ExpanseSplit {
   }
 
   // Expanse methods implementations
-  Poly.set(Expanse.normalize, type, normalize);
-  Poly.set(Expanse.unnormalize, type, unnormalize);
-  Poly.set(Expanse.train, type, train as any);
-  Poly.set(Expanse.breaks, type, breaks);
+  Polymorphic.set(Expanse.normalize, type, normalize);
+  Polymorphic.set(Expanse.unnormalize, type, unnormalize);
+  Polymorphic.set(Expanse.train, type, train as any);
+  Polymorphic.set(Expanse.breaks, type, breaks);
 
   export function normalize<T>(expanse: ExpanseSplit<T>, values: T[]) {
     const { innerType } = expanse.props;
 
-    const fn = Poly.dispatch(Expanse.normalize, identity, innerType);
+    const fn = Polymorphic.dispatch(Expanse.normalize, identity, innerType);
 
     if (Array.isArray(values)) return values.map((x) => fn(expanse, x));
     return fn(expanse, values);
@@ -39,7 +39,7 @@ export namespace ExpanseSplit {
 
   export function unnormalize<T>(expanse: ExpanseSplit<T>, values: number[]) {
     const { innerType } = expanse.props;
-    const fn = Poly.dispatch(Expanse.unnormalize, identity, innerType);
+    const fn = Polymorphic.dispatch(Expanse.unnormalize, identity, innerType);
 
     if (Array.isArray(values)) return values.map((x) => fn(expanse, x));
     return fn(expanse, values);
@@ -47,13 +47,13 @@ export namespace ExpanseSplit {
 
   export function train<T>(expanse: ExpanseSplit<T>, array: T[]) {
     const { innerType } = expanse.props;
-    const fn = Poly.dispatch(Expanse.train, identity, innerType);
+    const fn = Polymorphic.dispatch(Expanse.train, identity, innerType);
     fn(expanse, array);
   }
 
   export function breaks<T>(expanse: ExpanseSplit<T>) {
     const { innerType } = expanse.props;
-    const fn = Poly.dispatch(Expanse.breaks, identity, innerType);
+    const fn = Polymorphic.dispatch(Expanse.breaks, identity, innerType);
     return fn(expanse);
   }
 }
