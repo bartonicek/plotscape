@@ -61,9 +61,11 @@ export namespace ExpanseContinuous {
     options?: { default?: boolean; silent?: boolean; ratio?: true },
   ) {
     const { ratio } = expanse.props;
-    let [min, max] = Metadata.get(array, [`min`, `max`]);
-    if (!min || !max) [min, max] = minmax(array);
 
+    let min = Metadata.get(array, `min`) as number | undefined;
+    let max = Metadata.get(array, `max`) as number | undefined;
+
+    if (!min || !max) [min, max] = minmax(array);
     min = ratio || options?.ratio ? 0 : min;
     Expanse.set(expanse, () => ({ min, max }), options);
   }

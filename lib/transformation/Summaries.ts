@@ -2,7 +2,7 @@ import { Dataframe } from "../utils/Dataframe";
 import { Indexable } from "../utils/Indexable";
 import { Reactive } from "../utils/Reactive";
 import { copyValues, isIntegerString, merge } from "../utils/funs";
-import { Columns, Flat } from "../utils/types";
+import { AnyFn, Columns, Flat } from "../utils/types";
 import { Factor } from "./Factor";
 import { Reduced } from "./Reduced";
 import { Reducer } from "./Reducer";
@@ -12,7 +12,7 @@ type Computed<T extends Record<string, ReducerTuple>> = {
   [key in keyof T]: Reduced<ReturnType<T[key][1][`reducefn`]>>;
 } & Reactive;
 
-type TranslateFn<T extends Dataframe = any> = (data: T) => Dataframe;
+type TranslateFn<T extends Dataframe = Dataframe> = (data: T) => Dataframe;
 type TranslateFns<T extends readonly Dataframe[]> = T extends readonly [
   infer U extends Dataframe,
   ...infer Rest extends readonly Dataframe[],
@@ -104,7 +104,7 @@ export namespace Summaries {
       });
 
       function compute(data: Dataframe) {
-        const computed = translatefns[i](data);
+        const computed = (translatefns[i] as AnyFn)(data);
         const keys = Reflect.ownKeys(data);
 
         for (const key of keys) {
