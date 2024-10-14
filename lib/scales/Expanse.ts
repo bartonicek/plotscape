@@ -20,7 +20,7 @@ export interface Expanse<T = any> extends Reactive {
 }
 
 export namespace Expanse {
-  export type Opaque = `value` | `dimensionality`;
+  export type OpaqueProps = `value` | `dimensionality`;
   export type Type = `continuous` | `point` | `band` | `compound` | `split`;
 
   export type Value<T extends Expanse> = T[`value`];
