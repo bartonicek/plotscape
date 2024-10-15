@@ -3,7 +3,8 @@ import { Scale } from "../scales/Scale";
 import { Scales } from "../scales/Scales";
 import { LAYER } from "../scene/Marker";
 import { Factor } from "../transformation/Factor";
-import { findLength, pointInRect, rectsIntersect } from "../utils/funs";
+import { Dataframe } from "../utils/Dataframe";
+import { pointInRect, rectsIntersect } from "../utils/funs";
 import { Getter } from "../utils/Getter";
 import { Indexable } from "../utils/Indexable";
 import { Polymorphic } from "../utils/Polymorphic";
@@ -37,8 +38,8 @@ export namespace Points {
   export function render(points: Points, layers: DataLayers) {
     const { scales } = points;
     const data = Geom.groupedData(points);
+    const n = Dataframe.findLength(data);
 
-    const n = findLength(Object.values(data));
     const [x, y, radius] = Geom.scaledArrays(n, [
       [data.x, scales.x],
       [data.y, scales.y],
@@ -52,8 +53,8 @@ export namespace Points {
   export function check(points: Points, selection: Rect) {
     const { scales } = points;
     const data = Geom.flatData(points);
+    const n = Dataframe.findLength(data);
 
-    const n = findLength(Object.values(data));
     const { x, y, size: radius } = Getter.mapObject(data);
     const positions = Getter.of(data[Factor.POSITIONS]);
 
@@ -80,8 +81,8 @@ export namespace Points {
     const { scales } = points;
     const data = Geom.flatData(points);
     const groupedData = Geom.groupedData(points);
+    const n = Dataframe.findLength(data);
 
-    const n = findLength(Object.values(data));
     const { x, y, size: radius } = Getter.mapObject(data);
 
     for (let i = 0; i < n; i++) {

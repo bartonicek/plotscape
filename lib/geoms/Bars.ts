@@ -3,7 +3,8 @@ import { Scale } from "../scales/Scale";
 import { Scales } from "../scales/Scales";
 import { LAYER } from "../scene/Marker";
 import { Factor } from "../transformation/Factor";
-import { findLength, pointInRect, rectsIntersect } from "../utils/funs";
+import { Dataframe } from "../utils/Dataframe";
+import { pointInRect, rectsIntersect } from "../utils/funs";
 import { Getter } from "../utils/Getter";
 import { Indexable } from "../utils/Indexable";
 import { Polymorphic } from "../utils/Polymorphic";
@@ -48,8 +49,7 @@ export namespace Bars {
   function render(bars: Bars, layers: DataLayers) {
     const { scales, hAnchor, vAnchor } = bars;
     const data = Geom.groupedData(bars);
-
-    const n = findLength(Object.values(data));
+    const n = Dataframe.findLength(data);
 
     const [x, y, width, height] = Geom.scaledArrays(n, [
       [data.x, scales.x],
@@ -65,8 +65,8 @@ export namespace Bars {
   function check(bars: Bars, selection: Rect) {
     const { scales, hAnchor, vAnchor } = bars;
     const data = Geom.flatData(bars);
+    const n = Dataframe.findLength(data);
 
-    const n = findLength(Object.values(data));
     const { x, y, width, height } = Getter.mapObject(data);
     const positions = Getter.of(data[Factor.POSITIONS]);
 
@@ -98,8 +98,8 @@ export namespace Bars {
     const { scales, hAnchor, vAnchor } = bars;
     const data = Geom.flatData(bars);
     const groupedData = Geom.groupedData(bars);
+    const n = Dataframe.findLength(data);
 
-    const n = findLength(Object.values(data));
     const { x, y, width, height } = Getter.mapObject(data);
 
     for (let i = 0; i < n; i++) {

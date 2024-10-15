@@ -1,7 +1,5 @@
 import { Dataframe } from "./Dataframe";
 import { Getter } from "./Getter";
-import { Indexable } from "./Indexable";
-import { Metadata } from "./Metadata";
 import {
   AnyFn,
   Entries,
@@ -970,24 +968,6 @@ export function isStringArray(array: any[]): array is string[] {
  */
 export function isEventTarget(object: Object): object is EventTarget {
   return `addEventListener` in object;
-}
-
-/**
- * Finds the length across a list of `Indexable`s. The function just loops
- * through the list, until it finds an an array and then it returns its length.
- * If it doesn't find one (all indexables are functions), then it throws an error.
- * @param indexables An array of indexables
- * @returns A `number` (or throws)
- */
-export function findLength(indexables: (Indexable | undefined)[]) {
-  for (const indexable of indexables) {
-    if (!indexable) continue;
-    const length = Metadata.get(indexable, `length`);
-    if (length) return length;
-  }
-
-  const msg = `At least one variable needs to be of fixed length`;
-  throw new Error(msg);
 }
 
 export function applyWith<T>(...values: T[]) {

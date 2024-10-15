@@ -3,7 +3,8 @@ import { Scale } from "../scales/Scale";
 import { Scales } from "../scales/Scales";
 import { LAYER } from "../scene/Marker";
 import { Factor } from "../transformation/Factor";
-import { bimap, findLength, rectSegmentIntersect, sum } from "../utils/funs";
+import { Dataframe } from "../utils/Dataframe";
+import { bimap, rectSegmentIntersect, sum } from "../utils/funs";
 import { Getter } from "../utils/Getter";
 import { Indexable } from "../utils/Indexable";
 import { Polymorphic } from "../utils/Polymorphic";
@@ -36,8 +37,8 @@ export namespace Lines {
   export function render(lines: Lines, layers: DataLayers) {
     const { scales } = lines;
     const data = Geom.groupedData(lines);
+    const n = Dataframe.findLength(data);
 
-    const n = findLength(Object.values(data));
     const [x, y] = Geom.scaledArrays(n, [
       [data.x, scales.x],
       [data.y, scales.y],
@@ -50,8 +51,8 @@ export namespace Lines {
   export function check(lines: Lines, selection: Rect) {
     const { scales } = lines;
     const data = Geom.flatData(lines);
+    const n = Dataframe.findLength(data);
 
-    const n = findLength(Object.values(data));
     const { x, y } = Getter.mapObject(data);
     const positions = Getter.of(data[Factor.POSITIONS]);
 
@@ -79,7 +80,7 @@ export namespace Lines {
     const data = Geom.flatData(lines);
     const groupedData = Geom.groupedData(lines);
 
-    const n = findLength(Object.values(data));
+    const n = Dataframe.findLength(Object.values(data));
     const { x, y } = Getter.mapObject(data);
 
     const pos = bimap([...position, ...position], [-1, -1, 1, 1], sum) as Rect;
