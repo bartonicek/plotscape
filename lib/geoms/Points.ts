@@ -11,7 +11,7 @@ import { Polymorphic } from "../utils/Polymorphic";
 import { DataLayers, Point, Rect } from "../utils/types";
 import { Geom } from "./Geom";
 
-interface Data {
+interface Data extends Dataframe {
   x: Indexable;
   y: Indexable;
   size?: Indexable<number>;
@@ -46,7 +46,7 @@ export namespace Points {
       [data.size, scales.size],
     ]);
 
-    const frames = Geom.frames(n, data[LAYER], layers);
+    const frames = Geom.frames(n, data[LAYER] as any, layers);
     CanvasFrame.points(frames, x, y, radius);
   }
 
@@ -56,7 +56,7 @@ export namespace Points {
     const n = Dataframe.findLength(data);
 
     const { x, y, size: radius } = Getter.mapObject(data);
-    const positions = Getter.of(data[Factor.POSITIONS]);
+    const positions = Getter.of(data[Factor.POSITIONS]) as Getter<number[]>;
 
     const selected = [] as number[];
 
@@ -94,7 +94,7 @@ export namespace Points {
       const coords = [xi - ri, yi - ri, xi + ri, yi + ri] as Rect;
 
       if (pointInRect(position, coords)) {
-        const childIndices = data[Factor.CHILD_INDICES]?.[i];
+        const childIndices = (data[Factor.CHILD_INDICES] as any)?.[i];
         return Geom.getQueryInfo(groupedData, childIndices);
       }
     }

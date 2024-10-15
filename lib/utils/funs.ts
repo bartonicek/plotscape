@@ -903,19 +903,19 @@ export function isDefined<T>(x: T | undefined | null): x is T {
 
 const primitives = [`string`, `number`, `boolean`, `undefined`];
 
-export function isPrimitive(x: any): x is Primitive {
+export function isPrimitive(x: unknown): x is Primitive {
   return x === null || primitives.includes(typeof x);
 }
 
-export function isFunction(x: any): x is (...args: any) => any {
+export function isFunction(x: unknown): x is (...args: any[]) => any {
   return typeof x === `function`;
 }
 
-export function isSerializable(x: any) {
-  if (isPrimitive(x) || x === null) return true;
+export function isSerializable(x: unknown) {
+  if (isPrimitive(x) || x === null || x === undefined) return true;
   if (isFunction(x)) return false;
 
-  const values = isObject(x) ? Object.values(x) : x;
+  const values = Object.values(x);
   for (const v of values) {
     if (!isSerializable(v)) return false;
   }
@@ -923,15 +923,15 @@ export function isSerializable(x: any) {
   return true;
 }
 
-export function isObject(x: any): x is Object {
+export function isObject(x: unknown): x is Object {
   return typeof x === `object` && x !== null;
 }
 
-export function isTypedArray(x: any): x is TypedArray {
+export function isTypedArray(x: unknown): x is TypedArray {
   return ArrayBuffer.isView(x);
 }
 
-export function isNumber(x: any): x is number {
+export function isNumber(x: unknown): x is number {
   return typeof x === `number`;
 }
 

@@ -4,7 +4,7 @@ import { Indexable } from "./Indexable";
 import { Metadata } from "./Metadata";
 import { TypedArray } from "./types";
 
-type Getter<T> = (index: number) => T;
+export type Getter<T> = (index: number) => T;
 
 export namespace Getter {
   export function of(indexable: TypedArray): (index: number) => number;

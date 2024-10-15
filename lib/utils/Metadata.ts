@@ -1,4 +1,4 @@
-import { isSerializable } from "./funs";
+import { isFunction, isObject, isSerializable } from "./funs";
 
 declare global {
   interface Object extends Partial<Metadata> {}
@@ -21,47 +21,50 @@ export namespace Metadata {
     return object as T & Metadata;
   }
 
-  export function hasMetadata(object: Object): object is Metadata {
-    return !!object[METADATA];
+  export function hasMetadata(x: unknown): x is Metadata {
+    return (isObject(x) || isFunction(x)) && !!x[METADATA];
   }
 
-  export function has(object: Object, key: string) {
-    return !!object[METADATA]?.[key];
+  export function has<K extends string>(
+    x: unknown,
+    key: K,
+  ): x is Metadata<{ [key in K]: unknown }> {
+    return hasMetadata(x) && !!x[METADATA]?.[key];
   }
 
   export function get<T extends Metadata, K extends Key<T>>(
-    object: T,
+    x: T,
     key: K,
   ): Props<T>[K];
 
   export function get<T extends Metadata, const K extends Key<T>[]>(
-    object: T,
+    x: T,
     keys: K,
   ): MapProps<T, K>;
 
-  export function get(object: any[], key: `length`): number;
-  export function get(object: Object, key: string): unknown;
-  export function get(object: Object, key: string[]): unknown[];
+  export function get(x: unknown[], key: `length`): number;
+  export function get(x: Object, key: string): unknown;
+  export function get(x: Object, key: string[]): unknown[];
 
   export function get<T extends Metadata | Object>(
-    object: T,
+    x: T,
     keys: T extends Metadata ? Key<T> | Key<T>[] : string,
   ) {
-    if (!Array.isArray(keys)) return getDatum(object, keys);
-    return keys.map((x) => getDatum(object, x));
+    if (!Array.isArray(keys)) return getDatum(x, keys);
+    return keys.map((x) => getDatum(x, x));
   }
 
-  function getDatum<T extends Metadata | Object>(object: T, key: string) {
-    if (key === `length` && Array.isArray(object)) return object.length;
-    return object[METADATA]?.[key];
+  function getDatum<T extends Metadata | Object>(x: T, key: string) {
+    if (key === `length` && Array.isArray(x)) return x.length;
+    return x[METADATA]?.[key];
   }
 
   export function set<T extends Metadata>(
-    object: Object,
+    x: Object,
     props: Partial<T[typeof METADATA]>,
   ) {
-    if (!hasMetadata(object)) object[METADATA] = {};
-    for (const [k, v] of Object.entries(props)) object[METADATA]![k] = v;
+    if (!hasMetadata(x)) x[METADATA] = {};
+    for (const [k, v] of Object.entries(props)) x[METADATA]![k] = v;
   }
 
   export function copy<T extends Metadata, U extends Metadata>(
@@ -76,7 +79,7 @@ export namespace Metadata {
     keys?: Key<T>[],
   ): void;
 
-  export function copy(source: Object, target: Object, keys?: string[]): void;
+  export function copy(source: unknown, target: unknown, keys?: string[]): void;
 
   export function copy<
     T extends Metadata | Object,

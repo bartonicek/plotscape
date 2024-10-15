@@ -56,7 +56,8 @@ export namespace Summaries {
         }
 
         for (const k of Reflect.ownKeys(factor.data)) {
-          copyValues(factor.data[k], data[k]);
+          const v = factor.data[k];
+          if (Array.isArray(v)) copyValues(v, data[k]);
         }
       });
 

@@ -11,7 +11,7 @@ import { Polymorphic } from "../utils/Polymorphic";
 import { DataLayers, Point, Rect } from "../utils/types";
 import { Geom } from "./Geom";
 
-interface Data {
+interface Data extends Dataframe {
   x0: Indexable;
   y0: Indexable;
   x1: Indexable;
@@ -48,7 +48,7 @@ export namespace Rectangles {
       [data.area, scales.areaPct],
     ]);
 
-    const frames = Geom.frames(n, data[LAYER], layers);
+    const frames = Geom.frames(n, data[LAYER] as any, layers);
     CanvasFrame.rectanglesXY(frames, x0, y0, x1, y1, area);
   }
 
@@ -58,7 +58,7 @@ export namespace Rectangles {
 
     const n = Dataframe.findLength(data);
     const { x0, y0, x1, y1, area } = Getter.mapObject(data);
-    const positions = Getter.of(data[Factor.POSITIONS]);
+    const positions = Getter.of(data[Factor.POSITIONS]) as Getter<number[]>;
 
     const selected = [] as number[];
 
@@ -114,7 +114,7 @@ export namespace Rectangles {
       }
 
       if (pointInRect(position, [x0i, y0i, x1i, y1i])) {
-        const childIndices = data[Factor.CHILD_INDICES]?.[i];
+        const childIndices = (data[Factor.CHILD_INDICES] as any)?.[i];
         return Geom.getQueryInfo(groupedData, childIndices);
       }
     }

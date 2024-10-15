@@ -11,7 +11,7 @@ import { Polymorphic } from "../utils/Polymorphic";
 import { DataLayers, Point, Rect } from "../utils/types";
 import { Geom } from "./Geom";
 
-interface Data {
+interface Data extends Dataframe {
   x: Indexable<any[]>;
   y: Indexable<any[]>;
 }
@@ -44,7 +44,7 @@ export namespace Lines {
       [data.y, scales.y],
     ]);
 
-    const frames = Geom.frames(n, data[LAYER], layers);
+    const frames = Geom.frames(n, data[LAYER] as any, layers);
     CanvasFrame.lines(frames, x, y);
   }
 
@@ -54,7 +54,7 @@ export namespace Lines {
     const n = Dataframe.findLength(data);
 
     const { x, y } = Getter.mapObject(data);
-    const positions = Getter.of(data[Factor.POSITIONS]);
+    const positions = Getter.of(data[Factor.POSITIONS]) as Getter<number[]>;
 
     const selected = [] as number[];
 
@@ -80,7 +80,7 @@ export namespace Lines {
     const data = Geom.flatData(lines);
     const groupedData = Geom.groupedData(lines);
 
-    const n = Dataframe.findLength(Object.values(data));
+    const n = Dataframe.findLength(data);
     const { x, y } = Getter.mapObject(data);
 
     const pos = bimap([...position, ...position], [-1, -1, 1, 1], sum) as Rect;
@@ -93,10 +93,10 @@ export namespace Lines {
         const coords = [xi[j - 1], yi[j - 1], xi[j], yi[j]] as Rect;
 
         if (rectSegmentIntersect(pos, coords)) {
-          const childIndices = data[Factor.CHILD_INDICES]?.[i];
+          const childIndices = (data[Factor.CHILD_INDICES] as any)?.[i];
 
-          const xq = x(i);
-          const yq = y(i);
+          const xq = x(i) as string[];
+          const yq = y(i) as unknown[];
 
           const result = {} as Record<string, any>;
           for (let i = 0; i < xq.length; i++) {

@@ -37,6 +37,10 @@ export namespace Reduced {
     return result;
   }
 
+  export function originalValues<T>(reduced: Reduced<T>) {
+    return reduced[ORIGINAL_VALUES];
+  }
+
   export function setParent<T>(child: Reduced<T>, parent: Reduced<T>) {
     child[PARENT] = parent;
   }

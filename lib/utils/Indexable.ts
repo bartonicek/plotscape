@@ -1,6 +1,6 @@
 import { isSerializable } from "./funs";
 
-export type Indexable<T = any> = T | ((index: number) => T) | T[];
+export type Indexable<T = unknown> = T | ((index: number) => T) | T[];
 export type Indexables = Record<string, Indexable>;
 
 export namespace Indexable {

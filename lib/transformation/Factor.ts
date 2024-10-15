@@ -4,6 +4,8 @@ import {
   compareAlphaNumeric,
   copyValues,
   diff,
+  isFunction,
+  isObject,
   last,
   seq,
   subset,
@@ -41,9 +43,10 @@ export namespace Factor {
     copyValues(source.indices, target.indices);
 
     for (const k of Reflect.ownKeys(source.data)) {
-      if (Array.isArray(source.data[k]) && Array.isArray(target.data[k])) {
-        copyValues(source.data[k], target.data[k]);
-        Metadata.copy(source.data[k], target.data[k]);
+      const [vs, vt] = [source.data[k], target.data[k]];
+      if (Array.isArray(vs) && Array.isArray(vt)) {
+        copyValues(vs, vt);
+        Metadata.copy(vs, vt);
       } else {
         target.data[k] = source.data[k];
       }
@@ -55,6 +58,14 @@ export namespace Factor {
     if (factor1.indices.length !== factor2.indices.length) {
       throw new Error(`Factors do not have matching length`);
     }
+  }
+
+  export function positions(factor: Factor) {
+    return Getter.of(factor.data[POSITIONS]);
+  }
+
+  export function childIndices(factor: Factor) {
+    Getter.of(factor.data[CHILD_INDICES]);
   }
 
   /**
@@ -71,7 +82,9 @@ export namespace Factor {
     const positions = (index: number) => [index];
 
     data = data ?? ({} as T);
-    for (const v of Object.values(data)) Metadata.set(v, { queryable: true });
+    for (const v of Object.values(data)) {
+      if (isObject(v) || isFunction(v)) Metadata.set(v, { queryable: true });
+    }
 
     const type: Type = `bijection`;
     const factorData = { ...data, [Factor.POSITIONS]: positions };

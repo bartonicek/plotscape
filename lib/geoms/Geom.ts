@@ -151,6 +151,7 @@ export namespace Geom {
     const dimension = options?.dimension;
 
     for (const v of Object.values(data)) {
+      if (!Metadata.hasMetadata(v)) continue;
       if (dimension === `exclude` && Metadata.get(v, `isDimension`)) continue;
       if (dimension === `only` && !Metadata.get(v, `isDimension`)) continue;
 
@@ -158,10 +159,10 @@ export namespace Geom {
       if (!n || !q) continue;
 
       // Get original values because might be e.g. stacked/shifted otherwise
-      const variable = r ? v[Reduced.ORIGINAL_VALUES] : v;
+      const variable = r ? Reduced.originalValues(v as Reduced) : v;
       const getter = Getter.of(variable);
 
-      result[n] = getter(index);
+      result[n as number] = getter(index);
     }
 
     return result;

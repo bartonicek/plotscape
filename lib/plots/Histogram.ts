@@ -15,7 +15,7 @@ import { Metadata } from "../utils/Metadata";
 import { Reactive } from "../utils/Reactive";
 import { Columns } from "../utils/types";
 
-interface Coordinates {
+interface Coordinates extends Dataframe {
   x0: Indexable<number>;
   y0: Indexable<number>;
   x1: Indexable<number>;
@@ -23,7 +23,7 @@ interface Coordinates {
   area: Indexable<number>;
 }
 
-interface Summaries {
+interface Summaries extends Dataframe {
   binMin: number[];
   binMax: number[];
   breaks: number[];

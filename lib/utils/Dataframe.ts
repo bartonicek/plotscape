@@ -14,10 +14,10 @@ export namespace Dataframe {
    * @returns A `number` (or throws)
    */
 
-  export function findLength(data: Dataframe) {
+  export function findLength(data: Dataframe): number {
     for (const v of Object.values(data)) {
       if (!v) continue;
-      const length = Metadata.get(v, `length`);
+      const length = Metadata.get(v, `length`) as number | undefined;
       if (length) return length;
     }
 

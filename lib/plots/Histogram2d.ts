@@ -9,13 +9,14 @@ import { Factor } from "../transformation/Factor";
 import { Reduced } from "../transformation/Reduced";
 import { Reducer } from "../transformation/Reducer";
 import { Summaries } from "../transformation/Summaries";
+import { Dataframe } from "../utils/Dataframe";
 import { minmax, one } from "../utils/funs";
 import { Indexable } from "../utils/Indexable";
 import { Metadata } from "../utils/Metadata";
 import { Reactive } from "../utils/Reactive";
 import { Columns } from "../utils/types";
 
-interface Coordinates {
+interface Coordinates extends Dataframe {
   x0: Indexable<number>;
   y0: Indexable<number>;
   x1: Indexable<number>;
@@ -23,7 +24,7 @@ interface Coordinates {
   area: Indexable<number>;
 }
 
-interface Summaries {
+interface Summaries extends Dataframe {
   binMin: number[];
   binMax: number[];
   binMin$: number[];

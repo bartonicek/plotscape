@@ -11,7 +11,7 @@ import { Polymorphic } from "../utils/Polymorphic";
 import { DataLayers, HAnchor, Point, Rect, VAnchor } from "../utils/types";
 import { Geom } from "./Geom";
 
-interface Data {
+interface Data extends Dataframe {
   x: Indexable;
   y: Indexable;
   width: Indexable;
@@ -58,7 +58,7 @@ export namespace Bars {
       [data.height, scales.height],
     ]);
 
-    const frames = Geom.frames(n, data[LAYER], layers);
+    const frames = Geom.frames(n, data[LAYER] as any, layers);
     CanvasFrame.rectanglesWH(frames, x, y, width, height, { hAnchor, vAnchor });
   }
 
@@ -86,7 +86,7 @@ export namespace Bars {
       ] as Rect;
 
       if (rectsIntersect(selection, rectCoords)) {
-        const pos = positions(i);
+        const pos = positions(i) as number[];
         for (let j = 0; j < pos.length; j++) selected.push(pos[j]);
       }
     }
@@ -116,7 +116,7 @@ export namespace Bars {
       ] as Rect;
 
       if (pointInRect(position, rectCoords)) {
-        const childIndices = data[Factor.CHILD_INDICES]?.[i];
+        const childIndices = (data[Factor.CHILD_INDICES] as any)?.[i];
         return Geom.getQueryInfo(groupedData, childIndices ?? []);
       }
     }
