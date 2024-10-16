@@ -212,7 +212,8 @@ export namespace Plot {
       e.push(geom);
     }
 
-    Reactive.listen(geom, `coords-changed`, () => Plot.render(plot));
+    for (const r of renderables) Reactive.removeAll(r, `coords-changed`);
+    Reactive.listenAll(renderables, `coords-changed`, () => Plot.render(plot));
   }
 
   export function deleteGeom(plot: Plot, geom: Geom) {

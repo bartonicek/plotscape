@@ -62,7 +62,7 @@ export namespace Summaries {
       });
 
       // Need to dispatch only AFTER parent values have been updated
-      Reactive.propagate(factor, data, `changed`);
+      Reactive.propagate(factor, data, `changed`, `changed`, { priority: 2 });
     }
 
     return result as { [key in keyof U]: Flat<U[key]["data"] & Computed<T>> };

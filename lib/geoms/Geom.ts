@@ -84,8 +84,11 @@ export namespace Geom {
 
     geom.coordinates = coordinates;
     const newCoord = (last(coordinates) ?? {}) as Reactive;
-    Reactive.listen(newCoord, `changed`, () =>
-      Reactive.dispatch(geom, `coords-changed`),
+    Reactive.listen(
+      newCoord,
+      `changed`,
+      () => Reactive.dispatch(geom, `coords-changed`),
+      { priority: 2 },
     );
 
     Reactive.dispatch(geom, `coords-swapped`);

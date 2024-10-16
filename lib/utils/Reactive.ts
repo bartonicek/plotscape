@@ -26,6 +26,11 @@ export namespace Reactive {
    */
   export function of<E extends string = `changed`>() {
     return function <T extends Object>(object: T) {
+      if (Array.isArray(object)) {
+        const result = [...object] as unknown as T & Reactive<E>;
+        result[LISTENERS] = {};
+        return result;
+      }
       // Need to copy so that e.g. translated data gets assigned a new Reactive pointer
       return { ...object, [LISTENERS]: {} } as T & Reactive<E>;
     };
@@ -70,6 +75,29 @@ export namespace Reactive {
     if (!listeners[type].includes(listener)) listeners[type].push(listener);
 
     listeners[type].sort((x, y) => x.priority - y.priority);
+  }
+
+  export function listenAll<T extends Reactive>(
+    objects: T[] | Object[],
+    type: EventOf<T>,
+    callback: EventCallback,
+    options?: { throttle?: number },
+  ) {
+    if (!objects.every(isReactive)) return;
+    if (options?.throttle) callback = throttle(callback, options.throttle);
+
+    const fired = [];
+    function onEvent() {
+      fired.push(true);
+      if (fired.length === objects.length) {
+        callback();
+        fired.length = 0;
+      }
+    }
+
+    for (const object of objects) {
+      Reactive.listen(object, type, onEvent, { priority: 2 });
+    }
   }
 
   /**
