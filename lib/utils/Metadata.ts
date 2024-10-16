@@ -5,7 +5,7 @@ declare global {
   interface Array<T> extends Partial<Metadata> {}
 }
 
-const METADATA = Symbol(`metadata`);
+export const METADATA = Symbol(`metadata`);
 
 type MetadataDict = Record<string, unknown>;
 export interface Metadata<T extends MetadataDict = MetadataDict> {
@@ -51,7 +51,7 @@ export namespace Metadata {
     keys: T extends Metadata ? Key<T> | Key<T>[] : string,
   ) {
     if (!Array.isArray(keys)) return getDatum(x, keys);
-    return keys.map((x) => getDatum(x, x));
+    return keys.map((e) => getDatum(x, e));
   }
 
   function getDatum<T extends Metadata | Object>(x: T, key: string) {
