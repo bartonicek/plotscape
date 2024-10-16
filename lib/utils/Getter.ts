@@ -12,13 +12,7 @@ export namespace Getter {
   export function of(indexable: Indexable | TypedArray) {
     if (typeof indexable === `function`) return indexable;
 
-    if (Array.isArray(indexable)) {
-      const getter = (index: number) => indexable[index];
-      Metadata.set(getter, { length: indexable.length });
-      return getter;
-    }
-
-    if (isTypedArray(indexable)) {
+    if (Array.isArray(indexable) || isTypedArray(indexable)) {
       const getter = (index: number) => indexable[index];
       Metadata.set(getter, { length: indexable.length });
       return getter;

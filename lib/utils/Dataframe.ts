@@ -13,15 +13,26 @@ export namespace Dataframe {
    * @param indexables An array of indexables
    * @returns A `number` (or throws)
    */
-
   export function findLength(data: Dataframe): number {
+    let length = -1;
+
     for (const v of Object.values(data)) {
       if (!v) continue;
-      const length = Metadata.get(v, `length`) as number | undefined;
-      if (length) return length;
+      const len = Metadata.get(v, `length`) as number | undefined;
+      if (!len) continue;
+
+      const sameLengthError = `All arrays in the dataframe must have the same length`;
+      if (length !== -1 && len != length) throw new Error(sameLengthError);
+
+      length = len;
     }
 
-    const msg = `At least one variable needs to be of fixed length`;
-    throw new Error(msg);
+    const noFixedLengthError = `No fixed-length variables present in the dataframe`;
+    if (length === -1) throw new Error(noFixedLengthError);
+    return length;
+  }
+
+  export function checkLength(data: Dataframe) {
+    findLength(data);
   }
 }

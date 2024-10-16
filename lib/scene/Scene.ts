@@ -1,6 +1,7 @@
 import { CanvasFrame } from "../plot/CanvasFrame";
 import { Plot } from "../plot/Plot";
 import { Reducer } from "../transformation/Reducer";
+import { Dataframe } from "../utils/Dataframe";
 import { DOM } from "../utils/DOM";
 import {
   deepModifyProp,
@@ -88,6 +89,8 @@ export namespace Scene {
       websocketURL?: string;
     } & Partial<GraphicalOptions>,
   ): Scene<T> {
+    Dataframe.checkLength(data);
+
     const container = DOM.element(`div`, { id: `scene-container` });
     const plotsContainer = DOM.element(`div`, { id: `plots-container` });
 
