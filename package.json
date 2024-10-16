@@ -20,6 +20,7 @@
   },
   "scripts": {
     "dev": "vite",
+    "test": "bun test",
     "build": "bun test && tsc && vite build && bun run copy",
     "preview": "vite preview",
     "copy": "cp ./dist/main.iife.js ../plotscaper/inst/htmlwidgets/plotscape",
