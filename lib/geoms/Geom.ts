@@ -51,15 +51,16 @@ export namespace Geom {
   export const check = Polymorphic.of(checkDefault);
   export const query = Polymorphic.of(queryDefault);
 
-  // @ts-ignore - Need to infer function signatures
-  function renderDefault<T extends Geom>(geom: T, layers: DataLayers) {
+  function renderDefault<T extends Geom>(
+    geom: T,
+    _layers: DataLayers,
+  ): Record<string, any> {
     throw new Error(
       `Method 'render' not implemented for geom of type '${geom.type}'`,
     );
   }
 
-  // @ts-ignore
-  function checkDefault<T extends Geom>(geom: T, selection: Rect): number[] {
+  function checkDefault<T extends Geom>(geom: T, _selection: Rect): number[] {
     throw new Error(
       `Method 'check' not implemented for geom of type '${geom.type}'`,
     );
@@ -67,8 +68,7 @@ export namespace Geom {
 
   function queryDefault<T extends Geom>(
     geom: T,
-    // @ts-ignore
-    point: Point,
+    _point: Point,
   ): Record<string, any>[] | undefined {
     throw new Error(
       `Method 'render' not implemented for geom of type '${geom.type}'`,
