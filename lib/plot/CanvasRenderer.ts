@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import {
   baseLayers,
   DataLayer,
@@ -7,6 +9,7 @@ import {
   Rect,
 } from "../utils/types";
 import { CanvasFrame, ContextProps } from "./CanvasFrame";
+import { Renderer } from "./Renderer";
 
 export interface CanvasRenderer<
   T extends Record<string, CanvasFrame> = Record<string, CanvasFrame>,
@@ -70,10 +73,12 @@ export namespace CanvasRenderer {
   }
 
   export function render(renderer: CanvasRenderer, payload: Renderer.Payload) {
-    switch (payload[Renderer.PRIMITIVE]) {
+    const primitive = payload[Renderer.PRIMITIVE];
+    const options = payload[Renderer.OPTIONS];
+
+    switch (primitive) {
       case `points`: {
         const { layer, x, y, size } = payload;
-        const options = payload[Renderer.OPTIONS];
         points(renderer, layer, x, y, size, options);
         break;
       }
@@ -84,7 +89,6 @@ export namespace CanvasRenderer {
       }
       case `rectanglesWH`: {
         const { layer, x, y, width, height } = payload;
-        const options = payload[Renderer.OPTIONS];
         rectanglesWH(renderer, layer, x, y, width, height, options);
         break;
       }

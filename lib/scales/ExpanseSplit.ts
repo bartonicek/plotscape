@@ -7,9 +7,8 @@ export interface ExpanseSplit<T = any> extends Expanse<T[]> {
   type: `split`;
   value: T[];
   normalized: number[];
-  props: {
-    innerType: Expanse.Type;
-  };
+
+  props: { innerType: Expanse.Type };
 }
 
 export namespace ExpanseSplit {

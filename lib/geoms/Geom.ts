@@ -38,11 +38,9 @@ export namespace Geom {
   export function of<
     T extends { type: Geom.Type; coordinates: Dataframe[]; scales: Scales },
   >(props: T) {
-    const geom = Reactive.of<Geom.Event>()(props);
+    const geom: Geom = Reactive.of<Event>()(props);
     const coord = (last(props.coordinates) ?? Reactive.of()({})) as Reactive;
-    Reactive.listen(coord, `changed`, () =>
-      Reactive.dispatch(geom as Geom, `coords-changed`),
-    );
+    Reactive.propagate(coord, geom, `changed`, `coords-changed`);
     return geom;
   }
 
@@ -55,24 +53,18 @@ export namespace Geom {
     geom: T,
     _layers: DataLayers,
   ): Record<string, any> {
-    throw new Error(
-      `Method 'render' not implemented for geom of type '${geom.type}'`,
-    );
+    throw Polymorphic.error(`render`, `geom`, geom.type);
   }
 
   function checkDefault<T extends Geom>(geom: T, _selection: Rect): number[] {
-    throw new Error(
-      `Method 'check' not implemented for geom of type '${geom.type}'`,
-    );
+    throw Polymorphic.error(`check`, `geom`, geom.type);
   }
 
   function queryDefault<T extends Geom>(
     geom: T,
     _point: Point,
   ): Record<string, any>[] | undefined {
-    throw new Error(
-      `Method 'render' not implemented for geom of type '${geom.type}'`,
-    );
+    throw Polymorphic.error(`query`, `geom`, geom.type);
   }
 
   export function setCoordinates<T extends Geom>(

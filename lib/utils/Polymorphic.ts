@@ -24,7 +24,7 @@ export namespace Polymorphic {
     const result = function (...args: Parameters<T>) {
       const target = dispatchfn ? dispatchfn(args) : args[0].type;
       return dispatch(result, defaultfn, target)(...args);
-    } as typeof defaultfn & Polymorphic;
+    } as T & Polymorphic;
 
     result[METHODS] = {};
     return result;
@@ -57,5 +57,11 @@ export namespace Polymorphic {
     fn: T,
   ) {
     polyfn[METHODS][type] = fn;
+  }
+
+  export function error(name: string, type: string, subtype: string) {
+    return new Error(
+      `Method '${name}' not implemented for ${type} of type ${subtype}`,
+    );
   }
 }

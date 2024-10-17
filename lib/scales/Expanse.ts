@@ -19,6 +19,18 @@ export interface Expanse<T = any> extends Reactive {
   frozen: string[];
 }
 
+export interface ExpanseMethods<T> {
+  normalize(expanse: Expanse<T>, value: T): Expanse.Normalized<Expanse<T>>;
+  unnormalize(expanse: Expanse<T>, value: Expanse.Normalized<Expanse<T>>): T;
+  train(expanse: Expanse<T>, values: T[], options?: Record<string, any>): void;
+  breaks(
+    expanse: Expanse<T>,
+    zero?: number,
+    one?: number,
+  ): Expanse.Value<Expanse<T>>;
+  reset(expanse: Expanse<T>, options?: Record<string, any>): void;
+}
+
 export namespace Expanse {
   export type OpaqueProps = `value` | `dimensionality`;
   export type Type = `continuous` | `point` | `band` | `compound` | `split`;
@@ -39,28 +51,22 @@ export namespace Expanse {
     expanse: T,
     _value: Value<T>,
   ): Normalized<T> {
-    throw new Error(
-      `Method 'normalize' not implemented for expanse of type '${expanse.type}'`,
-    );
+    throw Polymorphic.error(`normalize`, `expanse`, expanse.type);
   }
 
   function unnormalizeDefault<T extends Expanse>(
     expanse: T,
     _value: Normalized<T>,
   ): Value<T> {
-    throw new Error(
-      `Method 'unnormalize' not implemented for expanse of type '${expanse.type}'`,
-    );
+    throw Polymorphic.error(`unnormalize`, `expanse`, expanse.type);
   }
 
   export function trainDefault<T extends Expanse>(
     expanse: T,
-    _array: Value<T>[],
+    _values: Value<T>[],
     _options?: { default?: boolean; silent?: boolean },
   ) {
-    throw new Error(
-      `Method 'train' not implemented for expanse of type '${expanse.type}'`,
-    );
+    throw Polymorphic.error(`train`, `expanse`, expanse.type);
   }
 
   function breaksDefault<T extends Expanse>(
@@ -68,9 +74,7 @@ export namespace Expanse {
     _zero?: number,
     _one?: number,
   ): Value<T>[] {
-    throw new Error(
-      `Method 'breaks' not implemented for expanse of type '${expanse.type}'`,
-    );
+    throw Polymorphic.error(`breaks`, `expanse`, expanse.type);
   }
 
   export function resetDefault<T extends Expanse>(
@@ -89,9 +93,7 @@ export namespace Expanse {
   }
 
   function reorderDefault(expanse: Expanse<string>, _indices?: number[]) {
-    throw new Error(
-      `Method 'reorder' not implemented for expanse of type '${expanse.type}'`,
-    );
+    throw Polymorphic.error(`reorder`, `expanse`, expanse.type);
   }
 
   export function base() {
