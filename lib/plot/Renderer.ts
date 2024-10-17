@@ -15,6 +15,7 @@ export interface RendererMethods {
 }
 
 export namespace Renderer {
+  export type Type = `canvas` | `webgl`;
   export const PRIMITIVE = Symbol(`primitive-type`);
   export const OPTIONS = Symbol(`options`);
 
