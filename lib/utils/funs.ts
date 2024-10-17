@@ -931,6 +931,10 @@ export function isTypedArray(x: unknown): x is TypedArray {
   return ArrayBuffer.isView(x);
 }
 
+export function isString(x: unknown): x is string {
+  return typeof x === `string`;
+}
+
 export function isNumber(x: unknown): x is number {
   return typeof x === `number`;
 }
@@ -946,7 +950,7 @@ export function isIntegerString(x: string) {
  * @param x An array
  * @returns `true` if the first and last element is a number
  */
-export function isNumberArray(x: any): x is number[] {
+export function isNumberArray(x: unknown): x is number[] {
   return Array.isArray(x) && isNumber(x[0]) && isNumber(last(x));
 }
 
@@ -954,20 +958,29 @@ export function isNumberArray(x: any): x is number[] {
  * Checks whether an array is an array of strings
  * (by checking the first and last values only).
  *
- * @param array An array
+ * @param x An array
  * @returns `true` if the first and last element is a number
  */
-export function isStringArray(array: any[]): array is string[] {
-  return typeof array[0] === `string` && typeof last(array) === `string`;
+export function isStringArray(x: any[]): x is string[] {
+  return typeof Array.isArray(x) && isString(x[0]) && isString(last(x));
 }
 
 /**
- * Check whether an object implements the `EventTarget` interface.
+ * Checks whether an object implements the `EventTarget` interface.
  * @param object Any object
  * @returns `true` if object implements `EventTarget`
  */
 export function isEventTarget(object: Object): object is EventTarget {
   return `addEventListener` in object;
+}
+
+/**
+ * Checks that all elements of an array are numeric arrays
+ * @param x An array of arrays
+ * @returns `true` if all arrays are number arrays
+ */
+export function areNumberArrays(x: unknown): x is number[][] {
+  return Array.isArray(x) && x.every(isNumberArray);
 }
 
 export function applyWith<T>(...values: T[]) {

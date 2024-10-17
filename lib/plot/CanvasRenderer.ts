@@ -1,5 +1,4 @@
-// @ts-nocheck
-
+import { areNumberArrays, isNumberArray } from "../main";
 import {
   baseLayers,
   DataLayer,
@@ -79,21 +78,39 @@ export namespace CanvasRenderer {
     switch (primitive) {
       case `points`: {
         const { layer, x, y, size } = payload;
+        if (!isNumberArray(layer)) return;
+        if (!isNumberArray(x)) return;
+        if (!isNumberArray(y)) return;
+        if (!isNumberArray(size)) return;
         points(renderer, layer, x, y, size, options);
         break;
       }
       case `rectanglesXY`: {
         const { layer, x0, y0, x1, y1, area } = payload;
+        if (!isNumberArray(layer)) return;
+        if (!isNumberArray(x0)) return;
+        if (!isNumberArray(y0)) return;
+        if (!isNumberArray(x1)) return;
+        if (!isNumberArray(y1)) return;
+        if (!isNumberArray(area)) return;
         rectanglesXY(renderer, layer, x0, y0, x1, y1, area);
         break;
       }
       case `rectanglesWH`: {
         const { layer, x, y, width, height } = payload;
+        if (!isNumberArray(layer)) return;
+        if (!isNumberArray(x)) return;
+        if (!isNumberArray(y)) return;
+        if (!isNumberArray(width)) return;
+        if (!isNumberArray(height)) return;
         rectanglesWH(renderer, layer, x, y, width, height, options);
         break;
       }
       case `lines`: {
         const { layer, x, y } = payload;
+        if (!isNumberArray(layer)) return;
+        if (!areNumberArrays(x)) return;
+        if (!areNumberArrays(y)) return;
         lines(renderer, layer, x, y);
         break;
       }
