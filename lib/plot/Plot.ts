@@ -415,7 +415,7 @@ export namespace Plot {
     mousecoords[0] = x;
     mousecoords[1] = y;
 
-    Plot.clearUserFrame(plot);
+    Reactive.dispatch(plot, `clear-transient`);
   }
 
   function query(plot: Plot, event: MouseEvent) {

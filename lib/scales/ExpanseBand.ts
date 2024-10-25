@@ -66,7 +66,7 @@ export namespace ExpanseBand {
   }
 
   export function unnormalize(expanse: ExpanseBand, value: number) {
-    const { labels, cumulativeWeights } = expanse.props;
+    const { labels, order, cumulativeWeights } = expanse.props;
 
     const weight = value * last(cumulativeWeights);
     let index = 0;
@@ -76,7 +76,7 @@ export namespace ExpanseBand {
       index++;
     }
 
-    return labels[index];
+    return labels[order[index]];
   }
 
   function getMidpoint(expanse: ExpanseBand, index: number) {
