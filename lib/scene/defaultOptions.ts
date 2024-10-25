@@ -20,7 +20,10 @@ export const defaultOptions = {
     `#B2DF8A`,
     `#A6CEE3`,
   ],
-  plotBackground: `#fefffe`,
+  axisTextFont: `serif`,
+  axisTitleFont: `sans-serif`,
+  plotBackground: `#ffffff`,
+  marginBackground: `#f3f4f6`,
 };
 
 export type GraphicalOptions = typeof defaultOptions;

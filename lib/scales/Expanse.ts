@@ -20,14 +20,10 @@ export interface Expanse<T = any> extends Reactive {
 }
 
 export interface ExpanseMethods<T> {
-  normalize(expanse: Expanse<T>, value: T): Expanse.Normalized<Expanse<T>>;
-  unnormalize(expanse: Expanse<T>, value: Expanse.Normalized<Expanse<T>>): T;
+  normalize(expanse: Expanse<T>, value: T): number | number[];
+  unnormalize(expanse: Expanse<T>, value: number | number[]): T;
   train(expanse: Expanse<T>, values: T[], options?: Record<string, any>): void;
-  breaks(
-    expanse: Expanse<T>,
-    zero?: number,
-    one?: number,
-  ): Expanse.Value<Expanse<T>>[] | number[];
+  breaks(expanse: Expanse<T>, zero?: number, one?: number): T[] | number[];
 }
 
 export namespace Expanse {

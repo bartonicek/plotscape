@@ -732,30 +732,25 @@ function setupFrames(plot: Plot, options: GraphicalOptions) {
     const color = colors[layer];
     const contextProps = { fillStyle: color, strokeStyle: color };
 
-    const frame = CanvasFrame.of({
-      classes,
-      contextProps,
-      canvasStyles,
-      margins,
-    });
+    const props = { classes, contextProps, canvasStyles, margins };
+    const frame = CanvasFrame.of(props);
     frames[layer] = frame;
   }
 
-  const base = CanvasFrame.of({ classes: classes + "tw-bg-gray-100" });
+  const base = CanvasFrame.of({ classes });
   CanvasFrame.setContext(base, {
-    font: `${ts}em sans-serif`,
+    font: `${ts}em ${options.axisTitleFont}`,
     textBaseline: `middle`,
     textAlign: `center`,
   });
+  DOM.setStyles(base.canvas, { background: options.marginBackground });
 
   // Have to use base CSS here too (because of dynamic variables)
   const width = `calc(100% - ${left}px - ${right}px)`;
   const height = `calc(100% - ${bottom}px - ${top}px)`;
   const canvasStyles = { width, height, top: top + `px`, right: right + `px` };
-  const under = CanvasFrame.of({
-    classes: classes + "tw-z-1 tw-bg-white",
-    canvasStyles,
-  });
+  const under = CanvasFrame.of({ classes: classes + "tw-z-1", canvasStyles });
+  DOM.setStyles(under.canvas, { background: options.plotBackground });
 
   const overClasses = "tw-z-10 tw-border tw-border-b-black tw-border-l-black";
   const over = CanvasFrame.of({ classes: classes + overClasses, canvasStyles });
@@ -770,7 +765,7 @@ function setupFrames(plot: Plot, options: GraphicalOptions) {
     fillStyle,
     textBaseline: `top`,
     textAlign: `center`,
-    font: `${ls}em serif`,
+    font: `${ls}em ${options.axisTextFont}`,
   });
 
   const yAxis = CanvasFrame.of({ classes: classes });
@@ -778,7 +773,7 @@ function setupFrames(plot: Plot, options: GraphicalOptions) {
     fillStyle: `#3B4854`,
     textBaseline: `middle`,
     textAlign: `right`,
-    font: `${ls}em serif`,
+    font: `${ls}em ${options.axisTextFont}`,
   });
 
   Object.assign(frames, { base, under, over, user, xAxis, yAxis });
