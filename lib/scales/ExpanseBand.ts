@@ -65,6 +65,17 @@ export namespace ExpanseBand {
     return getMidpoint(expanse, index);
   }
 
+  function getMidpoint(expanse: ExpanseBand, index: number) {
+    const { order, cumulativeWeights } = expanse.props;
+    index = order[index];
+
+    const lower = cumulativeWeights[index - 1] ?? 0;
+    const upper = cumulativeWeights[index];
+    const max = last(cumulativeWeights);
+
+    return (lower + upper) / 2 / max;
+  }
+
   export function unnormalize(expanse: ExpanseBand, value: number) {
     const { labels, cumulativeWeights } = expanse.props;
 
@@ -150,16 +161,5 @@ export namespace ExpanseBand {
     copyValues(cumulativeWeights, defaults.cumulativeWeights);
 
     Reactive.dispatch(expanse, `changed`);
-  }
-
-  function getMidpoint(expanse: ExpanseBand, index: number) {
-    const { order, cumulativeWeights } = expanse.props;
-    index = order[index];
-
-    const lower = cumulativeWeights[index - 1] ?? 0;
-    const upper = cumulativeWeights[index];
-    const max = last(cumulativeWeights);
-
-    return (lower + upper) / 2 / max;
   }
 }
