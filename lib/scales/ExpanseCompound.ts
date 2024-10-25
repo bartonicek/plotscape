@@ -1,6 +1,7 @@
 import { Polymorphic } from "../utils/Polymorphic";
 import { Reactive } from "../utils/Reactive";
-import { Expanse } from "./Expanse";
+import { satisfies } from "../utils/types";
+import { Expanse, ExpanseMethods } from "./Expanse";
 import { ExpanseContinuous } from "./ExpanseContinuous";
 
 export interface ExpanseCompound<T extends Expanse[] = Expanse[]>
@@ -14,6 +15,9 @@ export interface ExpanseCompound<T extends Expanse[] = Expanse[]>
   props: { min: number; max: number };
   commonScale: boolean;
 }
+
+// Check that generic methods are implemented
+satisfies<ExpanseMethods<any[]>, typeof ExpanseCompound>;
 
 export namespace ExpanseCompound {
   const type = `compound` as const;
@@ -41,7 +45,7 @@ export namespace ExpanseCompound {
       return values.map((e) => Expanse.normalize(expanse.continuous, e));
     }
 
-    return values.map((e, i) => Expanse.normalize(expanses[i], e));
+    return values.map((e, i) => Expanse.normalize(expanses[i], e)) as number[];
   }
 
   export function unnormalize(expanse: ExpanseCompound, values: number[]) {

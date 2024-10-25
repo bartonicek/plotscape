@@ -6,7 +6,9 @@ import {
 } from "../utils/funs";
 import { Polymorphic } from "../utils/Polymorphic";
 import { Reactive } from "../utils/Reactive";
-import { Expanse } from "./Expanse";
+import { satisfies } from "../utils/types";
+import { Expanse, ExpanseMethods } from "./Expanse";
+import { ExpanseBand } from "./ExpanseBand";
 
 /** Converts string labels to the [0, 1] interval and back, such that each value is placed
  * equidistantly along the interval, and the first label is placed at 0 and the last at 1.
@@ -20,6 +22,9 @@ export interface ExpansePoint extends Expanse<string> {
   defaults: ExpansePoint.Props;
   frozen: (keyof ExpansePoint.Props)[];
 }
+
+// Check that generic methods are implemented
+satisfies<ExpanseMethods<string>, typeof ExpanseBand>;
 
 export namespace ExpansePoint {
   const type = `point`;

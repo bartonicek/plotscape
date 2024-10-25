@@ -1,4 +1,5 @@
 import { CanvasFrame } from "../plot/CanvasFrame";
+import { Renderer } from "../plot/Renderer";
 import { Scale } from "../scales/Scale";
 import { Scales } from "../scales/Scales";
 import { LAYER } from "../scene/Marker";
@@ -43,8 +44,26 @@ export namespace Bars {
 
   // Polymorphic method implementations
   Polymorphic.set(Geom.render, type, render);
+  Polymorphic.set(Geom.coordinates, type, coordinates as any);
   Polymorphic.set(Geom.check, type, check);
   Polymorphic.set(Geom.query, type, query);
+
+  function coordinates(bars: Bars, layers: DataLayers) {
+    const { scales, hAnchor, vAnchor } = bars;
+    const data = Geom.groupedData(bars);
+    const n = Dataframe.findLength(data);
+
+    const [x, y, width, height] = Geom.scaledArrays(n, [
+      [data.x, scales.x],
+      [data.y, scales.y],
+      [data.width, scales.width],
+      [data.height, scales.height],
+    ]);
+
+    const layer = data[LAYER];
+
+    return { [Renderer.PRIMITIVE]: `rectanglesXY`, layer, x, y, width, height };
+  }
 
   function render(bars: Bars, layers: DataLayers) {
     const { scales, hAnchor, vAnchor } = bars;

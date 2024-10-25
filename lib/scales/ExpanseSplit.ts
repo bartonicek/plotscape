@@ -1,6 +1,7 @@
 import { identity } from "../utils/funs";
 import { Polymorphic } from "../utils/Polymorphic";
-import { Expanse } from "./Expanse";
+import { satisfies } from "../utils/types";
+import { Expanse, ExpanseMethods } from "./Expanse";
 import { ExpanseContinuous } from "./ExpanseContinuous";
 
 export interface ExpanseSplit<T = any> extends Expanse<T[]> {
@@ -10,6 +11,9 @@ export interface ExpanseSplit<T = any> extends Expanse<T[]> {
 
   props: { innerType: Expanse.Type };
 }
+
+// Check that generic methods are implemented
+satisfies<ExpanseMethods<any[]>, typeof ExpanseSplit>;
 
 export namespace ExpanseSplit {
   const type = `split`;

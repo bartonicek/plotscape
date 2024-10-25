@@ -1,5 +1,9 @@
 import { CanvasFrame } from "../plot/CanvasFrame";
 
+export function satisfies<U, T extends U>() {
+  return 0 as T;
+}
+
 export type Primitive = string | number | boolean | undefined | null;
 export type Flat<T> = { [key in keyof T]: T[key] } & {};
 export type Entries<T> = [keyof T, T[keyof T]][];

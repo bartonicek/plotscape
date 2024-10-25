@@ -41,7 +41,6 @@ import {
 } from "../utils/types";
 import { Axes } from "./Axes";
 import { CanvasFrame } from "./CanvasFrame";
-import { CanvasRenderer } from "./CanvasRenderer";
 import { QueryTable } from "./Querytable";
 import { Renderer } from "./Renderer";
 
@@ -60,8 +59,6 @@ export interface Plot<
   data: T;
   scales: U;
   representation: Representation;
-
-  dataRenderer: Renderer;
 
   container: HTMLElement;
   frames: Frames;
@@ -123,8 +120,6 @@ export namespace Plot {
     options.renderer = options.renderer ?? `canvas`;
     options.colors = options.colors ?? defaultOptions.colors;
 
-    const dataRenderer = createDataRenderer(options);
-
     const renderables = [] as Geom[];
     const selectables = [] as Geom[];
     const queryables = [] as Geom[];
@@ -150,10 +145,9 @@ export namespace Plot {
 
     const plot = Reactive.of()({
       type,
-      representation,
       data,
       container,
-      dataRenderer,
+      representation,
       frames,
       scales,
       renderables,
@@ -912,23 +906,4 @@ function setupScales(plot: Plot) {
   const trunc0 = (x: number) => Math.max(x, 0);
   Expanse.set(width.codomain, () => ({ inv: trunc0 }), opts);
   Expanse.set(height.codomain, () => ({ inv: trunc0 }), opts);
-}
-
-function createDataRenderer(options: Plot.Options) {
-  const { margins } = options;
-  const classes = `absolute z-20 top-0 right-0 w-full h-full `; // Default Tailwind classes
-
-  const opts = {} as Record<string, any>;
-
-  for (let i = 0; i < 8; i++) {
-    const color = options.colors![i];
-    opts[i] = {
-      classes,
-      styles: { zIndex: `${10 + 7 - i}` },
-      props: { fillStyle: color, strokestyke: color },
-      margins,
-    };
-  }
-
-  return CanvasRenderer.of(opts);
 }

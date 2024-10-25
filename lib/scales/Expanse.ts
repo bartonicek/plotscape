@@ -27,8 +27,7 @@ export interface ExpanseMethods<T> {
     expanse: Expanse<T>,
     zero?: number,
     one?: number,
-  ): Expanse.Value<Expanse<T>>;
-  reset(expanse: Expanse<T>, options?: Record<string, any>): void;
+  ): Expanse.Value<Expanse<T>>[] | number[];
 }
 
 export namespace Expanse {

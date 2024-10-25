@@ -1,7 +1,8 @@
 import { diff, identity, minmax, prettyBreaks } from "../utils/funs";
 import { Metadata } from "../utils/Metadata";
 import { Polymorphic } from "../utils/Polymorphic";
-import { Expanse } from "./Expanse";
+import { satisfies } from "../utils/types";
+import { Expanse, ExpanseMethods } from "./Expanse";
 
 /**
  * Converts numeric values to the [0, 1] interval and back.
@@ -15,6 +16,9 @@ export interface ExpanseContinuous extends Expanse<number> {
   defaults: ExpanseContinuous.Props;
   frozen: (keyof ExpanseContinuous.Props)[];
 }
+
+// Check that generic methods are implemented
+satisfies<ExpanseMethods<number>, typeof ExpanseContinuous>;
 
 export namespace ExpanseContinuous {
   const type = `continuous` as const;

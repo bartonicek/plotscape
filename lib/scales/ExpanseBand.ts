@@ -8,7 +8,8 @@ import {
 } from "../utils/funs";
 import { Polymorphic } from "../utils/Polymorphic";
 import { Reactive } from "../utils/Reactive";
-import { Expanse } from "./Expanse";
+import { satisfies } from "../utils/types";
+import { Expanse, ExpanseMethods } from "./Expanse";
 
 /**
  * Converts string labels to the [0, 1] interval and back, such that each
@@ -22,6 +23,9 @@ export interface ExpanseBand extends Expanse<string> {
   props: ExpanseBand.Props;
   defaults: ExpanseBand.Props;
 }
+
+// Check that generic methods are implemented
+satisfies<ExpanseMethods<string>, typeof ExpanseBand>;
 
 export namespace ExpanseBand {
   const type = `band` as const;

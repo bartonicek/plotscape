@@ -50,7 +50,7 @@ export namespace Renderer {
     throw Polymorphic.error(`resize`, `renderer`, renderer.type);
   }
 
-  export function appendDefault(_container: HTMLElement, renderer: Renderer) {
+  export function appendDefault(renderer: Renderer, _container: HTMLElement) {
     throw Polymorphic.error(`append`, `renderer`, renderer.type);
   }
 

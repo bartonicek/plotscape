@@ -1,4 +1,4 @@
-import { areNumberArrays, isNumberArray } from "../main";
+import { areNumberArrays, isNumberArray, Polymorphic } from "../main";
 import {
   baseLayers,
   DataLayer,
@@ -25,6 +25,8 @@ type FrameOptions = {
 };
 
 export namespace CanvasRenderer {
+  const type = `canvas`;
+
   export function of<T extends Record<string, FrameOptions>>(
     setup: T,
   ): CanvasRenderer<Flat<Record<keyof T, CanvasFrame>>> {
@@ -35,10 +37,17 @@ export namespace CanvasRenderer {
       if (v.props) CanvasFrame.setContext(frames[k], v.props as any);
     }
 
-    return { type: `canvas`, frames };
+    return { type, frames };
   }
 
-  export function append(contaner: HTMLElement, renderer: CanvasRenderer) {
+  Polymorphic.set(Renderer.append, type, append);
+  Polymorphic.set(Renderer.render, type, render);
+  Polymorphic.set(Renderer.clear, type, clear);
+  Polymorphic.set(Renderer.resize, type, resize);
+  Polymorphic.set(Renderer.setAlpha, type, setAlpha);
+  Polymorphic.set(Renderer.resetAlpha, type, resetAlpha);
+
+  export function append(renderer: CanvasRenderer, contaner: HTMLElement) {
     for (const frame of Object.values(renderer.frames)) {
       contaner.appendChild(frame.canvas);
     }
@@ -74,6 +83,8 @@ export namespace CanvasRenderer {
   export function render(renderer: CanvasRenderer, payload: Renderer.Payload) {
     const primitive = payload[Renderer.PRIMITIVE];
     const options = payload[Renderer.OPTIONS];
+
+    if (!primitive) return;
 
     switch (primitive) {
       case `points`: {

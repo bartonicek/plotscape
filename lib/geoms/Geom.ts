@@ -38,14 +38,15 @@ export namespace Geom {
   export function of<
     T extends { type: Geom.Type; coordinates: Dataframe[]; scales: Scales },
   >(props: T) {
-    const geom: Geom = Reactive.of<Event>()(props);
+    const geom = Reactive.of<Event>()(props);
     const coord = (last(props.coordinates) ?? Reactive.of()({})) as Reactive;
-    Reactive.propagate(coord, geom, `changed`, `coords-changed`);
+    Reactive.propagate(coord, geom as Geom, `changed`, `coords-changed`);
     return geom;
   }
 
   // Polymorphic functions
   export const render = Polymorphic.of(renderDefault);
+  export const coordinates = Polymorphic.of(coordinatesDefault);
   export const check = Polymorphic.of(checkDefault);
   export const query = Polymorphic.of(queryDefault);
 
@@ -54,6 +55,10 @@ export namespace Geom {
     _layers: DataLayers,
   ): Record<string, any> {
     throw Polymorphic.error(`render`, `geom`, geom.type);
+  }
+
+  function coordinatesDefault<T extends Geom>(geom: T): Record<string, any> {
+    throw Polymorphic.error(`coordinates`, `geom`, geom.type);
   }
 
   function checkDefault<T extends Geom>(geom: T, _selection: Rect): number[] {
