@@ -64,10 +64,7 @@ export namespace ExpanseBand {
     value: string,
   ): number | number[] {
     const { labels } = expanse.props;
-
     const index = labels.indexOf(value);
-    if (index === -1) throw new Error(`Label ${value} not found in: ${labels}`);
-
     return getMidpoint(expanse, index);
   }
 

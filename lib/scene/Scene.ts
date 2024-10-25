@@ -496,6 +496,10 @@ export namespace Scene {
     2: `group-2`,
     3: `group-3`,
   };
+
+  export function registerReducer(_scene: Scene, reducer: Reducer) {
+    Reducer.registerReducer(reducer);
+  }
 }
 
 function setupEvents(scene: Scene) {

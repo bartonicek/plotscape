@@ -1,4 +1,4 @@
-import { isObject } from "../main";
+import { isObject, isString } from "../main";
 import { Getter } from "../utils/Getter";
 import { Indexable } from "../utils/Indexable";
 import { Metadata } from "../utils/Metadata";
@@ -51,15 +51,20 @@ export namespace Reducer {
     },
   };
 
-  export function parse(value: Name | Reducer | Stringified) {
+  export function registerReducer(reducer: Reducer) {
+    // @ts-ignore
+    if (!(reducer.name in Reducer)) Reducer[reducer.name] = reducer;
+  }
+
+  export function parse(value: Name | Reducer | Reducer.Stringified) {
     if (typeof value === `string`) return Reducer[value];
-    if (
-      typeof value.initialfn === `string` &&
-      typeof value.reducefn === `string`
-    ) {
+
+    const { initialfn, reducefn } = value;
+
+    if (isString(reducefn) && isString(initialfn)) {
       const parsed = { name: value.name } as Reducer;
-      parsed.initialfn = eval(value.initialfn);
-      parsed.reducefn = eval(value.reducefn);
+      parsed.initialfn = eval(initialfn);
+      parsed.reducefn = eval(reducefn);
       return parsed;
     }
 

@@ -52,10 +52,7 @@ export namespace ExpansePoint {
   Polymorphic.set(Expanse.breaks, type, breaks);
   Polymorphic.set(Expanse.reorder, type, reorder);
 
-  export function normalize(
-    expanse: ExpansePoint,
-    value: string,
-  ): number | number[] {
+  export function normalize(expanse: ExpansePoint, value: string) {
     const { labels, order } = expanse.props;
     const index = order[labels.indexOf(value)];
     if (index === -1) return index;
