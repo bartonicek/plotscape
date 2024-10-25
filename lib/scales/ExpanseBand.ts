@@ -24,7 +24,7 @@ export interface ExpanseBand extends Expanse<string> {
   defaults: ExpanseBand.Props;
 }
 
-// Check that generic methods are implemented
+// Check that polymorphic methods are implemented
 satisfies<ExpanseMethods<string>, typeof ExpanseBand>;
 
 export namespace ExpanseBand {

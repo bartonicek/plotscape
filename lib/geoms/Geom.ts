@@ -31,6 +31,12 @@ export interface Geom<T extends Dataframe[] = Dataframe[]>
   scales: Scales;
 }
 
+export interface GeomMethods {
+  render(geom: Geom, layers: DataLayers): void;
+  check(geom: Geom, selection: Rect): number[];
+  query(geom: Geom, point: Point): Record<string, any>[] | undefined;
+}
+
 export namespace Geom {
   export type Type = `points` | `bars` | `rectangles` | `lines`;
   export type Event = `coords-changed` | `coords-swapped`;
@@ -46,7 +52,6 @@ export namespace Geom {
 
   // Polymorphic functions
   export const render = Polymorphic.of(renderDefault);
-  export const coordinates = Polymorphic.of(coordinatesDefault);
   export const check = Polymorphic.of(checkDefault);
   export const query = Polymorphic.of(queryDefault);
 
@@ -55,10 +60,6 @@ export namespace Geom {
     _layers: DataLayers,
   ): Record<string, any> {
     throw Polymorphic.error(`render`, `geom`, geom.type);
-  }
-
-  function coordinatesDefault<T extends Geom>(geom: T): Record<string, any> {
-    throw Polymorphic.error(`coordinates`, `geom`, geom.type);
   }
 
   function checkDefault<T extends Geom>(geom: T, _selection: Rect): number[] {

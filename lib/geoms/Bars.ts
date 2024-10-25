@@ -1,5 +1,4 @@
 import { CanvasFrame } from "../plot/CanvasFrame";
-import { Renderer } from "../plot/Renderer";
 import { Scale } from "../scales/Scale";
 import { Scales } from "../scales/Scales";
 import { LAYER } from "../scene/Marker";
@@ -9,8 +8,15 @@ import { pointInRect, rectsIntersect } from "../utils/funs";
 import { Getter } from "../utils/Getter";
 import { Indexable } from "../utils/Indexable";
 import { Polymorphic } from "../utils/Polymorphic";
-import { DataLayers, HAnchor, Point, Rect, VAnchor } from "../utils/types";
-import { Geom } from "./Geom";
+import {
+  DataLayers,
+  HAnchor,
+  Point,
+  Rect,
+  satisfies,
+  VAnchor,
+} from "../utils/types";
+import { Geom, GeomMethods } from "./Geom";
 
 interface Data extends Dataframe {
   x: Indexable;
@@ -28,6 +34,9 @@ export interface Bars extends Geom {
   hAnchor: HAnchor;
 }
 
+// Check that polymorphic methods are implemented
+satisfies<GeomMethods, typeof Bars>;
+
 export namespace Bars {
   const type = `bars` as const;
 
@@ -44,28 +53,10 @@ export namespace Bars {
 
   // Polymorphic method implementations
   Polymorphic.set(Geom.render, type, render);
-  Polymorphic.set(Geom.coordinates, type, coordinates as any);
   Polymorphic.set(Geom.check, type, check);
   Polymorphic.set(Geom.query, type, query);
 
-  function coordinates(bars: Bars, layers: DataLayers) {
-    const { scales, hAnchor, vAnchor } = bars;
-    const data = Geom.groupedData(bars);
-    const n = Dataframe.findLength(data);
-
-    const [x, y, width, height] = Geom.scaledArrays(n, [
-      [data.x, scales.x],
-      [data.y, scales.y],
-      [data.width, scales.width],
-      [data.height, scales.height],
-    ]);
-
-    const layer = data[LAYER];
-
-    return { [Renderer.PRIMITIVE]: `rectanglesXY`, layer, x, y, width, height };
-  }
-
-  function render(bars: Bars, layers: DataLayers) {
+  export function render(bars: Bars, layers: DataLayers) {
     const { scales, hAnchor, vAnchor } = bars;
     const data = Geom.groupedData(bars);
     const n = Dataframe.findLength(data);
@@ -81,7 +72,7 @@ export namespace Bars {
     CanvasFrame.rectanglesWH(frames, x, y, width, height, { hAnchor, vAnchor });
   }
 
-  function check(bars: Bars, selection: Rect) {
+  export function check(bars: Bars, selection: Rect) {
     const { scales, hAnchor, vAnchor } = bars;
     const data = Geom.flatData(bars);
     const n = Dataframe.findLength(data);
@@ -113,7 +104,7 @@ export namespace Bars {
     return selected;
   }
 
-  function query(bars: Bars, position: Point) {
+  export function query(bars: Bars, position: Point) {
     const { scales, hAnchor, vAnchor } = bars;
     const data = Geom.flatData(bars);
     const groupedData = Geom.groupedData(bars);

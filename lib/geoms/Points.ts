@@ -1,5 +1,4 @@
 import { CanvasFrame } from "../plot/CanvasFrame";
-import { Renderer } from "../plot/Renderer";
 import { Scale } from "../scales/Scale";
 import { Scales } from "../scales/Scales";
 import { LAYER } from "../scene/Marker";
@@ -9,8 +8,8 @@ import { pointInRect, rectsIntersect } from "../utils/funs";
 import { Getter } from "../utils/Getter";
 import { Indexable } from "../utils/Indexable";
 import { Polymorphic } from "../utils/Polymorphic";
-import { DataLayers, Point, Rect } from "../utils/types";
-import { Geom } from "./Geom";
+import { DataLayers, Point, Rect, satisfies } from "../utils/types";
+import { Geom, GeomMethods } from "./Geom";
 
 interface Data extends Dataframe {
   x: Indexable;
@@ -24,6 +23,9 @@ export interface Points extends Geom {
   scales: Scales;
 }
 
+// Check that polymorphic methods are implemented
+satisfies<GeomMethods, typeof Points>;
+
 export namespace Points {
   const type = `points` as const;
 
@@ -33,25 +35,8 @@ export namespace Points {
 
   // Polymorphic method implementations
   Polymorphic.set(Geom.render, type, render);
-  Polymorphic.set(Geom.coordinates, type, coordinates as any);
   Polymorphic.set(Geom.check, type, check);
   Polymorphic.set(Geom.query, type, query);
-
-  export function coordinates(points: Points) {
-    const { scales } = points;
-    const data = Geom.groupedData(points);
-    const n = Dataframe.findLength(data);
-
-    const [x, y, radius] = Geom.scaledArrays(n, [
-      [data.x, scales.x],
-      [data.y, scales.y],
-      [data.size, scales.size],
-    ]);
-
-    const layer = data[LAYER];
-
-    return { [Renderer.PRIMITIVE]: `points`, layer, x, y, radius };
-  }
 
   export function render(points: Points, layers: DataLayers) {
     const { scales } = points;

@@ -16,7 +16,7 @@ export interface ExpanseCompound<T extends Expanse[] = Expanse[]>
   commonScale: boolean;
 }
 
-// Check that generic methods are implemented
+// Check that polymorphic methods are implemented
 satisfies<ExpanseMethods<any[]>, typeof ExpanseCompound>;
 
 export namespace ExpanseCompound {

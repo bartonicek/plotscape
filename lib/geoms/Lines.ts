@@ -8,8 +8,8 @@ import { bimap, rectSegmentIntersect, sum } from "../utils/funs";
 import { Getter } from "../utils/Getter";
 import { Indexable } from "../utils/Indexable";
 import { Polymorphic } from "../utils/Polymorphic";
-import { DataLayers, Point, Rect } from "../utils/types";
-import { Geom } from "./Geom";
+import { DataLayers, Point, Rect, satisfies } from "../utils/types";
+import { Geom, GeomMethods } from "./Geom";
 
 interface Data extends Dataframe {
   x: Indexable<any[]>;
@@ -21,6 +21,9 @@ export interface Lines extends Geom {
   coordinates: Data[];
   scales: Scales;
 }
+
+// Check that polymorphic methods are implemented
+satisfies<GeomMethods, typeof Lines>;
 
 export namespace Lines {
   const type = `lines` as const;

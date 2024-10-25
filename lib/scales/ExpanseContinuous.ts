@@ -17,7 +17,7 @@ export interface ExpanseContinuous extends Expanse<number> {
   frozen: (keyof ExpanseContinuous.Props)[];
 }
 
-// Check that generic methods are implemented
+// Check that polymorphic methods are implemented
 satisfies<ExpanseMethods<number>, typeof ExpanseContinuous>;
 
 export namespace ExpanseContinuous {

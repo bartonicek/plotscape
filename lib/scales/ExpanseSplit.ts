@@ -12,7 +12,7 @@ export interface ExpanseSplit<T = any> extends Expanse<T[]> {
   props: { innerType: Expanse.Type };
 }
 
-// Check that generic methods are implemented
+// Check that polymorphic methods are implemented
 satisfies<ExpanseMethods<any[]>, typeof ExpanseSplit>;
 
 export namespace ExpanseSplit {

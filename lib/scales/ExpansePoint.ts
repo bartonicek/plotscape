@@ -23,7 +23,7 @@ export interface ExpansePoint extends Expanse<string> {
   frozen: (keyof ExpansePoint.Props)[];
 }
 
-// Check that generic methods are implemented
+// Check that polymorphic methods are implemented
 satisfies<ExpanseMethods<string>, typeof ExpanseBand>;
 
 export namespace ExpansePoint {
