@@ -59,18 +59,23 @@ export namespace ExpanseBand {
   Polymorphic.set(Expanse.breaks, type, breaks);
   Polymorphic.set(Expanse.reorder, type, reorder);
 
-  export function normalize(
-    expanse: ExpanseBand,
-    value: string,
-  ): number | number[] {
+  export function normalize(expanse: ExpanseBand, value: string) {
     const { labels } = expanse.props;
     const index = labels.indexOf(value);
     return getMidpoint(expanse, index);
   }
 
   export function unnormalize(expanse: ExpanseBand, value: number) {
-    const { labels } = expanse.props;
-    const index = Math.round((2 * value * labels.length - 1) / 2);
+    const { labels, cumulativeWeights } = expanse.props;
+
+    const weight = value * last(cumulativeWeights);
+    let index = 0;
+
+    while (index < cumulativeWeights.length - 1) {
+      if (cumulativeWeights[index] >= weight) break;
+      index++;
+    }
+
     return labels[index];
   }
 
