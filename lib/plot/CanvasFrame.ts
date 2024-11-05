@@ -1,11 +1,10 @@
 import { DOM } from "../utils/DOM";
 import { tw } from "../utils/funs";
-import { HAnchor, MapFn, Margins, VAnchor } from "../utils/types";
+import { HAnchor, MapFn, Margins, Rect, VAnchor } from "../utils/types";
 
 export interface CanvasFrame {
   canvas: HTMLCanvasElement;
   context: CanvasRenderingContext2D;
-  parent?: HTMLElement;
 
   width: number;
   height: number;
@@ -22,26 +21,28 @@ export type ContextProps<
 };
 
 export namespace CanvasFrame {
-  export function of(options: {
+  export interface FrameOptions {
     classes?: string;
-    margins?: [number, number, number, number];
-    canvasStyles?: Partial<CSSStyleDeclaration>;
-    contextProps?: Partial<ContextProps>;
-  }): CanvasFrame {
+    style?: Partial<CSSStyleDeclaration>;
+    context?: Partial<ContextProps>;
+    margins?: Rect;
+  }
+
+  export function of(options: FrameOptions): CanvasFrame {
     const canvas = DOM.element(`canvas`);
     const context = canvas.getContext("2d")!;
 
-    DOM.addClasses(canvas, tw(options.classes ?? ""));
-    for (const [k, v] of Object.entries(options.canvasStyles ?? {}) as any[]) {
-      canvas.style[k] = v;
-    }
+    const { classes = ``, style = {} } = options;
+
+    DOM.addClasses(canvas, tw(classes ?? ""));
+    DOM.setStyles(canvas, style);
 
     const { clientWidth, clientHeight, clientLeft, clientTop } = canvas;
 
     const width = clientWidth - clientLeft;
     const height = clientHeight - clientTop;
     const scalingFactor = 2;
-    const { margins = [0, 0, 0, 0], contextProps = {} } = options;
+    const { margins = [0, 0, 0, 0], context: props = {} } = options;
 
     return {
       canvas,
@@ -50,19 +51,18 @@ export namespace CanvasFrame {
       height,
       margins,
       scalingFactor,
-      contextProps,
+      contextProps: props,
     };
   }
 
   export function append(frame: CanvasFrame, container: HTMLElement) {
     container.appendChild(frame.canvas);
-    frame.parent = container;
     CanvasFrame.resize(frame);
   }
 
   export function setContext<K extends keyof CanvasRenderingContext2D>(
     frame: CanvasFrame,
-    props: ContextProps<K>,
+    props: Partial<ContextProps<K>>,
   ) {
     for (const [k, v] of Object.entries(props) as [K, ContextProps<K>[K]][]) {
       frame.contextProps[k] = v;

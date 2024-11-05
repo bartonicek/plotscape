@@ -1,6 +1,6 @@
 import { Polymorphic } from "../utils/Polymorphic";
-import { DataLayer, Flat, MapFn, Rect } from "../utils/types";
-import { CanvasFrame, ContextProps } from "./CanvasFrame";
+import { DataLayer, Flat, MapFn } from "../utils/types";
+import { CanvasFrame } from "./CanvasFrame";
 import { Renderer } from "./Renderer";
 
 export interface CanvasRenderer<
@@ -10,24 +10,17 @@ export interface CanvasRenderer<
   frames: Record<string, CanvasFrame>;
 }
 
-type FrameOptions = {
-  classes?: string;
-  styles?: Partial<CSSStyleDeclaration>;
-  props?: Partial<ContextProps>;
-  margins?: Rect;
-};
-
 export namespace CanvasRenderer {
   const type = `canvas`;
 
-  export function of<T extends Record<string, FrameOptions>>(
+  export function of<T extends Record<string, CanvasFrame.FrameOptions>>(
     setup: T,
   ): CanvasRenderer<Flat<Record<keyof T, CanvasFrame>>> {
     const frames = {} as Record<string, CanvasFrame>;
     for (const [k, v] of Object.entries(setup)) {
       frames[k] = CanvasFrame.of(v);
       frames[k].canvas.id = `frame-${k}`;
-      if (v.props) CanvasFrame.setContext(frames[k], v.props as any);
+      if (v.context) CanvasFrame.setContext(frames[k], v.context);
     }
 
     return { type, frames };

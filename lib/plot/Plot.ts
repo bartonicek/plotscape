@@ -124,6 +124,8 @@ export namespace Plot {
     options.renderer = options.renderer ?? `canvas`;
     const opts = { ...structuredClone(defaultOptions), ...options };
 
+    // const dataRenderer = createDataRenderer(opts);
+
     const { expandX, expandY } = opts;
     const zoomStack = [[expandX, expandY, 1 - expandX, 1 - expandY]] as Rect[];
 
@@ -726,12 +728,10 @@ function setupFrames(plot: Plot, options: GraphicalOptions) {
 
   for (const layer of dataLayers) {
     // Have to use base CSS for z-index: Tailwind classes cannnot be generated dynamically
-    const canvasStyles = { zIndex: `${7 - layer + 2}` };
+    const style = { zIndex: `${7 - layer + 2}` };
     const color = colors[layer];
-    const contextProps = { fillStyle: color, strokeStyle: color };
-
-    const props = { classes, contextProps, canvasStyles, margins };
-    const frame = CanvasFrame.of(props);
+    const context = { fillStyle: color, strokeStyle: color };
+    const frame = CanvasFrame.of({ classes, style, context, margins });
     frames[layer] = frame;
   }
 
@@ -746,17 +746,14 @@ function setupFrames(plot: Plot, options: GraphicalOptions) {
   // Have to use base CSS here too (because of dynamic variables)
   const width = `calc(100% - ${left}px - ${right}px)`;
   const height = `calc(100% - ${bottom}px - ${top}px)`;
-  const canvasStyles = { width, height, top: top + `px`, right: right + `px` };
-  const under = CanvasFrame.of({
-    classes: classes + "tw-z-1",
-    style: canvasStyles,
-  });
+  const styles = { width, height, top: top + `px`, right: right + `px` };
+  const under = CanvasFrame.of({ classes: classes + "tw-z-1", style: styles });
   DOM.setStyles(under.canvas, { background: options.plotBackground });
 
   const overClasses = "tw-z-10 tw-border tw-border-b-black tw-border-l-black";
   const over = CanvasFrame.of({
     classes: classes + overClasses,
-    style: canvasStyles,
+    style: styles,
   });
 
   const user = CanvasFrame.of({ classes: classes + "tw-z-10", margins });
@@ -788,6 +785,89 @@ function setupFrames(plot: Plot, options: GraphicalOptions) {
     CanvasFrame.append(v, container);
   }
 }
+
+// function createDataRenderer(options: GraphicalOptions) {
+//   const { margins, colors } = options;
+
+//   const dataLayers = [7, 6, 5, 4, 3, 2, 1, 0] as const;
+//   const classes = "tw-absolute tw-top-0 tw-right-0 tw-w-full tw-h-full "; // Default Tailwind classes
+//   const setup = {} as Record<string, any>;
+
+//   for (const layer of dataLayers) {
+//     const color = colors[layer];
+//     // Have to use base CSS for z-index: Tailwind classes cannnot be generated dynamically
+//     const canvasStyles = { zIndex: `${7 - layer + 2}` };
+//     const contextProps = { fillStyle: color, strokeStyle: color };
+//     setup[layer] = { classes, contextProps, canvasStyles, margins };
+//   }
+
+//   return CanvasRenderer.of(setup);
+// }
+
+// function createAuxiliaryRenderer(options: GraphicalOptions) {
+//   const { margins, colors, axisLabelSize: ls, axisTitleSize: ts } = options;
+
+//   const [bottom, left, top, right] = margins;
+//   const dataLayers = [7, 6, 5, 4, 3, 2, 1, 0] as const;
+
+//   const classes = "tw-absolute tw-top-0 tw-right-0 tw-w-full tw-h-full "; // Default Tailwind classes
+
+//   const setup: Record<string, any> = {
+//     base: {
+//       classes,
+//       props: {
+//         font: `${ts}em ${options.axisTitleFont}`,
+//         textBaseline: `middle`,
+//         textAlign: `center`,
+//       },
+//     },
+//   };
+
+//   const base = CanvasFrame.of({ classes });
+//   CanvasFrame.setContext(base, {
+//     font: `${ts}em ${options.axisTitleFont}`,
+//     textBaseline: `middle`,
+//     textAlign: `center`,
+//   });
+//   DOM.setStyles(base.canvas, { background: options.marginBackground });
+
+//   // Have to use base CSS here too (because of dynamic variables)
+//   const width = `calc(100% - ${left}px - ${right}px)`;
+//   const height = `calc(100% - ${bottom}px - ${top}px)`;
+//   const canvasStyles = { width, height, top: top + `px`, right: right + `px` };
+//   const under = CanvasFrame.of({
+//     classes: classes + "tw-z-1",
+//     canvasStyles,
+//   });
+//   DOM.setStyles(under.canvas, { background: options.plotBackground });
+
+//   const overClasses = "tw-z-10 tw-border tw-border-b-black tw-border-l-black";
+//   const over = CanvasFrame.of({
+//     classes: classes + overClasses,
+//     canvasStyles,
+//   });
+
+//   const user = CanvasFrame.of({ classes: classes + "tw-z-10", margins });
+//   CanvasFrame.setContext(user, { globalAlpha: 1 / 15 });
+
+//   const fillStyle = `#3B4854`;
+
+//   const xAxis = CanvasFrame.of({ classes: classes });
+//   CanvasFrame.setContext(xAxis, {
+//     fillStyle,
+//     textBaseline: `top`,
+//     textAlign: `center`,
+//     font: `${ls}em ${options.axisTextFont}`,
+//   });
+
+//   const yAxis = CanvasFrame.of({ classes: classes });
+//   CanvasFrame.setContext(yAxis, {
+//     fillStyle: `#3B4854`,
+//     textBaseline: `middle`,
+//     textAlign: `right`,
+//     font: `${ls}em ${options.axisTextFont}`,
+//   });
+// }
 
 function setupEvents(plot: Plot) {
   const { container, parameters } = plot;
