@@ -9,11 +9,10 @@ import type { ExpanseSplit } from "./ExpanseSplit";
 
 /** Converts values from some type to the interval [0, 1] and back. */
 export interface Expanse<T = any> extends Reactive {
-  // Type-level tags
-  readonly value: T;
-  readonly normalized: number | number[];
-
   type: Expanse.Type;
+  value: T; // Type-level information only
+  normalized: number | number[]; // ^ Same
+
   props: Record<string, any>;
   defaults: Record<string, any>;
   frozen: string[];
