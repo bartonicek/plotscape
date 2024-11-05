@@ -41,6 +41,7 @@ import {
 } from "../utils/types";
 import { Axes } from "./Axes";
 import { CanvasFrame } from "./CanvasFrame";
+import { CanvasRenderer } from "./CanvasRenderer";
 import { QueryTable } from "./Querytable";
 import { Renderer } from "./Renderer";
 
@@ -61,8 +62,8 @@ export interface Plot<
   representation: Representation;
 
   container: HTMLElement;
-  frames: Frames;
   queryTable?: HTMLTableElement;
+  frames: Frames;
 
   renderables: Geom[];
   selectables: Geom[];
@@ -78,7 +79,7 @@ export interface Plot<
     mousebutton: MouseButton;
     mousecoords: Rect;
     lastkey: string;
-    ratio?: number;
+    ratio: number | undefined;
   };
 
   options: GraphicalOptions;
@@ -125,6 +126,7 @@ export namespace Plot {
     const opts = { ...structuredClone(defaultOptions), ...options };
 
     // const dataRenderer = createDataRenderer(opts);
+    // const auxiliaryRenderer = createAuxiliaryRenderer(opts);
 
     const { expandX, expandY } = opts;
     const zoomStack = [[expandX, expandY, 1 - expandX, 1 - expandY]] as Rect[];
@@ -632,15 +634,12 @@ export namespace Plot {
     const yRatio = Scale.unitRatio(y) * ratio;
     const opts = { default: true, silent: true };
 
-    if (xRatio > yRatio) {
-      const r = (yRatio / xRatio) * Scale.unitRange(y);
-      const [zero, one] = [(1 - r) / 2, (1 + r) / 2];
-      Scale.set(x, () => ({ zero, one }), opts);
-    } else {
-      const r = (xRatio / yRatio) * Scale.unitRange(x);
-      const [zero, one] = [(1 - r) / 2, (1 + r) / 2];
-      Scale.set(y, () => ({ zero, one }), opts);
-    }
+    const [scale, other] = xRatio < yRatio ? [x, y] : [y, x];
+    let r = scale === x ? xRatio / yRatio : yRatio / xRatio;
+    r = r * Scale.unitRange(scale);
+    const [zero, one] = [(1 - r) / 2, (1 + r) / 2];
+
+    Scale.set(other, () => ({ zero, one }), opts);
   }
 
   export function getScale(plot: Plot, scale: Exclude<keyof Scales, symbol>) {
@@ -786,88 +785,82 @@ function setupFrames(plot: Plot, options: GraphicalOptions) {
   }
 }
 
-// function createDataRenderer(options: GraphicalOptions) {
-//   const { margins, colors } = options;
+function createDataRenderer(options: GraphicalOptions) {
+  const { margins, colors } = options;
 
-//   const dataLayers = [7, 6, 5, 4, 3, 2, 1, 0] as const;
-//   const classes = "tw-absolute tw-top-0 tw-right-0 tw-w-full tw-h-full "; // Default Tailwind classes
-//   const setup = {} as Record<string, any>;
+  const dataLayers = [7, 6, 5, 4, 3, 2, 1, 0] as const;
+  const classes = "tw-absolute tw-top-0 tw-right-0 tw-w-full tw-h-full "; // Default Tailwind classes
+  const config = {} as Record<string, any>;
 
-//   for (const layer of dataLayers) {
-//     const color = colors[layer];
-//     // Have to use base CSS for z-index: Tailwind classes cannnot be generated dynamically
-//     const canvasStyles = { zIndex: `${7 - layer + 2}` };
-//     const contextProps = { fillStyle: color, strokeStyle: color };
-//     setup[layer] = { classes, contextProps, canvasStyles, margins };
-//   }
+  for (const layer of dataLayers) {
+    const color = colors[layer];
+    // Have to use base CSS for z-index: Tailwind classes cannnot be generated dynamically
+    const style = { zIndex: `${7 - layer + 2}` };
+    const props = { fillStyle: color, strokeStyle: color };
+    config[layer] = { classes, style, props, margins };
+  }
 
-//   return CanvasRenderer.of(setup);
-// }
+  return CanvasRenderer.of(config);
+}
 
-// function createAuxiliaryRenderer(options: GraphicalOptions) {
-//   const { margins, colors, axisLabelSize: ls, axisTitleSize: ts } = options;
+function createAuxiliaryRenderer(options: GraphicalOptions) {
+  const { margins, axisLabelSize: ls, axisTitleSize: ts } = options;
+  const [bottom, left, top, right] = margins;
 
-//   const [bottom, left, top, right] = margins;
-//   const dataLayers = [7, 6, 5, 4, 3, 2, 1, 0] as const;
+  // Default Tailwind classes
+  const classes = "tw-absolute tw-top-0 tw-right-0 tw-w-full tw-h-full ";
 
-//   const classes = "tw-absolute tw-top-0 tw-right-0 tw-w-full tw-h-full "; // Default Tailwind classes
+  // Have to use vanilla CSS here because of dynamic variables
+  const width = `calc(100% - ${left}px - ${right}px)`;
+  const height = `calc(100% - ${bottom}px - ${top}px)`;
+  const innerStyle = { width, height, top: top + `px`, right: right + `px` };
 
-//   const setup: Record<string, any> = {
-//     base: {
-//       classes,
-//       props: {
-//         font: `${ts}em ${options.axisTitleFont}`,
-//         textBaseline: `middle`,
-//         textAlign: `center`,
-//       },
-//     },
-//   };
+  const config: Record<string, CanvasFrame.Options> = {
+    base: {
+      classes,
+      style: { background: options.marginBackground },
+      context: {
+        font: `${ts}em ${options.axisTitleFont}`,
+        textBaseline: `middle`,
+        textAlign: `center`,
+      },
+    },
+    under: {
+      classes: classes + `tw-z-1`,
+      style: { ...innerStyle, backgroundColor: options.plotBackground },
+    },
+    over: {
+      classes:
+        classes + `tw-z-10 tw-border tw-border-b-black tw-border-l-black`,
+      style: innerStyle,
+    },
+    user: {
+      classes: classes + `tw-z-10`,
+      margins,
+      context: { globalAlpha: 1 / 15 },
+    },
+    xAxis: {
+      classes,
+      context: {
+        fillStyle: `#3B4854`,
+        textBaseline: `top`,
+        textAlign: `center`,
+        font: `${ls}em ${options.axisTextFont}`,
+      },
+    },
+    yAxis: {
+      classes,
+      context: {
+        fillStyle: `#3B4854`,
+        textBaseline: `middle`,
+        textAlign: `right`,
+        font: `${ls}em ${options.axisTextFont}`,
+      },
+    },
+  };
 
-//   const base = CanvasFrame.of({ classes });
-//   CanvasFrame.setContext(base, {
-//     font: `${ts}em ${options.axisTitleFont}`,
-//     textBaseline: `middle`,
-//     textAlign: `center`,
-//   });
-//   DOM.setStyles(base.canvas, { background: options.marginBackground });
-
-//   // Have to use base CSS here too (because of dynamic variables)
-//   const width = `calc(100% - ${left}px - ${right}px)`;
-//   const height = `calc(100% - ${bottom}px - ${top}px)`;
-//   const canvasStyles = { width, height, top: top + `px`, right: right + `px` };
-//   const under = CanvasFrame.of({
-//     classes: classes + "tw-z-1",
-//     canvasStyles,
-//   });
-//   DOM.setStyles(under.canvas, { background: options.plotBackground });
-
-//   const overClasses = "tw-z-10 tw-border tw-border-b-black tw-border-l-black";
-//   const over = CanvasFrame.of({
-//     classes: classes + overClasses,
-//     canvasStyles,
-//   });
-
-//   const user = CanvasFrame.of({ classes: classes + "tw-z-10", margins });
-//   CanvasFrame.setContext(user, { globalAlpha: 1 / 15 });
-
-//   const fillStyle = `#3B4854`;
-
-//   const xAxis = CanvasFrame.of({ classes: classes });
-//   CanvasFrame.setContext(xAxis, {
-//     fillStyle,
-//     textBaseline: `top`,
-//     textAlign: `center`,
-//     font: `${ls}em ${options.axisTextFont}`,
-//   });
-
-//   const yAxis = CanvasFrame.of({ classes: classes });
-//   CanvasFrame.setContext(yAxis, {
-//     fillStyle: `#3B4854`,
-//     textBaseline: `middle`,
-//     textAlign: `right`,
-//     font: `${ls}em ${options.axisTextFont}`,
-//   });
-// }
+  return CanvasRenderer.of(config);
+}
 
 function setupEvents(plot: Plot) {
   const { container, parameters } = plot;
@@ -918,7 +911,6 @@ function setupEvents(plot: Plot) {
   });
 
   container.addEventListener(`mouseup`, () => Plot.setMousedown(plot, false));
-
   container.addEventListener(
     `mousemove`,
     throttle((e) => {
@@ -981,7 +973,7 @@ function setupScales(plot: Plot) {
   Scale.set(height, () => ({ one: 1 - 2 * ey }), opts);
   Scale.set(area, () => ({ one: 1 - 2 * Math.max(ex, ey) }), opts);
 
-  // Truncate so e.g. bars cannot have negative height
+  // Truncate so that e.g. bars cannot have negative height or width
   const trunc0 = (x: number) => Math.max(x, 0);
   Expanse.set(width.codomain, () => ({ inv: trunc0 }), opts);
   Expanse.set(height.codomain, () => ({ inv: trunc0 }), opts);

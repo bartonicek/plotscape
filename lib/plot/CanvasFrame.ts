@@ -21,14 +21,14 @@ export type ContextProps<
 };
 
 export namespace CanvasFrame {
-  export interface FrameOptions {
+  export interface Options {
     classes?: string;
     style?: Partial<CSSStyleDeclaration>;
     context?: Partial<ContextProps>;
     margins?: Rect;
   }
 
-  export function of(options: FrameOptions): CanvasFrame {
+  export function of(options: Options): CanvasFrame {
     const canvas = DOM.element(`canvas`);
     const context = canvas.getContext("2d")!;
 

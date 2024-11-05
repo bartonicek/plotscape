@@ -13,14 +13,14 @@ export interface CanvasRenderer<
 export namespace CanvasRenderer {
   const type = `canvas`;
 
-  export function of<T extends Record<string, CanvasFrame.FrameOptions>>(
-    setup: T,
+  export function of<T extends Record<string, CanvasFrame.Options>>(
+    config: T,
   ): CanvasRenderer<Flat<Record<keyof T, CanvasFrame>>> {
     const frames = {} as Record<string, CanvasFrame>;
-    for (const [k, v] of Object.entries(setup)) {
+
+    for (const [k, v] of Object.entries(config)) {
       frames[k] = CanvasFrame.of(v);
       frames[k].canvas.id = `frame-${k}`;
-      if (v.context) CanvasFrame.setContext(frames[k], v.context);
     }
 
     return { type, frames };
