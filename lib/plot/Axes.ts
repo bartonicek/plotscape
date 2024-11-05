@@ -33,7 +33,9 @@ export namespace Axes {
       const x = positions[i];
       const w = CanvasFrame.textWidth(frame, label) + 1;
 
-      if (isOutside(x, left, width - right)) continue;
+      console.log(x, left, width - right, label);
+
+      if (isOutside(x + w / 2, left, width - right)) continue;
       if (overlaps(lastX, x, lastW, w)) continue;
 
       [lastX, lastW] = [x, w];
@@ -65,7 +67,7 @@ export namespace Axes {
       const w = CanvasFrame.textWidth(frame, label) + 1;
       const h = CanvasFrame.textHeight(frame, label) + 1;
 
-      if (isOutside(y, bottom, height - top)) continue;
+      if (isOutside(y - h / 2, bottom, height - top)) continue;
       if (overlaps(lastY, y, lastH, h)) continue;
 
       // Enforce a gap between y-axis labels and title
