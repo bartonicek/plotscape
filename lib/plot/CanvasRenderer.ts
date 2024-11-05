@@ -1,12 +1,5 @@
-import { areNumberArrays, isNumberArray, Polymorphic } from "../main";
-import {
-  baseLayers,
-  DataLayer,
-  dataLayers,
-  Flat,
-  MapFn,
-  Rect,
-} from "../utils/types";
+import { Polymorphic } from "../utils/Polymorphic";
+import { DataLayer, Flat, MapFn, Rect } from "../utils/types";
 import { CanvasFrame, ContextProps } from "./CanvasFrame";
 import { Renderer } from "./Renderer";
 
@@ -53,75 +46,51 @@ export namespace CanvasRenderer {
     }
   }
 
-  export function resize(renderer: CanvasRenderer) {
-    for (const frame of Object.values(renderer.frames)) {
-      CanvasFrame.resize(frame);
-    }
+  export function resize(renderer: CanvasRenderer, frames?: string[]) {
+    frames = frames ?? Object.keys(renderer.frames);
+    for (const key of frames) CanvasFrame.resize(renderer.frames[key]);
   }
 
   export function setAlpha(
     renderer: CanvasRenderer,
     setfn: MapFn<number, number>,
+    frames?: string[],
   ) {
-    for (const layer of baseLayers) {
-      CanvasFrame.setAlpha(renderer.frames[layer], setfn);
-    }
+    frames = frames ?? Object.keys(renderer.frames);
+    for (const key of frames) CanvasFrame.setAlpha(renderer.frames[key], setfn);
   }
 
-  export function resetAlpha(renderer: CanvasRenderer) {
-    for (const layer of baseLayers) {
-      CanvasFrame.resetAlpha(renderer.frames[layer]);
-    }
+  export function resetAlpha(renderer: CanvasRenderer, frames?: string[]) {
+    frames = frames ?? Object.keys(renderer.frames);
+    for (const key of frames) CanvasFrame.resetAlpha(renderer.frames[key]);
   }
 
-  export function clear(renderer: CanvasRenderer) {
-    for (const layer of dataLayers) {
-      CanvasFrame.clear(renderer.frames[layer]);
-    }
+  export function clear(renderer: CanvasRenderer, frames?: string[]) {
+    frames = frames ?? Object.keys(renderer.frames);
+    for (const key of frames) CanvasFrame.clear(renderer.frames[key]);
   }
 
   export function render(renderer: CanvasRenderer, payload: Renderer.Payload) {
-    const primitive = payload[Renderer.PRIMITIVE];
-    const options = payload[Renderer.OPTIONS];
-
-    if (!primitive) return;
+    const primitive = payload.primitive;
 
     switch (primitive) {
       case `points`: {
-        const { layer, x, y, size } = payload;
-        if (!isNumberArray(layer)) return;
-        if (!isNumberArray(x)) return;
-        if (!isNumberArray(y)) return;
-        if (!isNumberArray(size)) return;
-        points(renderer, layer, x, y, size, options);
+        const { layer, x, y, radius, options } = payload;
+        points(renderer, layer, x, y, radius, options);
         break;
       }
       case `rectanglesXY`: {
         const { layer, x0, y0, x1, y1, area } = payload;
-        if (!isNumberArray(layer)) return;
-        if (!isNumberArray(x0)) return;
-        if (!isNumberArray(y0)) return;
-        if (!isNumberArray(x1)) return;
-        if (!isNumberArray(y1)) return;
-        if (!isNumberArray(area)) return;
         rectanglesXY(renderer, layer, x0, y0, x1, y1, area);
         break;
       }
       case `rectanglesWH`: {
-        const { layer, x, y, width, height } = payload;
-        if (!isNumberArray(layer)) return;
-        if (!isNumberArray(x)) return;
-        if (!isNumberArray(y)) return;
-        if (!isNumberArray(width)) return;
-        if (!isNumberArray(height)) return;
-        rectanglesWH(renderer, layer, x, y, width, height, options);
+        const { layer, x, y, w, h } = payload;
+        rectanglesWH(renderer, layer, x, y, w, h);
         break;
       }
       case `lines`: {
-        const { layer, x, y } = payload;
-        if (!isNumberArray(layer)) return;
-        if (!areNumberArrays(x)) return;
-        if (!areNumberArrays(y)) return;
+        const { layer, x, y } = payload as any;
         lines(renderer, layer, x, y);
         break;
       }
@@ -130,11 +99,11 @@ export namespace CanvasRenderer {
 
   export function points(
     renderer: CanvasRenderer,
-    layer: number[],
+    layer: (string | number)[],
     x: number[],
     y: number[],
     radius: number[],
-    options?: Renderer.DrawOptions,
+    options?: any,
   ) {
     const { frames } = renderer;
     for (let i = 0; i < layer.length; i++) {
@@ -145,7 +114,7 @@ export namespace CanvasRenderer {
 
   export function rectanglesXY(
     renderer: CanvasRenderer,
-    layer: number[],
+    layer: (string | number)[],
     x0: number[],
     y0: number[],
     x1: number[],
@@ -161,12 +130,12 @@ export namespace CanvasRenderer {
 
   export function rectanglesWH(
     renderer: CanvasRenderer,
-    layer: number[],
+    layer: (string | number)[],
     x: number[],
     y: number[],
     width: number[],
     height: number[],
-    options?: Renderer.DrawOptions,
+    options?: any,
   ) {
     const { frames } = renderer;
     for (let i = 0; i < layer.length; i++) {

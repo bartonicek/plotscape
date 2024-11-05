@@ -616,7 +616,7 @@ export function binBreaks(
  * @returns An array of strings (tailwind classes)
  */
 export function tw(classes: string) {
-  return classes.trim().split(/\s+/);
+  return classes === `` ? [] : classes.trim().split(/\s+/);
 }
 
 /**

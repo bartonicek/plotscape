@@ -1,6 +1,9 @@
 import "./index.css";
 
+export * from "./plot/CanvasFrame";
+export * from "./plot/CanvasRenderer";
 export * from "./plot/Plot";
+export * from "./plot/Renderer";
 export * from "./scales/Expanse";
 export * from "./scales/Scale";
 export * from "./scales/Scales";

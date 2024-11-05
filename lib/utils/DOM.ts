@@ -31,6 +31,7 @@ export namespace DOM {
   }
 
   export function addClasses(element: HTMLElement, classes: string[]) {
+    if (!classes.length) return;
     for (const c of classes) element.classList.add(c);
   }
 

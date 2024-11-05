@@ -16,19 +16,41 @@ export interface RendererMethods {
 
 export namespace Renderer {
   export type Type = `canvas` | `webgl`;
-  export const PRIMITIVE = Symbol(`primitive-type`);
-  export const OPTIONS = Symbol(`options`);
 
-  export type Primitive = `points` | `rectanglesXY` | `rectanglesWH` | `lines`;
-  export interface DrawOptions {
-    vAnchor: VAnchor;
-    hAnchor: HAnchor;
+  export interface Points {
+    primitive: `points`;
+    x: number[];
+    y: number[];
+    radius: number[];
   }
 
-  export interface Payload extends Record<string, unknown[]> {
-    [PRIMITIVE]: Primitive;
-    [OPTIONS]?: DrawOptions;
+  export interface RectanglesWH {
+    primitive: `rectanglesWH`;
+    x: number[];
+    y: number[];
+    w: number[];
+    h: number[];
   }
+
+  export interface RectanglesXY {
+    primitive: `rectanglesXY`;
+    x0: number[];
+    y0: number[];
+    x1: number[];
+    y1: number[];
+    area: number[];
+  }
+
+  export interface Lines {
+    primitive: `lines`;
+    x: number[][];
+    y: number[][];
+  }
+
+  export type Payload = (Points | RectanglesWH | RectanglesXY | Lines) & {
+    layer: (string | number)[];
+    options?: { vAnchor?: VAnchor; hAnchor?: HAnchor };
+  };
 
   // Polymorphic methods
   export const render = Polymorphic.of(renderDefault);

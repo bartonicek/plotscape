@@ -117,13 +117,11 @@ export namespace Plot {
     scales = scales ?? Scales.of();
     const frames = {} as Frames;
 
-    options.renderer = options.renderer ?? `canvas`;
-    options.colors = options.colors ?? defaultOptions.colors;
-
     const renderables = [] as Geom[];
     const selectables = [] as Geom[];
     const queryables = [] as Geom[];
 
+    options.renderer = options.renderer ?? `canvas`;
     const opts = { ...structuredClone(defaultOptions), ...options };
 
     const { expandX, expandY } = opts;
@@ -137,7 +135,7 @@ export namespace Plot {
       mode: `select`,
       mousecoords: [0, 0, 0, 0] as Rect,
       lastkey: ``,
-      ratio: options?.ratio ?? undefined,
+      ratio: options?.ratio,
     } as const;
 
     const type = options.type ?? `unknown`;
@@ -749,11 +747,17 @@ function setupFrames(plot: Plot, options: GraphicalOptions) {
   const width = `calc(100% - ${left}px - ${right}px)`;
   const height = `calc(100% - ${bottom}px - ${top}px)`;
   const canvasStyles = { width, height, top: top + `px`, right: right + `px` };
-  const under = CanvasFrame.of({ classes: classes + "tw-z-1", canvasStyles });
+  const under = CanvasFrame.of({
+    classes: classes + "tw-z-1",
+    style: canvasStyles,
+  });
   DOM.setStyles(under.canvas, { background: options.plotBackground });
 
   const overClasses = "tw-z-10 tw-border tw-border-b-black tw-border-l-black";
-  const over = CanvasFrame.of({ classes: classes + overClasses, canvasStyles });
+  const over = CanvasFrame.of({
+    classes: classes + overClasses,
+    style: canvasStyles,
+  });
 
   const user = CanvasFrame.of({ classes: classes + "tw-z-10", margins });
   CanvasFrame.setContext(user, { globalAlpha: 1 / 15 });

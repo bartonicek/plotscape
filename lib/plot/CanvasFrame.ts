@@ -25,7 +25,6 @@ export namespace CanvasFrame {
   export function of(options: {
     classes?: string;
     margins?: [number, number, number, number];
-    zIndex?: number;
     canvasStyles?: Partial<CSSStyleDeclaration>;
     contextProps?: Partial<ContextProps>;
   }): CanvasFrame {
