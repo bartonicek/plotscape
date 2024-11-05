@@ -81,23 +81,20 @@ export namespace ExpansePoint {
     }
 
     copyValues(labels, props.labels);
-    if (options?.default) copyValues(labels, expanse.defaults.labels);
-    Expanse.set(expanse, () => ({}), options); // Trigger listeners
+    if (options?.default) copyValues(labels, defaults.labels);
+    Reactive.dispatch(expanse, `changed`);
   }
 
   export function reorder(expanse: ExpansePoint, indices?: number[]) {
     const { props, defaults } = expanse;
     const { order } = props;
 
-    if (!indices) {
-      copyValues(defaults.order, order);
-      props.ordered = false;
-      Reactive.dispatch(expanse, `changed`);
-      return;
-    }
+    const isOrdered = !!indices;
+    indices = indices ?? defaults.order;
 
     copyValues(indices, order);
-    props.ordered = true;
+    props.ordered = isOrdered;
+
     Reactive.dispatch(expanse, `changed`);
   }
 

@@ -122,19 +122,13 @@ export namespace ExpanseBand {
     const { props, defaults } = expanse;
     const { order, weights, cumulativeWeights } = expanse.props;
 
-    if (!indices) {
-      copyValues(defaults.order, order);
-      copyValues(cumsum(ordered(weights, order)), cumulativeWeights);
-
-      props.ordered = false;
-      Reactive.dispatch(expanse, `changed`);
-      return;
-    }
+    const isOrdered = !!indices;
+    indices = indices ?? defaults.order;
 
     copyValues(indices, order);
-    copyValues(cumsum(ordered(weights, indices)), cumulativeWeights);
+    copyValues(cumsum(ordered(weights, order)), cumulativeWeights);
+    props.ordered = isOrdered;
 
-    props.ordered = true;
     Reactive.dispatch(expanse, `changed`);
   }
 
@@ -148,7 +142,7 @@ export namespace ExpanseBand {
     weights = weights ?? Array(props.labels.length).fill(1);
 
     if (weights.length != props.labels.length) {
-      const msg = `The length of the weights must match the length of labels`;
+      const msg = `The length of the weights must match the length of the labels`;
       throw new Error(msg);
     }
 
