@@ -33,8 +33,6 @@ export namespace Axes {
       const x = positions[i];
       const w = CanvasFrame.textWidth(frame, label) + 1;
 
-      console.log(x, left, width - right, label);
-
       if (isOutside(x + w / 2, left, width - right)) continue;
       if (overlaps(lastX, x, lastW, w)) continue;
 

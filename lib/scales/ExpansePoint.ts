@@ -82,6 +82,7 @@ export namespace ExpansePoint {
 
     copyValues(labels, props.labels);
     if (options?.default) copyValues(labels, defaults.labels);
+
     Reactive.dispatch(expanse, `changed`);
   }
 
