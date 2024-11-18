@@ -1,4 +1,13 @@
-import { diff, identity, minmax, prettyBreaks } from "../utils/funs";
+import {
+  diff,
+  exp10,
+  identity,
+  log10,
+  minmax,
+  prettyBreaks,
+  sqrt,
+  square,
+} from "../utils/funs";
 import { Metadata } from "../utils/Metadata";
 import { Polymorphic } from "../utils/Polymorphic";
 import { satisfies } from "../utils/types";
@@ -89,4 +98,9 @@ export namespace ExpanseContinuous {
     const { min, max } = expanse.props;
     return max - min;
   }
+
+  export const transformations = {
+    sqrt: { trans: sqrt, inv: square },
+    log10: { trans: log10, inv: exp10 },
+  };
 }

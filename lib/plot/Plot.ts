@@ -7,6 +7,7 @@ import { Histogram2d } from "../plots/Histogram2d";
 import { Pcoordsplot } from "../plots/Pcoordsplot";
 import { Scatterplot } from "../plots/Scatterplot";
 import { Expanse } from "../scales/Expanse";
+import { ExpanseContinuous } from "../scales/ExpanseContinuous";
 import { Scale } from "../scales/Scale";
 import { Scales } from "../scales/Scales";
 import { defaultOptions, GraphicalOptions } from "../scene/defaultOptions";
@@ -15,6 +16,7 @@ import { DOM } from "../utils/DOM";
 import {
   copyValues,
   diff,
+  identity,
   invertRange,
   isDefined,
   max,
@@ -646,41 +648,49 @@ export namespace Plot {
     return plot.scales[scale];
   }
 
+  interface ScaleOpts {
+    min?: number;
+    max?: number;
+    trans?: (x: number) => number;
+    inv?: (x: number) => number;
+    // A single string identifier for transformation (instead of trans + inv)
+    transformation?: `log10` | `sqrt`;
+    labels?: string[];
+    zero?: number;
+    one?: number;
+    mult?: number;
+    direction?: Direction;
+    default?: boolean;
+    unfreeze?: boolean;
+  }
+
   export function setScale(
     plot: Plot,
     scale: keyof Scales,
-    options: {
-      min?: number;
-      max?: number;
-      labels?: string[];
-      zero?: number;
-      one?: number;
-      mult?: number;
-      direction?: Direction;
-      default?: boolean;
-      unfreeze?: boolean;
-    },
+    options: ScaleOpts,
   ) {
-    let { min, max, zero, one, mult, labels, direction } = options;
-    const scale_ = plot.scales[scale];
-    const domain = scale_.domain;
-
     if (!Object.keys(plot.scales).includes(scale)) {
       throw new Error(`Unrecognized scale '${scale}'`);
     }
 
+    const targetScale = plot.scales[scale];
+    const domain = targetScale.domain;
     const opts = {
       default: options.default ?? false,
       unfreeze: options.unfreeze ?? false,
     };
 
-    if ([zero, one].some(isDefined)) {
-      zero = zero ?? scale_.props.zero;
-      one = one ?? scale_.props.one;
+    let { zero, one } = options;
 
-      Scale.set(scale_, () => ({ zero, one }), opts);
+    if ([zero, one].some(isDefined)) {
+      zero = zero ?? targetScale.props.zero;
+      one = one ?? targetScale.props.one;
+
+      Scale.set(targetScale, () => ({ zero, one }), opts);
       plot.parameters.ratio = undefined;
     }
+
+    let { min, max } = options;
 
     if ([min, max].some(isDefined)) {
       if (!Expanse.isContinuous(domain)) {
@@ -688,15 +698,33 @@ export namespace Plot {
       }
 
       // If we're setting either min or max manually, clear zero
-      zero = isDefined(min) ? (zero ?? 0) : scale_.props.zero;
-      one = isDefined(max) ? (one ?? 1) : scale_.props.one;
+      zero = isDefined(min) ? (zero ?? 0) : targetScale.props.zero;
+      one = isDefined(max) ? (one ?? 1) : targetScale.props.one;
       min = min ?? domain.props.min;
       max = max ?? domain.props.max;
 
       Expanse.set(domain, () => ({ min, max }), opts);
-      Scale.set(scale_, () => ({ zero, one }), opts);
+      Scale.set(targetScale, () => ({ zero, one }), opts);
       plot.parameters.ratio = undefined;
     }
+
+    const { transformation: t } = options;
+    let { trans, inv } = t ? ExpanseContinuous.transformations[t] : options;
+
+    if ([trans, inv].some(isDefined)) {
+      if (!Expanse.isContinuous(domain)) {
+        throw new Error(
+          `Transformations can only be set with a continuous domain`,
+        );
+      }
+
+      trans = trans ?? identity;
+      inv = inv ?? identity;
+
+      Expanse.set(domain, () => ({ trans, inv }), opts);
+    }
+
+    const { labels } = options;
 
     if (labels) {
       if (!Expanse.isDiscrete(domain)) {
@@ -711,8 +739,9 @@ export namespace Plot {
       Expanse.reorder(domain, indices);
     }
 
-    if (direction) Scale.set(scale_, () => ({ direction }), opts);
-    if (mult) Scale.set(scale_, () => ({ mult }), opts);
+    let { mult, direction } = options;
+    if (direction) Scale.set(targetScale, () => ({ direction }), opts);
+    if (mult) Scale.set(targetScale, () => ({ mult }), opts);
   }
 }
 
