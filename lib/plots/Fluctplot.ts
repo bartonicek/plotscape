@@ -49,7 +49,7 @@ export function Fluctuationplot<T extends Columns>(
 
   let [cat1, cat2, vals] = selectfn(data);
   const reducer = vals && options?.reducer ? options.reducer : Reducer.sum;
-  const values = vals ? [...vals] : () => 1;
+  const values = vals ? vals : () => 1;
 
   const factor1 = Factor.product(Factor.from(cat1), Factor.from(cat2));
   const factor2 = Factor.product(factor1, marker.factor);

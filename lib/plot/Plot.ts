@@ -43,7 +43,6 @@ import {
 } from "../utils/types";
 import { Axes } from "./Axes";
 import { CanvasFrame } from "./CanvasFrame";
-import { CanvasRenderer } from "./CanvasRenderer";
 import { QueryTable } from "./Querytable";
 import { Renderer } from "./Renderer";
 
@@ -814,83 +813,6 @@ function setupFrames(plot: Plot, options: GraphicalOptions) {
   }
 }
 
-function createDataRenderer(options: GraphicalOptions) {
-  const { margins, colors } = options;
-
-  const dataLayers = [7, 6, 5, 4, 3, 2, 1, 0] as const;
-  const classes = "tw-absolute tw-top-0 tw-right-0 tw-w-full tw-h-full "; // Default Tailwind classes
-  const config = {} as Record<string, any>;
-
-  for (const layer of dataLayers) {
-    const color = colors[layer];
-    // Have to use base CSS for z-index: Tailwind classes cannnot be generated dynamically
-    const style = { zIndex: `${7 - layer + 2}` };
-    const props = { fillStyle: color, strokeStyle: color };
-    config[layer] = { classes, style, props, margins };
-  }
-
-  return CanvasRenderer.of(config);
-}
-
-function createAuxiliaryRenderer(options: GraphicalOptions) {
-  const { margins, axisLabelSize: ls, axisTitleSize: ts } = options;
-  const [bottom, left, top, right] = margins;
-
-  // Default Tailwind classes
-  const classes = "tw-absolute tw-top-0 tw-right-0 tw-w-full tw-h-full ";
-
-  // Have to use vanilla CSS here because of dynamic variables
-  const width = `calc(100% - ${left}px - ${right}px)`;
-  const height = `calc(100% - ${bottom}px - ${top}px)`;
-  const innerStyle = { width, height, top: top + `px`, right: right + `px` };
-
-  const config: Record<string, CanvasFrame.Options> = {
-    base: {
-      classes,
-      style: { background: options.marginBackground },
-      context: {
-        font: `${ts}em ${options.axisTitleFont}`,
-        textBaseline: `middle`,
-        textAlign: `center`,
-      },
-    },
-    under: {
-      classes: classes + `tw-z-1`,
-      style: { ...innerStyle, backgroundColor: options.plotBackground },
-    },
-    over: {
-      classes:
-        classes + `tw-z-10 tw-border tw-border-b-black tw-border-l-black`,
-      style: innerStyle,
-    },
-    user: {
-      classes: classes + `tw-z-10`,
-      margins,
-      context: { globalAlpha: 1 / 15 },
-    },
-    xAxis: {
-      classes,
-      context: {
-        fillStyle: `#3B4854`,
-        textBaseline: `top`,
-        textAlign: `center`,
-        font: `${ls}em ${options.axisTextFont}`,
-      },
-    },
-    yAxis: {
-      classes,
-      context: {
-        fillStyle: `#3B4854`,
-        textBaseline: `middle`,
-        textAlign: `right`,
-        font: `${ls}em ${options.axisTextFont}`,
-      },
-    },
-  };
-
-  return CanvasRenderer.of(config);
-}
-
 function setupEvents(plot: Plot) {
   const { container, parameters } = plot;
   const { mousecoords } = parameters;
@@ -1007,3 +929,80 @@ function setupScales(plot: Plot) {
   Expanse.set(width.codomain, () => ({ inv: trunc0 }), opts);
   Expanse.set(height.codomain, () => ({ inv: trunc0 }), opts);
 }
+
+// function createDataRenderer(options: GraphicalOptions) {
+//   const { margins, colors } = options;
+
+//   const dataLayers = [7, 6, 5, 4, 3, 2, 1, 0] as const;
+//   const classes = "tw-absolute tw-top-0 tw-right-0 tw-w-full tw-h-full "; // Default Tailwind classes
+//   const config = {} as Record<string, any>;
+
+//   for (const layer of dataLayers) {
+//     const color = colors[layer];
+//     // Have to use base CSS for z-index: Tailwind classes cannnot be generated dynamically
+//     const style = { zIndex: `${7 - layer + 2}` };
+//     const props = { fillStyle: color, strokeStyle: color };
+//     config[layer] = { classes, style, props, margins };
+//   }
+
+//   return CanvasRenderer.of(config);
+// }
+
+// function createAuxiliaryRenderer(options: GraphicalOptions) {
+//   const { margins, axisLabelSize: ls, axisTitleSize: ts } = options;
+//   const [bottom, left, top, right] = margins;
+
+//   // Default Tailwind classes
+//   const classes = "tw-absolute tw-top-0 tw-right-0 tw-w-full tw-h-full ";
+
+//   // Have to use vanilla CSS here because of dynamic variables
+//   const width = `calc(100% - ${left}px - ${right}px)`;
+//   const height = `calc(100% - ${bottom}px - ${top}px)`;
+//   const innerStyle = { width, height, top: top + `px`, right: right + `px` };
+
+//   const config: Record<string, CanvasFrame.Options> = {
+//     base: {
+//       classes,
+//       style: { background: options.marginBackground },
+//       context: {
+//         font: `${ts}em ${options.axisTitleFont}`,
+//         textBaseline: `middle`,
+//         textAlign: `center`,
+//       },
+//     },
+//     under: {
+//       classes: classes + `tw-z-1`,
+//       style: { ...innerStyle, backgroundColor: options.plotBackground },
+//     },
+//     over: {
+//       classes:
+//         classes + `tw-z-10 tw-border tw-border-b-black tw-border-l-black`,
+//       style: innerStyle,
+//     },
+//     user: {
+//       classes: classes + `tw-z-10`,
+//       margins,
+//       context: { globalAlpha: 1 / 15 },
+//     },
+//     xAxis: {
+//       classes,
+//       context: {
+//         fillStyle: `#3B4854`,
+//         textBaseline: `top`,
+//         textAlign: `center`,
+//         font: `${ls}em ${options.axisTextFont}`,
+//       },
+//     },
+//     yAxis: {
+//       classes,
+//       context: {
+//         fillStyle: `#3B4854`,
+//         textBaseline: `middle`,
+//         textAlign: `right`,
+//         font: `${ls}em ${options.axisTextFont}`,
+//       },
+//     },
+//   };
+
+//   return CanvasRenderer.of(config);
+// }
