@@ -110,7 +110,7 @@ export namespace Scene {
 
     const queryTable = DOM.element(`table`, {
       classes: tw(
-        "tw-absolute tw-w-fit tw-h-fit tw-z-30 tw-bg-gray-100 tw-shadow-md",
+        "tw-absolute !tw-w-fit !tw-h-fit tw-z-30 tw-bg-gray-100 tw-shadow-md",
       ),
     });
     DOM.setStyles(queryTable, { pointerEvents: `none` });
