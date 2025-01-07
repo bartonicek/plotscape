@@ -32,11 +32,15 @@ export namespace QueryTable {
   function createRow(key: string, value: any, color?: string) {
     const row = DOM.element(`tr`);
     const nameCell = DOM.element(`td`, {
-      classes: tw("!tw-border !tw-border-black tw-px-3 tw-py-1"),
+      classes: tw(
+        "!tw-border !tw-border-l-1 !tw-border-r-1 !tw-border-black tw-px-3 tw-py-1",
+      ),
       textContent: key,
     });
     const valueCell = DOM.element(`td`, {
-      classes: tw("!tw-border !tw-border-black tw-px-3 tw-py-1 tw-font-mono"),
+      classes: tw(
+        "!tw-border !tw-border-l-1 !tw-border-r-1 !tw-border-black tw-px-3 tw-py-1 tw-font-mono",
+      ),
       textContent: formatLabel(value),
     });
 
